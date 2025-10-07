@@ -1,0 +1,21 @@
+yform_content_builder_title = YForm Content Builder
+yform_content_builder_description = Slice-basierter Content Builder für YForm
+
+yform_content_builder_element_add = Element hinzufügen
+yform_content_builder_element_edit = Bearbeiten
+yform_content_builder_element_delete = Löschen
+yform_content_builder_element_move = Verschieben
+
+yform_content_builder_save = Speichern
+yform_content_builder_cancel = Abbrechen
+
+yform_content_builder_empty = Noch keine Elemente vorhanden. Füge unten ein Element hinzu.
+yform_content_builder_delete_confirm = Element wirklich löschen?
+
+yform_content_builder_framework = Framework
+yform_content_builder_framework_bootstrap = Bootstrap
+yform_content_builder_framework_uikit = UIkit
+yform_content_builder_framework_plain = Plain HTML
+
+yform_content_builder_repeater_add = Hinzufügen
+yform_content_builder_repeater_remove = Entfernen

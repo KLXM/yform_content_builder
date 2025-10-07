@@ -1,0 +1,310 @@
+/* ============================================================
+   Content Builder - Cards Grid Element Styles
+   UIkit-inspired Card System for Bootstrap 3
+   ============================================================ */
+
+/* Grid Container */
+.cb-cards-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+}
+
+/* Grid Gap Variations */
+.cb-cards-gap-small {
+    margin: 0 -7.5px;
+}
+
+.cb-cards-gap-small > .cb-card-item {
+    padding: 0 7.5px 15px;
+}
+
+.cb-cards-gap-medium {
+    margin: 0 -15px;
+}
+
+.cb-cards-gap-medium > .cb-card-item {
+    padding: 0 15px 30px;
+}
+
+.cb-cards-gap-large {
+    margin: 0 -20px;
+}
+
+.cb-cards-gap-large > .cb-card-item {
+    padding: 0 20px 40px;
+}
+
+/* Grid Item */
+.cb-card-item {
+    box-sizing: border-box;
+}
+
+/* Column Widths - Desktop */
+.cb-cards-cols-2 > .cb-card-item { width: 50%; }
+.cb-cards-cols-3 > .cb-card-item { width: 33.333%; }
+.cb-cards-cols-4 > .cb-card-item { width: 25%; }
+.cb-cards-cols-5 > .cb-card-item { width: 20%; }
+.cb-cards-cols-6 > .cb-card-item { width: 16.666%; }
+
+/* Column Widths - Tablet */
+@media (max-width: 991px) {
+    .cb-cards-cols-tablet-1 > .cb-card-item { width: 100%; }
+    .cb-cards-cols-tablet-2 > .cb-card-item { width: 50%; }
+    .cb-cards-cols-tablet-3 > .cb-card-item { width: 33.333%; }
+    .cb-cards-cols-tablet-4 > .cb-card-item { width: 25%; }
+}
+
+/* Column Widths - Mobile */
+@media (max-width: 767px) {
+    .cb-cards-cols-mobile-1 > .cb-card-item { width: 100%; }
+    .cb-cards-cols-mobile-2 > .cb-card-item { width: 50%; }
+}
+
+/* Match Height */
+.cb-cards-match-height {
+    align-items: stretch;
+}
+
+.cb-cards-match-height .cb-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cb-cards-match-height .cb-card-body {
+    flex: 1;
+}
+
+/* ============================================================
+   Card Styles
+   ============================================================ */
+
+.cb-card {
+    background: #fff;
+    position: relative;
+    box-sizing: border-box;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Default Card */
+.cb-card-style-default {
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+/* Primary Card */
+.cb-card-style-primary {
+    background: #337ab7;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.cb-card-style-primary .cb-card-title {
+    color: #fff;
+}
+
+/* Secondary Card */
+.cb-card-style-secondary {
+    background: #6c757d;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.cb-card-style-secondary .cb-card-title {
+    color: #fff;
+}
+
+/* Hover Card */
+.cb-card-style-hover {
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+}
+
+.cb-card-style-hover:hover {
+    box-shadow: 0 14px 25px rgba(0,0,0,0.16);
+    transform: translateY(-5px);
+}
+
+/* ============================================================
+   Card Components
+   ============================================================ */
+
+/* Card Header */
+.cb-card-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Card Body */
+.cb-card-body {
+    padding: 20px;
+}
+
+/* Card Size Variations */
+.cb-card-size-small .cb-card-body {
+    padding: 15px;
+}
+
+.cb-card-size-large .cb-card-body {
+    padding: 30px;
+}
+
+/* Card Footer */
+.cb-card-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Card Media */
+.cb-card-media {
+    position: relative;
+    overflow: hidden;
+}
+
+.cb-card-media-top {
+    border-radius: 4px 4px 0 0;
+}
+
+.cb-card-media-bottom {
+    border-radius: 0 0 4px 4px;
+}
+
+.cb-card-media img,
+.cb-card-image img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.cb-card-style-hover:hover .cb-card-media img {
+    transform: scale(1.05);
+}
+
+/* Card Badge */
+.cb-card-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cb-card-badge-primary {
+    background: #337ab7;
+    color: #fff;
+}
+
+.cb-card-badge-success {
+    background: #5cb85c;
+    color: #fff;
+}
+
+.cb-card-badge-info {
+    background: #5bc0de;
+    color: #fff;
+}
+
+.cb-card-badge-warning {
+    background: #f0ad4e;
+    color: #fff;
+}
+
+.cb-card-badge-danger {
+    background: #d9534f;
+    color: #fff;
+}
+
+/* Card Title */
+.cb-card-title {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #333;
+}
+
+/* Card Subtitle */
+.cb-card-subtitle {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cb-card-style-primary .cb-card-subtitle,
+.cb-card-style-secondary .cb-card-subtitle {
+    color: rgba(255,255,255,0.8);
+}
+
+/* Card Text */
+.cb-card-text {
+    margin: 0 0 15px 0;
+    color: #666;
+    line-height: 1.6;
+}
+
+.cb-card-style-primary .cb-card-text,
+.cb-card-style-secondary .cb-card-text {
+    color: rgba(255,255,255,0.9);
+}
+
+/* Card Link */
+.cb-card-link {
+    display: inline-block;
+    padding: 8px 20px;
+    background: #337ab7;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.cb-card-link:hover {
+    background: #286090;
+    color: #fff;
+    text-decoration: none;
+}
+
+.cb-card-style-primary .cb-card-link {
+    background: rgba(255,255,255,0.2);
+}
+
+.cb-card-style-primary .cb-card-link:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.cb-card-style-secondary .cb-card-link {
+    background: rgba(255,255,255,0.2);
+}
+
+.cb-card-style-secondary .cb-card-link:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* ============================================================
+   Responsive Adjustments
+   ============================================================ */
+
+@media (max-width: 767px) {
+    .cb-card-title {
+        font-size: 18px;
+    }
+    
+    .cb-card-body {
+        padding: 15px;
+    }
+    
+    .cb-card-size-large .cb-card-body {
+        padding: 20px;
+    }
+}

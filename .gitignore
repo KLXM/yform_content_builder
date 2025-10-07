@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Temp files
+*~
+*.tmp
