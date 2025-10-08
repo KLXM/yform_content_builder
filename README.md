@@ -63,7 +63,11 @@ Das System versteht **verschachtelte Strukturen** und speichert Repeater-Daten k
 1. Neue Spalte erstellen
 2. Feldtyp wählen: **Content Builder**
 3. Framework wählen (bootstrap/uikit/plain)
-4. Speichern
+4. **Optional**: Erlaubte Elemente auswählen (leer = alle Elemente erlaubt)
+5. Speichern
+
+**Element-Filter:**
+Mit dem Multiselect-Feld "Erlaubte Elemente" kannst du steuern, welche Content-Elemente für dieses Feld verfügbar sein sollen. Praktisch wenn du z.B. nur Headlines und Divider erlauben möchtest, aber keine komplexen Cards oder Accordions.
 
 ### Frontend-Ausgabe
 

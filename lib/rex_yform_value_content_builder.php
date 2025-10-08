@@ -706,7 +706,11 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         return $data;
     }
 
-    protected function getAvailableElements(): array
+    /**
+     * Lädt ALLE verfügbaren Elemente (für Definition/Config)
+     * Ohne Filter durch allowed_elements
+     */
+    protected function getAllElementsForDefinition(): array
     {
         $addon = rex_addon::get('yform_content_builder');
         $elements = [];
@@ -778,6 +782,42 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         return $elements;
     }
+
+    /**
+     * Lädt verfügbare Elemente mit optionalem Filter durch allowed_elements
+     */
+    protected function getAvailableElements(): array
+    {
+        // Alle Elemente laden
+        $allElements = $this->getAllElementsForDefinition();
+        
+        // Prüfen ob allowed_elements gesetzt ist
+        $allowedElements = $this->getElement('allowed_elements');
+        
+        // Wenn allowed_elements leer ist oder nicht gesetzt: alle Elemente zurückgeben
+        if (empty($allowedElements)) {
+            return $allElements;
+        }
+        
+        // allowed_elements kann als JSON-String gespeichert sein
+        if (is_string($allowedElements)) {
+            $decoded = json_decode($allowedElements, true);
+            if (is_array($decoded)) {
+                $allowedElements = $decoded;
+            } else {
+                // Komma-separierte Liste?
+                $allowedElements = array_map('trim', explode(',', $allowedElements));
+            }
+        }
+        
+        // Nur erlaubte Elemente zurückgeben
+        if (is_array($allowedElements) && !empty($allowedElements)) {
+            return array_intersect_key($allElements, array_flip($allowedElements));
+        }
+        
+        return $allElements;
+    }
+
     
     protected function getElementPath(string $elementType): ?string
     {
@@ -848,6 +888,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
     public function getDefinitions(): array
     {
+        // Alle verfügbaren Elemente für Multiselect sammeln
+        $elementChoices = $this->buildElementChoices();
+        
         return [
             'type' => 'value',
             'name' => 'content_builder',
@@ -864,11 +907,85 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     ],
                     'default' => 'bootstrap'
                 ],
+                'allowed_elements' => [
+                    'type' => 'choice',
+                    'label' => 'Erlaubte Elemente (leer = alle)',
+                    'choices' => $elementChoices,
+                    'multiple' => true,
+                    'expanded' => false,
+                    'default' => '',
+                ],
                 'description' => ['type' => 'text', 'label' => 'Beschreibung'],
                 'notice' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_notice')],
             ],
             'description' => 'Slice-based Content Builder',
             'db_type' => ['text'],
         ];
+    }
+
+    /**
+     * Baut Element-Choices für das Definitions-Formular
+     * Statisch, damit es in getDefinitions() funktioniert
+     */
+    protected function buildElementChoices(): array
+    {
+        $addon = rex_addon::get('yform_content_builder');
+        $choices = [];
+        
+        // 1. Extension Point prüfen
+        $customPaths = rex_extension::registerPoint(new rex_extension_point(
+            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+            []
+        ));
+        
+        // 2. project AddOn prüfen
+        if (empty($customPaths) && rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
+            $projectPath = rex_addon::get('project')->getPath('elements/');
+            if (is_dir($projectPath)) {
+                $customPaths[] = $projectPath;
+            }
+        }
+        
+        // Custom Elemente
+        if (!empty($customPaths)) {
+            foreach ($customPaths as $customPath) {
+                if (!is_dir($customPath)) {
+                    continue;
+                }
+                
+                $dirs = scandir($customPath);
+                foreach ($dirs as $dir) {
+                    if ($dir === '.' || $dir === '..') {
+                        continue;
+                    }
+                    
+                    $configFile = $customPath . $dir . '/config.php';
+                    if (file_exists($configFile)) {
+                        $config = include $configFile;
+                        $choices[$dir] = $config['label'] ?? ucfirst($dir);
+                    }
+                }
+            }
+            return $choices;
+        }
+        
+        // Demo Elemente
+        $demoPath = $addon->getPath('elements/');
+        if (is_dir($demoPath)) {
+            $dirs = scandir($demoPath);
+            foreach ($dirs as $dir) {
+                if ($dir === '.' || $dir === '..') {
+                    continue;
+                }
+                
+                $configFile = $demoPath . $dir . '/config.php';
+                if (file_exists($configFile)) {
+                    $config = include $configFile;
+                    $choices[$dir] = $config['label'] ?? ucfirst($dir);
+                }
+            }
+        }
+        
+        return $choices;
     }
 }
