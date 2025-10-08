@@ -551,22 +551,31 @@
                         if (oldId && (oldId.indexOf('media_') === 0 || oldId.indexOf('REX_LINK_') === 0)) {
                             var newId = oldId.replace(/_\w+$/, '_' + Date.now() + '_' + newIndex);
                             $input.attr('id', newId);
-                            
+
                             // Zugehörige Buttons aktualisieren (data-id für Linkmap, data-input-id für Media)
                             $newItem.find('[data-id="' + oldId + '"]').attr('data-id', newId);
                             $newItem.find('[data-input-id="' + oldId + '"]').attr('data-input-id', newId);
-                            
+
                             // NAME-Input aktualisieren (für Linkmap)
                             var $nameInput = $newItem.find('#' + oldId + '_NAME');
                             if ($nameInput.length) {
                                 $nameInput.attr('id', newId + '_NAME');
                             }
-                            
+
                             // Preview-Container aktualisieren (für Media)
                             var $preview = $newItem.find('#preview_' + oldId);
                             if ($preview.length) {
                                 $preview.attr('id', 'preview_' + newId);
                             }
+
+                            // Zusätzlich: Alle anderen Referenzen auf die alte ID aktualisieren
+                            $newItem.find('[data-target]').each(function() {
+                                var $btn = $(this);
+                                var target = $btn.attr('data-target');
+                                if (target && target === '#' + oldId) {
+                                    $btn.attr('data-target', '#' + newId);
+                                }
+                            });
                         }
                         
                         if ($input.is(':checkbox') || $input.is(':radio')) {
@@ -656,6 +665,7 @@
                 $newItem.find('input, textarea, select').each(function() {
                     var $input = $(this);
                     var name = $input.attr('name');
+                    var oldId = $input.attr('id');
                     
                     if (name) {
                         // Index im Namen ersetzen (alle Vorkommen)
@@ -669,6 +679,37 @@
                             var newId = 'cke5_' + Math.random().toString(16).slice(2);
                             $input.attr('id', newId);
                             $input.removeAttr('repeater_cke'); // Damit cke5_init neue ID generiert
+                        }
+                        
+                        // Media/Link-Inputs: Neue ID generieren
+                        if (oldId && (oldId.indexOf('media_') === 0 || oldId.indexOf('REX_LINK_') === 0)) {
+                            var newId = oldId.replace(/_\w+$/, '_' + Date.now() + '_' + newIndex);
+                            $input.attr('id', newId);
+                            
+                            // Zugehörige Buttons aktualisieren (data-id für Linkmap, data-input-id für Media)
+                            $newItem.find('[data-id="' + oldId + '"]').attr('data-id', newId);
+                            $newItem.find('[data-input-id="' + oldId + '"]').attr('data-input-id', newId);
+                            
+                            // NAME-Input aktualisieren (für Linkmap)
+                            var $nameInput = $newItem.find('#' + oldId + '_NAME');
+                            if ($nameInput.length) {
+                                $nameInput.attr('id', newId + '_NAME');
+                            }
+                            
+                            // Preview-Container aktualisieren (für Media)
+                            var $preview = $newItem.find('#preview_' + oldId);
+                            if ($preview.length) {
+                                $preview.attr('id', 'preview_' + newId);
+                            }
+                            
+                            // Zusätzlich: Alle anderen Referenzen auf die alte ID aktualisieren
+                            $newItem.find('[data-target]').each(function() {
+                                var $btn = $(this);
+                                var target = $btn.attr('data-target');
+                                if (target && target === '#' + oldId) {
+                                    $btn.attr('data-target', '#' + newId);
+                                }
+                            });
                         }
                         
                         // Wert leeren
