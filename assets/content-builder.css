@@ -3,6 +3,118 @@
  * Styling für Slices, Toolbar und Drag&Drop
  */
 
+/* Media Sidebar - Off-Canvas */
+.media-sidebar {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    z-index: 9999;
+    transition: right 0.3s ease;
+}
+
+.media-sidebar.active {
+    right: 0;
+}
+
+.media-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+}
+
+.media-sidebar-content {
+    background: #fff;
+    height: 100%;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.media-sidebar-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.media-sidebar-header h4 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.media-sidebar-body {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.media-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.media-item {
+    display: block;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.media-item:hover {
+    background: #f5f5f5;
+    border-color: #337ab7;
+    text-decoration: none;
+}
+
+.media-item img {
+    max-width: 100px;
+    max-height: 80px;
+    object-fit: cover;
+    border-radius: 3px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.media-item-info {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.media-item-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.media-item-size {
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+}
+
+/* Body-Klasse für geöffnete Sidebar */
+body.media-sidebar-open {
+    overflow-x: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .media-sidebar {
+        width: 100vw;
+        right: -100vw;
+    }
+}
+
 /* Container */
 .yform-content-builder {
     position: relative;
@@ -436,6 +548,253 @@
     border: 1px solid #ddd;
     border-radius: 3px;
     padding: 5px;
+}
+
+/* Erweiterte Media Sidebar Styles */
+.media-pool-content {
+    padding: 15px;
+}
+
+.media-pool-content .media-item {
+    display: inline-block;
+    width: 120px;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    vertical-align: top;
+}
+
+.media-pool-content .media-item:hover {
+    border-color: #3c8dbc;
+    background: #f0f8ff;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.media-pool-content .media-item img {
+    max-width: 80px;
+    max-height: 80px;
+    display: block;
+    margin: 0 auto 8px;
+    object-fit: contain;
+}
+
+.media-pool-content .media-icon {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    color: #999;
+    font-size: 32px;
+}
+
+.media-pool-content .media-filename {
+    font-size: 11px;
+    word-break: break-all;
+    color: #666;
+    line-height: 1.2;
+}
+
+.media-browser-fallback {
+    padding: 20px;
+}
+
+.media-browser-fallback .media-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.media-browser-fallback .media-item {
+    width: 80px;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.media-browser-fallback .media-item:hover {
+    border-color: #3c8dbc;
+    background: #f0f8ff;
+}
+
+.media-browser-fallback .media-icon {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.media-browser-fallback .media-filename {
+    font-size: 10px;
+    word-break: break-all;
+    color: #666;
+}
+
+/* Media Browser Modal Overlay */
+.media-browser-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-browser-dialog {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.media-browser-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f5f5f5;
+    border-radius: 6px 6px 0 0;
+}
+
+.media-browser-header h3 {
+    margin: 0;
+    color: #3c8dbc;
+}
+
+.media-browser-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-browser-close:hover {
+    color: #333;
+}
+
+.media-browser-toolbar {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+}
+
+.media-browser-content {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+.media-browser-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.media-browser-item {
+    width: 120px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.media-browser-item:hover {
+    border-color: #3c8dbc;
+    background: #f0f8ff;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.media-browser-thumb {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.media-browser-thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.media-browser-thumb i {
+    color: #999;
+}
+
+.media-browser-name {
+    font-size: 11px;
+    word-break: break-all;
+    color: #666;
+}
+
+.media-browser-empty {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 16px;
+}
+
+/* Fix für Modal Scroll Problem */
+body.media-browser-open {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+/* Alternative: Spezifisch für das Media Browser Modal */
+.media-browser-overlay {
+    overflow: visible;
+}
+
+/* Verhindert Body-Scrolling bei geöffnetem Modal */
+.media-browser-overlay.modal-open {
+    overflow: visible;
+}
+
+/* Responsive Media Browser */
+@media (max-width: 768px) {
+    .media-browser-dialog {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .media-browser-item {
+        width: 100px;
+        margin: 5px;
+    }
 }
 
 

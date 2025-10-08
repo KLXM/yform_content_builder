@@ -1,6 +1,6 @@
 /**
  * YForm Content Builder JavaScript
- * Edit-on-Click & Drag-a            $(document).on('click', '.btn-delete-media', function(e) {
+ * Edit-on-Click & Drag-a                  // REX Media Browser-Buttons werden jetzt vom media-browser.js behandelt).on('click', '.btn-delete-media', function(e) {
                 e.preventDefault();
                 var inputId = $(this).data('input-id');
                 $('#' + inputId).val('');
@@ -69,20 +69,36 @@
                 self.cancelEdit($slice);
             });
             
-            // Media Browser Events
+            // Media Browser Events - Custom Off-Canvas Implementation
             $(document).on('click', '.btn-select-media', function(e) {
                 e.preventDefault();
-                var inputId = $(this).data('input-id');
-                if (window.MediaBrowser) {
-                    window.MediaBrowser.open(inputId);
-                }
+                e.stopPropagation();
+                
+                var $btn = $(this);
+                var inputId = $btn.data('input-id');
+                
+                // Debug: Loggen welcher Button geklickt wurde
+                console.log('Media button clicked for input:', inputId);
+                
+                // Media Browser wird jetzt von media-browser.js behandelt
+                console.log('Media button intercepted, handled by MediaBrowser');
+                
+                return false;
             });
             
             $(document).on('click', '.btn-delete-media', function(e) {
                 e.preventDefault();
+                
                 var inputId = $(this).data('input-id');
-                $('#' + inputId).val('');
-                $('#preview_' + inputId).hide().empty();
+                var $input = $('#' + inputId);
+                var $preview = $('#preview_' + inputId);
+                
+                console.log('Delete media for input:', inputId, 'found input:', $input.length);
+                
+                $input.val('');
+                $preview.hide().empty();
+                
+                return false;
             });
 
             // Repeater: Item hinzufügen
@@ -353,6 +369,12 @@
                 }
             });
         },
+
+        // Media-Browser-Funktionen wurden nach media-browser.js ausgelagert
+
+
+
+
 
         cancelEdit: function($slice) {
             $slice.find('.slice-edit-form').hide();

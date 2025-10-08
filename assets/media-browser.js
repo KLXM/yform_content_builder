@@ -17,11 +17,16 @@
         bindEvents: function() {
             var self = this;
 
-            // Media-Button Click
-            $(document).on('click', '.btn-select-media', function(e) {
+            // Media-Button Click - auch REX Media Buttons abfangen
+            $(document).on('click', '.btn-select-media, .rex-media-btn', function(e) {
                 e.preventDefault();
-                var inputId = $(this).data('input-id');
+                e.stopPropagation();
+                
+                var inputId = $(this).data('input-id') || $(this).data('id');
+                console.log('Media browser opening for input:', inputId);
+                
                 self.open(inputId);
+                return false;
             });
 
             // Media löschen
@@ -68,14 +73,33 @@
             // Media laden
             this.loadMedia();
             
-            // Overlay anzeigen
+            // Overlay anzeigen mit Fix für Scroll-Problem
             $('#media-browser-overlay').fadeIn(200);
-            $('body').css('overflow', 'hidden');
+            
+            // CSS-Klasse hinzufügen anstatt overflow:hidden
+            $('body').addClass('media-browser-open');
+            
+            // Zusätzlich: height:100% entfernen falls vorhanden
+            var originalHeight = $('body').css('height');
+            if (originalHeight === '100%') {
+                $('body').data('original-height', originalHeight);
+                $('body').css('height', 'auto');
+            }
         },
 
         close: function() {
             $('#media-browser-overlay').fadeOut(200);
-            $('body').css('overflow', '');
+            
+            // CSS-Klasse entfernen
+            $('body').removeClass('media-browser-open');
+            
+            // Original height wiederherstellen falls gespeichert
+            var originalHeight = $('body').data('original-height');
+            if (originalHeight) {
+                $('body').css('height', originalHeight);
+                $('body').removeData('original-height');
+            }
+            
             this.currentInputId = null;
         },
 
@@ -110,6 +134,25 @@
             
             // Kategorien laden
             this.loadCategories();
+        },
+
+        loadCategories: function() {
+            $.ajax({
+                url: window.location.href,
+                method: 'POST',
+                data: {
+                    action: 'load_media_categories'
+                },
+                success: function(response) {
+                    var data = typeof response === 'string' ? JSON.parse(response) : response;
+                    if (data.categories) {
+                        var $select = $('.media-browser-category');
+                        data.categories.forEach(function(cat) {
+                            $select.append('<option value="' + cat.id + '">' + cat.name + '</option>');
+                        });
+                    }
+                }
+            });
         },
 
         loadCategories: function() {
