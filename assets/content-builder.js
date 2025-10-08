@@ -18,6 +18,7 @@
         init: function() {
             this.bindEvents();
             this.initSortable();
+            this.updateSectionClasses();
         },
 
         bindEvents: function() {
@@ -100,6 +101,38 @@
             });
         },
 
+        /**
+         * Aktualisiert die in-section Klassen basierend auf Section-Elementen
+         */
+        updateSectionClasses: function() {
+            var $slices = $('.content-builder-slices');
+            
+            $slices.each(function() {
+                var $container = $(this);
+                var $allSlices = $container.find('.content-builder-slice');
+                var inSection = false;
+                
+                // Erst alle in-section Klassen entfernen
+                $allSlices.removeClass('in-section');
+                
+                // Dann neu zuweisen
+                $allSlices.each(function() {
+                    var $slice = $(this);
+                    var isSection = $slice.hasClass('is-section');
+                    
+                    if (isSection) {
+                        // Section-Element: Neue Section beginnt
+                        inSection = true;
+                    } else {
+                        // Normales Element: Wenn wir in einer Section sind, Klasse setzen
+                        if (inSection) {
+                            $slice.addClass('in-section');
+                        }
+                    }
+                });
+            });
+        },
+
         initSortable: function() {
             var self = this;
             var slicesContainer = document.querySelector('.content-builder-slices');
@@ -112,6 +145,7 @@
                     onEnd: function(evt) {
                         self.updateIndices();
                         self.updateHiddenField();
+                        self.updateSectionClasses(); // Nach Sortierung aktualisieren
                     }
                 });
             }
@@ -151,6 +185,30 @@
                 success: function(response) {
                     $editForm.html(response);
                     
+                    // REX Linkmap-Buttons mit Event-Delegation initialisieren
+                    $editForm.on('click', '.rex-linkmap-btn', function(e) {
+                        e.preventDefault();
+                        var $btn = $(this);
+                        var inputId = $btn.data('id');
+                        var params = $btn.data('params') || '';
+                        
+                        if (typeof openLinkMap === 'function') {
+                            openLinkMap(inputId, params);
+                        }
+                        return false;
+                    });
+                    
+                    // REX Linkmap Delete-Buttons
+                    $editForm.on('click', '.rex-linkmap-delete-btn', function(e) {
+                        e.preventDefault();
+                        var $btn = $(this);
+                        var counter = $btn.data('counter');
+                        
+                        if (typeof deleteREXLink === 'function') {
+                            deleteREXLink(counter);
+                        }
+                        return false;
+                    });
                     
                     // CKEditor 5 initialisieren - EINFACHER ANSATZ
                     setTimeout(function() {
@@ -217,6 +275,9 @@
             
             // Hidden Field updaten
             this.updateHiddenField();
+            
+            // Section-Klassen aktualisieren (falls Section gespeichert wurde)
+            this.updateSectionClasses();
         },
         
         /**
@@ -252,7 +313,32 @@
             var sliceType = $slice.data('slice-type');
             var framework = $slice.closest('.yform-content-builder').data('framework') || 'bootstrap';
             
-            // Template per AJAX laden und rendern
+            // Section-Elemente im Backend speziell rendern
+            if (sliceType === 'section') {
+                var label = sliceData.label || 'Unbenannt';
+                var bgColor = sliceData.background_color || '';
+                var customId = sliceData.custom_id || '';
+                
+                var html = '<div class="section-backend-label">' +
+                    '<i class="fa fa-object-group"></i>' +
+                    '<strong>Section:</strong> ' + $('<div>').text(label).html() +
+                    '<span class="section-info">';
+                
+                if (bgColor && bgColor !== 'none') {
+                    html += '<span class="label label-default">' + $('<div>').text(bgColor).html() + '</span>';
+                }
+                
+                if (customId) {
+                    html += '<span class="label label-info">#' + $('<div>').text(customId).html() + '</span>';
+                }
+                
+                html += '</span></div>';
+                
+                $slice.find('.slice-rendered').html(html).show();
+                return;
+            }
+            
+            // Normale Elemente: Template per AJAX laden und rendern
             $.ajax({
                 url: window.location.href,
                 method: 'POST',
@@ -308,6 +394,7 @@
                     $(this).remove();
                     self.updateIndices();
                     self.updateHiddenField();
+                    self.updateSectionClasses(); // Nach Löschen aktualisieren
                 });
             });
             
@@ -324,7 +411,10 @@
             var sliceId = 'slice_' + Date.now();
             var index = $container.children('.content-builder-slice').length;
             
-            var $newSlice = $('<div class="content-builder-slice" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + index + '">' +
+            // Section-Element?
+            var isSectionClass = (elementType === 'section') ? ' is-section' : '';
+            
+            var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + index + '">' +
                 '<div class="slice-toolbar">' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move" title="Verschieben"><i class="fa fa-arrows"></i></button>' +
@@ -340,6 +430,7 @@
             this.editSlice($newSlice);
             
             this.updateIndices();
+            this.updateSectionClasses(); // Nach Hinzufügen aktualisieren
         },
 
         getSliceData: function($slice) {
@@ -443,6 +534,7 @@
                 $newItem.find('input, textarea, select').each(function() {
                     var $input = $(this);
                     var name = $input.attr('name');
+                    var oldId = $input.attr('id');
                     
                     if (name) {
                         var newName = name.replace(/\[(\d+)\]/g, function(match, num) {
@@ -453,6 +545,28 @@
                         if ($input.hasClass('cke5-editor')) {
                             var newId = 'cke5_' + Math.random().toString(16).slice(2);
                             $input.attr('id', newId);
+                        }
+                        
+                        // Media/Link-Inputs: Neue ID generieren
+                        if (oldId && (oldId.indexOf('media_') === 0 || oldId.indexOf('REX_LINK_') === 0)) {
+                            var newId = oldId.replace(/_\w+$/, '_' + Date.now() + '_' + newIndex);
+                            $input.attr('id', newId);
+                            
+                            // Zugehörige Buttons aktualisieren (data-id für Linkmap, data-input-id für Media)
+                            $newItem.find('[data-id="' + oldId + '"]').attr('data-id', newId);
+                            $newItem.find('[data-input-id="' + oldId + '"]').attr('data-input-id', newId);
+                            
+                            // NAME-Input aktualisieren (für Linkmap)
+                            var $nameInput = $newItem.find('#' + oldId + '_NAME');
+                            if ($nameInput.length) {
+                                $nameInput.attr('id', newId + '_NAME');
+                            }
+                            
+                            // Preview-Container aktualisieren (für Media)
+                            var $preview = $newItem.find('#preview_' + oldId);
+                            if ($preview.length) {
+                                $preview.attr('id', 'preview_' + newId);
+                            }
                         }
                         
                         if ($input.is(':checkbox') || $input.is(':radio')) {

@@ -27,45 +27,54 @@
 .content-builder-slice.is-section {
     border: 2px solid #3c8dbc;
     background: linear-gradient(to bottom, #e8f4f8 0%, #f5fbfd 100%);
-    margin-bottom: 0;
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
+    margin-bottom: 10px;
 }
 
 .content-builder-slice.is-section .slice-rendered {
-    padding: 10px 15px;
-    font-weight: bold;
+    padding: 15px;
+}
+
+/* Section Backend Label */
+.section-backend-label {
+    font-size: 14px;
     color: #3c8dbc;
 }
 
-/* Elemente innerhalb einer Section: Eingerückt */
+.section-backend-label i {
+    margin-right: 5px;
+}
+
+.section-backend-label .section-info {
+    margin-left: 10px;
+}
+
+.section-backend-label .label {
+    font-size: 11px;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+/* Elemente innerhalb einer Section: Eingerückt (via JS-Klasse) */
 .content-builder-slice.in-section {
     margin-left: 30px;
     margin-bottom: 15px;
     border-left: 3px solid #3c8dbc;
     background: #fafafa;
+    position: relative;
 }
 
-/* Section-Wrapper */
-.section-wrapper {
-    margin-bottom: 20px;
-    border: 2px solid #3c8dbc;
-    border-radius: 4px;
-    background: #fff;
+.content-builder-slice.in-section::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: -15px;
+    width: 3px;
+    height: 15px;
+    background: #3c8dbc;
 }
 
-.section-header {
-    border-bottom: 1px solid #d0e8f0;
-}
-
-.section-content {
-    padding: 15px;
-    background: #f9f9f9;
-    border-radius: 0 0 4px 4px;
-}
-
-.section-content .content-builder-slice:last-child {
-    margin-bottom: 0;
+.content-builder-slice.in-section:first-of-type::before {
+    display: none;
 }
 
 .content-builder-slice:hover {
