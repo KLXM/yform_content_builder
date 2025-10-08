@@ -8,6 +8,7 @@ class yform_content_builder_helper
 {
     /**
      * Rendert Content Builder Slices im Frontend
+     * Mit Auto-Close-Unterstützung für Section-Elemente
      *
      * @param string $jsonContent JSON-String mit Slices
      * @param string $framework Framework für Templates (bootstrap|uikit|plain)
@@ -22,12 +23,82 @@ class yform_content_builder_helper
         }
         
         $output = '';
+        $openSection = false;
+        $sectionCount = count(array_filter($slices, function($s) { return ($s['type'] ?? '') === 'section'; }));
         
-        foreach ($slices as $slice) {
-            $output .= self::renderSlice($slice, $framework);
+        foreach ($slices as $index => $slice) {
+            $sliceType = $slice['type'] ?? '';
+            
+            // Ist das aktuelle Element eine Section?
+            $isSection = ($sliceType === 'section');
+            
+            // Prüfen ob das nächste Element auch eine Section ist
+            $nextIsSection = false;
+            if (isset($slices[$index + 1])) {
+                $nextIsSection = ($slices[$index + 1]['type'] ?? '') === 'section';
+            }
+            
+            // Ist das letzte Element?
+            $isLast = ($index === count($slices) - 1);
+            
+            if ($isSection) {
+                // Vorherige Section schließen, wenn offen
+                if ($openSection) {
+                    $output .= self::renderSectionClose($framework);
+                }
+                
+                // Neue Section öffnen
+                $output .= self::renderSlice($slice, $framework, 'open');
+                $openSection = true;
+                
+            } else {
+                // Normales Element
+                $output .= self::renderSlice($slice, $framework);
+                
+                // Section schließen wenn:
+                // - Nächstes Element ist Section ODER
+                // - Dies ist das letzte Element und eine Section ist offen
+                if ($openSection && ($nextIsSection || $isLast)) {
+                    $output .= self::renderSectionClose($framework);
+                    $openSection = false;
+                }
+            }
+        }
+        
+        // Sicherheit: Offene Section am Ende schließen
+        if ($openSection) {
+            $output .= self::renderSectionClose($framework);
         }
         
         return $output;
+    }
+
+    /**
+     * Schließt eine offene Section
+     *
+     * @param string $framework Framework
+     * @return string HTML-Ausgabe
+     */
+    protected static function renderSectionClose(string $framework): string
+    {
+        $addon = rex_addon::get('yform_content_builder');
+        $elementPath = $addon->getPath('elements/section');
+        $templateFile = $elementPath . '/templates/' . $framework . '.php';
+        
+        if (!file_exists($templateFile)) {
+            $templateFile = $elementPath . '/templates/plain.php';
+        }
+        
+        if (!file_exists($templateFile)) {
+            return '</section>'; // Fallback
+        }
+        
+        $closeType = 'close';
+        $elementData = [];
+        
+        ob_start();
+        include $templateFile;
+        return ob_get_clean();
     }
 
     /**
@@ -35,9 +106,10 @@ class yform_content_builder_helper
      *
      * @param array $slice Slice-Daten
      * @param string $framework Framework
+     * @param string $closeType Optional: 'open' oder 'close' für Section-Elemente
      * @return string HTML-Ausgabe
      */
-    protected static function renderSlice(array $slice, string $framework): string
+    protected static function renderSlice(array $slice, string $framework, string $closeType = null): string
     {
         $sliceType = $slice['type'] ?? '';
         $elementData = $slice['data'] ?? [];

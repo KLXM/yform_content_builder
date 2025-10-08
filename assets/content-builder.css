@@ -23,6 +23,51 @@
     transition: all 0.2s ease;
 }
 
+/* Section-Element: Visuell hervorgehoben */
+.content-builder-slice.is-section {
+    border: 2px solid #3c8dbc;
+    background: linear-gradient(to bottom, #e8f4f8 0%, #f5fbfd 100%);
+    margin-bottom: 0;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+}
+
+.content-builder-slice.is-section .slice-rendered {
+    padding: 10px 15px;
+    font-weight: bold;
+    color: #3c8dbc;
+}
+
+/* Elemente innerhalb einer Section: Eingerückt */
+.content-builder-slice.in-section {
+    margin-left: 30px;
+    margin-bottom: 15px;
+    border-left: 3px solid #3c8dbc;
+    background: #fafafa;
+}
+
+/* Section-Wrapper */
+.section-wrapper {
+    margin-bottom: 20px;
+    border: 2px solid #3c8dbc;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.section-header {
+    border-bottom: 1px solid #d0e8f0;
+}
+
+.section-content {
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 0 0 4px 4px;
+}
+
+.section-content .content-builder-slice:last-child {
+    margin-bottom: 0;
+}
+
 .content-builder-slice:hover {
     border-color: #3c8dbc;
     box-shadow: 0 2px 8px rgba(60, 141, 188, 0.2);

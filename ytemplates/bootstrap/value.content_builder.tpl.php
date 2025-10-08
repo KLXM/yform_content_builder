@@ -30,12 +30,31 @@ if ($required) {
     
     <div class="content-builder-slices">
         <?php if (!empty($value)): ?>
-            <?php foreach ($value as $index => $slice): ?>
-                <?php
-                // Element-Template direkt einbinden (ohne renderSlice-Wrapper)
+            <?php 
+            $inSection = false;
+            foreach ($value as $index => $slice): 
                 $sliceId = $slice['id'] ?? 'slice_' . uniqid();
                 $sliceType = $slice['type'];
                 $elementData = $slice['data'] ?? [];
+                
+                // Section-Element?
+                $isSection = ($sliceType === 'section');
+                
+                // Nächstes Element auch Section?
+                $nextIsSection = false;
+                if (isset($value[$index + 1])) {
+                    $nextIsSection = ($value[$index + 1]['type'] ?? '') === 'section';
+                }
+                
+                // Letztes Element?
+                $isLast = ($index === count($value) - 1);
+                
+                // Section schließen vor neuem Section-Element
+                if ($inSection && $isSection):
+                    echo '</div>'; // section-content
+                    echo '</div>'; // section-wrapper
+                    $inSection = false;
+                endif;
                 
                 $addon = rex_addon::get('yform_content_builder');
                 $elementPath = $addon->getPath('elements/' . $sliceType);
@@ -44,9 +63,16 @@ if ($required) {
                 if (!file_exists($templateFile)) {
                     $templateFile = $elementPath . '/templates/plain.php';
                 }
+                
+                // Section-Element öffnet Wrapper
+                if ($isSection && !$inSection):
+                    echo '<div class="section-wrapper">';
+                    echo '<div class="section-header">';
+                    $inSection = true;
+                endif;
                 ?>
                 
-                <div class="content-builder-slice" 
+                <div class="content-builder-slice <?= $isSection ? 'is-section' : '' ?> <?= $inSection && !$isSection ? 'in-section' : '' ?>" 
                      data-slice-id="<?= rex_escape($sliceId) ?>"
                      data-slice-type="<?= rex_escape($sliceType) ?>"
                      data-slice-index="<?= $index ?>"
@@ -76,7 +102,30 @@ if ($required) {
                         <!-- Wird per AJAX mit YForm-Formular gefüllt -->
                     </div>
                 </div>
+                
+                <?php
+                // Nach Section-Element: Content-Wrapper öffnen
+                if ($isSection && $inSection):
+                    echo '</div>'; // section-header
+                    echo '<div class="section-content">';
+                endif;
+                
+                // Section schließen am Ende oder vor neuem Section
+                if ($inSection && !$isSection && ($nextIsSection || $isLast)):
+                    echo '</div>'; // section-content
+                    echo '</div>'; // section-wrapper
+                    $inSection = false;
+                endif;
+                ?>
             <?php endforeach; ?>
+            
+            <?php 
+            // Sicherheit: Offene Section am Ende schließen
+            if ($inSection):
+                echo '</div>'; // section-content
+                echo '</div>'; // section-wrapper
+            endif;
+            ?>
         <?php endif; ?>
     </div>
     

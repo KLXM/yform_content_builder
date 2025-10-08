@@ -1,0 +1,116 @@
+<?php
+/**
+ * UIkit Template für Section Element
+ * @var array $elementData
+ * @var string $closeType 'open', 'close', or null
+ */
+
+$label = $elementData['label'] ?? '';
+$bgColor = $elementData['background_color'] ?? 'light';
+$bgImage = $elementData['background_image'] ?? '';
+$paddingTop = $elementData['padding_top'] ?? 'medium';
+$paddingBottom = $elementData['padding_bottom'] ?? 'medium';
+$container = $elementData['container'] ?? 'container';
+$textAlign = $elementData['text_align'] ?? '';
+$customClass = $elementData['custom_class'] ?? '';
+$customId = $elementData['custom_id'] ?? '';
+
+// Padding-Mapping für UIkit
+$paddingMap = [
+    'none' => '',
+    'small' => 'uk-section-small',
+    'medium' => 'uk-section',
+    'large' => 'uk-section-large',
+    'xlarge' => 'uk-section-xlarge'
+];
+
+// Background-Klassen für UIkit
+$bgClasses = [
+    'none' => '',
+    'light' => 'uk-section-muted',
+    'dark' => 'uk-section-secondary',
+    'primary' => 'uk-section-primary',
+    'secondary' => 'uk-section-secondary',
+    'muted' => 'uk-section-muted',
+    'white' => ''
+];
+
+$classes = [];
+
+// Section class
+if (isset($paddingMap[$paddingTop]) && isset($paddingMap[$paddingBottom])) {
+    // Bei unterschiedlichen Paddings: Basis verwenden
+    if ($paddingTop === $paddingBottom && !empty($paddingMap[$paddingTop])) {
+        $classes[] = $paddingMap[$paddingTop];
+    } else {
+        $classes[] = 'uk-section';
+    }
+}
+
+// Background
+if (!empty($bgImage)) {
+    $classes[] = 'uk-background-cover uk-background-center-center';
+} elseif (isset($bgClasses[$bgColor]) && $bgClasses[$bgColor]) {
+    $classes[] = $bgClasses[$bgColor];
+}
+
+// Text Align
+if ($textAlign) {
+    $classes[] = 'uk-text-' . $textAlign;
+}
+
+// Custom Class
+if ($customClass) {
+    $classes[] = $customClass;
+}
+
+$classString = implode(' ', $classes);
+
+// Style für Hintergrundbild
+$style = '';
+if ($bgImage) {
+    $style = ' style="background-image: url(' . rex_url::media($bgImage) . ');"';
+}
+
+// ID-Attribut
+$idAttr = $customId ? ' id="' . rex_escape($customId) . '"' : '';
+
+// Container-Klasse für UIkit
+$containerClass = 'uk-container';
+if ($container === 'container-fluid') {
+    $containerClass = 'uk-container uk-container-expand';
+}
+
+// Wenn closeType gesetzt ist, nur öffnen oder schließen
+if (isset($closeType)) {
+    if ($closeType === 'close') {
+        // Section schließen
+        if ($container !== 'none') {
+            echo '    </div>' . "\n"; // Container schließen
+        }
+        echo '</section>' . "\n";
+        return;
+    }
+    
+    if ($closeType === 'open') {
+        // Section öffnen
+        echo '<section class="' . $classString . '"' . $idAttr . $style . '>' . "\n";
+        if ($container !== 'none') {
+            echo '    <div class="' . rex_escape($containerClass) . '">' . "\n";
+        }
+        return;
+    }
+}
+
+// Fallback: Normaler Output (sollte nicht verwendet werden)
+?>
+<!-- Section: <?= rex_escape($label ?: 'Unbenannt') ?> -->
+<section class="<?= $classString ?>"<?= $idAttr ?><?= $style ?>>
+    <?php if ($container !== 'none'): ?>
+    <div class="<?= rex_escape($containerClass) ?>">
+    <?php endif; ?>
+        <!-- Nachfolgende Elemente werden hier eingefügt -->
+    <?php if ($container !== 'none'): ?>
+    </div>
+    <?php endif; ?>
+</section>

@@ -4,7 +4,9 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 
 ## ✨ Features
 
-- **6 Content-Elemente**: Text & Bild, Accordion/Tabs, Headline, Divider, Cards Grid - sofort einsatzbereit
+- **7 Content-Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards - sofort einsatzbereit
+- **Auto-Close Sections**: Visueller Container für Abschnitte ohne verschachtelte Hierarchie
+- **Element-Filter**: Kontrolle welche Elemente pro Feld verfügbar sind (Multiselect)
 - **Click-to-Edit Workflow**: Intuitives Bearbeiten per Edit-Button
 - **Drag & Drop**: Sortierbare Elemente mit Sortable.js (aus Blocks Addon)
 - **Framework-agnostic**: Templates für Bootstrap 3, UIkit3 und Plain HTML
@@ -13,9 +15,9 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 - **Custom Media Browser**: Moderner Overlay-basierter Medienbrowser
 - **Linkmap-Widget**: Vollständige REDAXO Linkmap-Integration
 - **Repeater-Felder**: Dynamische Unterelemente (z.B. Accordion-Items, Cards)
-- **Tab-Gruppierung**: Übersichtliche Formulare durch Tab-Organisation mit Icons
+- **Modal-Gruppierung**: Übersichtliche Formulare durch Modal-Organisation
 - **Element-Discovery**: Automatisches Laden aller Elemente aus `/elements/` Verzeichnis
-- **Custom CSS Support**: Eigene Stylesheets für spezielle Elemente (Divider, Cards)
+- **Custom Elements**: Eigene Elemente via Extension Point oder `project/elements/`
 - **Nested Data Structure**: Intelligente Verarbeitung verschachtelter Array-Daten
 - **Production Ready**: Vollständig getestet mit echten Use Cases
 
@@ -84,19 +86,31 @@ echo ContentBuilderHelper::render($contentData, 'bootstrap');
 
 ## 🎯 Verfügbare Elemente
 
-### 1. Text & Bild
+### 1. Section / Container (Auto-Close)
+**Innovativ**: Definiert visuelle Abschnitte mit Hintergrund, ohne die flache Hierarchie zu brechen.
+
+- **Auto-Close**: Nächste Section schließt vorherige automatisch
+- **Visuell gruppiert**: Eingerückte Darstellung im Backend
+- **Hintergründe**: Farben oder Bilder
+- **Abstände**: 5 Padding-Stufen (none bis xlarge)
+- **Container**: max-width, fluid oder kein Container
+- **Anker-IDs**: Für Navigation und Scroll-Links
+
+**Siehe**: `SECTION_ELEMENT.md` für Details
+
+### 2. Text & Bild
 Flexibles Element für Text-Bild-Kombinationen mit 4 Layouts, CKE5, Bildverhältnissen, Links (extern/intern), Farben und Spacing.
 
-### 2. Accordion / Tabs
+### 3. Accordion / Tabs
 Aufklappbare Inhaltsblöcke oder Tab-Navigation mit 4 Styles, Icons und unbegrenzt Items.
 
-### 3. Headline
+### 4. Headline
 Überschrift-Element mit H1-H6, 3 Größen, Ausrichtung, 7 Farben, optionaler Unterstreichung und Links.
 
-### 4. Divider
+### 5. Divider
 Trennlinien mit 9 Styles inkl. **animiertem Scroll-Chevron**, Icons, Text und Farbverlauf.
 
-### 5. Cards Grid
+### 6. Cards Grid
 UIkit-inspiriertes Grid mit Match Height, 4 Card-Styles, responsive Spalten und CKE5.
 
 ### 6. Weitere Elemente
