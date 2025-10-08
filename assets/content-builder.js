@@ -233,6 +233,7 @@
             var $editForm = $slice.find('.slice-edit-form');
             var sliceData = {};
             
+            console.log('[CARDS DEBUG] saveSlice called for type:', $slice.data('slice-type'));
             
             // WICHTIG: CKE5-Instanzen in Textareas zurückschreiben
             $editForm.find('textarea.cke5-editor').each(function() {
@@ -255,13 +256,24 @@
                 var name = $field.attr('name');
                 var value = $field.val();
                 
+                // DEBUG: Speziell für Image-Felder loggen
+                if (name && name.indexOf('[image]') !== -1) {
+                    console.log('[CARDS DEBUG] Found image field:', name, '=', value);
+                }
                 
                 if (name && value !== undefined && value !== '') {
                     // Verschachteltes Objekt erstellen aus Bracket-Notation
                     self.setNestedValue(sliceData, name, value);
+                    
+                    // DEBUG: Nach setNestedValue nochmal loggen
+                    if (name && name.indexOf('[image]') !== -1) {
+                        console.log('[CARDS DEBUG] Image field set in sliceData:', name, '=', value);
+                    }
                 }
             });
             
+            console.log('[CARDS DEBUG] Final sliceData before save:', sliceData);
+            console.log('[CARDS DEBUG] sliceData.items:', sliceData.items);
             
             // Slice-Daten als Attribut UND als jQuery data speichern
             $slice.attr('data-slice-data', JSON.stringify(sliceData));
@@ -313,6 +325,11 @@
             var sliceType = $slice.data('slice-type');
             var framework = $slice.closest('.yform-content-builder').data('framework') || 'bootstrap';
             
+            // DEBUG: Log für Slice-Rendering
+            console.log('[CARDS DEBUG] renderSlice called for type:', sliceType);
+            console.log('[CARDS DEBUG] sliceData:', sliceData);
+            console.log('[CARDS DEBUG] Framework:', framework);
+            
             // Section-Elemente im Backend speziell rendern
             if (sliceType === 'section') {
                 var label = sliceData.label || 'Unbenannt';
@@ -339,6 +356,7 @@
             }
             
             // Normale Elemente: Template per AJAX laden und rendern
+            console.log('[CARDS DEBUG] Starting AJAX request for slice rendering');
             $.ajax({
                 url: window.location.href,
                 method: 'POST',
@@ -349,7 +367,13 @@
                     framework: framework
                 },
                 success: function(response) {
+                    console.log('[CARDS DEBUG] AJAX success, response length:', response.length);
+                    console.log('[CARDS DEBUG] Response content:', response.substring(0, 500) + '...');
                     $slice.find('.slice-rendered').html(response).show();
+                },
+                error: function(xhr, status, error) {
+                    console.error('[CARDS DEBUG] AJAX error:', status, error);
+                    console.error('[CARDS DEBUG] Response:', xhr.responseText);
                 }
             });
         },
@@ -580,6 +604,16 @@
                         
                         if ($input.is(':checkbox') || $input.is(':radio')) {
                             $input.prop('checked', false);
+                        } else if ($input.is('select')) {
+                            // For select fields, check if there's a default selected option
+                            var $defaultOption = $input.find('option[selected]');
+                            if ($defaultOption.length > 0) {
+                                $input.val($defaultOption.val());
+                            } else {
+                                // If no default, select first option
+                                var firstValue = $input.find('option:first').val();
+                                $input.val(firstValue);
+                            }
                         } else {
                             $input.val('');
                         }

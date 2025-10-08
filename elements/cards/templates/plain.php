@@ -21,6 +21,11 @@ $gridClass = 'cb-cards-grid cb-cards-cols-' . $columns;
         $subtitle = $item['subtitle'] ?? '';
         $text = $item['text'] ?? '';
         $image = $item['image'] ?? '';
+        $imagePosition = $item['image_position'] ?? 'top';
+        // Fix: Ensure imagePosition is never null or empty
+        if (empty($imagePosition)) {
+            $imagePosition = 'top';
+        }
         $badge = $item['badge'] ?? '';
         $linkType = $item['link_type'] ?? '';
         $linkUrl = $item['link_url'] ?? '';

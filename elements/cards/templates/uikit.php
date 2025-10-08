@@ -80,6 +80,10 @@ $cardClassStr = implode(' ', $cardClasses);
         $text = $item['text'] ?? '';
         $image = $item['image'] ?? '';
         $imagePosition = $item['image_position'] ?? 'top';
+        // Fix: Ensure imagePosition is never null or empty
+        if (empty($imagePosition)) {
+            $imagePosition = 'top';
+        }
         $badge = $item['badge'] ?? '';
         $badgeColor = $item['badge_color'] ?? 'primary';
         $linkType = $item['link_type'] ?? '';

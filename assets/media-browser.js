@@ -68,14 +68,37 @@
             // Media laden
             this.loadMedia();
             
+            // Aktuelle Scroll-Position speichern
+            this.scrollTop = $(window).scrollTop();
+            
             // Overlay anzeigen
             $('#media-browser-overlay').fadeIn(200);
-            $('body').css('overflow', 'hidden');
+            
+            // Body overflow hidden setzen, aber Scroll-Position beibehalten
+            $('body').addClass('media-browser-open').css({
+                'overflow': 'hidden',
+                'position': 'fixed',
+                'top': -this.scrollTop + 'px',
+                'width': '100%'
+            });
         },
 
         close: function() {
             $('#media-browser-overlay').fadeOut(200);
-            $('body').css('overflow', '');
+            
+            // Body-Styles zurücksetzen und Scroll-Position wiederherstellen
+            $('body').removeClass('media-browser-open').css({
+                'overflow': '',
+                'position': '',
+                'top': '',
+                'width': ''
+            });
+            
+            // Scroll-Position wiederherstellen
+            if (this.scrollTop) {
+                $(window).scrollTop(this.scrollTop);
+            }
+            
             this.currentInputId = null;
         },
 
