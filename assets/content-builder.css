@@ -784,6 +784,27 @@ body.media-browser-open {
     overflow: visible;
 }
 
+/* Deaktivierte Buttons während Edit-Modus */
+.btn-add-slice.disabled,
+.btn-slice-edit.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-add-slice.disabled:hover,
+.btn-slice-edit.disabled:hover {
+    background: inherit;
+    color: inherit;
+    transform: none;
+}
+
+/* Tooltip für deaktivierte Buttons */
+.btn-add-slice.disabled,
+.btn-slice-edit.disabled {
+    position: relative;
+}
+
 /* Responsive Media Browser */
 @media (max-width: 768px) {
     .media-browser-dialog {

@@ -42,13 +42,28 @@
             $(document).on('click', '.btn-slice-edit', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                
                 var $slice = $(this).closest('.content-builder-slice');
+                
+                // Prüfen ob bereits ein anderes Element im Bearbeitungsmodus ist
+                if (self.hasOpenEditForm() && !$slice.find('.slice-edit-form:visible').length) {
+                    alert('Bitte speichern oder verwerfen Sie zuerst das geöffnete Element, bevor Sie ein anderes bearbeiten.');
+                    return false;
+                }
+                
                 self.editSlice($slice);
             });
 
             // Neues Slice hinzufügen
             $(document).on('click', '.btn-add-slice', function(e) {
                 e.preventDefault();
+                
+                // Prüfen ob bereits ein Element im Bearbeitungsmodus ist
+                if (self.hasOpenEditForm()) {
+                    alert('Bitte speichern oder verwerfen Sie zuerst das geöffnete Element, bevor Sie ein neues hinzufügen.');
+                    return false;
+                }
+                
                 var elementType = $(this).data('element-type');
                 var elementLabel = $(this).data('element-label');
                 var $container = $(this).closest('.yform-content-builder').find('.content-builder-slices');
@@ -181,6 +196,9 @@
             }
             
             $editForm.show();
+            
+            // Button-Zustände aktualisieren
+            this.updateButtonStates();
         },
 
         loadSliceForm: function($slice) {
@@ -372,14 +390,40 @@
 
         // Media-Browser-Funktionen wurden nach media-browser.js ausgelagert
 
+        hasOpenEditForm: function() {
+            // Prüft ob aktuell ein Edit-Formular sichtbar ist
+            return $('.slice-edit-form:visible').length > 0;
+        },
 
-
-
+        updateButtonStates: function() {
+            // Button-Zustände basierend auf geöffneten Edit-Formularen aktualisieren
+            var hasOpenForm = this.hasOpenEditForm();
+            
+            if (hasOpenForm) {
+                // Add-Buttons deaktivieren und visuell kennzeichnen
+                $('.btn-add-slice').addClass('disabled').prop('disabled', true)
+                    .attr('title', 'Speichern Sie zuerst das geöffnete Element');
+                
+                // Edit-Buttons anderer Elemente deaktivieren
+                $('.slice-edit-form:hidden').closest('.content-builder-slice')
+                    .find('.btn-slice-edit').addClass('disabled').prop('disabled', true)
+                    .attr('title', 'Speichern Sie zuerst das geöffnete Element');
+            } else {
+                // Alle Buttons wieder aktivieren
+                $('.btn-add-slice').removeClass('disabled').prop('disabled', false)
+                    .removeAttr('title');
+                $('.btn-slice-edit').removeClass('disabled').prop('disabled', false)
+                    .removeAttr('title');
+            }
+        },
 
         cancelEdit: function($slice) {
             $slice.find('.slice-edit-form').hide();
             $slice.find('.slice-rendered').show();
             $slice.find('.slice-toolbar').show();
+            
+            // Button-Zustände aktualisieren
+            this.updateButtonStates();
         },
 
         deleteSlice: function($slice) {
