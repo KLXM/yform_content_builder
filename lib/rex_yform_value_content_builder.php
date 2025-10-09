@@ -680,6 +680,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         header('Content-Type: application/json');
         echo json_encode(['categories' => $categories]);
+        exit;
     }
     
     /**
@@ -724,6 +725,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         header('Content-Type: application/json');
         echo json_encode(['media' => $media]);
+        exit;
     }
     
     /**
