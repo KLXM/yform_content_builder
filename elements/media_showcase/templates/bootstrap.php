@@ -12,18 +12,6 @@ $autoplay = !empty($elementData['autoplay']);
 $controls = !empty($elementData['controls']);
 $muted = !empty($elementData['muted']);
 
-// Helper function für Video-Erkennung
-function isVideo($filename) {
-    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    return in_array($ext, ['mp4', 'webm', 'mov', 'avi', 'mkv', 'ogg']);
-}
-
-// Helper function für Bild-Erkennung  
-function isImage($filename) {
-    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp']);
-}
-
 // Aspect Ratio CSS-Klassen
 $aspectRatioClass = '';
 $paddingBottom = '';
@@ -63,7 +51,7 @@ switch ($aspectRatio) {
              style="position: relative; padding-bottom: <?= $paddingBottom ?>; height: 0; overflow: hidden;"
              <?php endif; ?>>
             
-            <?php if (isImage($mediaFile)): ?>
+            <?php if (yform_content_builder_helper::isImage($mediaFile)): ?>
                 <!-- Bild anzeigen -->
                 <img src="<?= rex_url::media($mediaFile) ?>" 
                      alt="<?= htmlspecialchars($title ?: $mediaFile) ?>"
@@ -74,7 +62,7 @@ switch ($aspectRatio) {
                      <?php endif; ?>
                      class="img-responsive" />
                      
-            <?php elseif (isVideo($mediaFile)): ?>
+            <?php elseif (yform_content_builder_helper::isVideo($mediaFile)): ?>
                 <!-- Video anzeigen -->
                 <video <?php if ($paddingBottom): ?>
                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"

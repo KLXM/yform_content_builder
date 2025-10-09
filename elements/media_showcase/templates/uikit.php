@@ -1,5 +1,5 @@
 <?php
-// UIKit Template für Media Showcase Element
+// UIKit Aspect Ratio CSS-Klassen Media Showcase Element
 if (!isset($elementData) || !is_array($elementData)) {
     return;
 }
@@ -51,7 +51,7 @@ switch ($aspectRatio) {
     <div class="uk-card-body uk-padding-remove">
         <?php if ($mediaFile): ?>
             
-            <?php if (isImage($mediaFile)): ?>
+            <?php if (yform_content_builder_helper::isImage($mediaFile)): ?>
                 <!-- Bild mit UIKit -->
                 <div class="uk-inline uk-width-1-1">
                     <img src="<?= rex_url::media($mediaFile) ?>" 
@@ -60,7 +60,7 @@ switch ($aspectRatio) {
                          uk-img />
                 </div>
                      
-            <?php elseif (isVideo($mediaFile)): ?>
+            <?php elseif (yform_content_builder_helper::isVideo($mediaFile)): ?>
                 <!-- Video mit UIKit -->
                 <div class="uk-inline uk-width-1-1">
                     <video class="uk-width-1-1"
