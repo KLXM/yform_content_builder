@@ -1,507 +1,406 @@
-# Element Config.php - Vollständige Dokumentation
+# Element Config.php - Dokumentation
 
-Die `config.php` Datei definiert die Struktur und das Verhalten eines Content Builder Elements. Diese Dokumentation erklärt alle verfügbaren Optionen und Funktionen.
+Die `config.php` Datei definiert die Struktur und das Verhalten eines Content Builder Elements. Diese Dokumentation beschreibt alle verfügbaren Optionen.
 
 ## 📁 Struktur
 
 ```
 elements/
 ├── element_name/
-│   ├── config.php          # Element-Konfiguration (diese Datei)
+│   ├── config.php          # Element-Konfiguration 
 │   └── templates/
 │       ├── bootstrap.php   # Bootstrap Template
 │       ├── plain.php       # Plain HTML Template  
 │       └── uikit.php       # UIKit Template
 ```
 
-## 🏗️ Grundstruktur config.php
+## 🏗️ Grundstruktur
 
 ```php
 <?php
-/**
- * Element: Element Name
- * Beschreibung: Kurze Beschreibung des Elements
- */
-
 return [
-    // === ELEMENT METADATA ===
-    'name' => 'element_name',                    // Eindeutiger Element-Name
-    'title' => 'Element Titel',                 // Anzeigename im Backend
-    'description' => 'Element Beschreibung',    // Beschreibung für User
-    'icon' => 'fa-icon-name',                   // Font Awesome Icon
+    'label' => 'Element Name',           // Anzeigename im Backend
+    'description' => 'Beschreibung',    // Hilfetext für User
+    'icon' => 'fa-icon-name',           // Font Awesome Icon
+    'category' => 'content',            // Optional: Kategorie
     
-    // === FORMULAR-KONFIGURATION ===
     'fields' => [
         // Feldkonfigurationen hier...
     ],
     
-    // === ERWEITERTE OPTIONEN ===
-    'options' => [
-        'tabs' => true,              // Tab-Gruppierung aktivieren
-        'modal' => false,            // In Modal öffnen
-        'repeater_view' => 'list',   // 'list' oder 'grid'
-        'grid_columns' => 3,         // Anzahl Spalten bei Grid-View
+    'settings_modal' => [               // Optional: Erweiterte Optionen
+        'label' => 'Einstellungen',
+        'icon' => 'fa-cog',
+        'fields' => ['field1', 'field2']
     ]
 ];
 ```
 
-## 🎯 Feldtypen Referenz
+## 🎯 Verfügbare Feldtypen
 
-### Standard YForm Feldtypen
+### Standard Felder
 
 #### text - Einzeiliger Text
 ```php
-[
+'title' => [
     'type' => 'text',
-    'name' => 'title',
     'label' => 'Titel',
-    'required' => true,
-    'placeholder' => 'Titel eingeben...',
-    'attributes' => ['maxlength' => 100],
-    'tab' => 'content'  // Optional: Tab-Zuordnung
+    'notice' => 'Hilfetext für den User',
+    'default' => 'Standardwert'
 ]
 ```
 
-#### textarea - Mehrzeiliger Text
+#### textarea - Mehrzeiliger Text  
 ```php
-[
+'description' => [
     'type' => 'textarea',
-    'name' => 'description',
     'label' => 'Beschreibung',
-    'attributes' => ['rows' => 4, 'cols' => 50]
+    'notice' => 'Längerer Text möglich'
+]
+```
+
+#### choice - Dropdown-Auswahl
+```php
+'layout' => [
+    'type' => 'choice',
+    'label' => 'Layout',
+    'choices' => [
+        'left' => 'Links',
+        'center' => 'Zentriert',
+        'right' => 'Rechts'
+    ],
+    'default' => 'left'
+]
+```
+
+#### checkbox - Ja/Nein Auswahl
+```php
+'show_title' => [
+    'type' => 'checkbox',
+    'label' => 'Titel anzeigen',
+    'default' => '1'
 ]
 ```
 
 #### ckeditor5 - Rich Text Editor
 ```php
-[
+'content' => [
     'type' => 'ckeditor5',
-    'name' => 'content',
     'label' => 'Inhalt',
-    'profile' => 'default',  // CKEditor Profil
-    'height' => 300
+    'profile' => 'default'
 ]
 ```
 
-#### select - Dropdown-Auswahl
-```php
-[
-    'type' => 'select',
-    'name' => 'alignment',
-    'label' => 'Ausrichtung',
-    'options' => [
-        'left' => 'Links',
-        'center' => 'Zentriert', 
-        'right' => 'Rechts'
-    ],
-    'default' => 'left',
-    'required' => true
-]
-```
+### Enhanced Media Felder
 
-#### checkbox - Einzelne Checkbox
+#### be_media_enhanced - Enhanced Media Browser
 ```php
-[
-    'type' => 'checkbox',
-    'name' => 'show_title',
-    'label' => 'Titel anzeigen',
-    'default' => 1
-]
-```
-
-#### radio - Radio Buttons
-```php
-[
-    'type' => 'radio',
-    'name' => 'layout',
-    'label' => 'Layout',
-    'options' => [
-        'horizontal' => 'Horizontal',
-        'vertical' => 'Vertikal'
-    ],
-    'default' => 'horizontal'
-]
-```
-
-### Enhanced Media Fieldtypes
-
-#### be_media_enhanced - Enhanced Media Widget
-```php
-[
+'media' => [
     'type' => 'be_media_enhanced',
-    'name' => 'media',
-    'label' => 'Media (Bild oder Video)',
-    'allowed_types' => 'jpg,jpeg,png,gif,mp4,webm,mov',  // Erlaubte Dateitypen
-    'aspect_ratio' => '16:9',        // Aspect Ratio für Preview
-    'video_autoplay' => false,       // Autoplay für Videos
-    'video_controls' => true,        // Video Controls anzeigen
-    'video_muted' => true,          // Videos stumm starten
-    'clickable_placeholder' => true, // Klickbarer Platzhalter
-    'preview_size' => 'medium'       // Preview-Größe: small, medium, large
+    'label' => 'Bild oder Video',
+    'allowed_types' => ['image', 'video'],  // Typ-Filter
+    'notice' => 'Wählen Sie ein Medium aus'
 ]
 ```
 
-#### be_media - Standard Media Widget
+#### be_media - Standard Media Browser
 ```php
-[  
+'image' => [
     'type' => 'be_media',
-    'name' => 'image',
     'label' => 'Bild',
-    'types' => 'jpg,jpeg,png,gif',
-    'preview' => 1,
-    'category' => 1  // Media-Kategorie ID
+    'types' => 'jpg,jpeg,png,gif'
 ]
 ```
 
 #### be_link - Link/Linkmap Widget
 ```php
-[
+'link' => [
     'type' => 'be_link',
-    'name' => 'link',
     'label' => 'Link',
     'types' => 'intern,extern,media,mailto,tel'
 ]
 ```
 
-### Repeater-Felder
+### Repeater - Listen von Elementen
 
-#### Simple Repeater
 ```php
-[
+'items' => [
     'type' => 'repeater',
-    'name' => 'items',
     'label' => 'Items',
+    'add_label' => 'Item hinzufügen',
     'fields' => [
-        [
+        'title' => [
             'type' => 'text',
-            'name' => 'title',
             'label' => 'Titel'
         ],
-        [
-            'type' => 'textarea', 
-            'name' => 'description',
-            'label' => 'Beschreibung'
-        ]
-    ],
-    'min_items' => 1,           // Minimum Anzahl Items
-    'max_items' => 10,          // Maximum Anzahl Items
-    'add_label' => 'Item hinzufügen',
-    'delete_label' => 'Löschen',
-    'sortable' => true,         // Sortierbar mit Move-Buttons
-    'view_mode' => 'list',      // 'list' oder 'grid'
-    'grid_columns' => 3,        // Spalten bei Grid-View
-    'modal' => false            // Items in Modal bearbeiten
-]
-```
-
-#### Advanced Repeater mit Enhanced Media
-```php
-[
-    'type' => 'repeater',
-    'name' => 'gallery_items',
-    'label' => 'Gallery Items',
-    'fields' => [
-        [
+        'image' => [
             'type' => 'be_media_enhanced',
-            'name' => 'media',
-            'label' => 'Media',
-            'allowed_types' => 'jpg,jpeg,png,gif,mp4,webm',
-            'aspect_ratio' => '16:9'
-        ],
-        [
-            'type' => 'text',
-            'name' => 'caption',
-            'label' => 'Bildunterschrift',
-            'tab' => 'content'
-        ],
-        [
-            'type' => 'be_link',
-            'name' => 'link',
-            'label' => 'Link',
-            'tab' => 'settings'
+            'label' => 'Bild',
+            'allowed_types' => ['image']
         ]
-    ],
-    'view_mode' => 'grid',
-    'grid_columns' => 4,
-    'modal' => true,            // Items in Modal für bessere UX
-    'sortable' => true
+    ]
 ]
 ```
 
-## 🎨 Tab-Gruppierung
+## 🎨 Settings Modal
 
-Große Formulare können in Tabs organisiert werden:
+Komplexe Optionen können in einem Modal-Dialog organisiert werden:
 
 ```php
 return [
-    'name' => 'complex_element',
-    'title' => 'Komplexes Element',
-    'options' => [
-        'tabs' => true
-    ],
+    'label' => 'Gallery',
     'fields' => [
-        // Content Tab
-        [
+        'headline' => [
             'type' => 'text',
-            'name' => 'title',
-            'label' => 'Titel',
-            'tab' => 'content'
+            'label' => 'Überschrift'
         ],
-        [
-            'type' => 'ckeditor5',
-            'name' => 'text',
-            'label' => 'Text',
-            'tab' => 'content'
+        'items' => [
+            'type' => 'repeater',
+            'label' => 'Bilder',
+            'fields' => [/* ... */]
         ],
         
-        // Settings Tab
-        [
-            'type' => 'select',
-            'name' => 'layout',
+        // Diese Felder kommen ins Settings-Modal:
+        'layout' => [
+            'type' => 'choice',
             'label' => 'Layout',
-            'options' => ['left' => 'Links', 'right' => 'Rechts'],
-            'tab' => 'settings'
+            'choices' => ['grid' => 'Grid', 'masonry' => 'Masonry']
         ],
-        [
-            'type' => 'checkbox',
-            'name' => 'show_border',
-            'label' => 'Rahmen anzeigen',
-            'tab' => 'settings'
-        ],
-        
-        // Style Tab
-        [
-            'type' => 'text',
-            'name' => 'css_class',
-            'label' => 'CSS Klassen',
-            'tab' => 'style'
-        ],
-        [
-            'type' => 'select',
-            'name' => 'background_color',
-            'label' => 'Hintergrundfarbe',
-            'options' => [
-                '' => 'Standard',
-                'primary' => 'Primary',
-                'secondary' => 'Secondary'
-            ],
-            'tab' => 'style'
+        'columns' => [
+            'type' => 'choice', 
+            'label' => 'Spalten',
+            'choices' => ['2' => '2', '3' => '3', '4' => '4']
         ]
+    ],
+    
+    'settings_modal' => [
+        'label' => 'Layout-Einstellungen',
+        'icon' => 'fa-cogs',
+        'fields' => ['layout', 'columns']  // Diese Felder ins Modal
     ]
 ];
 ```
 
-**Tab-Labels** werden automatisch generiert:
-- `content` → "Inhalt"
-- `settings` → "Einstellungen" 
-- `style` → "Design"
-- Eigene Tabs: Uppercase first letter
+## 📱 Advanced Repeater Features
 
-## 📱 Grid-View für Repeater
-
-Repeater können als kompakte Grid-Ansicht dargestellt werden:
-
+### Grid-View für kompakte Listen
 ```php
-[
+'items' => [
     'type' => 'repeater',
-    'name' => 'cards',
-    'label' => 'Cards',
+    'label' => 'Gallery Items',
+    'view' => 'grid',           // Grid statt Liste
+    'grid_columns' => 3,        // 3 Spalten
     'fields' => [
-        [
+        'media' => [
             'type' => 'be_media_enhanced',
-            'name' => 'image',
-            'label' => 'Bild',
-            'aspect_ratio' => '16:9'
-        ],
-        [
-            'type' => 'text',
-            'name' => 'title',
-            'label' => 'Titel'
+            'label' => 'Medium',
+            'allowed_types' => ['image', 'video']
         ]
     ],
-    'view_mode' => 'grid',      // Grid statt List
-    'grid_columns' => 3,        // 3 Spalten
-    'modal' => true             // Bearbeitung im Modal
+    'item_modal' => [           // Erweiterte Optionen pro Item
+        'label' => 'Erweiterte Optionen',
+        'icon' => 'fa-cog',
+        'fields' => ['caption', 'alt_text']
+    ]
 ]
 ```
-
-**Grid-View Optionen:**
-- `grid_columns`: 2-6 Spalten möglich
-- `modal`: Items in Modal bearbeiten (empfohlen bei Grid)
-- Automatische Responsive Anpassung
-- Move-Buttons für Sortierung
 
 ## 🚀 Best Practices
 
 ### 1. Element-Naming
 ```php
 // ✅ Gut
-'name' => 'hero_section',
-'title' => 'Hero Section',
+'label' => 'Text & Bild',
+'icon' => 'fa-image',
+'category' => 'content',
 
-// ❌ Schlecht  
-'name' => 'HeroSection',  // CamelCase vermeiden
-'title' => 'hero_section', // Kein Underscore in Title
+// ❌ Verwirrend
+'label' => 'text_image',
+'icon' => 'my-custom-icon'
 ```
 
-### 2. Required Fields
+### 2. User-Friendly Labels
 ```php
-// ✅ Wichtige Felder als required markieren
-[
+// ✅ Verständlich
+'headline' => [
     'type' => 'text',
-    'name' => 'title',
-    'label' => 'Titel',
-    'required' => true
+    'label' => 'Überschrift',
+    'notice' => 'Erscheint über dem Inhalt'
+]
+
+// ❌ Kryptisch  
+'h1' => [
+    'type' => 'text',
+    'label' => 'h1'
 ]
 ```
 
-### 3. Default Values
+### 3. Sinnvolle Defaults
 ```php
-// ✅ Sinnvolle Defaults setzen
-[
-    'type' => 'select',
-    'name' => 'alignment',
+// ✅ Gute Defaults
+'alignment' => [
+    'type' => 'choice',
     'label' => 'Ausrichtung',
-    'options' => ['left' => 'Links', 'center' => 'Mitte'],
-    'default' => 'left'
+    'choices' => ['left' => 'Links', 'center' => 'Mitte'],
+    'default' => 'left'  // User muss nicht wählen
 ]
 ```
 
-### 4. Responsive Design
+### 4. Enhanced Media für moderne Inhalte
 ```php
-// ✅ Enhanced Media für responsive Images
-[
+// ✅ Modern - unterstützt Bilder UND Videos
+'media' => [
     'type' => 'be_media_enhanced',
-    'name' => 'hero_image',
-    'label' => 'Hero Bild',
-    'aspect_ratio' => '16:9',  // Konsistente Proportionen
-    'allowed_types' => 'jpg,jpeg,png,webp'
-]
-```
-
-### 5. User Experience
-```php
-// ✅ Grid-View bei vielen Items
-[
-    'type' => 'repeater',
-    'name' => 'gallery',
-    'view_mode' => 'grid',
-    'grid_columns' => 4,
-    'modal' => true  // Bessere UX bei komplexen Items
-]
-```
-
-## 🔧 Erweiterte Optionen
-
-### Modal-Modus
-```php
-'options' => [
-    'modal' => true  // Gesamtes Element in Modal öffnen
-]
-```
-
-### Custom Icons
-```php
-'icon' => 'fa-images',           // Font Awesome Icon
-'icon' => 'rex-icon rex-icon-module',  // REDAXO Icon
-```
-
-### Validation
-```php
-[
-    'type' => 'text',
-    'name' => 'email',
-    'label' => 'E-Mail',
-    'attributes' => [
-        'type' => 'email',       // HTML5 Validation
-        'pattern' => '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'
-    ]
-]
-```
-
-## ⚠️ Häufige Fehler
-
-### 1. Falsche Array-Struktur
-```php
-// ❌ Falsch
-'fields' => [
-    'type' => 'text',  // Fehlt Array-Wrapper
-    'name' => 'title'
+    'label' => 'Medium',
+    'allowed_types' => ['image', 'video']
 ]
 
-// ✅ Richtig
-'fields' => [
-    [
-        'type' => 'text',
-        'name' => 'title'
-    ]
-]
-```
-
-### 2. Reserved Names
-```php
-// ❌ Vermeiden - Reserved Names
-'name' => 'id',
-'name' => 'element_type',
-'name' => 'sort_order',
-
-// ✅ Besser
-'name' => 'item_id',
-'name' => 'content_type',
-'name' => 'display_order'
-```
-
-### 3. Missing Required Keys
-```php
-// ❌ Fehlt 'name' 
-[
-    'type' => 'text',
-    'label' => 'Titel'
-]
-
-// ✅ Alle Required Keys
-[
-    'type' => 'text',
-    'name' => 'title',  // Required!
-    'label' => 'Titel'
+// ❌ Eingeschränkt - nur Bilder
+'image' => [
+    'type' => 'be_media',
+    'label' => 'Bild'
 ]
 ```
 
 ## 💡 Tipps & Tricks
 
-### 1. Conditional Fields
+### 1. Settings-Modal für komplexe Elemente
 ```php
-// Feld nur bei bestimmter Auswahl anzeigen
-[
-    'type' => 'select',
-    'name' => 'show_image',
-    'options' => ['0' => 'Nein', '1' => 'Ja'],
-    'onchange' => 'toggleImageField(this.value)'
+// Häufig genutzte Felder normal, erweiterte Optionen ins Modal
+'settings_modal' => [
+    'label' => 'Erweiterte Einstellungen',
+    'icon' => 'fa-cogs',
+    'fields' => ['advanced_option1', 'advanced_option2']
 ]
 ```
 
-### 2. Bulk Operations
+### 2. Grid-View bei vielen Repeater-Items
 ```php
-// Repeater mit Bulk-Aktionen
-[
+// Bei Galleries, Cards etc. - übersichtlicher als Liste
+'items' => [
     'type' => 'repeater',
-    'name' => 'items',
-    'bulk_actions' => [
-        'duplicate' => 'Duplizieren',
-        'delete_all' => 'Alle löschen'
+    'view' => 'grid',
+    'grid_columns' => 4
+]
+```
+
+### 3. Typ-Filter für Media
+```php
+// Nur relevante Medien anzeigen
+'hero_image' => [
+    'type' => 'be_media_enhanced',
+    'allowed_types' => ['image']  // Keine Videos
+]
+```
+
+## ⚠️ Häufige Fehler
+
+### 1. Fehlende Required Keys
+```php
+// ❌ Fehlt 'label'
+'title' => [
+    'type' => 'text'
+]
+
+// ✅ Vollständig
+'title' => [
+    'type' => 'text',
+    'label' => 'Titel'
+]
+```
+
+### 2. Falsche Choice-Syntax
+```php
+// ❌ Falsch
+'layout' => [
+    'type' => 'choice',
+    'choices' => ['Links', 'Rechts']  // Fehlende Keys
+]
+
+// ✅ Richtig
+'layout' => [
+    'type' => 'choice', 
+    'choices' => [
+        'left' => 'Links',
+        'right' => 'Rechts'
     ]
 ]
 ```
 
-### 3. Custom CSS Classes
+### 3. Unklare Allowed Types
 ```php
-[
-    'type' => 'text',
-    'name' => 'title',
-    'label' => 'Titel',
-    'wrapper_class' => 'col-md-6',    // Bootstrap Grid
-    'input_class' => 'form-control-lg' // Input-Styling
-]
+// ❌ Unklar
+'allowed_types' => 'image,video'
+
+// ✅ Eindeutig
+'allowed_types' => ['image', 'video']
 ```
 
-Diese Dokumentation deckt alle wichtigen Aspekte der Element-Konfiguration ab. Für spezielle Use Cases können weitere Feldtypen und Optionen über Extension Points hinzugefügt werden.
+## 📝 Vollständiges Beispiel
+
+```php
+<?php
+return [
+    'label' => 'Hero Section',
+    'description' => 'Große Hero-Sektion mit Hintergrundbild und Text',
+    'icon' => 'fa-image',
+    'category' => 'content',
+    
+    'fields' => [
+        'background' => [
+            'type' => 'be_media_enhanced',
+            'label' => 'Hintergrundbild',
+            'allowed_types' => ['image'],
+            'notice' => 'Empfohlene Größe: 1920x1080px'
+        ],
+        'headline' => [
+            'type' => 'text',
+            'label' => 'Hauptüberschrift',
+            'default' => 'Willkommen'
+        ],
+        'subline' => [
+            'type' => 'textarea',
+            'label' => 'Untertitel',
+            'notice' => 'Kurzer beschreibender Text'
+        ],
+        'cta_text' => [
+            'type' => 'text',
+            'label' => 'Button-Text',
+            'default' => 'Mehr erfahren'
+        ],
+        'cta_link' => [
+            'type' => 'be_link',
+            'label' => 'Button-Link'
+        ],
+        
+        // Erweiterte Optionen
+        'text_color' => [
+            'type' => 'choice',
+            'label' => 'Textfarbe',
+            'choices' => [
+                'white' => 'Weiß',
+                'dark' => 'Dunkel'
+            ],
+            'default' => 'white'
+        ],
+        'alignment' => [
+            'type' => 'choice',
+            'label' => 'Textausrichtung',
+            'choices' => [
+                'left' => 'Links',
+                'center' => 'Zentriert',
+                'right' => 'Rechts'
+            ],
+            'default' => 'center'
+        ]
+    ],
+    
+    'settings_modal' => [
+        'label' => 'Design-Optionen',
+        'icon' => 'fa-paint-brush',
+        'fields' => ['text_color', 'alignment']
+    ]
+];
+```
+
+Diese Dokumentation zeigt alle tatsächlich verfügbaren Features des YForm Content Builders.
