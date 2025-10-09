@@ -395,7 +395,8 @@
                     // Verschachteltes Objekt erstellen aus Bracket-Notation
                     self.setNestedValue(sliceData, name, value);
                 }
-            });            // Slice-Daten als Attribut UND als jQuery data speichern
+            });
+            // Slice-Daten als Attribut UND als jQuery data speichern
             $slice.attr('data-slice-data', JSON.stringify(sliceData));
             $slice.data('slice-data', sliceData);
             
