@@ -124,8 +124,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         echo '<div class="form-group">';
         echo '<div class="btn-group pull-right">';
-        echo '<button type="button" class="btn btn-danger btn-slice-cancel" data-confirm="Bearbeitung abbrechen? Alle Änderungen gehen verloren."><i class="fa fa-times"></i> Abbrechen</button>';
         echo '<button type="button" class="btn btn-success btn-slice-save"><i class="fa fa-check"></i> Übernehmen</button>';
+        echo '<button type="button" class="btn btn-danger btn-slice-cancel" data-confirm="Bearbeitung abbrechen? Alle Änderungen gehen verloren."><i class="fa fa-times"></i> Abbrechen</button>';
         echo '</div>';
         echo '<div class="clearfix"></div>';
         echo '</div>';
@@ -351,7 +351,18 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $enhancedWidgetCounter++;
                 
                 $inputId = 'media_enhanced_' . uniqid();
-                $allowedTypes = $fieldConfig['allowed_types'] ?? ['image', 'video'];
+                
+                // Robuste Behandlung von allowed_types
+                if (isset($fieldConfig['allowed_types'])) {
+                    if (is_array($fieldConfig['allowed_types'])) {
+                        $allowedTypes = $fieldConfig['allowed_types'];
+                    } else {
+                        // Assume comma-separated string
+                        $allowedTypes = array_map('trim', explode(',', $fieldConfig['allowed_types']));
+                    }
+                } else {
+                    $allowedTypes = ['image', 'video'];
+                }
                 
                 echo '<div class="input-group media-widget media-widget-enhanced">';
                 echo '<input type="text" ';
@@ -537,7 +548,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 }
                 
                 echo '<div class="repeater-wrapper">';
-                echo '<div class="' . $containerClass . '" data-field="' . htmlspecialchars($fieldName) . '" data-view="' . $view . '" data-grid-columns="' . $gridColumns . '">';
+                echo '<div class="' . $containerClass . '" data-field="' . htmlspecialchars($fieldName) . '" data-view="' . htmlspecialchars($view, ENT_QUOTES, 'UTF-8') . '" data-grid-columns="' . htmlspecialchars($gridColumns, ENT_QUOTES, 'UTF-8') . '">';
                 
                 // Template-Item erstellen wenn keine Items vorhanden sind
                 if (empty($items) && $hasItemModal) {

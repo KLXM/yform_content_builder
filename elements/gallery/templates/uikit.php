@@ -78,8 +78,8 @@ switch ($aspectRatio) {
                 if (!$media) continue;
                 
                 // Media-Typ bestimmen
-                $isImage = $this->isImage($media);
-                $isVideo = $this->isVideo($media);
+                $isImage = yform_content_builder_helper::isImage($media);
+                $isVideo = yform_content_builder_helper::isVideo($media);
                 ?>
                 
                 <div class="<?= $widthClass ?> uk-width-1-2@s">

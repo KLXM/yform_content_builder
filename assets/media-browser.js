@@ -86,7 +86,7 @@
         
         openEnhanced: function(inputId, allowedTypes) {
             this.currentInputId = inputId;
-            this.allowedTypes = allowedTypes ? allowedTypes.split(',') : ['image', 'video'];
+            this.allowedTypes = Array.isArray(allowedTypes) ? allowedTypes : (allowedTypes ? allowedTypes.split(',') : ['image', 'video']);
             
             // Overlay erstellen wenn nicht vorhanden
             if ($('#media-browser-overlay').length === 0) {

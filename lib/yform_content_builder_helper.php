@@ -254,4 +254,56 @@ class yform_content_builder_helper
         
         return '';
     }
+
+    /**
+     * Prüft ob eine Datei ein Bild ist
+     *
+     * @param string $filename Dateiname
+     * @return bool
+     */
+    public static function isImage(string $filename): bool
+    {
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']);
+    }
+
+    /**
+     * Prüft ob eine Datei ein Video ist
+     *
+     * @param string $filename Dateiname
+     * @return bool
+     */
+    public static function isVideo(string $filename): bool
+    {
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        return in_array($ext, ['mp4', 'webm', 'mov', 'avi', 'mkv', 'ogg']);
+    }
+
+    /**
+     * Ermittelt MIME-Type für Media-Dateien
+     *
+     * @param string $filename Dateiname
+     * @return string MIME-Type
+     */
+    public static function getMimeType(string $filename): string
+    {
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        $mimeTypes = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml',
+            'mp4' => 'video/mp4',
+            'webm' => 'video/webm',
+            'mov' => 'video/quicktime',
+            'avi' => 'video/x-msvideo',
+            'mkv' => 'video/x-matroska',
+            'ogg' => 'video/ogg'
+        ];
+        
+        return $mimeTypes[$ext] ?? 'application/octet-stream';
+    }
 }

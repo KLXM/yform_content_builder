@@ -64,8 +64,8 @@ if ($columns == 5) {
                 if (!$media) continue;
                 
                 // Media-Typ bestimmen
-                $isImage = $this->isImage($media);
-                $isVideo = $this->isVideo($media);
+                $isImage = yform_content_builder_helper::isImage($media);
+                $isVideo = yform_content_builder_helper::isVideo($media);
                 ?>
                 
                 <div class="<?= $colClass ?> gallery-column">
