@@ -20,7 +20,6 @@
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
-            this.initConfirmButtons();
         },
 
         bindEvents: function() {
@@ -445,9 +444,6 @@
         renderSlice: function($slice, sliceData) {
             var sliceType = $slice.data('slice-type');
             var framework = $slice.closest('.yform-content-builder').data('framework') || 'bootstrap';
-            
-            // DEBUG: Log für Slice-Rendering
-
             
             // Section-Elemente im Backend speziell rendern
             if (sliceType === 'section') {
@@ -891,9 +887,6 @@
             setTimeout(function() {
                 $newItem.find('textarea.cke5-editor').each(function() {
                     var $textarea = $(this);
-                    
-                    // DEBUG: Prüfen ob bereits ein CKE5-Editor existiert
-                    var nextElement = $textarea.next();
                     
                     if (typeof cke5_init === 'function') {
                         try {
