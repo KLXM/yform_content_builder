@@ -8,8 +8,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 {
     public function enterObject()
     {
-        // AJAX-Anfragen behandeln
-        $this->handleAjaxRequests();
+        // AJAX-Anfragen behandeln - wenn AJAX, wird hier beendet
+        if ($this->handleAjaxRequests()) {
+            return; // AJAX wurde behandelt, normal processing stoppen
+        }
         
         // Wert normalisieren
         if (!is_string($this->getValue())) {
@@ -89,9 +91,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         $config = include $configFile;
         
-        // Debug
+        // Debug - Nur für Entwicklung
         if (!isset($config['fields']) || !is_array($config['fields'])) {
-            echo '<div class="alert alert-danger">Config hat keine fields: ' . rex_escape(print_r($config, true)) . '</div>';
+            error_log('[CARDS DEBUG] Config has no fields: ' . print_r($config, true));
+            echo '<div class="alert alert-danger">Element-Konfiguration fehlerhaft: ' . rex_escape($sliceType) . '</div>';
             exit;
         }
         
