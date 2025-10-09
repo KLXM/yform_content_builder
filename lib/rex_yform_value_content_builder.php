@@ -130,6 +130,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '<div class="clearfix"></div>';
         echo '</div>';
         echo '</form>';
+        exit;
     }
     
     protected function renderFormWithTabs(array $config, array $sliceData)
@@ -656,6 +657,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         } else {
             echo '<div class="alert alert-danger">Template nicht gefunden</div>';
         }
+        exit;
     }
     
     /**
