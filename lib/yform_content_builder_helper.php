@@ -114,13 +114,7 @@ class yform_content_builder_helper
         $sliceType = $slice['type'] ?? '';
         $elementData = $slice['data'] ?? [];
         
-        // DEBUG: Log für Slice-Rendering
-        error_log('[CARDS DEBUG] Helper renderSlice called - Type: ' . $sliceType);
-        error_log('[CARDS DEBUG] Helper renderSlice - elementData: ' . json_encode($elementData, JSON_PRETTY_PRINT));
-        error_log('[CARDS DEBUG] Helper renderSlice - Framework: ' . $framework);
-        
         if (empty($sliceType)) {
-            error_log('[CARDS DEBUG] Helper renderSlice - Empty slice type, returning empty');
             return '';
         }
         
@@ -128,31 +122,18 @@ class yform_content_builder_helper
         $elementPath = $addon->getPath('elements/' . $sliceType);
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         
-        error_log('[CARDS DEBUG] Helper renderSlice - Template path: ' . $templateFile);
-        error_log('[CARDS DEBUG] Helper renderSlice - Template exists: ' . (file_exists($templateFile) ? 'yes' : 'no'));
-        
         // Fallback auf plain.php
         if (!file_exists($templateFile)) {
             $templateFile = $elementPath . '/templates/plain.php';
-            error_log('[CARDS DEBUG] Helper renderSlice - Fallback template: ' . $templateFile);
-            error_log('[CARDS DEBUG] Helper renderSlice - Fallback exists: ' . (file_exists($templateFile) ? 'yes' : 'no'));
         }
         
         if (!file_exists($templateFile)) {
-            error_log('[CARDS DEBUG] Helper renderSlice - No template found, returning error comment');
             return '<!-- Element template not found: ' . rex_escape($sliceType) . ' -->';
         }
-        
-        error_log('[CARDS DEBUG] Helper renderSlice - About to include template: ' . $templateFile);
-        error_log('[CARDS DEBUG] Helper renderSlice - elementData before include: ' . json_encode($elementData, JSON_PRETTY_PRINT));
         
         ob_start();
         include $templateFile;
         $output = ob_get_clean();
-        
-        error_log('[CARDS DEBUG] Helper renderSlice - Template output length: ' . strlen($output));
-        error_log('[CARDS DEBUG] Helper renderSlice - Template output preview: ' . substr($output, 0, 200) . '...');
-        
         return $output;
     }
 

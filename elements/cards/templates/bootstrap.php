@@ -13,12 +13,7 @@ $cardStyle = $elementData['card_style'] ?? 'default';
 $cardSize = $elementData['card_size'] ?? 'default';
 $items = $elementData['items'] ?? [];
 
-// DEBUG: Logging für Template-Rendering
-error_log('[CARDS DEBUG] Template rendering - Items count: ' . count($items));
-error_log('[CARDS DEBUG] Element data: ' . json_encode($elementData, JSON_PRETTY_PRINT));
-
 if (empty($items)) {
-    error_log('[CARDS DEBUG] No items found, returning early');
     return;
 }
 
@@ -50,8 +45,7 @@ $cardClassStr = implode(' ', $cardClasses);
 <div class="<?= $gridClassStr ?>">
     <?php foreach ($items as $index => $item): ?>
         <?php
-        // DEBUG: Logging für jedes Item
-        error_log('[CARDS DEBUG] Processing item ' . $index . ': ' . json_encode($item, JSON_PRETTY_PRINT));
+
         
         $title = $item['title'] ?? '';
         $subtitle = $item['subtitle'] ?? '';
@@ -82,22 +76,13 @@ $cardClassStr = implode(' ', $cardClasses);
         
         // Bild Pfad
         $imageSrc = '';
-        error_log('[CARDS DEBUG] Item ' . $index . ' - RAW Image field value: "' . $image . '" (type: ' . gettype($image) . ')');
-        error_log('[CARDS DEBUG] Item ' . $index . ' - Title: "' . $title . '"');
-        error_log('[CARDS DEBUG] Item ' . $index . ' - Text: "' . substr(strip_tags($text), 0, 50) . '..."');
         
         if (!empty($image)) {
             $media = rex_media::get($image);
-            error_log('[CARDS DEBUG] Item ' . $index . ' - Media object: ' . ($media ? 'found' : 'not found'));
             if ($media) {
                 $imageSrc = '/media/' . $image;
-                error_log('[CARDS DEBUG] Item ' . $index . ' - Final image src: "' . $imageSrc . '"');
-                error_log('[CARDS DEBUG] Item ' . $index . ' - File exists: ' . (file_exists($_SERVER['DOCUMENT_ROOT'] . $imageSrc) ? 'yes' : 'no'));
-            } else {
-                error_log('[CARDS DEBUG] Item ' . $index . ' - rex_media::get() returned null for: "' . $image . '"');
             }
         } else {
-            error_log('[CARDS DEBUG] Item ' . $index . ' - Image field is empty or null');
         }
         ?>
         

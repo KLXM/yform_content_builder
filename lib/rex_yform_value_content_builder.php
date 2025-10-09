@@ -86,16 +86,14 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         if (!file_exists($configFile)) {
             echo '<div class="alert alert-danger">Element-Konfiguration nicht gefunden: ' . rex_escape($sliceType) . '</div>';
-            exit;
+            return;
         }
         
         $config = include $configFile;
         
-        // Debug - Nur für Entwicklung
         if (!isset($config['fields']) || !is_array($config['fields'])) {
-            error_log('[CARDS DEBUG] Config has no fields: ' . print_r($config, true));
             echo '<div class="alert alert-danger">Element-Konfiguration fehlerhaft: ' . rex_escape($sliceType) . '</div>';
-            exit;
+            return;
         }
         
         // YForm-Formular generieren
@@ -132,8 +130,6 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '<div class="clearfix"></div>';
         echo '</div>';
         echo '</form>';
-        
-        exit;
     }
     
     protected function renderFormWithTabs(array $config, array $sliceData)
@@ -649,8 +645,6 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         } else {
             echo '<div class="alert alert-danger">Template nicht gefunden</div>';
         }
-        
-        exit;
     }
     
     /**
@@ -673,7 +667,6 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         header('Content-Type: application/json');
         echo json_encode(['categories' => $categories]);
-        exit;
     }
     
     /**
@@ -718,7 +711,6 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         header('Content-Type: application/json');
         echo json_encode(['media' => $media]);
-        exit;
     }
     
     /**
