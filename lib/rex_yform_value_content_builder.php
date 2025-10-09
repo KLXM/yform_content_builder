@@ -125,10 +125,11 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
         
         echo '<div class="form-group">';
-        echo '<div class="btn-group">';
-        echo '<button type="button" class="btn btn-success btn-slice-save"><i class="fa fa-check"></i> Speichern</button>';
-        echo '<button type="button" class="btn btn-default btn-slice-cancel"><i class="fa fa-times"></i> Abbrechen</button>';
+        echo '<div class="btn-group pull-right">';
+        echo '<button type="button" class="btn btn-danger btn-slice-cancel"><i class="fa fa-times"></i> Abbrechen</button>';
+        echo '<button type="button" class="btn btn-success btn-slice-save"><i class="fa fa-check"></i> Übernehmen</button>';
         echo '</div>';
+        echo '<div class="clearfix"></div>';
         echo '</div>';
         echo '</form>';
         
@@ -348,6 +349,91 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 }
                 break;
                 
+            case 'be_media_enhanced':
+                // Enhanced Media Browser mit Platzhaltern und Typ-Filter
+                static $enhancedWidgetCounter = 0;
+                $enhancedWidgetCounter++;
+                
+                $inputId = 'media_enhanced_' . uniqid();
+                $allowedTypes = $fieldConfig['allowed_types'] ?? ['image', 'video'];
+                
+                echo '<div class="input-group media-widget media-widget-enhanced">';
+                echo '<input type="text" ';
+                echo 'name="' . rex_escape($fieldName) . '" ';
+                echo 'id="' . $inputId . '" ';
+                echo 'class="form-control media-input" ';
+                echo 'value="' . rex_escape($value) . '" ';
+                echo 'data-allowed-types="' . rex_escape(implode(',', $allowedTypes)) . '" ';
+                echo 'readonly />';
+                echo '<span class="input-group-btn">';
+                echo '<button type="button" class="btn btn-default btn-select-media-enhanced" ';
+                echo 'data-input-id="' . $inputId . '" ';
+                echo 'data-allowed-types="' . rex_escape(implode(',', $allowedTypes)) . '" ';
+                echo 'title="Medium auswählen">';
+                echo '<i class="rex-icon rex-icon-open-mediapool"></i>';
+                echo '</button>';
+                echo '<button type="button" class="btn btn-default btn-delete-media" ';
+                echo 'data-input-id="' . $inputId . '" ';
+                echo 'title="Medium entfernen">';
+                echo '<i class="rex-icon rex-icon-delete-media"></i>';
+                echo '</button>';
+                echo '</span>';
+                echo '</div>';
+                
+                // Enhanced Preview mit Platzhalter
+                echo '<div class="media-preview-enhanced" id="preview_' . $inputId . '">';
+                if ($value) {
+                    if ($this->isImage($value)) {
+                        echo '<div class="media-item media-item-image">';
+                        echo '<img src="' . rex_url::media($value) . '" alt="" />';
+                        echo '<div class="media-info"><i class="fa fa-image"></i> Bild: ' . rex_escape($value) . '</div>';
+                        echo '</div>';
+                    } elseif ($this->isVideo($value)) {
+                        echo '<div class="media-item media-item-video">';
+                        $extension = strtolower(pathinfo($value, PATHINFO_EXTENSION));
+                        $mimeType = 'video/' . ($extension === 'mov' ? 'quicktime' : $extension);
+                        
+                        echo '<video preload="metadata" muted playsinline data-filename="' . htmlspecialchars($value) . '">';
+                        echo '<source src="' . rex_url::media($value) . '" type="' . htmlspecialchars($mimeType) . '" />';
+                        echo 'Ihr Browser unterstützt dieses Video-Format nicht.';
+                        echo '</video>';
+                        echo '<div class="video-fallback" style="display: none;">';
+                        echo '<i class="fa fa-video-camera" style="font-size: 48px; color: #999;"></i>';
+                        echo '<p style="margin-top: 10px; color: #666;">Video: ' . rex_escape($value) . '</p>';
+                        echo '</div>';
+                        echo '<div class="media-overlay"><i class="fa fa-play-circle"></i></div>';
+                        echo '<div class="media-controls">';
+                        echo '<button class="btn-video-play" title="Abspielen"><i class="fa fa-play"></i></button>';
+                        echo '<button class="btn-video-mute" title="Stumm schalten"><i class="fa fa-volume-up"></i></button>';
+                        echo '<button class="btn-video-fullscreen" title="Vollbild"><i class="fa fa-expand"></i></button>';
+                        echo '</div>';
+                        echo '<div class="media-info"><i class="fa fa-video-camera"></i> Video: ' . rex_escape($value) . '</div>';
+                        echo '</div>';
+                    }
+                } else {
+                    // Platzhalter je nach erlaubten Typen
+                    $placeholderText = '';
+                    $placeholderIcon = 'fa-file';
+                    
+                    if (in_array('image', $allowedTypes) && in_array('video', $allowedTypes)) {
+                        $placeholderText = 'Bild oder Video auswählen';
+                        $placeholderIcon = 'fa-file-image-o';
+                    } elseif (in_array('image', $allowedTypes)) {
+                        $placeholderText = 'Bild auswählen';
+                        $placeholderIcon = 'fa-image';
+                    } elseif (in_array('video', $allowedTypes)) {
+                        $placeholderText = 'Video auswählen';
+                        $placeholderIcon = 'fa-video-camera';
+                    }
+                    
+                    echo '<div class="media-placeholder">';
+                    echo '<i class="fa ' . $placeholderIcon . '"></i>';
+                    echo '<p>' . rex_escape($placeholderText) . '</p>';
+                    echo '</div>';
+                }
+                echo '</div>';
+                break;
+                
             case 'be_link':
                 // REDAXO Linkmap Widget
                 static $linkCounter = 0;
@@ -439,13 +525,34 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $hasItemModal = isset($fieldConfig['item_modal']) && is_array($fieldConfig['item_modal']);
                 $itemModalFields = $hasItemModal ? $fieldConfig['item_modal']['fields'] : [];
                 
+                // View Config prüfen - kann auch dynamisch aus Slice-Daten kommen
+                $view = $fieldConfig['view'] ?? 'list';
+                $gridColumns = intval($fieldConfig['grid_columns'] ?? 3);
+                
+                // Prüfen ob view_mode in den Slice-Daten gesetzt ist (für dynamische Umschaltung)
+                if (isset($sliceData['view_mode'])) {
+                    $view = $sliceData['view_mode'];
+                }
+                
+                $containerClass = 'repeater-container';
+                
+                if ($view === 'grid') {
+                    $containerClass .= ' repeater-grid-view';
+                }
+                
                 echo '<div class="repeater-wrapper">';
-                echo '<div class="repeater-container" data-field="' . rex_escape($fieldName) . '">';
+                echo '<div class="' . $containerClass . '" data-field="' . htmlspecialchars($fieldName) . '" data-view="' . $view . '" data-grid-columns="' . $gridColumns . '">';
                 
                 // Template-Item erstellen wenn keine Items vorhanden sind
                 if (empty($items) && $hasItemModal) {
                     $templateId = 'repeater_item_template_' . uniqid();
                     echo '<div class="repeater-item repeater-item-template" data-index="0" id="' . $templateId . '" style="display:none;">';
+                    
+                    // Move Buttons für Template
+                    echo '<div class="move-buttons">';
+                    echo '<button type="button" class="btn-move btn-move-up" title="Nach oben"><i class="fa fa-chevron-up"></i></button>';
+                    echo '<button type="button" class="btn-move btn-move-down" title="Nach unten"><i class="fa fa-chevron-down"></i></button>';
+                    echo '</div>';
                     
                     // Template-Felder rendern
                     $templateItem = [];
@@ -473,6 +580,12 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 foreach ($items as $index => $item) {
                     $itemId = 'repeater_item_' . uniqid();
                     echo '<div class="repeater-item" data-index="' . $index . '" id="' . $itemId . '">';
+                    
+                    // Move Buttons für alle Repeater
+                    echo '<div class="move-buttons">';
+                    echo '<button type="button" class="btn-move btn-move-up" title="Nach oben"><i class="fa fa-chevron-up"></i></button>';
+                    echo '<button type="button" class="btn-move btn-move-down" title="Nach unten"><i class="fa fa-chevron-down"></i></button>';
+                    echo '</div>';
                     
                     // Haupt-Felder (nicht im Modal)
                     $fieldsRendered = 0;
@@ -615,6 +728,15 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     {
         $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp']);
+    }
+    
+    /**
+     * Check if file is a video
+     */
+    protected function isVideo(string $filename): bool
+    {
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        return in_array($ext, ['mp4', 'webm', 'mov', 'avi', 'mkv', 'ogg']);
     }
     
     /**
