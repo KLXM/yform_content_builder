@@ -1,24 +1,41 @@
 # YForm Content Builder
 
-Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwendbare Content-Elemente mit Drag & Drop, Click-to-Edit und Framework-agnostischen Templates.
+Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwendbare Content-Elemente mit professioneller Media-Verwaltung, Grid-Layouts und intuitivem Workflow.
 
 ## ✨ Features
 
-- **7 Content-Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards - sofort einsatzbereit
+### 🎯 **Content-Elemente**
+- **8 fertige Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards, Media Showcase, Gallery
+- **Enhanced Media Widgets**: 16:9 Aspect Ratio, Video-Playback, Clickable Placeholders
+- **Professional Gallery**: Grid/Masonry Layout, Mixed Media (Bilder + Videos), Responsive Design
 - **Auto-Close Sections**: Visueller Container für Abschnitte ohne verschachtelte Hierarchie
-- **Element-Filter**: Kontrolle welche Elemente pro Feld verfügbar sind (Multiselect)
-- **Click-to-Edit Workflow**: Intuitives Bearbeiten per Edit-Button
-- **Drag & Drop**: Sortierbare Elemente mit Sortable.js (aus Blocks Addon)
-- **Framework-agnostic**: Templates für Bootstrap 3, UIkit3 und Plain HTML
+
+### 🚀 **Workflow & UX**
+- **Click-to-Edit**: Intuitives Bearbeiten per Edit-Button
+- **Move-Button Sortierung**: Zuverlässige ⬆️⬇️ Pfeil-Buttons für perfekte Kontrolle
+- **Grid-View Repeater**: Gekachelte Formulare für kompakte Darstellung (Gallery!)
+- **Confirm Dialogs**: Schutz vor Datenverlust mit REDAXO-nativen Bestätigungen
 - **AJAX Forms**: Dynamisches Laden und Speichern ohne Page-Reload
+
+### 🎨 **Design & Templates**
+- **Framework-agnostic**: Templates für Bootstrap 3, UIkit3 und Plain HTML
+- **Consistent Styling**: Professionelle Button-Layouts (Übernehmen/Abbrechen)
+- **Responsive Design**: Mobile-optimierte Layouts und Touch-Controls
+- **Professional Video Player**: Play/Pause/Mute/Fullscreen mit Hover-Controls
+
+### 🔧 **Developer Experience**
+- **Element-Filter**: Kontrolle welche Elemente pro Feld verfügbar sind (Multiselect)
+- **Tab-Gruppierung & Modals**: Übersichtliche Formulare durch intelligente Organisation
 - **CKE5 Integration**: REDAXO's CKEditor 5 nahtlos integriert
-- **Custom Media Browser**: Moderner Overlay-basierter Medienbrowser
+- **Enhanced Media Browser**: Type-Filtering, Modern Overlay, Touch-Friendly
+- **Repeater-System**: Move-Buttons, Grid-View, Modal-Support für erweiterte Optionen
 - **Linkmap-Widget**: Vollständige REDAXO Linkmap-Integration
-- **Repeater-Felder**: Dynamische Unterelemente (z.B. Accordion-Items, Cards)
-- **Modal-Gruppierung**: Übersichtliche Formulare durch Modal-Organisation
+
+### 🏗️ **Architecture**
 - **Element-Discovery**: Automatisches Laden aller Elemente aus `/elements/` Verzeichnis
 - **Custom Elements**: Eigene Elemente via Extension Point oder `project/elements/`
 - **Nested Data Structure**: Intelligente Verarbeitung verschachtelter Array-Daten
+- **Schema-Validation**: Maschinenlesbare Konfiguration mit JSON Schema
 - **Production Ready**: Vollständig getestet mit echten Use Cases
 
 ## 🚀 Highlights
@@ -41,6 +58,33 @@ Das System versteht **verschachtelte Strukturen** und speichert Repeater-Daten k
 // Input: "items[0][title]" = "Mein Titel"
 // Gespeichert als: {"items": [{"title": "Mein Titel"}]}
 ```
+
+## 🎥 **Neue Features (Version 2.0)**
+
+### Media Showcase Element
+- **Enhanced Media Widget**: Unterstützung für Bilder und Videos mit 16:9 Aspect Ratio
+- **Interactive Video Player**: Play/Pause/Mute/Fullscreen mit professionellen Hover-Controls
+- **Clickable Placeholders**: Intuitive Media-Auswahl durch klickbare Platzhalter
+- **Type Filtering**: Separate Filter für Bilder und Videos im Media Browser
+
+### Gallery Element
+- **Grid/Masonry Layouts**: Flexible Darstellungsoptionen für verschiedene Use Cases
+- **Mixed Media Support**: Bilder und Videos seamlos in einer Gallery kombiniert
+- **Grid-View Repeater**: Gekachelte Eingabeformulare (2-6 Spalten) für bessere Übersicht
+- **Responsive Design**: Mobile-optimierte Touch-Controls und Layouts
+
+### UX & Workflow Improvements
+- **Move-Button System**: Zuverlässige ⬆️⬇️ Pfeil-Buttons ersetzen unzuverlässiges Drag & Drop
+- **Grid-View Forms**: Kompakte Darstellung bei vielen Repeater-Elementen
+- **Enhanced Confirmations**: REDAXO-native Bestätigungsdialoge schützen vor Datenverlust
+- **Consistent Button Layout**: Professionelle rechts ausgerichtete Action-Buttons
+- **Modal Scroll Fix**: Löst Scroll-Jump Problem beim Öffnen von Media-Modals
+
+### Developer Experience
+- **Enhanced Debugging**: Comprehensive Console-Logging für alle Interaktionen
+- **Improved Error Handling**: Graceful fallbacks bei AJAX-Fehlern
+- **Schema Validation**: Maschinenlesbare Konfiguration mit JSON Schema Support
+- **Extended Documentation**: Vollständige API-Dokumentation und Beispiele
 
 ## 📦 Installation
 
@@ -265,32 +309,57 @@ $config = ContentBuilderHelper::getElementConfig('text_image');
 
 ## 📖 Dokumentation
 
+### 🎯 **Entwickler-Dokumentation**
+- **ELEMENT_CONFIG.md** - Vollständige config.php Referenz mit allen Feldtypen und Optionen
+- **SCHEMA.md** - JSON Schema für IDE-Integration und Validierung  
+- **schema/element-config.schema.json** - Maschinenlesbares Schema
+
+### 📚 **Feature-Dokumentation**
 - **FIELD_GROUPS_TABS.md** - Tab-Gruppierung mit Icons
 - **ELEMENT_UPDATES.md** - Changelog für Element-Updates
 - **NEW_ELEMENTS.md** - Headline, Divider, Cards Dokumentation
 - **DEBUG.md** - Debugging-Guide
 
+### 🚀 **Neue Features (v2.0)**
+- **Enhanced Media Widgets**: 16:9 Aspect Ratio, Video Controls, Clickable Placeholders
+- **Grid-View Repeater**: Gekachelte Formulare für kompakte Darstellung
+- **Move-Button Sorting**: Zuverlässige ⬆️⬇️ Pfeil-Navigation
+- **Professional UX**: Modal Scroll Fix, Confirmation Dialogs, Button Layouts
+
 ## 🗺️ Roadmap
 
+### ✅ **Version 2.0 - Completed**
+- [x] **Enhanced Media System**: 16:9 Aspect Ratio, Video Player Controls
+- [x] **Gallery Element**: Grid/Masonry Layouts mit Mixed Media Support
+- [x] **Grid-View Repeater**: Gekachelte Formulare für bessere UX
+- [x] **Move-Button Sorting**: Zuverlässige Alternative zu Drag & Drop
+- [x] **Modal Scroll Fix**: Lösung für Scroll-Jump Probleme
+- [x] **Professional UI/UX**: Konsistente Button-Layouts und Confirmations
+
+### 🔮 **Future Versions**
 - [ ] Content Builder für normale Module (REX_CONTENT_BUILDER)
-- [ ] Video-Element (YouTube/Vimeo)
-- [ ] Gallery-Element (Lightbox)
-- [ ] Testimonial-Element
-- [ ] Timeline-Element
-- [ ] UIkit Templates für alle Elemente
-- [ ] Element-Bibliothek (Community)
+- [ ] External Video-Element (YouTube/Vimeo Embeds)
+- [ ] Testimonial-Element mit Bewertungssystem
+- [ ] Timeline-Element für Chronologien
+- [ ] Advanced Gallery Features (Lightbox, Zoom, EXIF)
+- [ ] Element-Bibliothek (Community Sharing)
+- [ ] Import/Export für Element-Konfigurationen
+- [ ] A/B Testing für Element-Varianten
 
 ## 📊 Stats
 
 ```
-Lines of Code:     ~4.500
-Elements:          6 (erweiterbar)
-Feldtypen:         8
-Templates:         18 (6 × 3 Frameworks)
-CSS Files:         3
-JS Files:          2
-Dokumentation:     5 MD-Files
-Development Time:  1 intensive Session 🤖
+Lines of Code:     ~6.000 (+33% v2.0)
+Elements:          8 (Section, Text&Image, Accordion, Headline, 
+                     Divider, Cards, Media Showcase, Gallery)
+Feldtypen:         12 (inkl. Enhanced Media Types)
+Templates:         24 (8 × 3 Frameworks)  
+CSS Files:         4 (inkl. Enhanced Media CSS)
+JS Files:          3 (inkl. Enhanced Media Browser)
+Features:          Enhanced Media, Grid Views, Move Buttons,
+                   Modal Fixes, Professional UX
+Dokumentation:     8 MD-Files (inkl. Config Schema)
+Development Time:  2 intensive Sessions 🤖
 ```
 
 ## 📄 Lizenz
