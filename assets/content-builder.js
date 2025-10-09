@@ -17,7 +17,8 @@
         
         init: function() {
             this.bindEvents();
-            this.initSortable();
+            this.initMoveButtons();
+            this.initGridViews();
             this.updateSectionClasses();
         },
 
@@ -78,11 +79,159 @@
                 }
             });
             
+            $(document).on('click', '.btn-select-media-enhanced', function(e) {
+                e.preventDefault();
+                var inputId = $(this).data('input-id');
+                var allowedTypes = $(this).data('allowed-types');
+                console.log('Enhanced Media Button clicked:', inputId, allowedTypes);
+                if (window.MediaBrowser) {
+                    console.log('Opening enhanced media browser');
+                    window.MediaBrowser.openEnhanced(inputId, allowedTypes);
+                } else {
+                    console.error('MediaBrowser not available');
+                }
+            });
+            
+            // Enhanced Media Platzhalter klickbar machen
+            $(document).on('click', '.media-preview-enhanced .media-placeholder', function(e) {
+                e.preventDefault();
+                var $preview = $(this).closest('.media-preview-enhanced');
+                var previewId = $preview.attr('id');
+                var inputId = previewId.replace('preview_', '');
+                var $input = $('#' + inputId);
+                var allowedTypes = $input.data('allowed-types');
+                
+                console.log('Enhanced Media Placeholder clicked:', inputId, allowedTypes);
+                if (window.MediaBrowser && allowedTypes) {
+                    console.log('Opening enhanced media browser from placeholder');
+                    window.MediaBrowser.openEnhanced(inputId, allowedTypes);
+                } else {
+                    console.error('MediaBrowser not available or no allowedTypes');
+                }
+            });
+            
+            // Video Controls
+            $(document).on('click', '.btn-video-play', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $video = $(this).closest('.media-item-video').find('video')[0];
+                var $button = $(this);
+                
+                if ($video.paused) {
+                    $video.play();
+                    $button.html('<i class="fa fa-pause"></i>');
+                    $button.attr('title', 'Pausieren');
+                } else {
+                    $video.pause();
+                    $button.html('<i class="fa fa-play"></i>');
+                    $button.attr('title', 'Abspielen');
+                }
+            });
+            
+            $(document).on('click', '.btn-video-mute', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $video = $(this).closest('.media-item-video').find('video')[0];
+                var $button = $(this);
+                
+                if ($video.muted) {
+                    $video.muted = false;
+                    $button.html('<i class="fa fa-volume-up"></i>');
+                    $button.attr('title', 'Stumm schalten');
+                } else {
+                    $video.muted = true;
+                    $button.html('<i class="fa fa-volume-off"></i>');
+                    $button.attr('title', 'Ton an');
+                }
+            });
+            
+            $(document).on('click', '.btn-video-fullscreen', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $video = $(this).closest('.media-item-video').find('video')[0];
+                
+                if ($video.requestFullscreen) {
+                    $video.requestFullscreen();
+                } else if ($video.webkitRequestFullscreen) {
+                    $video.webkitRequestFullscreen();
+                } else if ($video.mozRequestFullScreen) {
+                    $video.mozRequestFullScreen();
+                } else if ($video.msRequestFullscreen) {
+                    $video.msRequestFullscreen();
+                }
+            });
+            
+            // Video Click zum Play/Pause
+            $(document).on('click', '.media-item-video video', function(e) {
+                e.preventDefault();
+                var $video = this;
+                var $playButton = $(this).closest('.media-item-video').find('.btn-video-play');
+                
+                if ($video.paused) {
+                    $video.play();
+                    $playButton.html('<i class="fa fa-pause"></i>');
+                    $playButton.attr('title', 'Pausieren');
+                } else {
+                    $video.pause();
+                    $playButton.html('<i class="fa fa-play"></i>');
+                    $playButton.attr('title', 'Abspielen');
+                }
+            });
+            
+            // Video Overlay Click
+            $(document).on('click', '.media-item-video .media-overlay', function(e) {
+                e.preventDefault();
+                var $video = $(this).closest('.media-item-video').find('video')[0];
+                var $playButton = $(this).closest('.media-item-video').find('.btn-video-play');
+                
+                if ($video.paused) {
+                    $video.play();
+                    $playButton.html('<i class="fa fa-pause"></i>');
+                    $playButton.attr('title', 'Pausieren');
+                } else {
+                    $video.pause();
+                    $playButton.html('<i class="fa fa-play"></i>');
+                    $playButton.attr('title', 'Abspielen');
+                }
+            });
+            
+            // Video Loading Events
+            $(document).on('loadedmetadata', '.media-item-video video', function() {
+                console.log('Video metadata loaded:', this.src);
+                $(this).closest('.media-item-video').find('.video-fallback').hide();
+            });
+            
+            $(document).on('error', '.media-item-video video', function() {
+                console.log('Video loading error:', this.src);
+                $(this).hide();
+                $(this).closest('.media-item-video').find('.video-fallback').show();
+            });
+            
+            // Video Hover Events für Controls
+            $(document).on('mouseenter', '.media-item-video', function() {
+                $(this).find('.media-controls').fadeIn(200);
+            });
+            
+            $(document).on('mouseleave', '.media-item-video', function() {
+                $(this).find('.media-controls').fadeOut(200);
+            });
+            
             $(document).on('click', '.btn-delete-media', function(e) {
                 e.preventDefault();
                 var inputId = $(this).data('input-id');
                 $('#' + inputId).val('');
                 $('#preview_' + inputId).hide().empty();
+                
+                // Enhanced preview zurücksetzen
+                var $enhancedPreview = $('#preview_' + inputId);
+                if ($enhancedPreview.hasClass('media-preview-enhanced')) {
+                    var $input = $('#' + inputId);
+                    var allowedTypes = $input.data('allowed-types');
+                    if (allowedTypes) {
+                        var allowedTypesArray = allowedTypes.split(',');
+                        self.resetEnhancedPreview($enhancedPreview, allowedTypesArray);
+                    }
+                }
             });
 
             // Repeater: Item hinzufügen
@@ -554,6 +703,11 @@
                     }
                 });
                 
+                // Alle Media-Preview Container leeren (bevor IDs geändert werden)
+                $newItem.find('.media-preview').each(function() {
+                    $(this).empty().hide();
+                });
+                
                 // Input-Namen und Werte aktualisieren
                 $newItem.find('input, textarea, select').each(function() {
                     var $input = $(this);
@@ -590,6 +744,7 @@
                             var $preview = $newItem.find('#preview_' + oldId);
                             if ($preview.length) {
                                 $preview.attr('id', 'preview_' + newId);
+                                // Preview sollte bereits geleert sein (siehe oben)
                             }
 
                             // Zusätzlich: Alle anderen Referenzen auf die alte ID aktualisieren
@@ -638,6 +793,10 @@
                     // Standard-Template für text/textarea Felder
                     var newId = 'cke5_' + Math.random().toString(16).slice(2);
                     var $newItem = $('<div class="repeater-item" data-index="' + newIndex + '">' +
+                        '<div class="move-buttons">' +
+                            '<button type="button" class="btn-move btn-move-up" title="Nach oben"><i class="fa fa-chevron-up"></i></button>' +
+                            '<button type="button" class="btn-move btn-move-down" title="Nach unten"><i class="fa fa-chevron-down"></i></button>' +
+                        '</div>' +
                         '<div class="form-group">' +
                             '<label>Titel</label>' +
                             '<input type="text" class="form-control" name="' + fieldName + '[' + newIndex + '][title]" />' +
@@ -759,6 +918,9 @@
             $container.append($newItem);
             $newItem.hide().fadeIn(200);
             
+            // Move Button States aktualisieren
+            this.updateMoveButtonStates();
+            
             // CKE5 in neuem Item initialisieren - EINFACHER ANSATZ
             setTimeout(function() {
                 $newItem.find('textarea.cke5-editor').each(function() {
@@ -779,6 +941,129 @@
                 });
             }, 500); // Länger warten
             
+        },
+        
+        resetEnhancedPreview: function($preview, allowedTypes) {
+            // Platzhalter je nach erlaubten Typen
+            var placeholderText = '';
+            var placeholderIcon = 'fa-file';
+            
+            if (allowedTypes.includes('image') && allowedTypes.includes('video')) {
+                placeholderText = 'Bild oder Video auswählen';
+                placeholderIcon = 'fa-file-image-o';
+            } else if (allowedTypes.includes('image')) {
+                placeholderText = 'Bild auswählen';
+                placeholderIcon = 'fa-image';
+            } else if (allowedTypes.includes('video')) {
+                placeholderText = 'Video auswählen';
+                placeholderIcon = 'fa-video-camera';
+            }
+            
+            $preview.html(
+                '<div class="media-placeholder">' +
+                    '<i class="fa ' + placeholderIcon + '"></i>' +
+                    '<p>' + placeholderText + '</p>' +
+                '</div>'
+            ).show();
+        },
+        
+        /**
+         * Initialize Grid Views
+         */
+        initGridViews: function() {
+            $('.repeater-grid-view').each(function() {
+                var $container = $(this);
+                var columns = $container.data('grid-columns') || 3;
+                $container.css('grid-template-columns', 'repeat(' + columns + ', 1fr)');
+            });
+        },
+        
+        /**
+         * Initialize Move Buttons for all Repeaters
+         */
+        initMoveButtons: function() {
+            var self = this;
+            
+            // Move Up Button
+            $(document).on('click', '.btn-move-up', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $item = $(this).closest('.repeater-item');
+                var $prevItem = $item.prev('.repeater-item:not(.repeater-item-template)');
+                
+                if ($prevItem.length > 0) {
+                    $item.fadeOut(150, function() {
+                        $item.insertBefore($prevItem);
+                        $item.fadeIn(150);
+                        self.updateRepeaterIndices($item.closest('.repeater-container'));
+                    });
+                }
+            });
+            
+            // Move Down Button
+            $(document).on('click', '.btn-move-down', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $item = $(this).closest('.repeater-item');
+                var $nextItem = $item.next('.repeater-item:not(.repeater-item-template)');
+                
+                if ($nextItem.length > 0) {
+                    $item.fadeOut(150, function() {
+                        $item.insertAfter($nextItem);
+                        $item.fadeIn(150);
+                        self.updateRepeaterIndices($item.closest('.repeater-container'));
+                    });
+                }
+            });
+            
+            // Update button states after initialization
+            this.updateMoveButtonStates();
+        },
+        
+        /**
+         * Update repeater indices after reordering
+         */
+        updateRepeaterIndices: function($container) {
+            $container.find('.repeater-item:not(.repeater-item-template)').each(function(index) {
+                $(this).attr('data-index', index);
+                
+                // Input-Namen aktualisieren
+                $(this).find('input, textarea, select').each(function() {
+                    var $input = $(this);
+                    var name = $input.attr('name');
+                    if (name && name.indexOf('[') !== -1) {
+                        var newName = name.replace(/\[(\d+)\]/g, '[' + index + ']');
+                        $input.attr('name', newName);
+                    }
+                });
+            });
+            
+            // Button states aktualisieren
+            this.updateMoveButtonStates();
+        },
+        
+        /**
+         * Update move button states (disable if first/last)
+         */
+        updateMoveButtonStates: function() {
+            $('.repeater-container').each(function() {
+                var $container = $(this);
+                var $items = $container.find('.repeater-item:not(.repeater-item-template)');
+                
+                $items.each(function(index) {
+                    var $item = $(this);
+                    var $upBtn = $item.find('.btn-move-up');
+                    var $downBtn = $item.find('.btn-move-down');
+                    
+                    // Erster Item: Up-Button deaktivieren
+                    $upBtn.prop('disabled', index === 0);
+                    
+                    // Letzter Item: Down-Button deaktivieren
+                    $downBtn.prop('disabled', index === $items.length - 1);
+                });
+            });
         }
     };
 
@@ -787,6 +1072,9 @@
         
         // Media Browser initialisieren, falls vorhanden
         if (window.MediaBrowser) {
+            window.MediaBrowser.init();
+        } else if (window.ContentBuilderMediaBrowser) {
+            window.MediaBrowser = window.ContentBuilderMediaBrowser;
             window.MediaBrowser.init();
         }
     });

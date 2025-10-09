@@ -294,6 +294,68 @@
     right: 10px;
 }
 
+/* Move Buttons für alle Repeater - rechts neben Löschen-Button */  
+.repeater-item .move-buttons {
+    position: absolute;
+    top: 10px;
+    right: 45px; /* 35px für btn-remove + 10px Abstand */
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.repeater-item .btn-move {
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 2px;
+    padding: 2px 4px;
+    font-size: 10px;
+    width: 20px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.repeater-item:hover .btn-move {
+    opacity: 1;
+}
+
+.repeater-item .btn-move:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.repeater-item .btn-move:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Move Animation */
+.repeater-item {
+    transition: all 0.15s ease;
+}
+
+/* Slice Form Button Styling */
+.slice-form .form-group:last-child {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.slice-form .btn-group.pull-right {
+    float: right;
+}
+
+.slice-form .clearfix {
+    clear: both;
+}
+
 .btn-add-repeater {
     width: 100%;
     margin-top: 10px;
@@ -301,6 +363,84 @@
 
 .repeater-item .form-group:last-child {
     margin-bottom: 0;
+}
+
+/* Grid View for Repeaters */
+.repeater-grid-view {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.repeater-grid-view[data-grid-columns="2"] {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.repeater-grid-view[data-grid-columns="4"] {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.repeater-grid-view[data-grid-columns="5"] {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.repeater-grid-view .repeater-item {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 200px;
+}
+
+.repeater-grid-view .repeater-item .btn-remove-repeater {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.repeater-grid-view .repeater-item:hover .btn-remove-repeater {
+    opacity: 1;
+}
+
+/* Grid View verwendet dieselben Move-Buttons */
+
+.repeater-grid-view .media-preview-enhanced {
+    flex: 1;
+    min-height: 120px;
+}
+
+/* Grid View - Kompakte Form-Groups */
+.repeater-grid-view .form-group {
+    margin-bottom: 10px;
+}
+
+.repeater-grid-view .form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.repeater-grid-view .form-control {
+    font-size: 13px;
+    padding: 6px 8px;
+}
+
+/* Grid View Responsive */
+@media (max-width: 768px) {
+    .repeater-grid-view {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .repeater-grid-view {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+    }
 }
 
 /* Media Browser Overlay */
@@ -398,6 +538,7 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 8px;
+    position: relative;
     overflow: hidden;
 }
 
@@ -417,6 +558,28 @@
     color: #666;
 }
 
+.media-browser-thumb .video-thumb {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.media-browser-thumb .media-type-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 3px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
 .media-browser-empty {
     text-align: center;
     padding: 40px;
@@ -424,18 +587,207 @@
     font-size: 16px;
 }
 
-/* Media Preview */
-.media-preview {
+/* Media Widget */
+.media-widget .media-preview {
     margin-top: 10px;
-    text-align: center;
+    max-width: 200px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
-.media-preview img {
-    max-width: 100%;
-    max-height: 150px;
+.media-widget .media-preview img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Enhanced Media Widget */
+.media-widget-enhanced .media-preview-enhanced {
+    margin-top: 15px;
     border: 1px solid #ddd;
-    border-radius: 3px;
-    padding: 5px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f9f9f9;
+}
+
+.media-preview-enhanced .media-item {
+    position: relative;
+    display: block;
+}
+
+.media-preview-enhanced .media-item {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.media-preview-enhanced .media-item-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.media-preview-enhanced .media-item-video {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.media-preview-enhanced .media-item-video video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: #000;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.media-preview-enhanced .media-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 48px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.media-preview-enhanced .media-item-video:hover .media-overlay {
+    color: rgba(255, 255, 255, 1);
+    font-size: 54px;
+}
+
+.media-preview-enhanced .media-controls {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 4px;
+    padding: 5px 10px;
+    display: none;
+    z-index: 20;
+    z-index: 20;
+}
+
+.media-preview-enhanced .media-item-video:hover .media-controls {
+    display: block;
+}
+
+.media-preview-enhanced .media-controls button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+    margin-right: 10px;
+    cursor: pointer;
+    padding: 2px 5px;
+}
+
+.media-preview-enhanced .media-controls button:hover {
+    color: #007bff;
+}
+
+/* Video Hover Effects */
+.media-preview-enhanced .media-item-video {
+    cursor: pointer;
+}
+
+.media-preview-enhanced .media-item-video:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.media-preview-enhanced .media-item-video video:hover {
+    transform: scale(1.02);
+    transition: transform 0.3s ease;
+}
+
+/* Play Overlay Animation */
+.media-preview-enhanced .media-overlay {
+    transition: all 0.2s ease;
+}
+
+.media-preview-enhanced .media-item-video:hover .media-overlay {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.media-preview-enhanced .media-info {
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 12px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.media-preview-enhanced .media-info i {
+    margin-right: 5px;
+}
+
+/* Video Fallback Styling */
+.media-preview-enhanced .video-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    color: #6c757d;
+    text-align: center;
+    z-index: 5;
+}
+
+.media-preview-enhanced .media-placeholder {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    background: #f5f5f5;
+    border: 2px dashed #ddd;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.media-preview-enhanced .media-placeholder:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+    color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.media-preview-enhanced .media-placeholder i {
+    font-size: 48px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.media-preview-enhanced .media-placeholder p {
+    margin: 0;
+    font-size: 14px;
 }
 
 /* Media Browser Body Fix - Verhindert das Springen beim Modal-Öffnen */
