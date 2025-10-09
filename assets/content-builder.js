@@ -20,6 +20,7 @@
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+            this.initConfirmButtons();
         },
 
         bindEvents: function() {
