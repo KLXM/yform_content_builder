@@ -1,5 +1,5 @@
 <?php
-// UIKit// Aspect Ratio CSS-Klassen Media Showcase Element
+// UIKit Aspect Ratio CSS-Klassen Media Showcase Element
 if (!isset($elementData) || !is_array($elementData)) {
     return;
 }
