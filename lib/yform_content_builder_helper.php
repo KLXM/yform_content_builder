@@ -106,10 +106,10 @@ class yform_content_builder_helper
      *
      * @param array $slice Slice-Daten
      * @param string $framework Framework
-     * @param string $closeType Optional: 'open' oder 'close' für Section-Elemente
+     * @param string|null $closeType Optional: 'open' oder 'close' für Section-Elemente
      * @return string HTML-Ausgabe
      */
-    protected static function renderSlice(array $slice, string $framework, string $closeType = null): string
+    protected static function renderSlice(array $slice, string $framework, ?string $closeType = null): string
     {
         $sliceType = $slice['type'] ?? '';
         $elementData = $slice['data'] ?? [];
