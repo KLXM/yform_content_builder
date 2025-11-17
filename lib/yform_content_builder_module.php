@@ -1,0 +1,407 @@
+<?php
+
+/**
+ * YForm Content Builder für Module
+ * Ermöglicht die Nutzung von Content Builder Elementen in normalen REDAXO Modulen
+ * Verwendet dieselbe Render-Logik wie rex_yform_value_content_builder
+ * 
+ * Verwendung:
+ * Input:  echo yform_content_builder_module::create('gallery')->renderInput();
+ * Output: echo yform_content_builder_module::create('gallery', 'REX_VALUE[id=1 output=html]')->renderOutput();
+ */
+class yform_content_builder_module
+{
+    protected $elementType;
+    protected $data;
+    protected $rawValue;
+    protected $helper;
+    protected $framework = 'bootstrap';
+    
+    /**
+     * Element erstellen
+     * 
+     * @param string $type Element-Typ (gallery, divider, cards, etc.)
+     * @param mixed $rawValue Rohe REX_VALUE Daten oder JSON-String
+     * @param string $framework CSS Framework für Output (bootstrap, uikit, plain)
+     * @return self
+     */
+    public static function create($type, $rawValue = null, $framework = 'bootstrap')
+    {
+        $instance = new self();
+        $instance->elementType = $type;
+        $instance->rawValue = $rawValue;
+        $instance->framework = $framework;
+        
+        // Helper-Instanz erstellen (nutzt YForm Content Builder Logik)
+        $instance->helper = new rex_yform_value_content_builder();
+        
+        // Daten normalisieren
+        if (is_string($rawValue)) {
+            // Wenn der String escaped ist (aus REX_VALUE), erst decoden
+            $decoded = html_entity_decode($rawValue, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $instance->data = json_decode($decoded, true) ?: [];
+        } elseif (is_array($rawValue)) {
+            $instance->data = $rawValue;
+        } else {
+            $instance->data = [];
+        }
+        
+        return $instance;
+    }
+    
+    /**
+     * Input-Formular ausgeben - nutzt YForm Content Builder Render-Logik
+     * 
+     * @return string HTML des Input-Formulars
+     */
+    public function renderInput()
+    {
+        // Config laden
+        $config = $this->loadConfig();
+        if (!$config) {
+            return '<div class="alert alert-danger">Element-Config für "' . rex_escape($this->elementType) . '" nicht gefunden.</div>';
+        }
+        
+        ob_start();
+        
+        echo '<div class="form-group yform-content-builder-module-input" data-element-type="' . rex_escape($this->elementType) . '">';
+        
+        // Hidden Field für JSON-Daten (wird von JavaScript gefüllt)
+        echo '<input type="hidden" name="REX_INPUT_VALUE[1]" id="yform_cb_data_storage" value="' . rex_escape(json_encode($this->data)) . '" />';
+        
+        // Formular mit YForm Content Builder Render-Methoden
+        echo '<div class="slice-form-container" id="yform_cb_form">';
+        $this->renderFormFields($config, $this->data);
+        echo '</div>';
+        
+        echo '</div>';
+        
+        // JavaScript für automatisches Data-Sync
+        ?>
+        <script>
+        (function() {
+            var storage = document.getElementById('yform_cb_data_storage');
+            var form = document.getElementById('yform_cb_form');
+            
+            if (!storage || !form) {
+                console.warn('YForm Content Builder: Storage or form not found');
+                return;
+            }
+            
+            // Funktion zum Sammeln aller Formulardaten
+            function collectFormData() {
+                // Erst CKEditor5-Inhalte in Textareas synchronisieren (REDAXO CKE5)
+                if (typeof ckeditors !== 'undefined') {
+                    form.querySelectorAll('textarea.cke5-editor').forEach(function(textarea) {
+                        var editorId = textarea.id;
+                        if (ckeditors[editorId]) {
+                            // Daten aus Editor ins Textarea schreiben
+                            textarea.value = ckeditors[editorId].getData();
+                        }
+                    });
+                }
+                
+                var data = {};
+                var allFields = form.querySelectorAll('input[name], textarea[name], select[name]');
+                var processedFields = new Set(); // Track welche Felder wir schon verarbeitet haben
+                
+                console.log('Found fields:', allFields.length);
+                
+                // Alle Inputs, Textareas und Selects sammeln
+                allFields.forEach(function(field) {
+                    var name = field.getAttribute('name');
+                    
+                    // Skip wenn wir dieses Feld schon verarbeitet haben
+                    // (REDAXO kann mehrere Inputs mit gleichem Namen haben)
+                    if (processedFields.has(name)) {
+                        return;
+                    }
+                    processedFields.add(name);
+                    
+                    console.log('Processing field:', name, 'value:', field.value);
+                    
+                    // Repeater-Felder (z.B. items[0][media]) zu verschachteltem Array konvertieren
+                    var repeaterMatch = name.match(/^(\w+)\[(\d+)\]\[(\w+)\]$/);
+                    if (repeaterMatch) {
+                        var repeaterName = repeaterMatch[1];  // z.B. "items"
+                        var index = parseInt(repeaterMatch[2]); // z.B. 0
+                        var fieldName = repeaterMatch[3];      // z.B. "media"
+                        
+                        console.log('  -> Repeater field:', repeaterName, index, fieldName);
+                        
+                        // Repeater-Array initialisieren
+                        if (!data[repeaterName]) {
+                            data[repeaterName] = [];
+                        }
+                        
+                        // Index-Objekt initialisieren
+                        if (!data[repeaterName][index]) {
+                            data[repeaterName][index] = {};
+                        }
+                        
+                        // Wert setzen
+                        if (field.type === 'checkbox') {
+                            data[repeaterName][index][fieldName] = field.checked ? '1' : '';
+                        } else {
+                            data[repeaterName][index][fieldName] = field.value;
+                        }
+                    }
+                    // Normale Felder
+                    else {
+                        // Checkboxen
+                        if (field.type === 'checkbox') {
+                            data[name] = field.checked ? '1' : '';
+                        }
+                        // Normale Felder
+                        else {
+                            data[name] = field.value;
+                        }
+                    }
+                });
+                
+                // Leere Arrays aus Repeatern bereinigen (nur Items mit Werten behalten)
+                Object.keys(data).forEach(function(key) {
+                    if (Array.isArray(data[key])) {
+                        // Leere Objekte aus Array entfernen
+                        data[key] = data[key].filter(function(item) {
+                            if (typeof item !== 'object') return true;
+                            // Prüfen ob Objekt mindestens einen nicht-leeren Wert hat
+                            return Object.values(item).some(function(val) {
+                                return val !== '' && val !== null && val !== undefined;
+                            });
+                        });
+                        // Leere Arrays ganz entfernen
+                        if (data[key].length === 0) {
+                            delete data[key];
+                        }
+                    }
+                });
+                
+                // Debug: Console-Log
+                console.log('Collected form data:', data);
+                
+                // JSON in Hidden Field speichern
+                storage.value = JSON.stringify(data);
+            }
+            
+            // Bei Änderungen Daten sammeln
+            form.addEventListener('change', collectFormData);
+            form.addEventListener('input', collectFormData);
+            
+            // REDAXO Media Widget Change Events (für REX_MEDIA_ Felder)
+            // REDAXO schreibt in Felder mit ID REX_MEDIA_X, triggert aber jQuery change
+            $(form).on('change', 'input[id^="REX_MEDIA_"]', function() {
+                collectFormData();
+            });
+            
+            // CKEditor5 Change Events abfangen (REDAXO CKE5)
+            // REDAXO CKE5 verwendet ClassicEditor und speichert Instanzen in window.ckeditors
+            $(window).on('rex:cke5IsInit', function(event, editor, editorId) {
+                // Prüfen ob dieser Editor zu unserem Formular gehört
+                var textarea = form.querySelector('#' + editorId);
+                if (textarea) {
+                    // Change Event für Auto-Sync
+                    editor.model.document.on('change:data', function() {
+                        // Daten aus Editor ins Textarea schreiben
+                        textarea.value = editor.getData();
+                        collectFormData();
+                    });
+                }
+            });
+            
+            // Für bereits initialisierte CKE5 Instanzen
+            if (typeof ckeditors !== 'undefined') {
+                form.querySelectorAll('textarea.cke5-editor').forEach(function(textarea) {
+                    var editorId = textarea.id;
+                    if (ckeditors[editorId]) {
+                        var editor = ckeditors[editorId];
+                        editor.model.document.on('change:data', function() {
+                            textarea.value = editor.getData();
+                            collectFormData();
+                        });
+                    }
+                });
+            }
+            
+            // Initial sammeln
+            collectFormData();
+            
+            // Repeater-Funktionalität initialisieren (wird von content-builder.js bereitgestellt)
+            if (typeof window.ContentBuilder !== 'undefined') {
+                window.ContentBuilder.initRepeaters();
+                
+                // Nach Repeater-Änderungen auch Daten sammeln
+                form.addEventListener('repeater:changed', collectFormData);
+            }
+        })();
+        </script>
+        <?php
+        
+        return ob_get_clean();
+    }
+    
+    /**
+     * Output-HTML ausgeben
+     * 
+     * @return string HTML des Elements
+     */
+    public function renderOutput()
+    {
+        // Config laden
+        $config = $this->loadConfig();
+        if (!$config) {
+            return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Config nicht gefunden</div>' : '';
+        }
+        
+        // Wenn keine Daten vorhanden, nichts ausgeben
+        if (empty($this->data)) {
+            return '';
+        }
+        
+        // Element-Template suchen - Framework-spezifisch
+        $elementDir = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType);
+        
+        // Erst Framework-spezifisches Template versuchen
+        $elementFile = $elementDir . '/templates/' . $this->framework . '.php';
+        
+        // Fallback auf element.php (legacy)
+        if (!file_exists($elementFile)) {
+            $elementFile = $elementDir . '/element.php';
+        }
+        
+        if (!file_exists($elementFile)) {
+            return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Template nicht gefunden: ' . $elementFile . '</div>' : '';
+        }
+        
+        // Element-Template einbinden
+        ob_start();
+        $data = $this->data; // Für Template verfügbar machen
+        $elementData = $this->data; // Alias für Template-Kompatibilität
+        $config = $config; // Config auch verfügbar machen
+        $framework = $this->framework; // Framework für Template verfügbar
+        include $elementFile;
+        return ob_get_clean();
+    }
+    
+    /**
+     * Config des Elements laden
+     * 
+     * @return array|null
+     */
+    protected function loadConfig()
+    {
+        $configFile = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/config.php');
+        
+        if (!file_exists($configFile)) {
+            return null;
+        }
+        
+        return include $configFile;
+    }
+    
+    /**
+     * Formular-Felder rendern - nutzt YForm Content Builder renderFormField
+     */
+    protected function renderFormFields(array $config, array $sliceData)
+    {
+        // Settings Modal Button (falls definiert)
+        if (isset($config['settings_modal']) && is_array($config['settings_modal'])) {
+            $this->renderSettingsModalButton($config, $sliceData);
+        }
+        
+        // Prüfen ob Tabs definiert sind
+        if (isset($config['field_groups']) && is_array($config['field_groups'])) {
+            $this->renderFormWithTabs($config, $sliceData);
+        } else {
+            // Standard: Alle Felder ohne Tabs
+            $modalFields = [];
+            if (isset($config['settings_modal']['fields'])) {
+                $modalFields = $config['settings_modal']['fields'];
+            }
+            
+            foreach ($config['fields'] as $fieldName => $fieldConfig) {
+                // Felder die im Modal sind überspringen
+                if (!in_array($fieldName, $modalFields)) {
+                    $this->renderFormField($fieldName, $fieldConfig, $sliceData);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Einzelnes Form-Feld rendern - delegiert an Helper mit angepasstem getNestedValue
+     */
+    protected function renderFormField(string $fieldName, array $fieldConfig, array $sliceData)
+    {
+        // Wert aus sliceData extrahieren - BEVOR wir an Helper weitergeben
+        // getNestedValue in Helper hat Bug mit Repeater-Feldern
+        $value = $this->getValueForField($fieldName, $sliceData);
+        
+        // Wenn ein Wert gefunden wurde, temporär in sliceData einfügen als flachen Key
+        // damit Helper.renderFormField ihn findet
+        if ($value !== null && $value !== '') {
+            // Für normale Felder: direkt setzen
+            if (strpos($fieldName, '[') === false) {
+                $sliceData[$fieldName] = $value;
+            }
+            // Für Repeater-Felder: als flachen Key setzen
+            else {
+                // z.B. "items[0][title]" wird zu $sliceData['items[0][title]'] = 'value'
+                $sliceData[$fieldName] = $value;
+            }
+        }
+        
+        // Reflection nutzen um auf protected Methode zuzugreifen
+        $reflection = new ReflectionClass($this->helper);
+        $method = $reflection->getMethod('renderFormField');
+        $method->setAccessible(true);
+        $method->invoke($this->helper, $fieldName, $fieldConfig, $sliceData);
+    }
+    
+    /**
+     * Get value for a field from sliceData - handles nested arrays properly
+     */
+    protected function getValueForField(string $fieldName, array $sliceData)
+    {
+        // Einfacher Key ohne Brackets
+        if (strpos($fieldName, '[') === false) {
+            return $sliceData[$fieldName] ?? null;
+        }
+        
+        // Repeater-Field: items[0][title]
+        // Parsen: items[0][title] -> baseField=items, index=0, subField=title
+        if (preg_match('/^(\w+)\[(\d+)\]\[(\w+)\]$/', $fieldName, $matches)) {
+            $baseField = $matches[1];  // z.B. "items"
+            $index = (int)$matches[2]; // z.B. 0
+            $subField = $matches[3];   // z.B. "title"
+            
+            if (isset($sliceData[$baseField][$index][$subField])) {
+                return $sliceData[$baseField][$index][$subField];
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Settings Modal Button rendern
+     */
+    protected function renderSettingsModalButton(array $config, array $sliceData)
+    {
+        $reflection = new ReflectionClass($this->helper);
+        $method = $reflection->getMethod('renderSettingsModalButton');
+        $method->setAccessible(true);
+        $method->invoke($this->helper, $config, $sliceData);
+    }
+    
+    /**
+     * Formular mit Tabs rendern
+     */
+    protected function renderFormWithTabs(array $config, array $sliceData)
+    {
+        $reflection = new ReflectionClass($this->helper);
+        $method = $reflection->getMethod('renderFormWithTabs');
+        $method->setAccessible(true);
+        $method->invoke($this->helper, $config, $sliceData);
+    }
+}

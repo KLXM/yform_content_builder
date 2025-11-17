@@ -6,6 +6,22 @@
  */
 class rex_yform_value_content_builder extends rex_yform_value_abstract
 {
+    private static $widgetCounters = [
+        'media' => 0,
+        'link' => 0,
+    ];
+    
+    /**
+     * Get next unique media counter (global über alle Instanzen)
+     */
+    private static function getNextMediaCounter()
+    {
+        if (!isset($GLOBALS['yform_cb_media_counter'])) {
+            $GLOBALS['yform_cb_media_counter'] = 0;
+        }
+        return ++$GLOBALS['yform_cb_media_counter'];
+    }
+    
     public function enterObject()
     {
         // AJAX-Anfragen behandeln - wenn AJAX, wird hier beendet
@@ -56,16 +72,6 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             
             if ($action === 'render_slice') {
                 $this->ajaxRenderSlice();
-                return true;
-            }
-            
-            if ($action === 'load_media_categories') {
-                $this->ajaxLoadMediaCategories();
-                return true;
-            }
-            
-            if ($action === 'load_media_list') {
-                $this->ajaxLoadMediaList();
                 return true;
             }
         }
@@ -309,143 +315,98 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 break;
                 
             case 'be_media':
-                // Custom Media Browser statt openREXMedia
-                static $widgetCounter = 0;
-                $widgetCounter++;
+                // REDAXO Standard Media Widget
+                $mediaCounter = self::getNextMediaCounter();
                 
-                $inputId = 'media_' . uniqid();
-                
-                echo '<div class="input-group media-widget">';
-                echo '<input type="text" ';
-                echo 'name="' . rex_escape($fieldName) . '" ';
-                echo 'id="' . $inputId . '" ';
-                echo 'class="form-control media-input" ';
-                echo 'value="' . rex_escape($value) . '" ';
-                echo 'readonly />';
-                echo '<span class="input-group-btn">';
-                echo '<button type="button" class="btn btn-default btn-select-media" ';
-                echo 'data-input-id="' . $inputId . '" ';
-                echo 'title="Medium auswählen">';
-                echo '<i class="rex-icon rex-icon-open-mediapool"></i>';
-                echo '</button>';
-                echo '<button type="button" class="btn btn-default btn-delete-media" ';
-                echo 'data-input-id="' . $inputId . '" ';
-                echo 'title="Medium entfernen">';
-                echo '<i class="rex-icon rex-icon-delete-media"></i>';
-                echo '</button>';
-                echo '</span>';
-                echo '</div>';
-                
-                // Vorschau wenn Bild vorhanden
-                if ($value && $this->isImage($value)) {
-                    echo '<div class="media-preview" id="preview_' . $inputId . '">';
-                    echo '<img src="' . rex_url::media($value) . '" alt="" />';
-                    echo '</div>';
-                } else {
-                    echo '<div class="media-preview" id="preview_' . $inputId . '" style="display:none;"></div>';
-                }
-                break;
-                
-            case 'be_media_enhanced':
-                // Enhanced Media Browser mit Platzhaltern und Typ-Filter
-                static $enhancedWidgetCounter = 0;
-                $enhancedWidgetCounter++;
-                
-                $inputId = 'media_enhanced_' . uniqid();
+                $inputId = 'REX_MEDIA_' . $mediaCounter;
                 
                 // Robuste Behandlung von allowed_types
+                $types = '';
+                $allowedTypes = [];
                 if (isset($fieldConfig['allowed_types'])) {
                     if (is_array($fieldConfig['allowed_types'])) {
                         $allowedTypes = $fieldConfig['allowed_types'];
                     } else {
-                        // Assume comma-separated string
                         $allowedTypes = array_map('trim', explode(',', $fieldConfig['allowed_types']));
                     }
-                } else {
-                    $allowedTypes = ['image', 'video'];
+                    $types = implode(',', $allowedTypes);
                 }
                 
-                echo '<div class="input-group media-widget media-widget-enhanced">';
-                echo '<input type="text" ';
+                $wdgtClass = 'rex-js-widget rex-js-widget-media';
+                
+                echo '<div class="' . $wdgtClass . '">';
+                echo '<div class="input-group">';
+                echo '<input class="form-control content-builder-media-input" type="text" ';
                 echo 'name="' . rex_escape($fieldName) . '" ';
                 echo 'id="' . $inputId . '" ';
-                echo 'class="form-control media-input" ';
                 echo 'value="' . rex_escape($value) . '" ';
-                echo 'data-allowed-types="' . rex_escape(implode(',', $allowedTypes)) . '" ';
-                echo 'readonly />';
+                echo 'data-media-id="' . $mediaCounter . '" />';
                 echo '<span class="input-group-btn">';
-                echo '<button type="button" class="btn btn-default btn-select-media-enhanced" ';
-                echo 'data-input-id="' . $inputId . '" ';
-                echo 'data-allowed-types="' . rex_escape(implode(',', $allowedTypes)) . '" ';
-                echo 'title="Medium auswählen">';
-                echo '<i class="rex-icon rex-icon-open-mediapool"></i>';
-                echo '</button>';
-                echo '<button type="button" class="btn btn-default btn-delete-media" ';
-                echo 'data-input-id="' . $inputId . '" ';
-                echo 'title="Medium entfernen">';
-                echo '<i class="rex-icon rex-icon-delete-media"></i>';
-                echo '</button>';
-                echo '</span>';
-                echo '</div>';
                 
-                // Enhanced Preview mit Platzhalter
-                echo '<div class="media-preview-enhanced" id="preview_' . $inputId . '">';
+                $openMediaParams = $types ? ", '&types=" . rex_escape($types) . "'" : '';
+                echo '<a href="#" class="btn btn-popup" ';
+                echo 'onclick="openREXMedia(' . $mediaCounter . $openMediaParams . '); return false;" ';
+                echo 'title="' . rex_i18n::msg('var_media_open') . '">';
+                echo '<i class="rex-icon fa fa-folder-open"></i></a>';
+                
                 if ($value) {
-                    if ($this->isImage($value)) {
-                        echo '<div class="media-item media-item-image">';
-                        echo '<img src="' . rex_url::media($value) . '" alt="" />';
-                        echo '<div class="media-info"><i class="fa fa-image"></i> Bild: ' . rex_escape($value) . '</div>';
-                        echo '</div>';
-                    } elseif ($this->isVideo($value)) {
-                        echo '<div class="media-item media-item-video">';
-                        $extension = strtolower(pathinfo($value, PATHINFO_EXTENSION));
-                        $mimeType = 'video/' . ($extension === 'mov' ? 'quicktime' : $extension);
-                        
-                        echo '<video preload="metadata" muted playsinline data-filename="' . htmlspecialchars($value) . '">';
-                        echo '<source src="' . rex_url::media($value) . '" type="' . htmlspecialchars($mimeType) . '" />';
-                        echo 'Ihr Browser unterstützt dieses Video-Format nicht.';
-                        echo '</video>';
-                        echo '<div class="video-fallback" style="display: none;">';
-                        echo '<i class="fa fa-video-camera" style="font-size: 48px; color: #999;"></i>';
-                        echo '<p style="margin-top: 10px; color: #666;">Video: ' . rex_escape($value) . '</p>';
-                        echo '</div>';
-                        echo '<div class="media-overlay"><i class="fa fa-play-circle"></i></div>';
-                        echo '<div class="media-controls">';
-                        echo '<button class="btn-video-play" title="Abspielen"><i class="fa fa-play"></i></button>';
-                        echo '<button class="btn-video-mute" title="Stumm schalten"><i class="fa fa-volume-up"></i></button>';
-                        echo '<button class="btn-video-fullscreen" title="Vollbild"><i class="fa fa-expand"></i></button>';
-                        echo '</div>';
-                        echo '<div class="media-info"><i class="fa fa-video-camera"></i> Video: ' . rex_escape($value) . '</div>';
-                        echo '</div>';
-                    }
-                } else {
-                    // Platzhalter je nach erlaubten Typen
-                    $placeholderText = '';
-                    $placeholderIcon = 'fa-file';
-                    
-                    if (in_array('image', $allowedTypes) && in_array('video', $allowedTypes)) {
-                        $placeholderText = 'Bild oder Video auswählen';
-                        $placeholderIcon = 'fa-file-image-o';
-                    } elseif (in_array('image', $allowedTypes)) {
-                        $placeholderText = 'Bild auswählen';
-                        $placeholderIcon = 'fa-image';
-                    } elseif (in_array('video', $allowedTypes)) {
-                        $placeholderText = 'Video auswählen';
-                        $placeholderIcon = 'fa-video-camera';
-                    }
-                    
-                    echo '<div class="media-placeholder">';
-                    echo '<i class="fa ' . $placeholderIcon . '"></i>';
-                    echo '<p>' . rex_escape($placeholderText) . '</p>';
-                    echo '</div>';
+                    echo '<a href="#" class="btn btn-popup" ';
+                    echo 'onclick="newWindow(\'' . rex_url::media($value) . '\'); return false;" ';
+                    echo 'title="' . rex_i18n::msg('var_media_view') . '">';
+                    echo '<i class="rex-icon fa fa-eye"></i></a>';
                 }
+                
+                echo '<a href="#" class="btn btn-popup btn-delete-cb-media" ';
+                echo 'data-input-id="' . $inputId . '" ';
+                echo 'onclick="return false;" ';
+                echo 'title="' . rex_i18n::msg('var_media_remove') . '">';
+                echo '<i class="rex-icon fa fa-trash"></i></a>';
+                
+                echo '</span></div>';
+                
+                // Eigene Preview Implementation
+                echo '<div class="content-builder-media-preview" data-input-id="' . $inputId . '">';
+                if ($value) {
+                    $mediaPath = rex_path::media($value);
+                    $isImage = yform_content_builder_helper::isImage($value);
+                    $isVideo = yform_content_builder_helper::isVideo($value);
+                    
+                    if ($isImage && file_exists($mediaPath)) {
+                        $mediaUrl = rex_url::media($value);
+                        if (rex_addon::get('media_manager')->isAvailable()) {
+                            $mediaUrl = rex_media_manager::getUrl('yform_content_builder_preview', $value);
+                        }
+                        echo '<div class="cb-media-preview-item">';
+                        echo '<div class="cb-media-container">';
+                        echo '<img src="' . $mediaUrl . '" alt="' . rex_escape($value) . '" />';
+                        echo '</div>';
+                        echo '<span class="cb-media-filename">' . rex_escape($value) . '</span>';
+                        echo '</div>';
+                    } elseif ($isVideo && file_exists($mediaPath)) {
+                        $mediaUrl = rex_url::media($value);
+                        echo '<div class="cb-media-preview-item cb-media-video">';
+                        echo '<div class="cb-media-container">';
+                        echo '<video controls preload="metadata">';
+                        echo '<source src="' . $mediaUrl . '" />';
+                        echo '</video>';
+                        echo '</div>';
+                        echo '<span class="cb-media-filename">' . rex_escape($value) . '</span>';
+                        echo '</div>';
+                    } else {
+                        echo '<div class="cb-media-preview-item cb-media-file">';
+                        echo '<i class="fa fa-file"></i>';
+                        echo '<span class="cb-media-filename">' . rex_escape($value) . '</span>';
+                        echo '</div>';
+                    }
+                }
+                echo '</div>';
                 echo '</div>';
                 break;
                 
             case 'be_link':
                 // REDAXO Linkmap Widget
-                static $linkCounter = 0;
-                $linkCounter++;
+                self::$widgetCounters['link']++;
+                $linkCounter = self::$widgetCounters['link'];
                 
                 $inputId = 'REX_LINK_' . $linkCounter;
                 $categoryId = $fieldConfig['category'] ?? 1;
@@ -660,73 +621,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         exit;
     }
     
-    /**
-     * AJAX: Load media categories
-     */
-    protected function ajaxLoadMediaCategories(): void
-    {
-        rex_response::cleanOutputBuffers();
-        
-        $categories = [];
-        $sql = rex_sql::factory();
-        $sql->setQuery('SELECT id, name FROM ' . rex::getTable('media_category') . ' ORDER BY name');
-        
-        foreach ($sql->getArray() as $row) {
-            $categories[] = [
-                'id' => $row['id'],
-                'name' => $row['name']
-            ];
-        }
-        
-        header('Content-Type: application/json');
-        echo json_encode(['categories' => $categories]);
-        exit;
-    }
-    
-    /**
-     * AJAX: Load media list
-     */
-    protected function ajaxLoadMediaList(): void
-    {
-        rex_response::cleanOutputBuffers();
-        
-        $categoryId = rex_request::request('category_id', 'int', 0);
-        $search = rex_request::request('search', 'string', '');
-        
-        $sql = rex_sql::factory();
-        $query = 'SELECT filename, title, category_id FROM ' . rex::getTable('media');
-        $where = [];
-        
-        if ($categoryId > 0) {
-            $where[] = 'category_id = ' . $categoryId;
-        }
-        
-        if ($search) {
-            $search = $sql->escape('%' . $search . '%');
-            $where[] = '(filename LIKE ' . $search . ' OR title LIKE ' . $search . ')';
-        }
-        
-        if (!empty($where)) {
-            $query .= ' WHERE ' . implode(' AND ', $where);
-        }
-        
-        $query .= ' ORDER BY filename';
-        $sql->setQuery($query);
-        
-        $media = [];
-        foreach ($sql->getArray() as $row) {
-            $media[] = [
-                'filename' => $row['filename'],
-                'title' => $row['title'] ?: $row['filename'],
-                'url' => rex_url::media($row['filename']),
-                'is_image' => $this->isImage($row['filename'])
-            ];
-        }
-        
-        header('Content-Type: application/json');
-        echo json_encode(['media' => $media]);
-        exit;
-    }
+
     
     /**
      * Check if file is an image

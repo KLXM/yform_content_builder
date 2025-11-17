@@ -34,7 +34,25 @@
                 return false;
             });
             
-            // Move Button - stopPropagation damit Edit nicht triggert
+            // Move Up Button
+            $(document).on('click', '.btn-slice-move-up', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $slice = $(this).closest('.content-builder-slice');
+                self.moveSliceUp($slice);
+                return false;
+            });
+            
+            // Move Down Button
+            $(document).on('click', '.btn-slice-move-down', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $slice = $(this).closest('.content-builder-slice');
+                self.moveSliceDown($slice);
+                return false;
+            });
+            
+            // Old Move Button (deprecated)
             $(document).on('click', '.btn-slice-move', function(e) {
                 e.stopPropagation();
             });
@@ -88,18 +106,127 @@
                 }
             });
             
-            // Enhanced Media Platzhalter klickbar machen
-            $(document).on('click', '.media-preview-enhanced .media-placeholder', function(e) {
-                e.preventDefault();
-                var $preview = $(this).closest('.media-preview-enhanced');
-                var previewId = $preview.attr('id');
-                var inputId = previewId.replace('preview_', '');
-                var $input = $('#' + inputId);
-                var allowedTypes = $input.data('allowed-types');
-                
-                if (window.MediaBrowser && allowedTypes) {
-                    window.MediaBrowser.openEnhanced(inputId, allowedTypes);
+            // Enhanced Media Platzhalter und Preview klickbar machen
+            $(document).on('click', '.media-preview-enhanced', function(e) {
+                // Nur wenn nicht auf Delete-Button geklickt wurde
+                if ($(e.target).closest('.btn-delete-preview').length > 0) {
+                    return;
                 }
+                
+                e.preventDefault();
+                var $preview = $(this);
+                var counter = $preview.data('counter');
+                var types = $preview.data('types');
+                
+                if (counter) {
+                    var typesParam = types ? '&types=' + types : '';
+                    if (typeof openREXMedia === 'function') {
+                        if (typesParam) {
+                            openREXMedia(counter, typesParam);
+                        } else {
+                            openREXMedia(counter);
+                        }
+                    }
+                }
+            });
+            
+            // Delete Button für Enhanced Media Preview
+            $(document).on('click', '.btn-delete-preview', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $preview = $(this).closest('.media-preview-enhanced');
+                var inputId = $preview.data('input-id');
+                var $input = $('#' + inputId);
+                
+                // Input leeren
+                $input.val('');
+                
+                // Preview zurücksetzen auf Placeholder
+                var types = $preview.data('types') || '';
+                var allowedTypes = types ? types.split(',') : [];
+                
+                var placeholderText = 'Klicken Sie hier, um ein Medium auszuwählen';
+                var placeholderIcon = 'fa-cloud-upload';
+                
+                if (allowedTypes.includes('image') && allowedTypes.includes('video')) {
+                    placeholderText = 'Klicken Sie hier, um ein Bild oder Video auszuwählen';
+                } else if (allowedTypes.includes('image')) {
+                    placeholderText = 'Klicken Sie hier, um ein Bild auszuwählen';
+                } else if (allowedTypes.includes('video')) {
+                    placeholderText = 'Klicken Sie hier, um ein Video auszuwählen';
+                }
+                
+                $preview.html(
+                    '<div class="media-placeholder">' +
+                        '<i class="fa ' + placeholderIcon + '"></i>' +
+                        '<p>' + placeholderText + '</p>' +
+                    '</div>'
+                );
+            });
+            
+            // Watch for media input changes and update enhanced preview
+            $(document).on('change input', 'input[id^="REX_MEDIA_"]', function() {
+                var $input = $(this);
+                var inputId = $input.attr('id');
+                var $preview = $('#preview_' + inputId);
+                
+                // Nur Enhanced Preview aktualisieren
+                if ($preview.length && $preview.hasClass('media-preview-enhanced')) {
+                    self.updateEnhancedMediaPreview($input, $preview);
+                }
+            });
+            
+            // Polling für Enhanced Media Widgets (da openREXMedia nicht immer change-Event feuert)
+            setInterval(function() {
+                $('.media-enhanced-clickable').each(function() {
+                    var $container = $(this);
+                    var inputId = $container.data('input-id');
+                    
+                    if (inputId) {
+                        var $input = $('#' + inputId);
+                        
+                        if ($input.length) {
+                            var currentValue = $input.val();
+                            var lastValue = $input.data('last-value') || '';
+                            
+                            if (currentValue !== lastValue) {
+                                $input.data('last-value', currentValue);
+                                self.updateEnhancedMediaWidget($container, $input);
+                            }
+                        }
+                    }
+                });
+            }, 500);
+            
+            // Content Builder Media - Eigene Preview-Logik
+            $(document).on('change', '.content-builder-media-input', function() {
+                var $input = $(this);
+                var inputId = $input.attr('id');
+                var $preview = $('.content-builder-media-preview[data-input-id="' + inputId + '"]');
+                var mediaFile = $input.val();
+                
+                if (mediaFile) {
+                    // Update Preview
+                    self.updateContentBuilderMediaPreview($preview, mediaFile);
+                } else {
+                    // Clear Preview
+                    $preview.empty();
+                }
+            });
+            
+            // Delete Button für Content Builder Media
+            $(document).on('click', '.btn-delete-cb-media', function(e) {
+                e.preventDefault();
+                var inputId = $(this).data('input-id');
+                var $input = $('#' + inputId);
+                var $preview = $('.content-builder-media-preview[data-input-id="' + inputId + '"]');
+                
+                $input.val('');
+                $preview.empty();
+                
+                // Trigger change event
+                $input.trigger('change');
             });
             
             // Video Controls
@@ -542,6 +669,38 @@
             // Modal anzeigen
             $modal.modal('show');
         },
+        
+        moveSliceUp: function($slice) {
+            var $prev = $slice.prev('.content-builder-slice');
+            if ($prev.length) {
+                $slice.insertBefore($prev);
+                this.updateIndices();
+                this.updateHiddenField();
+                this.updateSectionClasses();
+                
+                // Kurzes Highlight
+                $slice.css('background', '#d9edf7');
+                setTimeout(function() {
+                    $slice.css('background', '');
+                }, 300);
+            }
+        },
+        
+        moveSliceDown: function($slice) {
+            var $next = $slice.next('.content-builder-slice');
+            if ($next.length) {
+                $slice.insertAfter($next);
+                this.updateIndices();
+                this.updateHiddenField();
+                this.updateSectionClasses();
+                
+                // Kurzes Highlight
+                $slice.css('background', '#d9edf7');
+                setTimeout(function() {
+                    $slice.css('background', '');
+                }, 300);
+            }
+        },
 
         addSlice: function($container, elementType, elementLabel) {
             var sliceId = 'slice_' + Date.now();
@@ -689,8 +848,58 @@
                         }
                         
                         // Media/Link-Inputs: Neue ID generieren
-                        if (oldId && (oldId.indexOf('media_') === 0 || oldId.indexOf('REX_LINK_') === 0)) {
-                            var newId = oldId.replace(/_\w+$/, '_' + Date.now() + '_' + newIndex);
+                        if (oldId && (oldId.indexOf('media_') === 0 || oldId.indexOf('REX_MEDIA_') === 0 || oldId.indexOf('REX_LINK_') === 0)) {
+                            var newId;
+                            
+                            // Für REX_MEDIA_ müssen wir den Counter hochzählen
+                            if (oldId.indexOf('REX_MEDIA_') === 0) {
+                                // Globalen Counter verwenden oder hochzählen
+                                if (typeof window.rexMediaCounter === 'undefined') {
+                                    // Counter aus dem höchsten vorhandenen REX_MEDIA_X ermitteln
+                                    var maxCounter = 0;
+                                    $('input[id^="REX_MEDIA_"]').each(function() {
+                                        var match = $(this).attr('id').match(/REX_MEDIA_(\d+)/);
+                                        if (match) {
+                                            maxCounter = Math.max(maxCounter, parseInt(match[1]));
+                                        }
+                                    });
+                                    window.rexMediaCounter = maxCounter;
+                                }
+                                window.rexMediaCounter++;
+                                newId = 'REX_MEDIA_' + window.rexMediaCounter;
+                                
+                                // onclick-Attribute für openREXMedia aktualisieren
+                                $newItem.find('a[onclick*="openREXMedia"]').each(function() {
+                                    var $link = $(this);
+                                    var oldOnclick = $link.attr('onclick');
+                                    if (oldOnclick) {
+                                        var oldCounter = oldId.replace('REX_MEDIA_', '');
+                                        var newOnclick = oldOnclick.replace(
+                                            'openREXMedia(' + oldCounter,
+                                            'openREXMedia(' + window.rexMediaCounter
+                                        );
+                                        $link.attr('onclick', newOnclick);
+                                    }
+                                });
+                                
+                                // deleteREXMedia und viewREXMedia auch updaten
+                                $newItem.find('a[onclick*="deleteREXMedia"],a[onclick*="viewREXMedia"]').each(function() {
+                                    var $link = $(this);
+                                    var oldOnclick = $link.attr('onclick');
+                                    if (oldOnclick) {
+                                        var oldCounter = oldId.replace('REX_MEDIA_', '');
+                                        var newOnclick = oldOnclick.replace(
+                                            new RegExp('(deleteREXMedia|viewREXMedia)\\(' + oldCounter),
+                                            '$1(' + window.rexMediaCounter
+                                        );
+                                        $link.attr('onclick', newOnclick);
+                                    }
+                                });
+                            } else {
+                                // Für media_ und REX_LINK_: Timestamp + Index
+                                newId = oldId.replace(/_\w+$/, '_' + Date.now() + '_' + newIndex);
+                            }
+                            
                             $input.attr('id', newId);
 
                             // Zugehörige Buttons aktualisieren (data-id für Linkmap, data-input-id für Media)
@@ -707,6 +916,16 @@
                             var $preview = $newItem.find('#preview_' + oldId);
                             if ($preview.length) {
                                 $preview.attr('id', 'preview_' + newId);
+                                $preview.attr('data-input-id', newId);
+                                
+                                // Für be_media_enhanced: Counter auch aktualisieren
+                                if ($preview.hasClass('media-preview-enhanced')) {
+                                    if (oldId.indexOf('REX_MEDIA_') === 0) {
+                                        var newCounter = window.rexMediaCounter;
+                                        $preview.attr('data-counter', newCounter);
+                                    }
+                                }
+                                
                                 // Preview sollte bereits geleert sein (siehe oben)
                             }
 
@@ -838,8 +1057,58 @@
                         }
                         
                         // Media/Link-Inputs: Neue ID generieren
-                        if (oldId && (oldId.indexOf('media_') === 0 || oldId.indexOf('REX_LINK_') === 0)) {
-                            var newId = oldId.replace(/_\w+$/, '_' + Date.now() + '_' + newIndex);
+                        if (oldId && (oldId.indexOf('media_') === 0 || oldId.indexOf('REX_MEDIA_') === 0 || oldId.indexOf('REX_LINK_') === 0)) {
+                            var newId;
+                            
+                            // Für REX_MEDIA_ müssen wir den Counter hochzählen
+                            if (oldId.indexOf('REX_MEDIA_') === 0) {
+                                // Globalen Counter verwenden oder hochzählen
+                                if (typeof window.rexMediaCounter === 'undefined') {
+                                    // Counter aus dem höchsten vorhandenen REX_MEDIA_X ermitteln
+                                    var maxCounter = 0;
+                                    $('input[id^="REX_MEDIA_"]').each(function() {
+                                        var match = $(this).attr('id').match(/REX_MEDIA_(\d+)/);
+                                        if (match) {
+                                            maxCounter = Math.max(maxCounter, parseInt(match[1]));
+                                        }
+                                    });
+                                    window.rexMediaCounter = maxCounter;
+                                }
+                                window.rexMediaCounter++;
+                                newId = 'REX_MEDIA_' + window.rexMediaCounter;
+                                
+                                // onclick-Attribute für openREXMedia aktualisieren
+                                $newItem.find('a[onclick*="openREXMedia"]').each(function() {
+                                    var $link = $(this);
+                                    var oldOnclick = $link.attr('onclick');
+                                    if (oldOnclick) {
+                                        var oldCounter = oldId.replace('REX_MEDIA_', '');
+                                        var newOnclick = oldOnclick.replace(
+                                            'openREXMedia(' + oldCounter,
+                                            'openREXMedia(' + window.rexMediaCounter
+                                        );
+                                        $link.attr('onclick', newOnclick);
+                                    }
+                                });
+                                
+                                // deleteREXMedia und viewREXMedia auch updaten
+                                $newItem.find('a[onclick*="deleteREXMedia"],a[onclick*="viewREXMedia"]').each(function() {
+                                    var $link = $(this);
+                                    var oldOnclick = $link.attr('onclick');
+                                    if (oldOnclick) {
+                                        var oldCounter = oldId.replace('REX_MEDIA_', '');
+                                        var newOnclick = oldOnclick.replace(
+                                            new RegExp('(deleteREXMedia|viewREXMedia)\\(' + oldCounter),
+                                            '$1(' + window.rexMediaCounter
+                                        );
+                                        $link.attr('onclick', newOnclick);
+                                    }
+                                });
+                            } else {
+                                // Für media_ und REX_LINK_: Timestamp + Index
+                                newId = oldId.replace(/_\w+$/, '_' + Date.now() + '_' + newIndex);
+                            }
+                            
                             $input.attr('id', newId);
                             
                             // Zugehörige Buttons aktualisieren (data-id für Linkmap, data-input-id für Media)
@@ -880,6 +1149,19 @@
             
             $container.append($newItem);
             $newItem.hide().fadeIn(200);
+            
+            // Enhanced Media Previews zurücksetzen
+            $newItem.find('.media-preview-enhanced').each(function() {
+                var $preview = $(this);
+                var types = $preview.attr('data-types') || '';
+                var allowedTypes = types ? types.split(',') : ['image', 'video'];
+                self.resetEnhancedPreview($preview, allowedTypes);
+            });
+            
+            // Initial last-value für Polling setzen
+            $newItem.find('input[id^="REX_MEDIA_"]').each(function() {
+                $(this).data('last-value', $(this).val() || '');
+            });
             
             // Move Button States aktualisieren
             this.updateMoveButtonStates();
@@ -923,6 +1205,60 @@
                     '<p>' + placeholderText + '</p>' +
                 '</div>'
             ).show();
+        },
+        
+        /**
+         * Update Enhanced Media Preview when media is selected
+         */
+        updateEnhancedMediaPreview: function($input, $preview) {
+            var filename = $input.val();
+            
+            if (!filename) {
+                // Kein Medium: Placeholder anzeigen
+                var allowedTypes = $input.data('allowed-types') || [];
+                this.resetEnhancedPreview($preview, allowedTypes);
+                return;
+            }
+            
+            // Dateityp bestimmen
+            var ext = filename.split('.').pop().toLowerCase();
+            var imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'];
+            var videoExts = ['mp4', 'webm', 'ogv', 'mov'];
+            
+            var html = '';
+            
+            if (imageExts.indexOf(ext) !== -1) {
+                // Bild-Preview
+                var mediaUrl = '';
+                if (typeof rex !== 'undefined' && rex.media_manager_url) {
+                    mediaUrl = rex.media_manager_url + 'rex_mediapool_preview/' + encodeURIComponent(filename);
+                } else {
+                    mediaUrl = '../media/' + encodeURIComponent(filename);
+                }
+                
+                html = '<div class="media-item media-item-image">' +
+                       '<img src="' + mediaUrl + '" alt="' + filename + '" />' +
+                       '</div>';
+                       
+            } else if (videoExts.indexOf(ext) !== -1) {
+                // Video-Preview
+                var mediaUrl = '../media/' + encodeURIComponent(filename);
+                html = '<div class="media-item media-item-video" style="position: relative; padding-bottom: 56.25%; height: 0;">' +
+                       '<video preload="metadata" muted style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">' +
+                       '<source src="' + mediaUrl + '" type="video/' + ext + '" />' +
+                       '</video>' +
+                       '<div class="media-overlay"><i class="fa fa-play-circle"></i></div>' +
+                       '</div>';
+                       
+            } else {
+                // Unbekannter Dateityp
+                html = '<div class="media-placeholder">' +
+                       '<i class="fa fa-file"></i>' +
+                       '<p>' + filename + '</p>' +
+                       '</div>';
+            }
+            
+            $preview.html(html).show();
         },
         
         /**
@@ -1022,6 +1358,160 @@
                     $downBtn.prop('disabled', index === $items.length - 1);
                 });
             });
+        },
+        
+        /**
+         * Update Content Builder Media Preview
+         */
+        updateContentBuilderMediaPreview: function($preview, mediaFile) {
+            var ext = mediaFile.split('.').pop().toLowerCase();
+            var isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].indexOf(ext) !== -1;
+            var isVideo = ['mp4', 'webm', 'ogg', 'mov'].indexOf(ext) !== -1;
+            
+            var html = '';
+            
+            if (isImage) {
+                var mediaUrl = '/media/' + mediaFile;
+                // Versuche Media Manager URL wenn verfügbar
+                if (typeof rex !== 'undefined' && rex.media_manager) {
+                    mediaUrl = rex.media_manager.getUrl('yform_content_builder_preview', mediaFile);
+                }
+                html = '<div class="cb-media-preview-item">';
+                html += '<div class="cb-media-container">';
+                html += '<img src="' + mediaUrl + '" alt="' + mediaFile + '" />';
+                html += '</div>';
+                html += '<span class="cb-media-filename">' + mediaFile + '</span>';
+                html += '</div>';
+            } else if (isVideo) {
+                var mediaUrl = '/media/' + mediaFile;
+                html = '<div class="cb-media-preview-item cb-media-video">';
+                html += '<div class="cb-media-container">';
+                html += '<video controls preload="metadata">';
+                html += '<source src="' + mediaUrl + '" />';
+                html += '</video>';
+                html += '</div>';
+                html += '<span class="cb-media-filename">' + mediaFile + '</span>';
+                html += '</div>';
+            } else {
+                html = '<div class="cb-media-preview-item cb-media-file">';
+                html += '<i class="fa fa-file"></i>';
+                html += '<span class="cb-media-filename">' + mediaFile + '</span>';
+                html += '</div>';
+            }
+            
+            $preview.html(html);
+        },
+        
+        /**
+         * Initialisiere Enhanced Media Widgets
+         */
+        initEnhancedMediaWidgets: function() {
+            // Setze last-value für alle enhanced media inputs
+            $('.media-enhanced-clickable').each(function() {
+                var $container = $(this);
+                var inputId = $container.data('input-id');
+                
+                if (inputId) {
+                    var $input = $('#' + inputId);
+                    
+                    if ($input.length) {
+                        $input.data('last-value', $input.val() || '');
+                    }
+                }
+            });
+        },
+        
+        /**
+         * Update Enhanced Media Widget nach Medienauswahl
+         */
+        updateEnhancedMediaWidget: function($container, $input) {
+            var mediaValue = $input.val();
+            var types = $input.data('types') || '';
+            
+            if (mediaValue) {
+                // Medium wurde ausgewählt - Preview anzeigen
+                var self = this;
+                $.ajax({
+                    url: window.location.href,
+                    type: 'POST',
+                    data: {
+                        ajax_action: 'get_media_preview',
+                        media_file: mediaValue,
+                        types: types
+                    },
+                    success: function(response) {
+                        if (response.success && response.html) {
+                            $container.html(response.html);
+                        } else {
+                            // Fallback: Einfache Preview
+                            self.createSimpleMediaPreview($container, mediaValue, types);
+                        }
+                    },
+                    error: function() {
+                        // Fallback: Einfache Preview
+                        self.createSimpleMediaPreview($container, mediaValue, types);
+                    }
+                });
+            } else {
+                // Kein Medium - Placeholder anzeigen
+                this.showMediaPlaceholder($container, types);
+            }
+        },
+        
+        /**
+         * Erstelle einfache Media Preview (Fallback)
+         */
+        createSimpleMediaPreview: function($container, mediaFile, types) {
+            var ext = mediaFile.split('.').pop().toLowerCase();
+            var isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].indexOf(ext) !== -1;
+            var isVideo = ['mp4', 'webm', 'ogg', 'mov'].indexOf(ext) !== -1;
+            
+            var html = '<div class="media-enhanced-preview">';
+            
+            if (isImage) {
+                var mediaUrl = '/media/' + mediaFile;
+                html += '<img src="' + mediaUrl + '" alt="' + mediaFile + '" />';
+            } else if (isVideo) {
+                var mediaUrl = '/media/' + mediaFile;
+                html += '<video controls><source src="' + mediaUrl + '" /></video>';
+            } else {
+                html += '<div class="media-enhanced-file">';
+                html += '<i class="fa fa-file"></i>';
+                html += '<span>' + mediaFile + '</span>';
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            $container.html(html);
+        },
+        
+        /**
+         * Zeige Media Placeholder
+         */
+        showMediaPlaceholder: function($container, types) {
+            var placeholderIcon = 'fa-cloud-upload';
+            var placeholderText = 'Medium auswählen';
+            
+            if (types) {
+                var typeArray = types.split(',');
+                if (typeArray.indexOf('image') !== -1 && typeArray.indexOf('video') !== -1) {
+                    placeholderIcon = 'fa-file-image-o';
+                    placeholderText = 'Bild oder Video auswählen';
+                } else if (typeArray.indexOf('image') !== -1) {
+                    placeholderIcon = 'fa-image';
+                    placeholderText = 'Bild auswählen';
+                } else if (typeArray.indexOf('video') !== -1) {
+                    placeholderIcon = 'fa-video-camera';
+                    placeholderText = 'Video auswählen';
+                }
+            }
+            
+            var html = '<div class="media-placeholder-box">';
+            html += '<i class="fa ' + placeholderIcon + '"></i>';
+            html += '<p>' + placeholderText + '</p>';
+            html += '</div>';
+            
+            $container.html(html);
         }
     };
 

@@ -7,10 +7,10 @@ return [
     'category' => 'media',
     'fields' => [
         'media_file' => [
-            'type' => 'be_media_enhanced',
+            'type' => 'be_media',
             'label' => 'Bild oder Video',
-            'notice' => 'Wählen Sie ein Bild (jpg, png, webp) oder Video (mp4, webm) aus',
-            'allowed_types' => ['image', 'video'],
+            'allowed_types' => 'image,video',
+            'notice' => 'Wählen Sie ein Bild (jpg, png, webp) oder Video (mp4, webm) aus'
         ],
         'aspect_ratio' => [
             'type' => 'choice',

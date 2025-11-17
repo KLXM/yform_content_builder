@@ -6,13 +6,13 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 
 ### 🎯 **Content-Elemente**
 - **9 fertige Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery
-- **Enhanced Media Browser**: Typ-Filter für Bilder/Videos, klickbare Platzhalter, moderne Overlay-UI
+- **Professional Media Widget**: 16:9 Preview-Container, object-fit: contain, globaler Counter für eindeutige IDs
 - **Professional Gallery**: Grid/Masonry Layout, Mixed Media (Bilder + Videos), Responsive Design
 - **Auto-Close Sections**: Visueller Container für Abschnitte ohne verschachtelte Hierarchie
 
 ### 🚀 **Workflow & UX**
 - **Click-to-Edit**: Intuitives Bearbeiten per Edit-Button  
-- **Move-Button Sortierung**: ⬆️⬇️ Pfeil-Buttons für zuverlässige Sortierung
+- **⬆️⬇️ Pfeil-Sortierung**: Zuverlässiges Verschieben von Elementen nach oben/unten
 - **Modal-Gruppierung**: Übersichtliche Formulare durch Settings-Modals
 - **AJAX Forms**: Dynamisches Laden und Speichern ohne Page-Reload
 - **Responsive Backend**: Touch-optimierte Controls für mobile Nutzung
@@ -20,14 +20,14 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 ### 🎨 **Design & Templates**
 - **Framework-agnostic**: Templates für Bootstrap 3, UIkit3 und Plain HTML
 - **Responsive Design**: Mobile-optimierte Layouts und Touch-Controls
-- **Professional Media Preview**: 16:9 Aspect Ratio, Video-Thumbnails, Platzhalter
+- **Professional Media Preview**: Eigene Preview-Implementation mit 16:9 Container, object-fit: contain, immer sichtbar
 - **Section Styling**: Visuelle Container mit Labels und Styling-Optionen
 
 ### 🔧 **Developer Experience**
 - **Element-Filter**: Kontrolle welche Elemente pro Feld verfügbar sind (Multiselect)
 - **Settings-Modals**: Komplexe Optionen in übersichtlichen Modal-Dialogen
 - **CKE5 Integration**: REDAXO's CKEditor 5 nahtlos integriert
-- **Enhanced Media Browser**: Typ-Filtering (Bilder/Videos), moderne Overlay-UI
+- **Custom Media Widget**: Eigene Preview-Logik unabhängig von REDAXO Core, funktioniert in YForm und Modulen
 - **Repeater-System**: Flexible Listen mit Add/Delete/Move-Funktionen
 - **Linkmap-Widget**: Vollständige REDAXO Linkmap-Integration
 
@@ -39,6 +39,24 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 - **Production Ready**: Vollständig getestet mit echten Use Cases
 
 ## 🚀 Highlights
+
+### Eigene Media-Preview Implementation
+**Unabhängig von REDAXO Core** - Eigene Preview-Logik die überall funktioniert:
+- **16:9 Aspect Ratio Container** mit padding-bottom Technik
+- **Object-fit: contain** für vollständige Medien ohne Beschnitt
+- **Immer sichtbar** - keine Hover-Tricks mehr
+- **Globaler Counter** via $GLOBALS für eindeutige REX_MEDIA IDs
+- **Funktioniert in Modulen** - auch mit mehreren Medien pro Modul
+
+### Pfeil-Sortierung
+Zuverlässiges Verschieben ohne Drag & Drop:
+```
+⬆️ Nach oben    ✏️ Bearbeiten    🗑️ Löschen
+⬇️ Nach unten
+```
+- Visuelles Feedback (blaues Highlight)
+- Automatische Index-Updates
+- Section-Klassen bleiben korrekt
 
 ### Innovatives Tab-System
 Komplexe Elemente nutzen **Tab-Gruppierung** für übersichtliche Formulare:

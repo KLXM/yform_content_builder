@@ -58,8 +58,11 @@ if ($required) {
                         <button type="button" class="btn btn-xs btn-default btn-slice-edit" title="<?= rex_i18n::msg('yform_content_builder_element_edit') ?>">
                             <i class="fa fa-pencil"></i>
                         </button>
-                        <button type="button" class="btn btn-xs btn-default btn-slice-move" title="<?= rex_i18n::msg('yform_content_builder_element_move') ?>">
-                            <i class="fa fa-arrows"></i>
+                        <button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben verschieben">
+                            <i class="fa fa-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten verschieben">
+                            <i class="fa fa-arrow-down"></i>
                         </button>
                         <button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="<?= rex_i18n::msg('yform_content_builder_element_delete') ?>">
                             <i class="fa fa-trash"></i>

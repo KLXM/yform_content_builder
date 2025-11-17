@@ -71,9 +71,10 @@ return [
             'grid_columns' => 3, // Anzahl Spalten im Grid
             'fields' => [
                 'media' => [
-                    'type' => 'be_media_enhanced',
+                    'type' => 'be_media',
                     'label' => 'Bild/Video',
-                    'allowed_types' => ['image', 'video']
+                    'allowed_types' => 'image,video',
+                    'notice' => 'Wählen Sie ein Bild oder Video aus'
                 ],
                 'caption' => [
                     'type' => 'text',
