@@ -854,3 +854,46 @@
     border-radius: 3px;
 }
 
+/* Insert-Between Buttons */
+.content-builder-insert-between {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.content-builder-insert-between .btn-group {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.content-builder-insert-between .dropdown-toggle {
+    font-size: 12px;
+    color: #999;
+    border-style: dashed;
+    border-width: 2px;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.content-builder-insert-between .dropdown-toggle:hover {
+    color: #3c8dbc;
+    border-color: #3c8dbc;
+    background: #f0f8ff;
+}
+
+.content-builder-insert-between .dropdown-toggle i {
+    margin-right: 5px;
+}
+
+.content-builder-insert-between .dropdown-menu {
+    min-width: 100%;
+}
+
+.content-builder-insert-between .dropdown-menu a {
+    font-size: 13px;
+}
+
+.content-builder-insert-between .dropdown-menu a i {
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+}

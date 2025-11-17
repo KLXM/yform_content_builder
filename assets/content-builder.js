@@ -65,13 +65,23 @@
                 self.editSlice($slice);
             });
 
-            // Neues Slice hinzufügen
+            // Neues Slice hinzufügen (am Ende)
             $(document).on('click', '.btn-add-slice', function(e) {
                 e.preventDefault();
                 var elementType = $(this).data('element-type');
                 var elementLabel = $(this).data('element-label');
                 var $container = $(this).closest('.yform-content-builder').find('.content-builder-slices');
                 self.addSlice($container, elementType, elementLabel);
+            });
+            
+            // Slice an bestimmter Position einfügen
+            $(document).on('click', '.btn-insert-slice', function(e) {
+                e.preventDefault();
+                var elementType = $(this).data('element-type');
+                var elementLabel = $(this).data('element-label');
+                var insertAfter = parseInt($(this).data('insert-after'));
+                var $container = $(this).closest('.yform-content-builder').find('.content-builder-slices');
+                self.insertSliceAt($container, elementType, elementLabel, insertAfter + 1);
             });
 
             // Formular speichern
@@ -658,6 +668,7 @@
                     self.updateIndices();
                     self.updateHiddenField();
                     self.updateSectionClasses(); // Nach Löschen aktualisieren
+                    self.updateInsertButtons();
                 });
             });
             
@@ -677,6 +688,7 @@
                 this.updateIndices();
                 this.updateHiddenField();
                 this.updateSectionClasses();
+                this.updateInsertButtons();
                 
                 // Kurzes Highlight
                 $slice.css('background', '#d9edf7');
@@ -693,6 +705,7 @@
                 this.updateIndices();
                 this.updateHiddenField();
                 this.updateSectionClasses();
+                this.updateInsertButtons();
                 
                 // Kurzes Highlight
                 $slice.css('background', '#d9edf7');
@@ -712,7 +725,8 @@
             var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + index + '">' +
                 '<div class="slice-toolbar">' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
-                    '<button type="button" class="btn btn-xs btn-default btn-slice-move" title="Verschieben"><i class="fa fa-arrows"></i></button>' +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben"><i class="fa fa-arrow-up"></i></button>' +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten"><i class="fa fa-arrow-down"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen"><i class="fa fa-trash"></i></button>' +
                 '</div>' +
                 '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + elementLabel + ' - Klicken zum Bearbeiten</div></div>' +
@@ -726,6 +740,42 @@
             
             this.updateIndices();
             this.updateSectionClasses(); // Nach Hinzufügen aktualisieren
+            this.updateInsertButtons();
+        },
+        
+        insertSliceAt: function($container, elementType, elementLabel, position) {
+            var sliceId = 'slice_' + Date.now();
+            
+            // Section-Element?
+            var isSectionClass = (elementType === 'section') ? ' is-section' : '';
+            
+            var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + position + '">' +
+                '<div class="slice-toolbar">' +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben"><i class="fa fa-arrow-up"></i></button>' +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten"><i class="fa fa-arrow-down"></i></button>' +
+                    '<button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen"><i class="fa fa-trash"></i></button>' +
+                '</div>' +
+                '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + elementLabel + ' - Klicken zum Bearbeiten</div></div>' +
+                '<div class="slice-edit-form" style="display: none;"></div>' +
+            '</div>');
+            
+            var $slices = $container.children('.content-builder-slice');
+            
+            if (position >= $slices.length) {
+                // Am Ende einfügen
+                $container.append($newSlice);
+            } else {
+                // An Position einfügen
+                $newSlice.insertBefore($slices.eq(position));
+            }
+            
+            // Sofort zum Bearbeiten öffnen
+            this.editSlice($newSlice);
+            
+            this.updateIndices();
+            this.updateSectionClasses();
+            this.updateInsertButtons();
         },
 
         getSliceData: function($slice) {
@@ -761,6 +811,68 @@
             $('.content-builder-slice').each(function(index) {
                 $(this).attr('data-slice-index', index);
             });
+            
+            // Update insert-after indices for insert buttons
+            $('.content-builder-insert-between').each(function(index) {
+                $(this).find('.btn-insert-slice').attr('data-insert-after', index);
+            });
+        },
+        
+        updateInsertButtons: function() {
+            var self = this;
+            
+            $('.yform-content-builder').each(function() {
+                var $builder = $(this);
+                var $container = $builder.find('.content-builder-slices');
+                var availableElements = $builder.data('available-elements');
+                
+                if (!availableElements) {
+                    return;
+                }
+                
+                // Entferne alte Insert-Buttons
+                $container.find('.content-builder-insert-between').remove();
+                
+                // Füge Insert-Buttons nach jedem Slice hinzu
+                $container.find('.content-builder-slice').each(function(index) {
+                    var $slice = $(this);
+                    var $insertButton = self.createInsertButton(availableElements, index);
+                    $insertButton.insertAfter($slice);
+                });
+            });
+        },
+        
+        createInsertButton: function(availableElements, insertAfter) {
+            var dropdownItems = '';
+            
+            for (var elementType in availableElements) {
+                if (availableElements.hasOwnProperty(elementType)) {
+                    var config = availableElements[elementType];
+                    var label = config.label || elementType;
+                    var icon = config.icon || 'fa-cube';
+                    
+                    dropdownItems += '<li>' +
+                        '<a href="#" class="btn-insert-slice" ' +
+                        'data-element-type="' + elementType + '" ' +
+                        'data-element-label="' + label + '" ' +
+                        'data-insert-after="' + insertAfter + '">' +
+                        '<i class="fa ' + icon + '"></i> ' + label +
+                        '</a>' +
+                        '</li>';
+                }
+            }
+            
+            var html = '<div class="content-builder-insert-between">' +
+                '<div class="btn-group btn-block">' +
+                '<button type="button" class="btn btn-sm btn-default btn-block dropdown-toggle" data-toggle="dropdown">' +
+                '<i class="fa fa-plus"></i> Element einfügen ' +
+                '<span class="caret"></span>' +
+                '</button>' +
+                '<ul class="dropdown-menu">' + dropdownItems + '</ul>' +
+                '</div>' +
+                '</div>';
+            
+            return $(html);
         },
 
         updateHiddenField: function() {

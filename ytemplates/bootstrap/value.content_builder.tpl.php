@@ -18,7 +18,9 @@ if ($required) {
 }
 ?>
 
-<div class="form-group yform-element yform-content-builder" data-framework="<?= $framework ?>">
+<div class="form-group yform-element yform-content-builder" 
+     data-framework="<?= $framework ?>"
+     data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     
     <?php if ($label): ?>
         <label class="control-label" for="<?= $field_id ?>"><?= $label ?></label>
@@ -95,6 +97,29 @@ if ($required) {
                     
                     <div class="slice-edit-form" style="display: none;">
                         <!-- Wird per AJAX mit YForm-Formular gefüllt -->
+                    </div>
+                </div>
+                
+                <!-- Insert-Button nach jedem Slice -->
+                <div class="content-builder-insert-between">
+                    <div class="btn-group btn-block">
+                        <button type="button" class="btn btn-sm btn-default btn-block dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-plus"></i> Element einfügen
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <?php foreach ($available_elements as $elementType => $config): ?>
+                                <li>
+                                    <a href="#" class="btn-insert-slice" 
+                                       data-element-type="<?= rex_escape($elementType) ?>"
+                                       data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
+                                       data-insert-after="<?= $index ?>">
+                                        <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
+                                        <?= rex_escape($config['label'] ?? $elementType) ?>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
                 </div>
             <?php endforeach; ?>
