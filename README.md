@@ -151,7 +151,7 @@ echo ContentBuilderHelper::render($contentData, 'bootstrap');
 - **Container**: max-width, fluid oder kein Container
 - **Anker-IDs**: Für Navigation und Scroll-Links
 
-**Siehe**: `SECTION_ELEMENT.md` für Details
+**Siehe**: `DEV.md` für Details
 
 ### 2. Text & Bild
 Flexibles Element für Text-Bild-Kombinationen mit 4 Layouts, CKE5, Bildverhältnissen, Links (extern/intern), Farben und Spacing.
@@ -248,6 +248,21 @@ if (!function_exists('formatPrice')) {
 echo formatPrice($price);
 ```
 
+### 💡 Architektur-Konzept: Custom vs. Demo Elemente
+
+**"Exclusive OR" Prinzip für maximale Kontrolle**
+
+Das Addon folgt einer strikten Philosophie für den produktiven Einsatz:
+
+1.  **Demo-Modus**: Solange keine eigenen Elemente registriert sind, lädt das Addon die mitgelieferten Demo-Elemente (Section, Text & Bild, etc.), damit du sofort starten und testen kannst.
+2.  **Production-Modus**: Sobald du **auch nur ein einziges eigenes Element** registrierst (z.B. im `project` Addon oder via Extension Point), werden die **Demo-Elemente automatisch deaktiviert**.
+
+**Warum?**
+In einem echten Kundenprojekt möchtest du volle Kontrolle. Du willst nicht, dass Updates des Addons plötzlich neue Demo-Elemente in dein sorgfältig kuratiertes Backend spülen. Du definierst exakt, welche Bausteine zur Verfügung stehen.
+
+**Wie nutze ich die Demo-Elemente trotzdem?**
+Kopiere einfach die gewünschten Elemente aus `redaxo/src/addons/yform_content_builder/elements/` in deinen eigenen Elements-Ordner (z.B. `redaxo/src/addons/project/elements/`). So werden sie zu "deinen" Elementen und du hast die volle Hoheit über Code und Updates.
+
 ## 🎨 Tab-Gruppierung (Advanced)
 
 Für komplexe Elemente mit vielen Feldern:
@@ -272,7 +287,7 @@ Für komplexe Elemente mit vielen Feldern:
 
 **Resultat:** Übersichtliches Formular mit Icons! 📄 ⚙️
 
-Siehe: `FIELD_GROUPS_TABS.md` für Details.
+Siehe: `DEV.md` für Details.
 
 ## 📚 Feldtypen
 
@@ -356,13 +371,8 @@ $config = ContentBuilderHelper::getElementConfig('text_image');
 ## 📖 Dokumentation
 
 ### 🎯 **Entwickler-Dokumentation**
-- **ELEMENT_CONFIG.md** - Vollständige config.php Referenz mit allen verfügbaren Feldtypen
-
-### 📚 **Feature-Dokumentation**  
-- **FIELD_GROUPS_TABS.md** - Tab-Gruppierung mit Icons
-- **ELEMENT_UPDATES.md** - Changelog für Element-Updates
-- **NEW_ELEMENTS.md** - Headline, Divider, Cards Dokumentation
-- **DEBUG.md** - Debugging-Guide
+- **DEV.md** - Umfassende Dokumentation für Entwickler (API, Config, Custom Elements)
+- **SCHEMA.md** - JSON Schema Referenz
 
 ### 🚀 **Implementierte Features**
 - **Enhanced Media Browser**: Typ-Filter für Bilder/Videos, moderne Overlay-UI
