@@ -50,7 +50,7 @@ $currentValue = $this->getCurrentSlice()->getValue(1);
 
 // Content Builder erstellen
 $contentBuilder = yform_content_builder_module::createWithValue(1, $currentValue, [
-    'framework' => 'bootstrap',
+    'framework' => 'bootstrap', // Framework für Backend-Preview
     'label' => 'Seiteninhalt',
     'description' => 'Fügen Sie Content-Elemente hinzu',
     // Optional: Nur bestimmte Elemente erlauben
@@ -69,12 +69,35 @@ echo $contentBuilder->getEditor();
 $currentValue = $this->getCurrentSlice()->getValue(1);
 
 // Content Builder erstellen
+// Hier kannst du das Framework für die Frontend-Ausgabe wählen (z.B. 'uikit' oder 'tailwind')
 $contentBuilder = yform_content_builder_module::createWithValue(1, $currentValue, [
-    'framework' => 'bootstrap'
+    'framework' => 'uikit' 
 ]);
 
 // Frontend-Output ausgeben
 echo $contentBuilder->renderOutput();
+?>
+```
+
+### C. Single Element API (Einzelnes Element)
+
+Wenn du nur ein einzelnes Element (z.B. eine Galerie) in einem Modul nutzen möchtest.
+
+**INPUT:**
+```php
+<?php
+// Einzelnes Element (z.B. Galerie) - REX_VALUE[1] für gespeicherte Daten übergeben
+// Framework 'bootstrap' für Backend-Ansicht
+echo yform_content_builder_module::create('gallery', 'REX_VALUE[1]', 'bootstrap')->renderInput();
+?>
+```
+
+**OUTPUT:**
+```php
+<?php
+// Element ausgeben - Daten aus REX_VALUE[1] übergeben
+// Framework 'uikit' für Frontend-Ausgabe
+echo yform_content_builder_module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
 ?>
 ```
 

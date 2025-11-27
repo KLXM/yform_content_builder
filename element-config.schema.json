@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "YForm Content Builder Element Configuration",
+  "description": "Schema for validating YForm Content Builder element configuration files (config.php return arrays)",
+  "type": "object",
+  "required": [
+    "label",
+    "fields"
+  ],
+  "properties": {
+    "label": {
+      "type": "string",
+      "description": "The display name of the element in the backend"
+    },
+    "description": {
+      "type": "string",
+      "description": "A short description of what the element does"
+    },
+    "icon": {
+      "type": "string",
+      "description": "FontAwesome icon class (e.g., 'fa-image')"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category for grouping elements",
+      "default": "content"
+    },
+    "fields": {
+      "type": "object",
+      "description": "Field definitions for the element",
+      "additionalProperties": {
+        "$ref": "#/definitions/field"
+      }
+    },
+    "settings_modal": {
+      "type": "object",
+      "description": "Configuration for the settings modal",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/field"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "field": {
+      "type": "object",
+      "required": [
+        "type",
+        "label"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "textarea",
+            "choice",
+            "checkbox",
+            "ckeditor5",
+            "be_media",
+            "be_media_enhanced",
+            "be_link",
+            "repeater"
+          ],
+          "description": "The type of the input field"
+        },
+        "label": {
+          "type": "string",
+          "description": "Label for the input field"
+        },
+        "default": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array",
+            "null"
+          ],
+          "description": "Default value for the field"
+        },
+        "notice": {
+          "type": "string",
+          "description": "Help text displayed below the field"
+        },
+        "attributes": {
+          "type": "object",
+          "description": "HTML attributes for the input element"
+        },
+        "choices": {
+          "type": "object",
+          "description": "Options for 'choice' type fields (key => label)"
+        },
+        "profile": {
+          "type": "string",
+          "description": "Editor profile for 'ckeditor5' type (e.g., 'default', 'light')"
+        },
+        "allowed_types": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Allowed file types for be_media_enhanced (e.g. ['image', 'video'])"
+        },
+        "fields": {
+          "type": "object",
+          "description": "Sub-fields for 'repeater' type",
+          "additionalProperties": {
+            "$ref": "#/definitions/field"
+          }
+        }
+      }
+    }
+  }
+}

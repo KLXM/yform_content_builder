@@ -1,370 +1,87 @@
-# JSON Schema für Element-Konfiguration
+# YForm Content Builder - JSON Schema
 
-Das YForm Content Builder JSON Schema ermöglicht Validierung und IDE-Unterstützung für Element-Konfigurationen.
+This addon includes a formal JSON Schema to validate Element Configurations.
 
-## 📋 Schema-Datei
+## 📋 Schema File
 
-**Location**: `/schema/element-config.schema.json`
+**File:** `element-config.schema.json`  
+**Path:** `redaxo/src/addons/yform_content_builder/element-config.schema.json`
 
-**Schema URL**: `https://redaxo.org/schemas/yform_content_builder_element.json`
+## 🤖 Usage for AI Agents
 
-## 🔧 IDE-Integration
+When asking an AI to generate a new element, you can provide this schema to ensure the output is valid.
 
-### VS Code
+**Prompt Example:**
+> "Create a new YForm Content Builder element for a 'Testimonial Slider'. Please follow the structure defined in `element-config.schema.json`."
 
-Erstelle eine `.vscode/settings.json` in deinem Projekt:
+## 🔧 Usage in IDEs (VS Code)
 
-```json
-{
-  "json.schemas": [
-    {
-      "fileMatch": [
-        "**/elements/*/config.php"
-      ],
-      "url": "./src/addons/yform_content_builder/schema/element-config.schema.json"
-    }
-  ],
-  "php.validate.enable": true,
-  "php.suggest.basic": true
-}
+You can configure VS Code to use this schema for validation and autocompletion in your `config.php` files (if you use a JSON-to-PHP mapping or just for reference).
+
+Since `config.php` files are PHP, direct JSON schema validation isn't native without plugins, but you can use the schema to understand the structure.
+
+## 📄 Structure Overview
+
+The schema defines:
+- **Root Properties**: `label`, `description`, `icon`, `fields`.
+- **Field Types**: `text`, `textarea`, `choice`, `checkbox`, `ckeditor5`, `be_media`, `be_media_enhanced`, `be_link`, `repeater`.
+- **Recursive Definitions**: `repeater` fields can contain other fields.
+
+See `element-config.schema.json` for the full definition.
+
+## 📂 Physical Element Structure
+
+To create a valid element, an AI must understand the file system structure.
+
+### Directory Layout
+
+Each element resides in its own subdirectory within the `elements/` folder. The folder name is the **Element Key**.
+
+```text
+elements/
+└── {element_key}/              # e.g. "hero_header" (snake_case)
+    ├── config.php              # Returns the Configuration Array (see Schema)
+    └── templates/              # Output Templates
+        ├── bootstrap.php       # Required: Bootstrap 3/4/5 Template
+        ├── uikit.php           # Optional: UIkit 3 Template
+        ├── tailwind.php        # Optional: Tailwind CSS Template
+        └── plain.php           # Optional: Fallback/Plain HTML
 ```
 
-Für PHP-Dateien mit Array-Return kannst du einen JSON-Kommentar hinzufügen:
+### File Contents
+
+#### 1. `config.php`
+Must return a PHP array matching the JSON Schema structure.
 
 ```php
 <?php
-/**
- * @schema element-config.schema.json
- */
-
 return [
-    "name" => "my_element",
-    "title" => "My Element",
-    // ... rest of config
+    'label' => 'Hero Header',
+    'icon' => 'fa-header',
+    'fields' => [ ... ]
 ];
 ```
 
-### PhpStorm
-
-1. **Settings** → **Languages & Frameworks** → **Schemas and DTDs** → **JSON Schema Mappings**
-2. **Add new mapping**:
-   - **Schema file or URL**: `./schema/element-config.schema.json`
-   - **File pattern**: `*/elements/*/config.php`
-
-### Andere IDEs
-
-Die meisten modernen IDEs unterstützen JSON Schema. Konsultiere die Dokumentation deiner IDE für die spezifische Konfiguration.
-
-## ✅ Schema-Validierung
-
-### Online-Validierung
-
-Nutze Online-Tools wie [jsonschemavalidator.net](https://www.jsonschemavalidator.net/):
-
-1. Schema aus `element-config.schema.json` einfügen
-2. Deine Element-Konfiguration als JSON einfügen
-3. Validierung ausführen
-
-### Command Line (Node.js)
-
-Installation:
-```bash
-npm install -g ajv-cli
-```
-
-Validierung:
-```bash
-ajv validate -s schema/element-config.schema.json -d "elements/*/config.json"
-```
-
-### PHP-Validierung
+#### 2. Templates (`templates/*.php`)
+Standard PHP templates. Variables are available via `$elementData` array.
 
 ```php
 <?php
-use JsonSchema\Validator;
-use JsonSchema\Constraints\Constraint;
-
-// Config als JSON laden
-$config = json_decode(file_get_contents('elements/gallery/config.json'));
-$schema = json_decode(file_get_contents('schema/element-config.schema.json'));
-
-// Validierung
-$validator = new Validator();
-$validator->validate($config, $schema, Constraint::CHECK_MODE_COERCE_TYPES);
-
-if ($validator->isValid()) {
-    echo "✅ Configuration is valid\n";
-} else {
-    echo "❌ Validation errors:\n";
-    foreach ($validator->getErrors() as $error) {
-        echo sprintf("- %s: %s\n", $error['property'], $error['message']);
-    }
-}
+/** @var array $elementData */
+// Access fields defined in config.php
+$headline = $elementData['headline'] ?? '';
+?>
+<div class="hero">
+    <h1><?= rex_escape($headline) ?></h1>
+</div>
 ```
 
-## 🏗️ Schema-Struktur
+## 🧠 System Prompt Context
 
-### Root-Eigenschaften
+If you want to feed this context to an AI, you can copy the following block:
 
-- **name**: Eindeutiger Element-Identifier (snake_case)
-- **title**: Anzeigename für Users
-- **description**: Optionale Beschreibung
-- **icon**: Font Awesome oder REDAXO Icon
-- **fields**: Array von Feld-Definitionen
-- **options**: Element-weite Optionen
-
-### Feld-Typen
-
-Schema unterstützt alle verfügbaren Feldtypen:
-
-- **Basis**: text, textarea, select, checkbox, radio, number
-- **Rich Content**: ckeditor5, html
-- **Media**: be_media, be_media_enhanced
-- **Links**: be_link
-- **Struktur**: repeater, fieldset, hidden
-- **Datum**: date, datetime, time
-
-### Validierungsregeln
-
-#### Namen-Validierung
-```json
-{
-  "pattern": "^[a-z][a-z0-9_]*[a-z0-9]$"
-}
-```
-- Muss mit Buchstabe beginnen
-- Nur Kleinbuchstaben, Zahlen, Underscores
-- Muss mit Buchstabe oder Zahl enden
-
-#### Icon-Validierung
-```json
-{
-  "pattern": "^(fa-[a-z0-9-]+|rex-icon [a-z0-9-]+)$"
-}
-```
-- Font Awesome: `fa-` prefix
-- REDAXO Icons: `rex-icon ` prefix
-
-#### Conditional Validation
-
-Schema nutzt `if/then/else` für feldtyp-spezifische Validierung:
-
-```json
-{
-  "if": {
-    "properties": {"type": {"const": "select"}}
-  },
-  "then": {
-    "required": ["options"],
-    "properties": {
-      "options": {
-        "type": "object",
-        "patternProperties": {
-          ".*": {"type": "string"}
-        }
-      }
-    }
-  }
-}
-```
-
-## 📝 Beispiel-Konfigurationen
-
-### Basis-Element
-
-```json
-{
-  "name": "simple_text",
-  "title": "Simple Text",
-  "icon": "fa-font",
-  "fields": [
-    {
-      "type": "text",
-      "name": "title",
-      "label": "Title",
-      "required": true
-    },
-    {
-      "type": "textarea",
-      "name": "content",
-      "label": "Content"
-    }
-  ]
-}
-```
-
-### Komplexes Element mit Tabs
-
-```json
-{
-  "name": "advanced_hero",
-  "title": "Advanced Hero",
-  "description": "Hero section with media, text and advanced styling options",
-  "icon": "fa-image",
-  "options": {
-    "tabs": true,
-    "modal": false
-  },
-  "fields": [
-    {
-      "type": "be_media_enhanced",
-      "name": "background",
-      "label": "Background Media",
-      "aspect_ratio": "16:9",
-      "allowed_types": "jpg,jpeg,png,gif,mp4,webm",
-      "video_autoplay": true,
-      "video_muted": true,
-      "tab": "content"
-    },
-    {
-      "type": "text",
-      "name": "headline",
-      "label": "Headline",
-      "required": true,
-      "tab": "content"
-    },
-    {
-      "type": "select",
-      "name": "alignment",
-      "label": "Text Alignment",
-      "options": {
-        "left": "Left",
-        "center": "Center",
-        "right": "Right"
-      },
-      "default": "center",
-      "tab": "settings"
-    }
-  ]
-}
-```
-
-### Gallery mit Grid-Repeater
-
-```json
-{
-  "name": "media_gallery",
-  "title": "Media Gallery",
-  "icon": "fa-images",
-  "options": {
-    "repeater_view": "grid",
-    "grid_columns": 4
-  },
-  "fields": [
-    {
-      "type": "repeater",
-      "name": "items",
-      "label": "Gallery Items",
-      "view_mode": "grid",
-      "grid_columns": 4,
-      "modal": true,
-      "sortable": true,
-      "min_items": 1,
-      "fields": [
-        {
-          "type": "be_media_enhanced",
-          "name": "media",
-          "label": "Media",
-          "aspect_ratio": "1:1",
-          "allowed_types": "jpg,jpeg,png,gif,mp4,webm",
-          "required": true
-        },
-        {
-          "type": "text",
-          "name": "caption",
-          "label": "Caption"
-        }
-      ]
-    }
-  ]
-}
-```
-
-## 🚨 Häufige Validierungsfehler
-
-### 1. Ungültiger Element-Name
-```
-❌ Error: name "MyElement" does not match pattern
-✅ Fix: Use "my_element" instead
-```
-
-### 2. Fehlende Required Properties
-```
-❌ Error: Missing required property "options" for select field
-✅ Fix: Add "options": {"key": "value"} to select field
-```
-
-### 3. Ungültiger Icon
-```
-❌ Error: icon "my-icon" does not match pattern  
-✅ Fix: Use "fa-my-icon" or "rex-icon rex-icon-my-icon"
-```
-
-### 4. Falsche Array-Struktur
-```
-❌ Error: fields should be array of objects
-✅ Fix: Wrap each field in array: [{"type": "text", ...}]
-```
-
-## 🔄 Schema-Updates
-
-Das Schema wird kontinuierlich erweitert:
-
-- **Neue Feldtypen** werden automatisch hinzugefügt
-- **Breaking Changes** werden versioniert
-- **Rückwärtskompatibilität** wird gewährleistet
-
-### Versioning
-
-Schema folgt Semantic Versioning:
-- **Major**: Breaking Changes (neue Required Fields)
-- **Minor**: Neue Features (neue Feldtypen, Optionen)  
-- **Patch**: Bugfixes (verbesserte Validierung)
-
-### Migration
-
-Bei Schema-Updates prüfe:
-1. Bestehende Konfigurationen validieren
-2. Neue Features nutzen
-3. Deprecated Features ersetzen
-
-## 🛠️ Development
-
-### Schema erweitern
-
-Neue Feldtypen hinzufügen:
-
-```json
-{
-  "if": {
-    "properties": {"type": {"const": "my_new_field"}}
-  },
-  "then": {
-    "properties": {
-      "my_option": {
-        "type": "string",
-        "description": "My new option"
-      }
-    }
-  }
-}
-```
-
-### Testing
-
-Schema-Tests mit verschiedenen Konfigurationen:
-
-```bash
-# Valid configs
-ajv validate -s schema.json -d test/valid/*.json
-
-# Invalid configs (should fail)
-ajv validate -s schema.json -d test/invalid/*.json
-```
-
-## 📚 Ressourcen
-
-- [JSON Schema Specification](https://json-schema.org/)
-- [Understanding JSON Schema](https://json-schema.org/understanding-json-schema/)
-- [AJV Validator](https://ajv.js.org/)
-- [VS Code JSON Schema Support](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)
+> **YForm Content Builder Context:**
+> 1. **Structure**: Elements are folders in `elements/{key}/`.
+> 2. **Config**: `config.php` returns a PHP array defining fields (text, textarea, be_media, repeater, etc.).
+> 3. **Templates**: `templates/bootstrap.php` is the default output. Use `$elementData['fieldname']` to access values.
+> 4. **Schema**: Follow the `element-config.schema.json` for field definitions.

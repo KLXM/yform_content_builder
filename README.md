@@ -135,8 +135,42 @@ use KLXM\YformContentBuilder\Helper as ContentBuilderHelper;
 $page = rex_yform_manager_dataset::get(1, 'rex_my_pages');
 $contentData = $page->getValue('page_content');
 
-// Content rendern
+// Content rendern - Framework explizit wählen
 echo ContentBuilderHelper::render($contentData, 'bootstrap');
+
+// Oder Tailwind nutzen (lädt templates/tailwind.php)
+echo ContentBuilderHelper::render($contentData, 'tailwind');
+```
+
+## 🎨 Frameworks & Templates
+
+Das Addon ist **Framework-agnostic**. Das bedeutet, es ist ihm egal, welches CSS-Framework du nutzt. Es lädt einfach die passende Template-Datei.
+
+### Backend vs. Frontend
+
+Du kannst für das Backend (Preview) und das Frontend unterschiedliche Frameworks nutzen.
+
+1.  **Backend Preview**: Wird in der YForm-Felddefinition eingestellt ("Framework").
+    *   **Default**: `bootstrap` (da das REDAXO Backend auf Bootstrap basiert).
+    *   **Empfehlung**: Lasse dies auf `bootstrap`, damit die Vorschau im Backend sauber aussieht, auch wenn du im Frontend Tailwind nutzt.
+    *   **Custom**: Du kannst auch `tailwind` wählen, wenn du z.B. Tailwind-CSS im Backend lädst.
+
+2.  **Frontend Output**: Wird beim Aufruf von `ContentBuilderHelper::render($data, 'framework')` festgelegt.
+    *   Hier hast du die volle Freiheit: `bootstrap`, `uikit`, `tailwind`, `foundation`, etc.
+
+### Template-Struktur
+
+Das System sucht automatisch nach der Datei: `elements/{element}/templates/{framework}.php`.
+
+```text
+elements/
+└── hero/
+    ├── config.php
+    └── templates/
+        ├── bootstrap.php   <-- Wird geladen bei render($data, 'bootstrap')
+        ├── uikit.php       <-- Wird geladen bei render($data, 'uikit')
+        ├── tailwind.php    <-- Wird geladen bei render($data, 'tailwind')
+        └── plain.php       <-- Fallback
 ```
 
 ## 🎯 Verfügbare Elemente

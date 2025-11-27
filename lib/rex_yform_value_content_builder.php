@@ -932,6 +932,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     'choices' => [
                         'bootstrap' => 'Bootstrap',
                         'uikit' => 'UIkit',
+                        'tailwind' => 'Tailwind',
                         'plain' => 'Plain HTML'
                     ],
                     'default' => 'bootstrap'
