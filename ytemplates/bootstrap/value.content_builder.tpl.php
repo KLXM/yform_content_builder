@@ -57,6 +57,24 @@ if ($required) {
                      data-slice-data='<?= rex_escape(json_encode($elementData, JSON_UNESCAPED_UNICODE)) ?>'>
                     
                     <div class="slice-toolbar">
+                        <div class="btn-group btn-group-insert">
+                            <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="<?= rex_i18n::msg('yform_content_builder_element_add') ?>">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                            <ul class="dropdown-menu pull-right">
+                                <?php foreach ($available_elements as $elementType => $config): ?>
+                                    <li>
+                                        <a href="#" class="btn-insert-slice" 
+                                           data-element-type="<?= rex_escape($elementType) ?>"
+                                           data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
+                                           data-insert-after="<?= $index ?>">
+                                            <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
+                                            <?= rex_escape($config['label'] ?? $elementType) ?>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
                         <button type="button" class="btn btn-xs btn-default btn-slice-edit" title="<?= rex_i18n::msg('yform_content_builder_element_edit') ?>">
                             <i class="fa fa-pencil"></i>
                         </button>
@@ -97,29 +115,6 @@ if ($required) {
                     
                     <div class="slice-edit-form" style="display: none;">
                         <!-- Wird per AJAX mit YForm-Formular gefüllt -->
-                    </div>
-                </div>
-                
-                <!-- Insert-Button nach jedem Slice -->
-                <div class="content-builder-insert-between">
-                    <div class="btn-group btn-block">
-                        <button type="button" class="btn btn-sm btn-default btn-block dropdown-toggle" data-toggle="dropdown">
-                            <i class="fa fa-plus"></i> Element einfügen
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($available_elements as $elementType => $config): ?>
-                                <li>
-                                    <a href="#" class="btn-insert-slice" 
-                                       data-element-type="<?= rex_escape($elementType) ?>"
-                                       data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
-                                       data-insert-after="<?= $index ?>">
-                                        <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
-                                        <?= rex_escape($config['label'] ?? $elementType) ?>
-                                    </a>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
                     </div>
                 </div>
             <?php endforeach; ?>

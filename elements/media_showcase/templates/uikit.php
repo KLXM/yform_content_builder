@@ -12,18 +12,6 @@ $autoplay = !empty($elementData['autoplay']);
 $controls = !empty($elementData['controls']);
 $muted = !empty($elementData['muted']);
 
-// Helper function für Video-Erkennung
-function isVideo($filename) {
-    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    return in_array($ext, ['mp4', 'webm', 'mov', 'avi', 'mkv', 'ogg']);
-}
-
-// Helper function für Bild-Erkennung  
-function isImage($filename) {
-    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp']);
-}
-
 // UIKit Aspect Ratio Klassen
 $ukClass = '';
 switch ($aspectRatio) {

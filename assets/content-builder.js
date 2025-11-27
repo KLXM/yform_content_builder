@@ -741,6 +741,8 @@
             this.updateIndices();
             this.updateSectionClasses(); // Nach Hinzufügen aktualisieren
             this.updateInsertButtons();
+            
+            this.scrollToSlice($newSlice);
         },
         
         insertSliceAt: function($container, elementType, elementLabel, position) {
@@ -776,6 +778,8 @@
             this.updateIndices();
             this.updateSectionClasses();
             this.updateInsertButtons();
+            
+            this.scrollToSlice($newSlice);
         },
 
         getSliceData: function($slice) {
@@ -810,10 +814,7 @@
         updateIndices: function() {
             $('.content-builder-slice').each(function(index) {
                 $(this).attr('data-slice-index', index);
-            });
-            
-            // Update insert-after indices for insert buttons
-            $('.content-builder-insert-between').each(function(index) {
+                // Update insert-after indices for insert buttons in toolbar
                 $(this).find('.btn-insert-slice').attr('data-insert-after', index);
             });
         },
@@ -823,21 +824,30 @@
             
             $('.yform-content-builder').each(function() {
                 var $builder = $(this);
-                var $container = $builder.find('.content-builder-slices');
                 var availableElements = $builder.data('available-elements');
                 
                 if (!availableElements) {
                     return;
                 }
                 
-                // Entferne alte Insert-Buttons
-                $container.find('.content-builder-insert-between').remove();
+                // Remove old insert-between buttons (cleanup if any exist)
+                $builder.find('.content-builder-insert-between').remove();
                 
-                // Füge Insert-Buttons nach jedem Slice hinzu
-                $container.find('.content-builder-slice').each(function(index) {
+                $builder.find('.content-builder-slice').each(function(index) {
                     var $slice = $(this);
-                    var $insertButton = self.createInsertButton(availableElements, index);
-                    $insertButton.insertAfter($slice);
+                    var $toolbar = $slice.find('.slice-toolbar');
+                    
+                    // Check if insert button group already exists
+                    var $insertGroup = $toolbar.find('.btn-group-insert');
+                    
+                    if ($insertGroup.length === 0) {
+                        // Create new button group
+                        $insertGroup = self.createInsertButton(availableElements, index);
+                        $toolbar.prepend($insertGroup);
+                    } else {
+                        // Update index
+                        $insertGroup.find('.btn-insert-slice').attr('data-insert-after', index);
+                    }
                 });
             });
         },
@@ -862,17 +872,24 @@
                 }
             }
             
-            var html = '<div class="content-builder-insert-between">' +
-                '<div class="btn-group btn-block">' +
-                '<button type="button" class="btn btn-sm btn-default btn-block dropdown-toggle" data-toggle="dropdown">' +
-                '<i class="fa fa-plus"></i> Element einfügen ' +
-                '<span class="caret"></span>' +
+            var html = '<div class="btn-group btn-group-insert">' +
+                '<button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="Element einfügen">' +
+                '<i class="fa fa-plus"></i>' +
                 '</button>' +
-                '<ul class="dropdown-menu">' + dropdownItems + '</ul>' +
-                '</div>' +
+                '<ul class="dropdown-menu pull-right">' + dropdownItems + '</ul>' +
                 '</div>';
             
             return $(html);
+        },
+
+        scrollToSlice: function($slice) {
+            var offset = $slice.offset().top;
+            // Ein bisschen Abstand nach oben lassen (z.B. für Fixed Header)
+            offset = offset - 100;
+            
+            $('html, body').animate({
+                scrollTop: offset
+            }, 500);
         },
 
         updateHiddenField: function() {

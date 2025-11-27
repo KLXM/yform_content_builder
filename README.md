@@ -213,6 +213,41 @@ $author = $elementData['author'] ?? '';
 
 Fertig! Element ist sofort verfügbar. 🚀
 
+### ⚠️ Template Best Practices
+
+**Wichtig:** Vermeide das Definieren von PHP-Funktionen direkt in den Template-Dateien (z.B. `function myHelper() { ... }`). Da Templates mehrfach eingebunden werden können (z.B. in Schleifen oder bei mehreren Blöcken des gleichen Typs), führt dies zu einem **"Cannot redeclare function"** Fatal Error.
+
+**Falsch:**
+```php
+// ❌ Führt zu Fehler bei mehrfacher Verwendung
+function formatPrice($price) {
+    return number_format($price, 2, ',', '.');
+}
+echo formatPrice($price);
+```
+
+**Richtig:**
+Nutze stattdessen die bereitgestellte Helper-Klasse `yform_content_builder_helper` oder anonyme Funktionen (Closures), wenn die Logik nur lokal benötigt wird.
+
+```php
+// ✅ Nutzung der Helper-Klasse
+if (yform_content_builder_helper::isImage($file)) { ... }
+
+// ✅ Oder anonyme Funktion (Closure)
+$formatPrice = function($price) {
+    return number_format($price, 2, ',', '.');
+};
+echo $formatPrice($price);
+
+// ✅ Oder mit function_exists prüfen (weniger elegant)
+if (!function_exists('formatPrice')) {
+    function formatPrice($price) {
+        return number_format($price, 2, ',', '.');
+    }
+}
+echo formatPrice($price);
+```
+
 ## 🎨 Tab-Gruppierung (Advanced)
 
 Für komplexe Elemente mit vielen Feldern:
