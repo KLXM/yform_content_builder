@@ -1,0 +1,910 @@
+/**
+ * YForm Content Builder - Dark Mode Overrides
+ * Für REDAXO Dark Theme und prefers-color-scheme: dark
+ */
+
+/* =============================================================================
+   REDAXO Dark Theme (body.rex-theme-dark)
+   ============================================================================= */
+
+body.rex-theme-dark {
+    /* Hauptcontainer */
+    .yform-content-builder {
+        background-color: transparent;
+    }
+
+    /* Slice Container */
+    .content-builder-slice {
+        background: #2c3136;
+        border-color: #404448;
+        color: #f2f2f2;
+    }
+
+    .content-builder-slice:hover {
+        border-color: #4a90e2;
+        box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+    }
+
+    /* Section Element */
+    .content-builder-slice.is-section {
+        background: linear-gradient(to bottom, #2a3540 0%, #2c3136 100%);
+        border-color: #4a90e2;
+    }
+
+    .section-backend-label {
+        color: #5da3f5;
+    }
+
+    .section-backend-label .label {
+        background-color: #404448;
+        color: #f2f2f2;
+    }
+
+    .section-backend-label .label-info {
+        background-color: #3c5a78;
+        color: #b8d4f0;
+    }
+
+    /* In-Section Elements */
+    .content-builder-slice.in-section {
+        background: #35393d;
+        border-left-color: #4a90e2;
+    }
+
+    .content-builder-slice.in-section::before {
+        background: #4a90e2;
+    }
+
+    /* Slice Rendered */
+    .slice-rendered {
+        color: #f2f2f2;
+    }
+
+    .slice-rendered:hover {
+        background: rgba(74, 144, 226, 0.05);
+    }
+
+    /* Slice Edit Form */
+    .slice-edit-form {
+        background: #35393d;
+        border-top-color: #4a90e2;
+    }
+
+    .slice-edit-form .form-group:last-child {
+        border-top-color: #404448;
+    }
+
+    /* Slice Toolbar */
+    .slice-toolbar {
+        background: rgba(74, 144, 226, 0.9);
+    }
+
+    .slice-toolbar .btn {
+        color: #fff;
+    }
+
+    .slice-toolbar .btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .slice-toolbar .dropdown-menu {
+        background: #35393d;
+        border-color: #404448;
+    }
+
+    .slice-toolbar .dropdown-menu > li > a {
+        color: #f2f2f2;
+    }
+
+    .slice-toolbar .dropdown-menu > li > a:hover {
+        background: #404448;
+        color: #fff;
+    }
+
+    /* Add Slice Dropdown */
+    .content-builder-add .dropdown-menu {
+        background: #35393d;
+        border-color: #404448;
+    }
+
+    .btn-add-slice,
+    .btn-insert-slice {
+        color: #f2f2f2 !important;
+    }
+
+    .btn-add-slice:hover,
+    .btn-insert-slice:hover {
+        background: #404448 !important;
+        color: #fff !important;
+    }
+
+    .btn-add-slice i,
+    .btn-insert-slice i {
+        color: #4a90e2;
+    }
+
+    /* Empty State */
+    .content-builder-slices:empty::before {
+        color: #888;
+        border-color: #404448;
+        background: #35393d;
+    }
+
+    /* Placeholder */
+    .slice-placeholder {
+        background: rgba(74, 144, 226, 0.1);
+        border-color: #4a90e2;
+    }
+
+    /* Ghost */
+    .content-builder-slice.slice-ghost {
+        background: rgba(74, 144, 226, 0.2);
+    }
+
+    /* Repeater */
+    .repeater-container {
+        background: #35393d;
+        border-color: #404448;
+    }
+
+    .repeater-item {
+        background: #2c3136;
+        border-color: #404448;
+    }
+
+    .repeater-item:hover {
+        border-color: #4a90e2;
+    }
+
+    /* Move Buttons */
+    .repeater-item .btn-move {
+        background: rgba(255, 255, 255, 0.2);
+        color: #f2f2f2;
+    }
+
+    .repeater-item .btn-move:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Caption / Filename Styles */
+    .cb-media-filename {
+        color: #bbb !important;
+        background: #2c3136 !important;
+    }
+
+    /* CKEditor 5 Dark Mode Fix - Complete */
+    .slice-form .ck.ck-editor,
+    .slice-edit-form .ck.ck-editor,
+    .ck.ck-editor {
+        --ck-color-base-border: #404448 !important;
+        --ck-color-toolbar-border: #404448 !important;
+        border-color: #404448 !important;
+    }
+
+    .slice-form .ck.ck-editor__top,
+    .slice-edit-form .ck.ck-editor__top {
+        border-bottom: none !important;
+    }
+
+    .slice-form .ck.ck-toolbar,
+    .slice-edit-form .ck.ck-toolbar,
+    .ck.ck-toolbar {
+        background: #35393d !important;
+        border: 1px solid #404448 !important;
+        border-bottom: none !important;
+        border-radius: 4px 4px 0 0 !important;
+    }
+
+    .slice-form .ck.ck-toolbar .ck-toolbar__separator,
+    .slice-edit-form .ck.ck-toolbar .ck-toolbar__separator {
+        background: #404448 !important;
+    }
+
+    .slice-form .ck.ck-editor__main,
+    .slice-edit-form .ck.ck-editor__main {
+        border: 1px solid #404448 !important;
+        border-top: none !important;
+        border-radius: 0 0 4px 4px !important;
+        overflow: hidden;
+    }
+
+    .slice-form .ck.ck-editor__main > .ck-editor__editable,
+    .slice-edit-form .ck.ck-editor__main > .ck-editor__editable,
+    .ck.ck-editor__main > .ck-editor__editable {
+        background: #2c3136 !important;
+        color: #f2f2f2 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .slice-form .ck.ck-editor__main > .ck-editor__editable.ck-focused,
+    .slice-edit-form .ck.ck-editor__main > .ck-editor__editable.ck-focused {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .slice-form .ck.ck-toolbar .ck-button,
+    .slice-edit-form .ck.ck-toolbar .ck-button {
+        color: #f2f2f2 !important;
+    }
+
+    .slice-form .ck.ck-toolbar .ck-button:hover,
+    .slice-edit-form .ck.ck-toolbar .ck-button:hover {
+        background: #404448 !important;
+    }
+
+    .slice-form .ck.ck-toolbar .ck-button.ck-on,
+    .slice-edit-form .ck.ck-toolbar .ck-button.ck-on {
+        background: #4a90e2 !important;
+        color: #fff !important;
+    }
+
+    /* CKE5 Dropdown */
+    .ck.ck-dropdown__panel,
+    .ck.ck-list {
+        background: #35393d !important;
+        border-color: #404448 !important;
+    }
+
+    .ck.ck-list__item .ck-button {
+        color: #f2f2f2 !important;
+    }
+
+    .ck.ck-list__item .ck-button:hover {
+        background: #404448 !important;
+    }
+
+    /* CKE5 Powered By Badge */
+    .ck.ck-powered-by {
+        background: #2c3136 !important;
+    }
+
+    /* Form Elements */
+    .slice-form .form-group:last-child,
+    .slice-edit-form .form-group:last-child {
+        border-top-color: #404448;
+    }
+
+    /* Media Widget */
+    .media-widget .media-preview,
+    .media-widget-enhanced .media-preview-enhanced {
+        background: #35393d;
+        border-color: #404448;
+    }
+
+    /* Input Fields */
+    .slice-form .form-control,
+    .slice-edit-form .form-control,
+    .repeater-item .form-control {
+        background-color: #35393d;
+        border-color: #404448;
+        color: #f2f2f2;
+    }
+
+    .slice-form .form-control:focus,
+    .slice-edit-form .form-control:focus,
+    .repeater-item .form-control:focus {
+        border-color: #4a90e2;
+        background-color: #2c3136;
+    }
+
+    /* Labels */
+    .slice-form label,
+    .slice-edit-form label,
+    .repeater-item label {
+        color: #f2f2f2;
+    }
+
+    /* Help Text */
+    .slice-form .help-block,
+    .slice-edit-form .help-block {
+        color: #888;
+    }
+
+    /* Bootstrap Select */
+    .slice-form .bootstrap-select .dropdown-toggle,
+    .slice-edit-form .bootstrap-select .dropdown-toggle {
+        background-color: #35393d !important;
+        border-color: #404448 !important;
+        color: #f2f2f2 !important;
+    }
+
+    .slice-form .bootstrap-select .dropdown-menu,
+    .slice-edit-form .bootstrap-select .dropdown-menu {
+        background-color: #35393d;
+        border-color: #404448;
+    }
+
+    .slice-form .bootstrap-select .dropdown-menu li a,
+    .slice-edit-form .bootstrap-select .dropdown-menu li a {
+        color: #f2f2f2;
+    }
+
+    .slice-form .bootstrap-select .dropdown-menu li a:hover,
+    .slice-form .bootstrap-select .dropdown-menu li.active a,
+    .slice-edit-form .bootstrap-select .dropdown-menu li a:hover,
+    .slice-edit-form .bootstrap-select .dropdown-menu li.active a {
+        background-color: #4a90e2;
+        color: #fff;
+    }
+
+    /* Tabs */
+    .slice-form .nav-tabs {
+        border-bottom-color: #404448;
+    }
+
+    .slice-form .nav-tabs > li > a {
+        color: #bbb;
+    }
+
+    .slice-form .nav-tabs > li > a:hover {
+        background: #404448;
+        border-color: #404448;
+        color: #f2f2f2;
+    }
+
+    .slice-form .nav-tabs > li.active > a {
+        background: #35393d;
+        border-color: #404448 #404448 #35393d;
+        color: #f2f2f2;
+    }
+
+    .slice-form .tab-content {
+        background: #35393d;
+        border-color: #404448;
+    }
+
+    /* Modal */
+    .slice-form .modal-content {
+        background: #2c3136;
+        border-color: #404448;
+    }
+
+    .slice-form .modal-header {
+        background: #35393d;
+        border-bottom-color: #404448;
+        color: #f2f2f2;
+    }
+
+    .slice-form .modal-header .close {
+        color: #f2f2f2;
+        opacity: 0.6;
+    }
+
+    .slice-form .modal-header .close:hover {
+        opacity: 1;
+    }
+
+    .slice-form .modal-title {
+        color: #f2f2f2;
+    }
+
+    .slice-form .modal-body {
+        background: #2c3136;
+        color: #f2f2f2;
+    }
+
+    .slice-form .modal-footer {
+        background: #35393d;
+        border-top-color: #404448;
+    }
+
+    /* Panels */
+    .slice-form .panel {
+        background: #35393d;
+        border-color: #404448;
+    }
+
+    .slice-form .panel-heading {
+        background: #2c3136;
+        border-color: #404448;
+        color: #f2f2f2;
+    }
+
+    .slice-form .panel-body {
+        background: #35393d;
+        color: #f2f2f2;
+    }
+
+    /* Alerts */
+    .slice-rendered .alert-danger {
+        background-color: rgba(231, 76, 60, 0.2);
+        border-color: rgba(231, 76, 60, 0.4);
+        color: #e74c3c;
+    }
+
+    .slice-rendered .alert-info {
+        background-color: rgba(74, 144, 226, 0.2);
+        border-color: rgba(74, 144, 226, 0.4);
+        color: #5da3f5;
+    }
+
+    /* Cards Preview */
+    .slice-rendered .uk-card,
+    .slice-rendered .card {
+        background: #35393d;
+        border-color: #404448;
+        color: #f2f2f2;
+    }
+
+    .slice-rendered .uk-card-title,
+    .slice-rendered .card-title {
+        color: #f2f2f2;
+    }
+
+    .slice-rendered .uk-card-body,
+    .slice-rendered .card-body {
+        color: #bbb;
+    }
+
+    /* Text Colors */
+    .slice-rendered h1,
+    .slice-rendered h2,
+    .slice-rendered h3,
+    .slice-rendered h4,
+    .slice-rendered h5,
+    .slice-rendered h6 {
+        color: #f2f2f2;
+    }
+
+    .slice-rendered p,
+    .slice-rendered li {
+        color: #bbb;
+    }
+
+    /* Gallery / Grid Preview */
+    .slice-rendered .uk-grid > div,
+    .slice-rendered .row > div {
+        color: #f2f2f2;
+    }
+
+    /* Divider */
+    .slice-rendered hr {
+        border-color: #404448;
+    }
+
+    /* Tables */
+    .slice-rendered table {
+        color: #f2f2f2;
+    }
+
+    .slice-rendered table th {
+        background: #35393d;
+        border-color: #404448;
+    }
+
+    .slice-rendered table td {
+        border-color: #404448;
+    }
+
+    /* Links */
+    .slice-rendered a {
+        color: #4a90e2;
+    }
+
+    .slice-rendered a:hover {
+        color: #5da3f5;
+    }
+
+    /* Accordion/Tabs Preview */
+    .slice-rendered .uk-accordion-title,
+    .slice-rendered .panel-heading {
+        color: #f2f2f2;
+        background: #35393d;
+    }
+
+    .slice-rendered .uk-accordion-content,
+    .slice-rendered .panel-body {
+        background: #2c3136;
+        color: #bbb;
+    }
+}
+
+/* =============================================================================
+   System Dark Mode (prefers-color-scheme: dark)
+   ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+    body:not(.rex-theme-light) {
+        /* Slice Container */
+        .content-builder-slice {
+            background: #2c3136;
+            border-color: #404448;
+            color: #f2f2f2;
+        }
+
+        .content-builder-slice:hover {
+            border-color: #4a90e2;
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Section Element */
+        .content-builder-slice.is-section {
+            background: linear-gradient(to bottom, #2a3540 0%, #2c3136 100%);
+            border-color: #4a90e2;
+        }
+
+        .section-backend-label {
+            color: #5da3f5;
+        }
+
+        .section-backend-label .label {
+            background-color: #404448;
+            color: #f2f2f2;
+        }
+
+        /* In-Section Elements */
+        .content-builder-slice.in-section {
+            background: #35393d;
+            border-left-color: #4a90e2;
+        }
+
+        /* Slice Rendered */
+        .slice-rendered {
+            color: #f2f2f2;
+        }
+
+        .slice-rendered:hover {
+            background: rgba(74, 144, 226, 0.05);
+        }
+
+        /* Edit Form */
+        .slice-edit-form {
+            background: #35393d;
+            border-top-color: #4a90e2;
+        }
+
+        /* Toolbar */
+        .slice-toolbar {
+            background: rgba(74, 144, 226, 0.9);
+        }
+
+        .slice-toolbar .dropdown-menu {
+            background: #35393d;
+            border-color: #404448;
+        }
+
+        .slice-toolbar .dropdown-menu > li > a {
+            color: #f2f2f2;
+        }
+
+        .slice-toolbar .dropdown-menu > li > a:hover {
+            background: #404448;
+        }
+
+        /* Add Slice */
+        .content-builder-add .dropdown-menu {
+            background: #35393d;
+            border-color: #404448;
+        }
+
+        .btn-add-slice,
+        .btn-insert-slice {
+            color: #f2f2f2 !important;
+        }
+
+        .btn-add-slice:hover,
+        .btn-insert-slice:hover {
+            background: #404448 !important;
+        }
+
+        /* Empty State */
+        .content-builder-slices:empty::before {
+            color: #888;
+            border-color: #404448;
+            background: #35393d;
+        }
+
+        /* Repeater */
+        .repeater-container {
+            background: #35393d;
+            border-color: #404448;
+        }
+
+        .repeater-item {
+            background: #2c3136;
+            border-color: #404448;
+        }
+
+        /* Caption / Filename Styles */
+        .cb-media-filename {
+            color: #bbb !important;
+            background: #2c3136 !important;
+        }
+
+        /* CKEditor 5 Dark Mode Fix - Complete */
+        .slice-form .ck.ck-editor,
+        .slice-edit-form .ck.ck-editor,
+        .ck.ck-editor {
+            --ck-color-base-border: #404448 !important;
+            border-color: #404448 !important;
+        }
+
+        .slice-form .ck.ck-toolbar,
+        .slice-edit-form .ck.ck-toolbar,
+        .ck.ck-toolbar {
+            background: #35393d !important;
+            border: 1px solid #404448 !important;
+            border-bottom: none !important;
+            border-radius: 4px 4px 0 0 !important;
+        }
+
+        .slice-form .ck.ck-editor__main,
+        .slice-edit-form .ck.ck-editor__main {
+            border: 1px solid #404448 !important;
+            border-top: none !important;
+            border-radius: 0 0 4px 4px !important;
+        }
+
+        .slice-form .ck.ck-editor__main > .ck-editor__editable,
+        .slice-edit-form .ck.ck-editor__main > .ck-editor__editable {
+            background: #2c3136 !important;
+            color: #f2f2f2 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Media Widget */
+        .media-widget .media-preview,
+        .media-widget-enhanced .media-preview-enhanced {
+            background: #35393d;
+            border-color: #404448;
+        }
+
+        /* Form Controls */
+        .slice-form .form-control,
+        .slice-edit-form .form-control,
+        .repeater-item .form-control {
+            background-color: #35393d;
+            border-color: #404448;
+            color: #f2f2f2;
+        }
+
+        .slice-form .form-control:focus,
+        .slice-edit-form .form-control:focus {
+            border-color: #4a90e2;
+            background-color: #2c3136;
+        }
+
+        /* Labels */
+        .slice-form label,
+        .slice-edit-form label,
+        .repeater-item label {
+            color: #f2f2f2;
+        }
+
+        /* Help Text */
+        .slice-form .help-block,
+        .slice-edit-form .help-block {
+            color: #888;
+        }
+
+        /* Bootstrap Select */
+        .slice-form .bootstrap-select .dropdown-toggle,
+        .slice-edit-form .bootstrap-select .dropdown-toggle {
+            background-color: #35393d !important;
+            border-color: #404448 !important;
+            color: #f2f2f2 !important;
+        }
+
+        .slice-form .bootstrap-select .dropdown-menu,
+        .slice-edit-form .bootstrap-select .dropdown-menu {
+            background-color: #35393d;
+            border-color: #404448;
+        }
+
+        /* Tabs */
+        .slice-form .nav-tabs {
+            border-bottom-color: #404448;
+        }
+
+        .slice-form .nav-tabs > li > a {
+            color: #bbb;
+        }
+
+        .slice-form .nav-tabs > li.active > a {
+            background: #35393d;
+            border-color: #404448;
+            color: #f2f2f2;
+        }
+
+        /* Modal */
+        .slice-form .modal-content {
+            background: #2c3136;
+            border-color: #404448;
+        }
+
+        .slice-form .modal-header {
+            background: #35393d;
+            border-bottom-color: #404448;
+            color: #f2f2f2;
+        }
+
+        .slice-form .modal-body {
+            background: #2c3136;
+            color: #f2f2f2;
+        }
+
+        .slice-form .modal-footer {
+            background: #35393d;
+            border-top-color: #404448;
+        }
+
+        /* Content Preview */
+        .slice-rendered h1,
+        .slice-rendered h2,
+        .slice-rendered h3,
+        .slice-rendered h4,
+        .slice-rendered h5,
+        .slice-rendered h6 {
+            color: #f2f2f2;
+        }
+
+        .slice-rendered p,
+        .slice-rendered li {
+            color: #bbb;
+        }
+
+        .slice-rendered hr {
+            border-color: #404448;
+        }
+
+        .slice-rendered a {
+            color: #4a90e2;
+        }
+    }
+}
+
+/* =============================================================================
+   Image/Media Preview - Dark Mode Fixes (beide Varianten)
+   ============================================================================= */
+
+body.rex-theme-dark {
+    /* Media Preview Container */
+    .media-preview-enhanced,
+    .media-widget .media-preview,
+    .media-widget-enhanced .media-preview-enhanced {
+        background: #35393d !important;
+        border-color: #404448 !important;
+    }
+
+    /* Media Item */
+    .media-preview-enhanced .media-item,
+    .media-item {
+        background: #2c3136;
+        border-color: #404448;
+    }
+
+    /* Image Container */
+    .media-preview-enhanced .media-item-image,
+    .media-item-image {
+        background: #2c3136;
+    }
+
+    /* Filename Text */
+    .media-preview-enhanced .media-item-filename,
+    .media-item-filename {
+        color: #bbb !important;
+        background: #35393d;
+    }
+
+    /* Rex Media Widget (Standard REDAXO) */
+    .rex-js-widget-media .form-control,
+    .rex-js-widget-medialist .form-control {
+        background-color: #35393d !important;
+        border-color: #404448 !important;
+        color: #f2f2f2 !important;
+    }
+
+    /* Preview in Repeater Items */
+    .repeater-item .media-preview-enhanced {
+        background: #2c3136 !important;
+    }
+
+    /* Image Placeholder/Loading */
+    .media-preview-enhanced .media-placeholder,
+    .media-placeholder {
+        background: #404448;
+        color: #888;
+    }
+
+    /* Video Preview Overlay */
+    .media-preview-enhanced .video-overlay,
+    .video-overlay {
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    /* Content Builder Media Preview - Eigene Implementation */
+    .content-builder-media-preview {
+        background: #35393d !important;
+        border-color: #404448 !important;
+    }
+
+    .cb-media-preview-item .cb-media-container {
+        background: #2c3136 !important;
+        border-color: #404448 !important;
+    }
+
+    .cb-media-preview-item .cb-media-filename {
+        color: #bbb !important;
+    }
+
+    .media-enhanced-file span {
+        color: #f2f2f2 !important;
+    }
+
+    /* CKEditor 5 Wrapper - falls überschrieben */
+    .slice-form .ck.ck-editor,
+    .slice-edit-form .ck.ck-editor {
+        /* CKE5 managed sein eigenes Theme, aber Container anpassen */
+    }
+
+    .slice-form .ck.ck-editor__main,
+    .slice-edit-form .ck.ck-editor__main {
+        border-color: #404448 !important;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not(.rex-theme-light) {
+        /* Media Preview Container */
+        .media-preview-enhanced,
+        .media-widget .media-preview,
+        .media-widget-enhanced .media-preview-enhanced {
+            background: #35393d !important;
+            border-color: #404448 !important;
+        }
+
+        /* Media Item */
+        .media-preview-enhanced .media-item,
+        .media-item {
+            background: #2c3136;
+            border-color: #404448;
+        }
+
+        /* Image Container */
+        .media-preview-enhanced .media-item-image,
+        .media-item-image {
+            background: #2c3136;
+        }
+
+        /* Filename Text */
+        .media-preview-enhanced .media-item-filename,
+        .media-item-filename {
+            color: #bbb !important;
+            background: #35393d;
+        }
+
+        /* Rex Media Widget */
+        .rex-js-widget-media .form-control,
+        .rex-js-widget-medialist .form-control {
+            background-color: #35393d !important;
+            border-color: #404448 !important;
+            color: #f2f2f2 !important;
+        }
+
+        /* Preview in Repeater Items */
+        .repeater-item .media-preview-enhanced {
+            background: #2c3136 !important;
+        }
+
+        /* Content Builder Media Preview - Eigene Implementation */
+        .content-builder-media-preview {
+            background: #35393d !important;
+            border-color: #404448 !important;
+        }
+
+        .cb-media-preview-item .cb-media-container {
+            background: #2c3136 !important;
+            border-color: #404448 !important;
+        }
+
+        .cb-media-preview-item .cb-media-filename {
+            color: #bbb !important;
+        }
+
+        .media-enhanced-file span {
+            color: #f2f2f2 !important;
+        }
+    }
+}

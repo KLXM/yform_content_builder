@@ -1128,6 +1128,13 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         // Alle verfügbaren Elemente für Multiselect sammeln
         $elementChoices = $this->buildElementChoices();
         
+        // Theme-Auswahl (wenn UIkit Theme Builder verfügbar)
+        $themeChoices = ['' => '-- Domain-Standard --'];
+        if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\DomainContext')) {
+            $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
+            $themeChoices = array_merge($themeChoices, $availableThemes);
+        }
+        
         return [
             'type' => 'value',
             'name' => 'content_builder',
@@ -1144,6 +1151,13 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         'plain' => 'Plain HTML'
                     ],
                     'default' => 'bootstrap'
+                ],
+                'theme' => [
+                    'type' => 'choice',
+                    'label' => 'Theme',
+                    'choices' => $themeChoices,
+                    'default' => '',
+                    'notice' => 'Theme für dieses Feld. Leer = automatisch nach Domain.'
                 ],
                 'allowed_elements' => [
                     'type' => 'choice',

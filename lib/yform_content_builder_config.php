@@ -171,26 +171,6 @@ class yform_content_builder_config
     }
     
     /**
-     * Liefert das Theme-Override Feld
-     * @return array|null Null wenn Theme Builder nicht verfügbar
-     */
-    public static function getThemeOverrideField(): ?array
-    {
-        if (!self::hasThemeBuilder()) {
-            return null;
-        }
-        
-        return [
-            'type' => 'choice',
-            'label' => 'Theme überschreiben',
-            'choices' => self::getThemeChoices(),
-            'selectpicker' => true,
-            'notice' => 'Wähle ein spezifisches Theme für dieses Element oder nutze automatisch das Domain-Theme.',
-            'default' => ''
-        ];
-    }
-    
-    /**
      * Liefert die Standard Section-Felder
      * Können in jedem Element verwendet werden
      */
@@ -318,17 +298,12 @@ class yform_content_builder_config
     }
     
     /**
-     * Kombiniert Section- und Grid-Felder mit Theme-Override
+     * Kombiniert Section- und Grid-Felder
      * Praktisch für settings_modal arrays
      */
     public static function getSettingsModalFields(array $additionalFields = []): array
     {
         $fields = [];
-        
-        // Theme Override zuerst (wenn verfügbar)
-        if (self::hasThemeBuilder()) {
-            $fields[] = 'theme_override';
-        }
         
         // Grid-Felder
         $fields = array_merge($fields, self::getGridFieldNames());
@@ -344,17 +319,12 @@ class yform_content_builder_config
     
     /**
      * Liefert alle Standard-Konfigurationsfelder
-     * Kombiniert Theme, Grid und Section Felder
+     * Kombiniert Grid und Section Felder
+     * Theme wird auf YForm-Feldebene definiert
      */
     public static function getStandardFields(array $additionalFields = []): array
     {
         $fields = [];
-        
-        // Theme Override
-        $themeField = self::getThemeOverrideField();
-        if ($themeField !== null) {
-            $fields['theme_override'] = $themeField;
-        }
         
         // Grid-Felder
         $fields = array_merge($fields, self::getGridFields());

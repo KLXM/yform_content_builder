@@ -39,16 +39,6 @@ return [
     'auto_close' => true, // Markierung: Dieses Element ist ein Auto-Close Container
     
     'fields' => [
-        // Theme Override (nur wenn Theme Builder verfügbar)
-        'theme_override' => $hasUikitThemeBuilder ? [
-            'type' => 'choice',
-            'label' => 'Theme überschreiben',
-            'choices' => $themeChoices,
-            'selectpicker' => true,
-            'notice' => 'Wähle ein spezifisches Theme für diese Sektion.',
-            'default' => ''
-        ] : null,
-        
         'label' => [
             'type' => 'text',
             'label' => 'Bezeichnung',

@@ -18,9 +18,6 @@ return [
         'fields' => $config::getSettingsModalFields(['style'])
     ],
     'fields' => array_merge(
-        // Theme Override (nur wenn Theme Builder verfügbar)
-        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
-        
         // Element-spezifische Felder
         [
         // Display Settings

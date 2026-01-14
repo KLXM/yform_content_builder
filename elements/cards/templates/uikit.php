@@ -5,14 +5,6 @@
  * @var array $elementData
  */
 
-// Theme Override: Falls gesetzt, DomainContext anpassen
-$themeOverride = $elementData['theme_override'] ?? '';
-$previousTheme = null;
-if (!empty($themeOverride) && class_exists('UikitThemeBuilder\DomainContext')) {
-    $previousTheme = \UikitThemeBuilder\DomainContext::getForcedTheme();
-    \UikitThemeBuilder\DomainContext::setTheme($themeOverride);
-}
-
 // Grid-Einstellungen
 $columns = $elementData['columns'] ?? '3';
 $columnsTablet = $elementData['columns_tablet'] ?? '2';
@@ -176,6 +168,10 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         $mediaLightbox = !empty($item['media_lightbox']);
         $mediaCover = !empty($item['media_cover']);
         $imageDecorative = !empty($item['image_decorative']);
+        
+        // Video-Optionen
+        $videoDisplay = $item['video_display'] ?? 'inline';
+        $videoControls = $item['video_controls'] ?? 'autoplay';
         
         // Alt-Text Logik:
         // 1. Wenn Feld ausgefüllt -> dieses verwenden
@@ -354,13 +350,6 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
 <?php if ($containerWidth): ?>
 </div>
 <?php endif; ?>
-
-<?php
-// Theme Override zurücksetzen (falls gesetzt)
-if (!empty($themeOverride) && class_exists('UikitThemeBuilder\DomainContext')) {
-    \UikitThemeBuilder\DomainContext::setTheme($previousTheme);
-}
-?>
 
 <?php if ($hasSection): ?>
 <?php if ($isSectionBgVideo): ?>

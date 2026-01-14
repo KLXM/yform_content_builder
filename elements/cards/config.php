@@ -164,24 +164,10 @@ return [
     'settings_modal' => [
         'label' => 'Grid & Sektion Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => $hasUikitThemeBuilder 
-            ? ['theme_override', 'columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width']
-            : ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width']
+        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width']
     ],
     
     'fields' => [
-        // =============================================================================
-        // THEME OVERRIDE (nur wenn Theme Builder verfügbar)
-        // =============================================================================
-        'theme_override' => $hasUikitThemeBuilder ? [
-            'type' => 'choice',
-            'label' => 'Theme überschreiben',
-            'choices' => $themeChoices,
-            'selectpicker' => true,
-            'notice' => 'Wähle ein spezifisches Theme für dieses Element oder nutze automatisch das Domain-Theme.',
-            'default' => ''
-        ] : null,
-        
         // =============================================================================
         // GRID EINSTELLUNGEN
         // =============================================================================
@@ -329,7 +315,8 @@ return [
                 'icon' => 'fa-sliders',
                 'trigger_after' => 'image',
                 'fields' => [
-                    'image_alt', 'image_decorative', 'image_title', 'media_width', 'media_lightbox', 'media_cover'
+                    'image_alt', 'image_decorative', 'image_title', 'media_width', 
+                    'video_display', 'video_controls', 'media_lightbox', 'media_cover'
                 ]
             ],
             
@@ -386,6 +373,31 @@ return [
                 'media_cover' => [
                     'type' => 'checkbox',
                     'label' => 'Cover-Modus (füllt den Bereich aus)'
+                ],
+                
+                // Video-spezifische Optionen
+                'video_display' => [
+                    'type' => 'choice',
+                    'label' => 'Video-Darstellung',
+                    'selectpicker' => false,
+                    'choices' => [
+                        'inline' => 'Video direkt abspielen',
+                        'poster' => 'Standbild mit Play-Button'
+                    ],
+                    'default' => 'inline',
+                    'notice' => 'Bei Lightbox wird immer ein Standbild mit Button gezeigt'
+                ],
+                'video_controls' => [
+                    'type' => 'choice',
+                    'label' => 'Video-Steuerung',
+                    'selectpicker' => false,
+                    'choices' => [
+                        'autoplay' => 'Autoplay (stumm, Loop)',
+                        'controls' => 'Mit Player-Controls',
+                        'hover' => 'Abspielen bei Hover'
+                    ],
+                    'default' => 'autoplay',
+                    'notice' => 'Nur wenn Video direkt abgespielt wird'
                 ],
                 
                 // Content - Hauptfelder sichtbar

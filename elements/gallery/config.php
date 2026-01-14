@@ -25,9 +25,6 @@ return [
     ],
     
     'fields' => array_merge(
-        // Theme Override
-        ['theme_override' => $config::getThemeOverrideField()],
-        
         // Grid-Felder
         $config::getGridFields(),
         

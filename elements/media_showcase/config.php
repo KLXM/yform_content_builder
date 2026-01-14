@@ -15,14 +15,9 @@ return [
     'settings_modal' => [
         'label' => 'Section-Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => $hasThemeBuilder
-            ? array_merge(['theme_override'], $config::getSectionFieldNames())
-            : $config::getSectionFieldNames()
+        'fields' => $config::getSectionFieldNames()
     ],
     'fields' => array_merge(
-        // Theme Override (nur wenn Theme Builder verfügbar)
-        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
-        
         // Element-spezifische Felder
         [
         'media_file' => [

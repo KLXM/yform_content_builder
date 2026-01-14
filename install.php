@@ -185,6 +185,47 @@ if (rex_addon::get('media_manager')->isAvailable()) {
         ], 2);
     }
     
+    // =============================================================================
+    // VIDEO POSTER - Thumbnail aus Video mit convert2img (16:9)
+    // Für Cards und andere Elemente die Video-Vorschaubilder brauchen
+    // =============================================================================
+    $mm->addType('video_poster', 'Content Builder: Video Poster (16:9, ffmpeg/convert)');
+    
+    // 1. Zuerst Video zu Bild konvertieren (ffmpeg für Videos, ImageMagick für PDFs etc.)
+    $mm->addEffect('video_poster', 'convert2img', [
+        'convert_to' => 'jpg',
+        'density' => '150',
+        'color' => '#ffffff'
+    ], 1);
+    
+    // 2. Auf maximale Größe begrenzen
+    $mm->addEffect('video_poster', 'resize', [
+        'width' => 1200,
+        'height' => 1200,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 2);
+    
+    // 3. Dann auf 16:9 zuschneiden
+    if ($hasFocuspoint) {
+        $mm->addEffect('video_poster', 'focuspoint_fit', [
+            'width' => '16fr',
+            'height' => '9fr',
+            'zoom' => '0',
+            'meta' => 'med_focuspoint',
+            'focus' => '50.0,50.0'
+        ], 3);
+    } else {
+        $mm->addEffect('video_poster', 'crop', [
+            'width' => 800,
+            'height' => 450,
+            'offset_width' => '',
+            'offset_height' => '',
+            'hpos' => 'center',
+            'vpos' => 'middle'
+        ], 3);
+    }
+    
     // Alle Typen installieren
     $mm->install();
 }

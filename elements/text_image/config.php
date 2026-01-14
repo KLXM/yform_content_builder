@@ -25,15 +25,10 @@ return [
         'design' => [
             'label' => 'Design',
             'icon' => 'fa-paint-brush',
-            'fields' => $hasThemeBuilder 
-                ? array_merge(['theme_override', 'layout', 'image_ratio', 'spacing'], $config::getSectionFieldNames())
-                : array_merge(['layout', 'image_ratio', 'spacing'], $config::getSectionFieldNames())
+            'fields' => array_merge(['layout', 'image_ratio', 'spacing'], $config::getSectionFieldNames())
         ]
     ],
     'fields' => array_merge(
-        // Theme Override (nur wenn Theme Builder verfügbar)
-        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
-        
         // Element-spezifische Felder
         [
         'layout' => [

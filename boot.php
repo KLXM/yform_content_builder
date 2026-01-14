@@ -43,6 +43,7 @@ if (rex::isBackend()) {
 // Assets für Backend einbinden
 if (rex::isBackend()) {
     rex_view::addCssFile(rex_addon::get('yform_content_builder')->getAssetsUrl('content-builder.css'));
+    rex_view::addCssFile(rex_addon::get('yform_content_builder')->getAssetsUrl('content-builder-dark.css'));
     rex_view::addCssFile(rex_addon::get('yform_content_builder')->getAssetsUrl('divider.css'));
     rex_view::addCssFile(rex_addon::get('yform_content_builder')->getAssetsUrl('cards.css'));
     rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('content-builder.js'));

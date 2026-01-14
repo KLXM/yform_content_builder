@@ -16,9 +16,7 @@ $overlayOptions = [
 ];
 
 // Settings Modal Felder aufbauen
-$settingsModalFields = $hasThemeBuilder 
-    ? ['theme_override', 'ratio', 'animation', 'autoplay', 'interval', 'show_navigation', 'show_dots', 'is_viewport', 'container', 'margin', 'custom_id', 'custom_classes']
-    : ['ratio', 'animation', 'autoplay', 'interval', 'show_navigation', 'show_dots', 'is_viewport', 'container', 'margin', 'custom_id', 'custom_classes'];
+$settingsModalFields = ['ratio', 'animation', 'autoplay', 'interval', 'show_navigation', 'show_dots', 'is_viewport', 'container', 'margin', 'custom_id', 'custom_classes'];
 $settingsModalFields = array_merge($settingsModalFields, $config::getSectionFieldNames());
 
 return [
@@ -31,9 +29,6 @@ return [
         'fields' => $settingsModalFields
     ],
     'fields' => array_merge(
-        // Theme Override (nur wenn Theme Builder verfügbar)
-        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
-        
         // Element-spezifische Felder
         [
         // Globale Slideshow-Einstellungen

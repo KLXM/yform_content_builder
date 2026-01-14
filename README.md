@@ -5,7 +5,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 ## ✨ Features
 
 ### 🎯 **Content-Elemente**
-- **9 fertige Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery
+- **10 fertige Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery, Kontaktformular
 - **Professional Media Widget**: 16:9 Preview-Container, object-fit: contain, globaler Counter für eindeutige IDs
 - **Professional Gallery**: Grid/Masonry Layout, Mixed Media (Bilder + Videos), Responsive Design
 - **Auto-Close Sections**: Visueller Container für Abschnitte ohne verschachtelte Hierarchie
@@ -146,6 +146,41 @@ Das System versteht **verschachtelte Strukturen** und speichert Repeater-Daten k
 - **Flexible Spalten**: 2-5 Spalten konfigurierbar
 - **Mixed Media**: Bilder und Videos in einer Gallery
 - **Responsive Design**: Automatische Anpassung an verschiedene Bildschirmgrößen
+
+### Kontaktformular Element (NEU)
+Professionelles Kontaktformular mit PHPMailer-Integration:
+
+- **Tab-basierte Konfiguration**: 5 Tabs (Formular-Felder, E-Mail, Design, Bestätigung, Sektion)
+- **12 Feldtypen**: Text, E-Mail, Telefon, Textarea, Select, Checkbox, Radio, Hidden, Fieldset, Fieldset-Ende, Zwischenüberschrift, Trennlinie
+- **SQL-Optionen**: Dynamische Select/Radio-Optionen aus Datenbank (`SELECT id AS value, name AS label FROM tabelle`)
+- **Erweiterte Validierung**:
+  - **Vorgefertigte Typen**: IBAN, BIC, PLZ (DE/AT/CH), Telefon, URL, Datum, Uhrzeit, Zahlen, Buchstaben
+  - **Wertevergleiche**: `{{plz}} < {{99000}}`, `{{alter}} >= {{18}}`
+  - **Längenprüfung**: Mindest- und Maximallänge
+  - **Regex**: Eigene Muster
+- **Spam-Schutz**: Honeypot-Feld und/oder Zeit-Check
+- **Bestätigungs-E-Mail**: Automatische Kopie an Absender mit anpassbarem Intro/Footer
+- **4 Layout-Optionen**: Standard, Horizontal, Floating Labels, Kompakt
+- **Privacy-Checkbox**: Mit Linkmap-Verknüpfung zur Datenschutzseite
+- **Backend-Vorschau**: Sicherer Preview ohne Formular-Interferenz
+
+**SQL-Optionen Beispiele:**
+```sql
+-- Kategorien aus REDAXO
+SELECT id AS value, name AS label FROM rex_category WHERE status = 1 ORDER BY name
+
+-- Custom Tabelle
+SELECT code AS value, bezeichnung AS label FROM rex_laender ORDER BY bezeichnung
+```
+
+**Validierungs-Beispiele:**
+| Typ | Parameter | Beschreibung |
+|-----|-----------|-------------|
+| `iban` | - | DE89370400440532013000 |
+| `plz_de` | - | 5-stellige deutsche PLZ |
+| `min_length` | `10` | Mindestens 10 Zeichen |
+| `compare` | `{{plz}} < {{99000}}` | PLZ-Bereich prüfen |
+| `regex` | `^[A-Z]{3}$` | Eigenes Muster |
 
 ### Enhanced Workflow
 - **Settings-Modals**: Erweiterte Optionen in übersichtlichen Dialogen  
@@ -391,6 +426,8 @@ Siehe: `DEV.md` für Details.
 | `choice` | Select Dropdown |
 | `checkbox` | Checkbox |
 | `repeater` | Wiederholbare Felder |
+| `radio_image` | Layout-Auswahl mit SVG-Vorschaubildern |
+| `color_swatches` | Farbauswahl mit visuellen Farbfeldern |
 
 ### Repeater-Beispiel
 
@@ -473,7 +510,8 @@ $config = ContentBuilderHelper::getElementConfig('text_image');
 ## 🗺️ Roadmap
 
 ### ✅ **Aktueller Stand**
-- [x] **9 Content-Elemente**: Section, Text&Image, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery
+- [x] **10 Content-Elemente**: Section, Text&Image, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery, Kontaktformular
+- [x] **Kontaktformular**: PHPMailer, SQL-Optionen, erweiterte Validierung (IBAN, PLZ, Wertevergleiche)
 - [x] **Enhanced Media Browser**: Typ-Filter, moderne Overlay-UI, klickbare Platzhalter
 - [x] **Settings-Modals**: Erweiterte Optionen in übersichtlichen Dialogen
 - [x] **Move-Button System**: Zuverlässige ⬆️⬇️ Sortierung
@@ -490,16 +528,19 @@ $config = ContentBuilderHelper::getElementConfig('text_image');
 ## 📊 Stats
 
 ```
-Lines of Code:     ~4.500
-Elements:          9 (Section, Text&Image, Accordion, Headline, 
-                     Divider, Cards, Slideshow, Media Showcase, Gallery)
-Feldtypen:         8 (text, textarea, choice, checkbox, ckeditor5,
-                     be_media, be_media_enhanced, be_link, repeater)
-Templates:         27 (9 × 3 Frameworks)  
+Lines of Code:     ~5.000
+Elements:          10 (Section, Text&Image, Accordion, Headline, 
+                     Divider, Cards, Slideshow, Media Showcase, 
+                     Gallery, Kontaktformular)
+Feldtypen:         10 (text, textarea, choice, checkbox, ckeditor5,
+                     be_media, be_media_enhanced, be_link, repeater,
+                     radio_image, color_swatches)
+Templates:         30 (10 × 3 Frameworks)  
 CSS Files:         3 
 JS Files:          2 
 Features:          Enhanced Media Browser, Settings Modals, 
-                   Move Buttons, Grid-View Repeater
+                   Move Buttons, Grid-View Repeater, SQL-Optionen,
+                   Erweiterte Validierung (IBAN, PLZ, Compare)
 Dokumentation:     5 MD-Files
 Development Time:  Mehrere intensive Sessions 🤖
 ```
