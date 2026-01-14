@@ -6,6 +6,32 @@
  * Das nächste Section-Element oder das Ende schließt automatisch.
  */
 
+// Prüfen ob uikit_theme_builder verfügbar ist
+$hasUikitThemeBuilder = rex_addon::get('uikit_theme_builder')->isAvailable();
+
+// Theme-Auswahl Optionen (nur wenn Theme Builder verfügbar)
+$themeChoices = [];
+if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
+    $themeChoices = ['' => '-- Automatisch (Domain) --'];
+    $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
+    $themeChoices = array_merge($themeChoices, $availableThemes);
+}
+
+// Dynamische Optionen aus uikit_theme_builder
+$backgroundOptions = [
+    'none' => 'Keine',
+    'light' => 'Hell (Grau)',
+    'dark' => 'Dunkel',
+    'primary' => 'Primary',
+    'secondary' => 'Secondary',
+    'muted' => 'Gedämpft',
+    'white' => 'Weiß',
+];
+
+if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
+    $backgroundOptions = array_merge($backgroundOptions, \UikitThemeBuilder\DomainContext::getBackgroundOptions());
+}
+
 return [
     'label' => 'Section / Container',
     'icon' => 'fa-object-group',
@@ -13,6 +39,16 @@ return [
     'auto_close' => true, // Markierung: Dieses Element ist ein Auto-Close Container
     
     'fields' => [
+        // Theme Override (nur wenn Theme Builder verfügbar)
+        'theme_override' => $hasUikitThemeBuilder ? [
+            'type' => 'choice',
+            'label' => 'Theme überschreiben',
+            'choices' => $themeChoices,
+            'selectpicker' => true,
+            'notice' => 'Wähle ein spezifisches Theme für diese Sektion.',
+            'default' => ''
+        ] : null,
+        
         'label' => [
             'type' => 'text',
             'label' => 'Bezeichnung',
@@ -22,15 +58,7 @@ return [
         'background_color' => [
             'type' => 'choice',
             'label' => 'Hintergrundfarbe',
-            'choices' => [
-                'none' => 'Keine',
-                'light' => 'Hell (Grau)',
-                'dark' => 'Dunkel',
-                'primary' => 'Primary',
-                'secondary' => 'Secondary',
-                'muted' => 'Gedämpft',
-                'white' => 'Weiß',
-            ],
+            'choices' => $backgroundOptions,
             'default' => 'light'
         ],
         

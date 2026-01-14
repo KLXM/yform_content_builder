@@ -1,11 +1,30 @@
 <?php
+/**
+ * Media Showcase Element - Konfiguration mit zentraler Config
+ */
+
+// Zentrale Konfigurationsklasse
+$config = yform_content_builder_config::class;
+$hasThemeBuilder = $config::hasThemeBuilder();
 
 return [
     'label' => 'Media Showcase',
     'description' => 'Zeigt Bilder oder Videos mit korrekten Seitenverhältnissen und Platzhaltern an',
     'icon' => 'fa-play-circle',
     'category' => 'media',
-    'fields' => [
+    'settings_modal' => [
+        'label' => 'Section-Einstellungen',
+        'icon' => 'fa-cog',
+        'fields' => $hasThemeBuilder
+            ? array_merge(['theme_override'], $config::getSectionFieldNames())
+            : $config::getSectionFieldNames()
+    ],
+    'fields' => array_merge(
+        // Theme Override (nur wenn Theme Builder verfügbar)
+        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
+        
+        // Element-spezifische Felder
+        [
         'media_file' => [
             'type' => 'be_media',
             'label' => 'Bild oder Video',
@@ -51,5 +70,9 @@ return [
             'label' => 'Video stumm schalten (nur für Videos)',
             'notice' => 'Empfohlen für Autoplay'
         ]
-    ]
+        ],
+        
+        // Section-Felder aus zentraler Config
+        $config::getSectionFields()
+    ),
 ];

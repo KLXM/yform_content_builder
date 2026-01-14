@@ -128,7 +128,7 @@ foreach ($slides as $slide) {
         echo '</video>';
     } else {
         echo '<div class="uk-position-cover wellings-slide-media">';
-        echo '<img src="' . rex_media_manager::getUrl('image_hero', $media) . '" alt="' . rex_escape($altText) . '" class="wellings-slide-image" uk-cover>';
+        echo '<img src="' . rex_media_manager::getUrl('content_slideshow', $media) . '" alt="' . rex_escape($altText) . '" class="wellings-slide-image" uk-cover>';
         echo '</div>';
     }
 

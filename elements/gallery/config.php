@@ -1,4 +1,15 @@
 <?php
+/**
+ * Galerie Element - Konfiguration
+ * Nutzt zentrale Konfiguration für Section-Einstellungen
+ */
+
+// Zentrale Konfiguration laden
+$config = yform_content_builder_config::class;
+$hasThemeBuilder = $config::hasThemeBuilder();
+
+// Element-spezifische Felder für settings_modal
+$elementSpecificFields = ['layout', 'aspect_ratio', 'lightbox'];
 
 return [
     'label' => 'Galerie',
@@ -6,98 +17,97 @@ return [
     'icon' => 'fa-th',
     'category' => 'media',
     
-    'fields' => [
-        'headline' => [
-            'type' => 'text',
-            'label' => 'Überschrift',
-            'notice' => 'Optional: Überschrift für die Galerie'
-        ],
-        'layout' => [
-            'type' => 'choice',
-            'label' => 'Layout',
-            'choices' => [
-                'grid' => 'Grid (gleichmäßig)',
-                'masonry' => 'Masonry (Pinterest-Style)'
-            ],
-            'default' => 'grid'
-        ],
-        'columns' => [
-            'type' => 'choice',
-            'label' => 'Spalten',
-            'choices' => [
-                '2' => '2 Spalten',
-                '3' => '3 Spalten',
-                '4' => '4 Spalten',
-                '5' => '5 Spalten'
-            ],
-            'default' => '3'
-        ],
-        'aspect_ratio' => [
-            'type' => 'choice',
-            'label' => 'Seitenverhältnis',
-            'choices' => [
-                'auto' => 'Original',
-                '16:9' => '16:9 (Widescreen)',
-                '4:3' => '4:3 (Standard)',
-                '1:1' => '1:1 (Quadrat)',
-                '3:2' => '3:2 (Klassisch)'
-            ],
-            'default' => 'auto'
-        ],
-        'gap' => [
-            'type' => 'choice',
-            'label' => 'Abstand',
-            'choices' => [
-                'small' => 'Klein (10px)',
-                'medium' => 'Mittel (20px)',
-                'large' => 'Groß (30px)'
-            ],
-            'default' => 'medium'
-        ],
-        'view_mode' => [
-            'type' => 'choice',
-            'label' => 'Eingabe-Ansicht',
-            'choices' => [
-                'list' => 'Liste (untereinander)',
-                'grid' => 'Kacheln (Grid)'
-            ],
-            'default' => 'grid'
-        ],
-        'items' => [
-            'type' => 'repeater',
-            'label' => 'Galerie-Items',
-            'add_label' => 'Medium hinzufügen',
-            'view' => 'grid', // Neue Option für gekachelte Ansicht
-            'grid_columns' => 3, // Anzahl Spalten im Grid
-            'fields' => [
-                'media' => [
-                    'type' => 'be_media',
-                    'label' => 'Bild/Video',
-                    'allowed_types' => 'image,video',
-                    'notice' => 'Wählen Sie ein Bild oder Video aus'
-                ],
-                'caption' => [
-                    'type' => 'text',
-                    'label' => 'Bildunterschrift',
-                    'notice' => 'Optional: Beschreibung für das Medium'
-                ],
-                'alt_text' => [
-                    'type' => 'text',
-                    'label' => 'Alt-Text',
-                    'notice' => 'Für Barrierefreiheit und SEO'
-                ]
-            ],
-            'item_modal' => [
-                'label' => 'Erweiterte Optionen',
-                'icon' => 'fa-cog',
-                'fields' => ['caption', 'alt_text']
-            ]
-        ]
+    // Settings Modal für Grid/Section-Einstellungen
+    'settings_modal' => [
+        'label' => 'Grid & Sektion Einstellungen',
+        'icon' => 'fa-cog',
+        'fields' => $config::getSettingsModalFields($elementSpecificFields)
     ],
     
-    'settings_modal' => [
-        'label' => 'Layout-Einstellungen',
-        'icon' => 'fa-cogs',
-        'fields' => ['layout', 'columns', 'aspect_ratio', 'gap', 'view_mode']
-    ]
+    'fields' => array_merge(
+        // Theme Override
+        ['theme_override' => $config::getThemeOverrideField()],
+        
+        // Grid-Felder
+        $config::getGridFields(),
+        
+        // Element-spezifische Felder
+        [
+            'headline' => [
+                'type' => 'text',
+                'label' => 'Überschrift',
+                'notice' => 'Optional: Überschrift für die Galerie'
+            ],
+            'layout' => [
+                'type' => 'choice',
+                'label' => 'Layout',
+                'choices' => [
+                    'grid' => 'Grid (gleichmäßig)',
+                    'masonry' => 'Masonry (Pinterest-Style)'
+                ],
+                'default' => 'grid'
+            ],
+            'aspect_ratio' => [
+                'type' => 'choice',
+                'label' => 'Seitenverhältnis',
+                'choices' => [
+                    'auto' => 'Original',
+                    '16:9' => '16:9 (Widescreen)',
+                    '4:3' => '4:3 (Standard)',
+                    '1:1' => '1:1 (Quadrat)',
+                    '3:2' => '3:2 (Klassisch)'
+                ],
+                'default' => 'auto'
+            ],
+            'lightbox' => [
+                'type' => 'checkbox',
+                'label' => 'Lightbox aktivieren',
+                'default' => true
+            ],
+            
+            // Items Repeater
+            'items' => [
+                'type' => 'repeater',
+                'label' => 'Galerie-Items',
+                'add_label' => 'Medium hinzufügen',
+                'view' => 'grid',
+                'grid_columns' => 4,
+                
+                // Modal für erweiterte Optionen
+                'item_modal' => [
+                    'label' => 'Erweiterte Optionen',
+                    'icon' => 'fa-cog',
+                    'fields' => ['caption', 'alt_text', 'link_url']
+                ],
+                
+                'fields' => [
+                    'media' => [
+                        'type' => 'be_media',
+                        'label' => 'Bild/Video',
+                        'allowed_types' => 'image,video',
+                        'preview' => true,
+                        'notice' => 'Bild oder Video auswählen'
+                    ],
+                    'caption' => [
+                        'type' => 'text',
+                        'label' => 'Bildunterschrift',
+                        'notice' => 'Optional: Beschreibung für das Medium'
+                    ],
+                    'alt_text' => [
+                        'type' => 'text',
+                        'label' => 'Alt-Text',
+                        'notice' => 'Für Barrierefreiheit und SEO'
+                    ],
+                    'link_url' => [
+                        'type' => 'text',
+                        'label' => 'Link (optional)',
+                        'notice' => 'Überschreibt die Lightbox für dieses Element'
+                    ]
+                ]
+            ]
+        ],
+        
+        // Section-Felder
+        $config::getSectionFields()
+    )
 ];

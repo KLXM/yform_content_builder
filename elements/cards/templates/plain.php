@@ -43,12 +43,12 @@ $gridClass = 'cb-cards-grid cb-cards-cols-' . $columns;
             $href = rex_getUrl($linkInternal);
         }
         
-        // Bild Pfad
+        // Bild Pfad via Media Manager
         $imageSrc = '';
         if (!empty($image)) {
             $media = rex_media::get($image);
             if ($media) {
-                $imageSrc = '/media/' . $image;
+                $imageSrc = rex_media_manager::getUrl('content_card', $image);
             }
         }
         ?>

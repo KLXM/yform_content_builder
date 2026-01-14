@@ -1,10 +1,44 @@
 <?php
+/**
+ * Überschrift Element - Konfiguration mit zentraler Config
+ */
+
+// Zentrale Konfigurationsklasse
+$config = yform_content_builder_config::class;
+$hasThemeBuilder = $config::hasThemeBuilder();
+
+// Dynamische Farboptionen
+$colorOptions = [
+    '' => 'Standard',
+    'primary' => 'Primary',
+    'secondary' => 'Secondary',
+    'success' => 'Success',
+    'warning' => 'Warning',
+    'danger' => 'Danger',
+    'muted' => 'Grau',
+];
+
+if ($hasThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
+    $colorOptions = array_merge($colorOptions, \UikitThemeBuilder\DomainContext::getTextColorOptions());
+}
 
 return [
     'label' => 'Überschrift',
     'icon' => 'fa fa-header',
     'description' => 'Überschrift mit Styling-Optionen',
-    'fields' => [
+    'settings_modal' => [
+        'label' => 'Section-Einstellungen',
+        'icon' => 'fa-cog',
+        'fields' => $hasThemeBuilder
+            ? array_merge(['theme_override'], $config::getSectionFieldNames())
+            : $config::getSectionFieldNames()
+    ],
+    'fields' => array_merge(
+        // Theme Override (nur wenn Theme Builder verfügbar)
+        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
+        
+        // Element-spezifische Felder
+        [
         'text' => [
             'type' => 'text',
             'label' => 'Überschrift',
@@ -46,15 +80,7 @@ return [
         'color' => [
             'type' => 'choice',
             'label' => 'Farbe',
-            'choices' => [
-                '' => 'Standard',
-                'primary' => 'Primary',
-                'success' => 'Success',
-                'info' => 'Info',
-                'warning' => 'Warning',
-                'danger' => 'Danger',
-                'muted' => 'Grau'
-            ],
+            'choices' => $colorOptions,
             'default' => ''
         ],
         'spacing_top' => [
@@ -103,5 +129,9 @@ return [
             'type' => 'be_link',
             'label' => 'Interne Seite'
         ]
-    ],
+        ],
+        
+        // Section-Felder aus zentraler Config
+        $config::getSectionFields()
+    ),
 ];

@@ -59,12 +59,12 @@ $imageFirst = in_array($layout, ['image_text', 'image_top']);
                     <div class="text-image-media">
                         <?php if ($ratioClass): ?>
                             <div class="<?= $ratioClass ?>">
-                                <img src="<?= rex_url::media($image) ?>" 
+                                <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                      alt="<?= rex_escape($imageAlt) ?>" 
                                      class="img-responsive">
                             </div>
                         <?php else: ?>
-                            <img src="<?= rex_url::media($image) ?>" 
+                            <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                  alt="<?= rex_escape($imageAlt) ?>" 
                                  class="img-responsive">
                         <?php endif; ?>
@@ -109,12 +109,12 @@ $imageFirst = in_array($layout, ['image_text', 'image_top']);
                     <div class="text-image-media">
                         <?php if ($ratioClass): ?>
                             <div class="<?= $ratioClass ?>">
-                                <img src="<?= rex_url::media($image) ?>" 
+                                <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                      alt="<?= rex_escape($imageAlt) ?>" 
                                      class="img-responsive">
                             </div>
                         <?php else: ?>
-                            <img src="<?= rex_url::media($image) ?>" 
+                            <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                  alt="<?= rex_escape($imageAlt) ?>" 
                                  class="img-responsive">
                         <?php endif; ?>

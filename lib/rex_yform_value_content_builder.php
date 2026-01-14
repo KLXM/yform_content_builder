@@ -224,6 +224,56 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '</div>';
     }
     
+    /**
+     * Rendert ein generisches Modal für ein Feld im Repeater
+     * Kann für verschiedene Modal-Typen verwendet werden (item_modal, media_modal, etc.)
+     */
+    protected function renderRepeaterFieldModal(string $itemId, int $index, string $fieldName, array $fieldConfig, array $item, string $baseFieldName, string $modalKey)
+    {
+        $modalConfig = $fieldConfig[$modalKey];
+        $modalId = $itemId . '_' . $modalKey;
+        $label = $modalConfig['label'] ?? 'Optionen';
+        $icon = $modalConfig['icon'] ?? 'fa-cog';
+        
+        echo '<div class="form-group">';
+        echo '<button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#' . $modalId . '">';
+        echo '<i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label);
+        echo '</button>';
+        echo '</div>';
+        
+        // Modal HTML
+        echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" role="dialog">';
+        echo '<div class="modal-dialog" role="document">';
+        echo '<div class="modal-content">';
+        echo '<div class="modal-header">';
+        echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
+        echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
+        echo '</div>';
+        echo '<div class="modal-body">';
+        
+        // Modal-Felder rendern
+        if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
+            foreach ($modalConfig['fields'] as $subFieldName) {
+                if (isset($fieldConfig['fields'][$subFieldName])) {
+                    $subValue = $item[$subFieldName] ?? '';
+                    $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
+                    
+                    // Für Subfelder müssen wir die Daten anders übergeben
+                    $subData = [$baseFieldName => [$index => $item]];
+                    $this->renderFormField($fullFieldName, $fieldConfig['fields'][$subFieldName], $subData);
+                }
+            }
+        }
+        
+        echo '</div>';
+        echo '<div class="modal-footer">';
+        echo '<button type="button" class="btn btn-primary" data-dismiss="modal">Übernehmen</button>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+    }
+    
     protected function renderRepeaterItemModal(string $itemId, int $index, string $fieldName, array $fieldConfig, array $item, string $baseFieldName)
     {
         $modalId = $itemId . '_modal';
@@ -349,12 +399,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 echo 'title="' . rex_i18n::msg('var_media_open') . '">';
                 echo '<i class="rex-icon fa fa-folder-open"></i></a>';
                 
-                if ($value) {
-                    echo '<a href="#" class="btn btn-popup" ';
-                    echo 'onclick="newWindow(\'' . rex_url::media($value) . '\'); return false;" ';
-                    echo 'title="' . rex_i18n::msg('var_media_view') . '">';
-                    echo '<i class="rex-icon fa fa-eye"></i></a>';
-                }
+                echo '<a href="#" class="btn btn-popup" ';
+                echo 'onclick="viewREXMedia(' . $mediaCounter . $openMediaParams . '); return false;" ';
+                echo 'title="' . rex_i18n::msg('var_media_view') . '">';
+                echo '<i class="rex-icon fa fa-eye"></i></a>';
                 
                 echo '<a href="#" class="btn btn-popup btn-delete-cb-media" ';
                 echo 'data-input-id="' . $inputId . '" ';
@@ -450,9 +498,110 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 echo '</div>';
                 break;
                 
+            case 'radio_image':
+                // Radio-Buttons mit Bildern/SVGs für visuelle Layout-Auswahl
+                $options = $fieldConfig['options'] ?? [];
+                $default = $fieldConfig['default'] ?? '';
+                
+                if (empty($value) && !empty($default)) {
+                    $value = $default;
+                }
+                
+                // Eindeutiger Prefix für diese Radio-Gruppe (inkl. uniqid für Repeater)
+                $groupId = 'radio_' . uniqid() . '_';
+                
+                echo '<div class="radio-image-group">';
+                foreach ($options as $optValue => $optData) {
+                    $checked = ($value == $optValue) ? ' checked' : '';
+                    $inputId = $groupId . md5($optValue);
+                    
+                    // Label und Image aus optData extrahieren
+                    $label = $optData;
+                    $image = '';
+                    if (is_array($optData)) {
+                        $label = $optData['label'] ?? $optValue;
+                        $image = $optData['image'] ?? '';
+                    }
+                    
+                    echo '<div class="radio-image-item' . ($checked ? ' active' : '') . '">';
+                    echo '<input type="radio" name="' . rex_escape($fieldName) . '" ';
+                    echo 'id="' . $inputId . '" ';
+                    echo 'value="' . rex_escape($optValue) . '"' . $checked . '>';
+                    echo '<label for="' . $inputId . '">';
+                    
+                    if (!empty($image)) {
+                        // Bild oder SVG Base64
+                        if (strpos($image, 'data:image/svg+xml;base64,') === 0) {
+                            echo '<img src="' . $image . '" alt="' . rex_escape($label) . '">';
+                        } else {
+                            echo '<img src="' . rex_escape($image) . '" alt="' . rex_escape($label) . '">';
+                        }
+                    }
+                    
+                    echo '<span class="radio-image-label">' . rex_escape($label) . '</span>';
+                    echo '</label>';
+                    echo '</div>';
+                }
+                echo '</div>';
+                break;
+            
+            case 'color_swatches':
+                // Farbauswahl mit visuellen Farbfeldern (wie MForm RadioColorField)
+                $options = $fieldConfig['options'] ?? [];
+                $default = $fieldConfig['default'] ?? '';
+                
+                if (empty($value) && !empty($default)) {
+                    $value = $default;
+                }
+                
+                // Eindeutiger Prefix für diese Radio-Gruppe
+                $groupId = 'color_' . uniqid() . '_';
+                
+                echo '<div class="color-swatches-group">';
+                foreach ($options as $optValue => $optData) {
+                    $checked = ($value == $optValue) ? ' checked' : '';
+                    $inputId = $groupId . md5($optValue);
+                    
+                    // Label und Color extrahieren
+                    $label = $optData;
+                    $color = '#cccccc';
+                    if (is_array($optData)) {
+                        $label = $optData['label'] ?? $optValue;
+                        $color = $optData['color'] ?? '#cccccc';
+                    }
+                    
+                    // Transparenz-Style für spezielle Farben
+                    $bgStyle = '';
+                    if ($color === 'transparent' || $color === '') {
+                        $bgStyle = 'background: linear-gradient(135deg, #fff 0%, #fff 45%, #ff0000 50%, #fff 55%, #fff 100%);';
+                    } else {
+                        $bgStyle = 'background-color: ' . $color . ';';
+                    }
+                    
+                    // Border für helle Farben
+                    $borderStyle = '';
+                    if ($color === '#ffffff' || $color === '#fff' || $color === 'white') {
+                        $borderStyle = 'border: 1px solid #ccc;';
+                    }
+                    
+                    echo '<div class="color-swatch-item' . ($checked ? ' active' : '') . '">';
+                    echo '<input type="radio" name="' . rex_escape($fieldName) . '" ';
+                    echo 'id="' . $inputId . '" ';
+                    echo 'value="' . rex_escape($optValue) . '"' . $checked . '>';
+                    echo '<label for="' . $inputId . '" title="' . rex_escape($label) . '">';
+                    echo '<span class="color-swatch" style="' . $bgStyle . $borderStyle . '"></span>';
+                    echo '</label>';
+                    echo '</div>';
+                }
+                echo '</div>';
+                break;
+                
             case 'choice':
                 $choices = $fieldConfig['choices'] ?? [];
                 $default = $fieldConfig['default'] ?? '';
+                // Selectpicker ist standardmäßig aktiviert für einheitliches Styling
+                // Kann mit 'selectpicker' => false explizit deaktiviert werden
+                $useSelectpicker = $fieldConfig['selectpicker'] ?? true;
                 
                 // Falls choices als String übergeben wurde (legacy)
                 if (is_string($choices)) {
@@ -473,10 +622,45 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     $value = $default;
                 }
                 
-                echo '<select class="form-control" name="' . rex_escape($fieldName) . '">';
+                // Farbdaten für Selectpicker mit Farbvorschau
+                $choiceColors = $fieldConfig['choice_colors'] ?? [];
+                // Icons/Piktogramme für Selectpicker (z.B. Layout-Auswahl)
+                $choiceIcons = $fieldConfig['choice_icons'] ?? [];
+                
+                $selectClass = 'form-control';
+                if ($useSelectpicker) {
+                    $selectClass .= ' selectpicker';
+                }
+                
+                echo '<select class="' . $selectClass . '" name="' . rex_escape($fieldName) . '">';
                 foreach ($choices as $choiceValue => $choiceLabel) {
                     $selected = ($value == $choiceValue) ? ' selected' : '';
-                    echo '<option value="' . rex_escape($choiceValue) . '"' . $selected . '>' . rex_escape($choiceLabel) . '</option>';
+                    
+                    $dataContent = '';
+                    
+                    // Icon/Piktogramm für Selectpicker (z.B. SVG oder HTML)
+                    if ($useSelectpicker && isset($choiceIcons[$choiceValue])) {
+                        $iconHtml = $choiceIcons[$choiceValue];
+                        // SVG/HTML für data-content - nur Anführungszeichen escapen, nicht das HTML
+                        $escapedIcon = str_replace('"', '&quot;', $iconHtml);
+                        $dataContent = ' data-content="' . $escapedIcon . ' ' . rex_escape($choiceLabel) . '"';
+                    }
+                    // Farbvorschau für Selectpicker wenn Farben definiert sind
+                    elseif ($useSelectpicker && isset($choiceColors[$choiceValue])) {
+                        $colorData = $choiceColors[$choiceValue];
+                        $color = is_array($colorData) ? ($colorData['color'] ?? '') : $colorData;
+                        if (!empty($color)) {
+                            $borderStyle = ($color === '#ffffff' || $color === 'transparent' || $color === '#fff') 
+                                ? 'border: 1px solid #ccc;' 
+                                : '';
+                            $bgColor = $color === 'transparent' 
+                                ? 'background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 5px, #fff 5px, #fff 10px);'
+                                : 'background-color: ' . rex_escape($color) . ';';
+                            $dataContent = ' data-content="<span style=\'display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:middle;border-radius:3px;' . $bgColor . $borderStyle . '\'></span>' . rex_escape($choiceLabel) . '"';
+                        }
+                    }
+                    
+                    echo '<option value="' . rex_escape($choiceValue) . '"' . $selected . $dataContent . '>' . rex_escape($choiceLabel) . '</option>';
                 }
                 echo '</select>';
                 break;
@@ -493,6 +677,18 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 // Item Modal Config prüfen
                 $hasItemModal = isset($fieldConfig['item_modal']) && is_array($fieldConfig['item_modal']);
                 $itemModalFields = $hasItemModal ? $fieldConfig['item_modal']['fields'] : [];
+                
+                // Alle Modals mit trigger_after sammeln (z.B. media_modal)
+                $triggerModals = [];
+                foreach ($fieldConfig as $configKey => $configValue) {
+                    if (str_ends_with($configKey, '_modal') && $configKey !== 'item_modal' && is_array($configValue)) {
+                        if (isset($configValue['trigger_after']) && isset($configValue['fields'])) {
+                            $triggerModals[$configValue['trigger_after']] = $configKey;
+                            // Diese Felder auch aus der Hauptansicht ausblenden
+                            $itemModalFields = array_merge($itemModalFields, $configValue['fields']);
+                        }
+                    }
+                }
                 
                 // View Config prüfen - kann auch dynamisch aus Slice-Daten kommen
                 $view = $fieldConfig['view'] ?? 'list';
@@ -524,9 +720,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     echo '</div>';
                     
                     // Template-Felder rendern
-                    $templateItem = [];
+                    $templateFieldCount = 0;
                     foreach ($fieldConfig['fields'] as $subFieldName => $subFieldConfig) {
-                        if ($hasItemModal && in_array($subFieldName, $itemModalFields)) {
+                        if (in_array($subFieldName, $itemModalFields)) {
                             continue;
                         }
                         
@@ -534,10 +730,16 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         $subData = [$baseFieldName => [0 => []]];
                         $this->renderFormField($fullFieldName, $subFieldConfig, $subData);
                         
-                        // Modal Button nach 2. Feld
-                        static $templateFieldCount = 0;
                         $templateFieldCount++;
-                        if ($templateFieldCount === 2) {
+                        
+                        // Trigger-Modal nach diesem Feld anzeigen
+                        if (isset($triggerModals[$subFieldName])) {
+                            $modalKey = $triggerModals[$subFieldName];
+                            $this->renderRepeaterFieldModal($templateId, 0, $fieldName, $fieldConfig, [], $baseFieldName, $modalKey);
+                        }
+                        
+                        // Item-Modal Button nach 2. Feld
+                        if ($hasItemModal && $templateFieldCount === 2) {
                             $this->renderRepeaterItemModal($templateId, 0, $fieldName, $fieldConfig, [], $baseFieldName);
                         }
                     }
@@ -560,7 +762,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     $fieldsRendered = 0;
                     foreach ($fieldConfig['fields'] as $subFieldName => $subFieldConfig) {
                         // Überspringen wenn Feld im Modal ist
-                        if ($hasItemModal && in_array($subFieldName, $itemModalFields)) {
+                        if (in_array($subFieldName, $itemModalFields)) {
                             continue;
                         }
                         
@@ -573,7 +775,13 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         
                         $fieldsRendered++;
                         
-                        // Modal Button nach dem 2. Feld einfügen (nach image + image_position)
+                        // Trigger-Modal nach diesem Feld anzeigen (z.B. media_modal nach image)
+                        if (isset($triggerModals[$subFieldName])) {
+                            $modalKey = $triggerModals[$subFieldName];
+                            $this->renderRepeaterFieldModal($itemId, $index, $fieldName, $fieldConfig, $item, $baseFieldName, $modalKey);
+                        }
+                        
+                        // Item-Modal Button nach dem 2. Feld einfügen
                         if ($hasItemModal && $fieldsRendered === 2) {
                             $this->renderRepeaterItemModal($itemId, $index, $fieldName, $fieldConfig, $item, $baseFieldName);
                         }

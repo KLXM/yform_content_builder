@@ -119,7 +119,7 @@ foreach ($slides as $slide) {
         echo '<source src="' . rex_url::media($media) . '" type="video/' . pathinfo($media, PATHINFO_EXTENSION) . '">';
         echo '</video>';
     } else {
-        echo '<img src="' . rex_media_manager::getUrl('image_hero', $media) . '" class="d-block w-100 wellings-slide-image" alt="' . rex_escape($altText) . '">';
+        echo '<img src="' . rex_media_manager::getUrl('content_slideshow', $media) . '" class="d-block w-100 wellings-slide-image" alt="' . rex_escape($altText) . '">';
     }
 
     if (!empty($title) || !empty($text) || ($hasLink && $linkType === 'button')) {

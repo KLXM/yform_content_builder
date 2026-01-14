@@ -15,7 +15,7 @@ $imagePosition = $elementData['image_position'] ?? 'right';
         <?php if ($imagePosition === 'left'): ?>
             <div class="uk-width-1-2@m">
                 <?php if ($image): ?>
-                    <img src="<?= rex_url::media($image) ?>" alt="<?= rex_escape($headline) ?>" class="uk-width-1-1">
+                    <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" alt="<?= rex_escape($headline) ?>" class="uk-width-1-1">
                 <?php endif; ?>
             </div>
             <div class="uk-width-1-2@m">
@@ -37,7 +37,7 @@ $imagePosition = $elementData['image_position'] ?? 'right';
             </div>
             <div class="uk-width-1-2@m">
                 <?php if ($image): ?>
-                    <img src="<?= rex_url::media($image) ?>" alt="<?= rex_escape($headline) ?>" class="uk-width-1-1">
+                    <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" alt="<?= rex_escape($headline) ?>" class="uk-width-1-1">
                 <?php endif; ?>
             </div>
         <?php endif; ?>

@@ -9,3 +9,14 @@ requires:
     redaxo: '^5.15'
     php:
         version: '^8.1'
+
+page:
+    title: 'translate:yform_content_builder_title'
+    icon: rex-icon fa-puzzle-piece
+    subpages:
+        main:
+            title: 'translate:yform_content_builder_overview'
+            icon: rex-icon fa-info-circle
+        settings:
+            title: 'translate:yform_content_builder_settings'
+            icon: rex-icon fa-cog

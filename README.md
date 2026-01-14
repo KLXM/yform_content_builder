@@ -20,8 +20,13 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 ### 🎨 **Design & Templates**
 - **Framework-agnostic**: Templates für Bootstrap 3, UIkit3 und Plain HTML
 - **Responsive Design**: Mobile-optimierte Layouts und Touch-Controls
-- **Professional Media Preview**: Eigene Preview-Implementation mit 16:9 Container, object-fit: contain, immer sichtbar
-- **Section Styling**: Visuelle Container mit Labels und Styling-Optionen
+- **Professional Media Preview**: Kompakte Vorschau mit 200x120px, object-fit: contain
+- **Section Styling**: Visuelle Container mit Labels, Hintergrundfarben und -bildern
+
+### 🎨 **Visuelle Feldtypen**
+- **`radio_image`**: Layout-Auswahl mit SVG-Vorschaubildern (z.B. Media oben/unten/links/rechts/Overlay)
+- **`color_swatches`**: Farbauswahl mit visuellen Farbfeldern (wie MForm RadioColorField)
+- **Integration mit uikit_theme_builder**: Dynamische Farben aus DomainContext
 
 ### 🔧 **Developer Experience**
 - **Element-Filter**: Kontrolle welche Elemente pro Feld verfügbar sind (Multiselect)
@@ -30,6 +35,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 - **Custom Media Widget**: Eigene Preview-Logik unabhängig von REDAXO Core, funktioniert in YForm und Modulen
 - **Repeater-System**: Flexible Listen mit Add/Delete/Move-Funktionen
 - **Linkmap-Widget**: Vollständige REDAXO Linkmap-Integration
+- **Media Manager Integration**: Automatische Bild-URLs via `rex_media_manager::getUrl()`
 
 ### 🏗️ **Architecture**
 - **Element-Discovery**: Automatisches Laden aller Elemente aus `/elements/` Verzeichnis
@@ -40,9 +46,53 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 
 ## 🚀 Highlights
 
+### Visuelle Feldtypen
+
+#### Layout-Auswahl mit SVG-Vorschau (`radio_image`)
+```php
+'layout' => [
+    'type' => 'radio_image',
+    'label' => 'Layout',
+    'options' => [
+        'media-top' => ['image' => 'data:image/svg+xml;base64,...', 'label' => 'Medium oben'],
+        'media-bottom' => ['image' => 'data:image/svg+xml;base64,...', 'label' => 'Medium unten'],
+        'media-left' => ['image' => 'data:image/svg+xml;base64,...', 'label' => 'Medium links'],
+        'media-right' => ['image' => 'data:image/svg+xml;base64,...', 'label' => 'Medium rechts'],
+        'media-overlay' => ['image' => 'data:image/svg+xml;base64,...', 'label' => 'Overlay']
+    ],
+    'default' => 'media-top'
+]
+```
+
+#### Farbauswahl mit Swatches (`color_swatches`)
+```php
+'card_style' => [
+    'type' => 'color_swatches',
+    'label' => 'Karten-Farbe',
+    'options' => [
+        'uk-card-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
+        'uk-card-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
+        'uk-card-secondary' => ['color' => '#222222', 'label' => 'Secondary']
+    ],
+    'default' => 'uk-card-default'
+]
+```
+
+### Integration mit uikit_theme_builder
+
+Wenn das `uikit_theme_builder` Addon installiert ist, werden Farben automatisch aus dem Theme geladen:
+
+```php
+// In config.php eines Elements
+if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
+    $cardStyleColors = \UikitThemeBuilder\DomainContext::getCardStyleOptions();
+    $backgroundColors = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+}
+```
+
 ### Eigene Media-Preview Implementation
 **Unabhängig von REDAXO Core** - Eigene Preview-Logik die überall funktioniert:
-- **16:9 Aspect Ratio Container** mit padding-bottom Technik
+- **Kompakte Vorschau** mit 200x120px maximaler Größe
 - **Object-fit: contain** für vollständige Medien ohne Beschnitt
 - **Immer sichtbar** - keine Hover-Tricks mehr
 - **Globaler Counter** via $GLOBALS für eindeutige REX_MEDIA IDs
@@ -78,7 +128,13 @@ Das System versteht **verschachtelte Strukturen** und speichert Repeater-Daten k
 ```
 
 ## � **Erweiterte Features**
-
+### Cards Grid Pro Element
+- **5 Layout-Optionen**: Media oben, unten, links, rechts, Overlay
+- **Visuelle Layout-Auswahl**: SVG-Vorschaubilder für intuitive Bedienung
+- **Visuelle Farbauswahl**: Farbfelder statt Dropdown
+- **Section-Hintergrundbild**: Optionales Hintergrundbild für die Card-Sektion
+- **Media Manager**: Automatische Bild-URLs via `rex_media_manager::getUrl('content_card', $image)`
+- **DomainContext-Integration**: Dynamische Farben aus uikit_theme_builder
 ### Media Showcase Element
 - **Multi-Format Support**: Bilder (jpg, png, webp) und Videos (mp4, webm)  
 - **Aspect Ratio Control**: 16:9, 4:3, 1:1, 21:9, Portrait-Modi und Auto

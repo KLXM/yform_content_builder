@@ -51,7 +51,7 @@ switch ($aspectRatio) {
              <?php endif; ?>>
             
             <?php if (yform_content_builder_helper::isImage($mediaFile)): ?>
-                <img src="<?= rex_url::media($mediaFile) ?>" 
+                <img src="<?= rex_media_manager::getUrl('content_media_showcase', $mediaFile) ?>" 
                      alt="<?= htmlspecialchars($title ?: $mediaFile) ?>"
                      <?php if ($paddingBottom): ?>
                      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 4px;"

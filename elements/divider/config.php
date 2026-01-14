@@ -1,10 +1,43 @@
 <?php
+/**
+ * Trennlinie Element - Konfiguration mit zentraler Config
+ */
+
+// Zentrale Konfigurationsklasse
+$config = yform_content_builder_config::class;
+$hasThemeBuilder = $config::hasThemeBuilder();
+
+// Dynamische Farboptionen
+$colorOptions = [
+    'default' => 'Standard (Grau)',
+    'primary' => 'Primary',
+    'secondary' => 'Secondary',
+    'success' => 'Success',
+    'warning' => 'Warning',
+    'danger' => 'Danger',
+];
+
+if ($hasThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
+    $colorOptions = array_merge($colorOptions, \UikitThemeBuilder\DomainContext::getTextColorOptions());
+}
 
 return [
     'label' => 'Trennlinie',
     'icon' => 'fa fa-minus',
     'description' => 'Visuelle Trennelement mit verschiedenen Styles',
-    'fields' => [
+    'settings_modal' => [
+        'label' => 'Section-Einstellungen',
+        'icon' => 'fa-cog',
+        'fields' => $hasThemeBuilder
+            ? array_merge(['theme_override'], $config::getSectionFieldNames())
+            : $config::getSectionFieldNames()
+    ],
+    'fields' => array_merge(
+        // Theme Override (nur wenn Theme Builder verfügbar)
+        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
+        
+        // Element-spezifische Felder
+        [
         'style' => [
             'type' => 'choice',
             'label' => 'Style',
@@ -35,14 +68,7 @@ return [
         'color' => [
             'type' => 'choice',
             'label' => 'Farbe',
-            'choices' => [
-                'default' => 'Standard (Grau)',
-                'primary' => 'Primary',
-                'success' => 'Success',
-                'info' => 'Info',
-                'warning' => 'Warning',
-                'danger' => 'Danger'
-            ],
+            'choices' => $colorOptions,
             'default' => 'default'
         ],
         'width' => [
@@ -76,5 +102,9 @@ return [
             ],
             'default' => 'medium'
         ]
-    ],
+        ],
+        
+        // Section-Felder aus zentraler Config
+        $config::getSectionFields()
+    ),
 ];

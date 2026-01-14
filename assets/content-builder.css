@@ -478,11 +478,12 @@
 
 /* Enhanced Media Widget */
 .media-widget-enhanced .media-preview-enhanced {
-    margin-top: 15px;
+    margin-top: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     overflow: hidden;
     background: #f9f9f9;
+    max-width: 200px;
 }
 
 .media-preview-enhanced .media-item {
@@ -490,19 +491,21 @@
     display: block;
 }
 
-/* Bild in natürlicher Größe (durch Media Manager skaliert) */
+/* Bild in kompakter Vorschau-Größe */
 .media-preview-enhanced .media-item-image {
     position: relative;
     width: 100%;
-    padding: 10px;
+    padding: 5px;
 }
 
 .media-preview-enhanced .media-item-image img {
     width: 100%;
     height: auto;
     max-width: 100%;
+    max-height: 150px;
+    object-fit: contain;
     display: block;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
 .media-preview-enhanced .media-item-video {
@@ -828,23 +831,23 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-width: 200px;
 }
 
-/* 16:9 Container für Medien */
+/* Kompakter Container für Medien-Vorschau */
 .cb-media-preview-item .cb-media-container {
     position: relative;
     width: 100%;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-    background: #000;
+    max-width: 200px;
+    height: 120px;
+    background: #f5f5f5;
     border-radius: 3px;
     overflow: hidden;
+    border: 1px solid #ddd;
 }
 
 .cb-media-preview-item img,
 .cb-media-preview-item video {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
@@ -881,3 +884,118 @@
 ...
 */
 
+/* =============================================================================
+   Radio Image Selection (Visual Layout Picker)
+   ============================================================================= */
+.radio-image-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.radio-image-item {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.radio-image-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.radio-image-item label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    min-width: 80px;
+}
+
+.radio-image-item label:hover {
+    border-color: #3c8dbc;
+    background: #f8f9fa;
+}
+
+.radio-image-item.active label,
+.radio-image-item input[type="radio"]:checked + label {
+    border-color: #3c8dbc;
+    background: #e8f4fc;
+    box-shadow: 0 0 0 2px rgba(60, 141, 188, 0.2);
+}
+
+.radio-image-item img {
+    width: 60px;
+    height: 45px;
+    object-fit: contain;
+    margin-bottom: 5px;
+}
+
+.radio-image-label {
+    font-size: 11px;
+    color: #666;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.radio-image-item.active .radio-image-label,
+.radio-image-item input[type="radio"]:checked + label .radio-image-label {
+    color: #3c8dbc;
+    font-weight: 600;
+}
+
+/* =============================================================================
+   COLOR SWATCHES - Visuelle Farbauswahl
+   ============================================================================= */
+
+.color-swatches-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.color-swatch-item {
+    position: relative;
+}
+
+.color-swatch-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.color-swatch-item label {
+    display: block;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.color-swatch-item label:hover {
+    border-color: #aaa;
+}
+
+.color-swatch-item.active label,
+.color-swatch-item input[type="radio"]:checked + label {
+    border-color: #3c8dbc;
+    box-shadow: 0 0 0 1px #3c8dbc;
+}
+
+.color-swatch {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+}

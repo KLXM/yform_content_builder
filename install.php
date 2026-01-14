@@ -9,4 +9,184 @@ if (!rex_addon::get('yform')->isInstalled()) {
     throw new rex_functional_exception('Dieses Addon benötigt das "yform" Addon.');
 }
 
+// Media Manager Typen anlegen
+if (rex_addon::get('media_manager')->isAvailable()) {
+    $mm = YFormContentMediaManagerHelper::factory();
+    
+    // Prüfen ob focuspoint AddOn verfügbar ist
+    $hasFocuspoint = rex_addon::get('focuspoint')->isAvailable();
+    
+    // =============================================================================
+    // CARD BILDER - 16:9 Format mit Fokuspunkt
+    // =============================================================================
+    $mm->addType('content_card', 'Content Builder: Card Bild (16:9 mit Fokuspunkt)');
+    
+    // Zuerst auf max Breite begrenzen
+    $mm->addEffect('content_card', 'resize', [
+        'width' => 1200,
+        'height' => 1200,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 1);
+    
+    // Dann 16:9 zuschneiden
+    if ($hasFocuspoint) {
+        $mm->addEffect('content_card', 'focuspoint_fit', [
+            'width' => '16fr',
+            'height' => '9fr',
+            'zoom' => '0',
+            'meta' => 'med_focuspoint',
+            'focus' => '50.0,50.0'
+        ], 2);
+    } else {
+        $mm->addEffect('content_card', 'crop', [
+            'width' => 800,
+            'height' => 450,
+            'offset_width' => '',
+            'offset_height' => '',
+            'hpos' => 'center',
+            'vpos' => 'middle'
+        ], 2);
+    }
+    
+    // =============================================================================
+    // GALLERY THUMBNAILS - Quadratisch mit Fokuspunkt
+    // =============================================================================
+    $mm->addType('gallery_thumb', 'Content Builder: Gallery Thumbnail (1:1 mit Fokuspunkt)');
+    
+    $mm->addEffect('gallery_thumb', 'resize', [
+        'width' => 600,
+        'height' => 600,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 1);
+    
+    if ($hasFocuspoint) {
+        $mm->addEffect('gallery_thumb', 'focuspoint_fit', [
+            'width' => '1fr',
+            'height' => '1fr',
+            'zoom' => '0',
+            'meta' => 'med_focuspoint',
+            'focus' => '50.0,50.0'
+        ], 2);
+    } else {
+        $mm->addEffect('gallery_thumb', 'crop', [
+            'width' => 400,
+            'height' => 400,
+            'offset_width' => '',
+            'offset_height' => '',
+            'hpos' => 'center',
+            'vpos' => 'middle'
+        ], 2);
+    }
+    
+    // =============================================================================
+    // GALLERY FULL - Volle Ansicht 16:9
+    // =============================================================================
+    $mm->addType('gallery_full', 'Content Builder: Gallery Vollbild (16:9 mit Fokuspunkt)');
+    
+    $mm->addEffect('gallery_full', 'resize', [
+        'width' => 1920,
+        'height' => 1920,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 1);
+    
+    if ($hasFocuspoint) {
+        $mm->addEffect('gallery_full', 'focuspoint_fit', [
+            'width' => '16fr',
+            'height' => '9fr',
+            'zoom' => '0',
+            'meta' => 'med_focuspoint',
+            'focus' => '50.0,50.0'
+        ], 2);
+    } else {
+        $mm->addEffect('gallery_full', 'crop', [
+            'width' => 1920,
+            'height' => 1080,
+            'offset_width' => '',
+            'offset_height' => '',
+            'hpos' => 'center',
+            'vpos' => 'middle'
+        ], 2);
+    }
+    
+    // =============================================================================
+    // SLIDESHOW - 16:9 Format
+    // =============================================================================
+    $mm->addType('content_slideshow', 'Content Builder: Slideshow (16:9 mit Fokuspunkt)');
+    
+    $mm->addEffect('content_slideshow', 'resize', [
+        'width' => 1920,
+        'height' => 1920,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 1);
+    
+    if ($hasFocuspoint) {
+        $mm->addEffect('content_slideshow', 'focuspoint_fit', [
+            'width' => '16fr',
+            'height' => '9fr',
+            'zoom' => '0',
+            'meta' => 'med_focuspoint',
+            'focus' => '50.0,50.0'
+        ], 2);
+    } else {
+        $mm->addEffect('content_slideshow', 'crop', [
+            'width' => 1920,
+            'height' => 1080,
+            'offset_width' => '',
+            'offset_height' => '',
+            'hpos' => 'center',
+            'vpos' => 'middle'
+        ], 2);
+    }
+    
+    // =============================================================================
+    // TEXT-IMAGE - Flexibles Format mit max Größe
+    // =============================================================================
+    $mm->addType('content_text_image', 'Content Builder: Text-Bild Element');
+    
+    $mm->addEffect('content_text_image', 'resize', [
+        'width' => 1200,
+        'height' => 1200,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 1);
+    
+    // =============================================================================
+    // MEDIA SHOWCASE - 16:9 Format
+    // =============================================================================
+    $mm->addType('content_media_showcase', 'Content Builder: Media Showcase (16:9 mit Fokuspunkt)');
+    
+    $mm->addEffect('content_media_showcase', 'resize', [
+        'width' => 1920,
+        'height' => 1920,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 1);
+    
+    if ($hasFocuspoint) {
+        $mm->addEffect('content_media_showcase', 'focuspoint_fit', [
+            'width' => '16fr',
+            'height' => '9fr',
+            'zoom' => '0',
+            'meta' => 'med_focuspoint',
+            'focus' => '50.0,50.0'
+        ], 2);
+    } else {
+        $mm->addEffect('content_media_showcase', 'crop', [
+            'width' => 1920,
+            'height' => 1080,
+            'offset_width' => '',
+            'offset_height' => '',
+            'hpos' => 'center',
+            'vpos' => 'middle'
+        ], 2);
+    }
+    
+    // Alle Typen installieren
+    $mm->install();
+}
+
 $this->setProperty('install', true);

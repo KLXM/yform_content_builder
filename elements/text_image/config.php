@@ -1,4 +1,11 @@
 <?php
+/**
+ * Text & Bild Element - Konfiguration mit zentraler Config
+ */
+
+// Zentrale Konfigurationsklasse
+$config = yform_content_builder_config::class;
+$hasThemeBuilder = $config::hasThemeBuilder();
 
 return [
     'label' => 'Text & Bild',
@@ -18,10 +25,17 @@ return [
         'design' => [
             'label' => 'Design',
             'icon' => 'fa-paint-brush',
-            'fields' => ['layout', 'image_ratio', 'background_color', 'spacing']
+            'fields' => $hasThemeBuilder 
+                ? array_merge(['theme_override', 'layout', 'image_ratio', 'spacing'], $config::getSectionFieldNames())
+                : array_merge(['layout', 'image_ratio', 'spacing'], $config::getSectionFieldNames())
         ]
     ],
-    'fields' => [
+    'fields' => array_merge(
+        // Theme Override (nur wenn Theme Builder verfügbar)
+        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
+        
+        // Element-spezifische Felder
+        [
         'layout' => [
             'type' => 'choice',
             'label' => 'Layout',
@@ -108,19 +122,6 @@ return [
             ],
             'default' => '_self'
         ],
-        'background_color' => [
-            'type' => 'choice',
-            'label' => 'Hintergrundfarbe',
-            'choices' => [
-                '' => 'Keine',
-                'bg-light' => 'Hell',
-                'bg-dark' => 'Dunkel',
-                'bg-primary' => 'Primary',
-                'bg-success' => 'Success',
-                'bg-info' => 'Info'
-            ],
-            'default' => ''
-        ],
         'spacing' => [
             'type' => 'choice',
             'label' => 'Abstand',
@@ -131,5 +132,9 @@ return [
             ],
             'default' => 'default'
         ]
-    ],
+        ],
+        
+        // Section-Felder aus zentraler Config (inkl. section_bg_image!)
+        $config::getSectionFields()
+    ),
 ];

@@ -5,6 +5,12 @@
  * @var string $closeType 'open', 'close', or null
  */
 
+// Theme Override: Falls gesetzt, DomainContext anpassen
+$themeOverride = $elementData['theme_override'] ?? '';
+if (!empty($themeOverride) && class_exists('UikitThemeBuilder\DomainContext')) {
+    \UikitThemeBuilder\DomainContext::setTheme($themeOverride);
+}
+
 $label = $elementData['label'] ?? '';
 $bgColor = $elementData['background_color'] ?? 'light';
 $bgImage = $elementData['background_image'] ?? '';

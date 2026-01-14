@@ -72,9 +72,10 @@ if ($columns == 5) {
                     <div class="<?= $itemClass . $aspectRatioClass ?>" data-index="<?= $index ?>">
                         <div class="gallery-media-wrapper" <?php if ($aspectRatioStyle): ?>style="position: relative; <?= $aspectRatioStyle ?>"<?php endif; ?>>
                             <?php if ($isImage): ?>
-                                <img src="<?= rex_url::media($media) ?>" 
+                                <img src="<?= rex_media_manager::getUrl('gallery_thumb', $media) ?>" 
                                      alt="<?= htmlspecialchars($altText ?: $caption) ?>"
                                      class="gallery-image img-responsive"
+                                     data-full="<?= rex_media_manager::getUrl('gallery_full', $media) ?>"
                                      <?php if ($aspectRatioStyle): ?>style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"<?php endif; ?> />
                                      
                             <?php elseif ($isVideo): ?>

@@ -76,6 +76,26 @@ class yform_content_builder_module
         
         echo '</div>';
         
+        // Script um Selectpicker mit sanitize:false zu initialisieren (für SVG/img data-content)
+        ?>
+        <script>
+        $(function() {
+            // Selectpicker mit sanitize:false neu initialisieren, damit SVG-Icons angezeigt werden
+            $('#yform_cb_form .selectpicker').each(function() {
+                var $select = $(this);
+                // Wenn bereits initialisiert, zerstören
+                if ($select.data('selectpicker')) {
+                    $select.selectpicker('destroy');
+                }
+                // Mit sanitize:false neu initialisieren
+                $select.selectpicker({
+                    sanitize: false
+                });
+            });
+        });
+        </script>
+        <?php
+        
         // JavaScript für automatisches Data-Sync
         ?>
         <script>
@@ -111,14 +131,22 @@ class yform_content_builder_module
                 allFields.forEach(function(field) {
                     var name = field.getAttribute('name');
                     
-                    // Skip wenn wir dieses Feld schon verarbeitet haben
-                    // (REDAXO kann mehrere Inputs mit gleichem Namen haben)
-                    if (processedFields.has(name)) {
-                        return;
+                    // Radio-Buttons: Nur den gechecked Button verarbeiten
+                    if (field.type === 'radio') {
+                        if (!field.checked) {
+                            return; // Nicht-gecheckte Radio-Buttons überspringen
+                        }
+                        // Gechecked Radio darf auch bei gleichem Namen verarbeitet werden
+                    } else {
+                        // Skip wenn wir dieses Feld schon verarbeitet haben
+                        // (REDAXO kann mehrere Inputs mit gleichem Namen haben)
+                        if (processedFields.has(name)) {
+                            return;
+                        }
                     }
                     processedFields.add(name);
                     
-                    console.log('Processing field:', name, 'value:', field.value);
+                    console.log('Processing field:', name, 'value:', field.value, 'type:', field.type);
                     
                     // Repeater-Felder (z.B. items[0][media]) zu verschachteltem Array konvertieren
                     var repeaterMatch = name.match(/^(\w+)\[(\d+)\]\[(\w+)\]$/);

@@ -42,7 +42,7 @@ switch ($aspectRatio) {
             <?php if (yform_content_builder_helper::isImage($mediaFile)): ?>
                 <!-- Bild mit UIKit -->
                 <div class="uk-inline uk-width-1-1">
-                    <img src="<?= rex_url::media($mediaFile) ?>" 
+                    <img src="<?= rex_media_manager::getUrl('content_media_showcase', $mediaFile) ?>" 
                          alt="<?= htmlspecialchars($title ?: $mediaFile) ?>"
                          class="uk-width-1-1"
                          uk-img />

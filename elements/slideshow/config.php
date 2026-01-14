@@ -1,4 +1,25 @@
 <?php
+/**
+ * Slideshow Element - Konfiguration mit zentraler Config
+ */
+
+// Zentrale Konfigurationsklasse
+$config = yform_content_builder_config::class;
+$hasThemeBuilder = $config::hasThemeBuilder();
+
+// Dynamische Optionen aus uikit_theme_builder
+$overlayOptions = [
+    'glass' => 'Glasmorphism',
+    'dark' => 'Dunkel',
+    'light' => 'Hell',
+    'none' => 'Kein Hintergrund',
+];
+
+// Settings Modal Felder aufbauen
+$settingsModalFields = $hasThemeBuilder 
+    ? ['theme_override', 'ratio', 'animation', 'autoplay', 'interval', 'show_navigation', 'show_dots', 'is_viewport', 'container', 'margin', 'custom_id', 'custom_classes']
+    : ['ratio', 'animation', 'autoplay', 'interval', 'show_navigation', 'show_dots', 'is_viewport', 'container', 'margin', 'custom_id', 'custom_classes'];
+$settingsModalFields = array_merge($settingsModalFields, $config::getSectionFieldNames());
 
 return [
     'label' => 'Slideshow',
@@ -7,9 +28,14 @@ return [
     'settings_modal' => [
         'label' => 'Slideshow Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => ['ratio', 'animation', 'autoplay', 'interval', 'show_navigation', 'show_dots', 'is_viewport', 'container', 'margin', 'custom_id', 'custom_classes']
+        'fields' => $settingsModalFields
     ],
-    'fields' => [
+    'fields' => array_merge(
+        // Theme Override (nur wenn Theme Builder verfügbar)
+        $hasThemeBuilder ? ['theme_override' => $config::getThemeOverrideField()] : [],
+        
+        // Element-spezifische Felder
+        [
         // Globale Slideshow-Einstellungen
         'ratio' => [
             'type' => 'choice',
@@ -144,12 +170,7 @@ return [
                 'text_background' => [
                     'type' => 'choice',
                     'label' => 'Text-Hintergrund',
-                    'choices' => [
-                        'glass' => 'Glasmorphism',
-                        'dark' => 'Dunkel',
-                        'light' => 'Hell',
-                        'none' => 'Transparent'
-                    ],
+                    'choices' => $overlayOptions,
                     'default' => 'glass'
                 ],
                 'text_align' => [
@@ -246,5 +267,9 @@ return [
                 ]
             ]
         ]
-    ],
+        ],
+        
+        // Section-Felder aus zentraler Config
+        $config::getSectionFields()
+    ),
 ];

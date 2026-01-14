@@ -125,7 +125,7 @@ foreach ($slides as $slide) {
         echo '<source src="' . rex_url::media($media) . '" type="video/' . pathinfo($media, PATHINFO_EXTENSION) . '">';
         echo '</video>';
     } else {
-        echo '<img src="' . rex_media_manager::getUrl('image_hero', $media) . '" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" alt="' . rex_escape($altText) . '">';
+        echo '<img src="' . rex_media_manager::getUrl('content_slideshow', $media) . '" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;" alt="' . rex_escape($altText) . '">';
     }
 
     if (!empty($title) || !empty($text) || ($hasLink && $linkType === 'button')) {

@@ -107,6 +107,36 @@
                 }
             });
             
+            // Radio Image Selection Events
+            $(document).on('change', '.radio-image-item input[type="radio"]', function() {
+                var $container = $(this).closest('.radio-image-group');
+                $container.find('.radio-image-item').removeClass('active');
+                $(this).closest('.radio-image-item').addClass('active');
+            });
+            
+            $(document).on('click', '.radio-image-item label', function(e) {
+                var $item = $(this).closest('.radio-image-item');
+                var $radio = $item.find('input[type="radio"]');
+                if (!$radio.is(':checked')) {
+                    $radio.prop('checked', true).trigger('change');
+                }
+            });
+            
+            // Color Swatches Selection Events
+            $(document).on('change', '.color-swatch-item input[type="radio"]', function() {
+                var $container = $(this).closest('.color-swatches-group');
+                $container.find('.color-swatch-item').removeClass('active');
+                $(this).closest('.color-swatch-item').addClass('active');
+            });
+            
+            $(document).on('click', '.color-swatch-item label', function(e) {
+                var $item = $(this).closest('.color-swatch-item');
+                var $radio = $item.find('input[type="radio"]');
+                if (!$radio.is(':checked')) {
+                    $radio.prop('checked', true).trigger('change');
+                }
+            });
+            
             $(document).on('click', '.btn-select-media-enhanced', function(e) {
                 e.preventDefault();
                 var inputId = $(this).data('input-id');
@@ -461,6 +491,12 @@
                 success: function(response) {
                     $editForm.html(response);
                     
+                    // Bootstrap Selectpicker initialisieren (für AJAX-geladene Inhalte)
+                    // sanitize: false damit SVG/img src nicht entfernt wird
+                    $editForm.find('.selectpicker').selectpicker({
+                        sanitize: false
+                    });
+                    
                     // REX Linkmap-Buttons mit Event-Delegation initialisieren
                     $editForm.on('click', '.rex-linkmap-btn', function(e) {
                         e.preventDefault();
@@ -522,11 +558,53 @@
                 }
             });
             
-            // Form-Daten sammeln - direkt aus allen Input-Feldern im Edit-Container
-            $editForm.find('input, textarea, select').each(function() {
+            // Sammle alle Modal-IDs die zu diesem Slice gehören
+            var $allInputs = $editForm.find('input, textarea, select');
+            
+            // Auch Inputs in zugehörigen Modals sammeln (Bootstrap verschiebt Modals nach body)
+            // Sowohl Settings-Modals als auch Repeater-Item-Modals
+            $editForm.find('[data-toggle="modal"]').each(function() {
+                var modalId = $(this).attr('data-target');
+                if (modalId) {
+                    var $modal = $(modalId);
+                    if ($modal.length) {
+                        $allInputs = $allInputs.add($modal.find('input, textarea, select'));
+                    }
+                }
+            });
+            
+            // Auch Modals in body suchen die zu diesem Slice gehören könnten
+            // (Bootstrap verschiebt Modals nach body)
+            $('body > .modal').each(function() {
+                var $modal = $(this);
+                var modalId = $modal.attr('id');
+                // Prüfen ob dieses Modal zu unserem Slice gehört
+                if (modalId && $editForm.find('[data-target="#' + modalId + '"]').length > 0) {
+                    $allInputs = $allInputs.add($modal.find('input, textarea, select'));
+                }
+            });
+            
+            // Form-Daten sammeln - aus allen Input-Feldern
+            $allInputs.each(function() {
                 var $field = $(this);
                 var name = $field.attr('name');
                 var value = $field.val();
+                
+                // Radio-Buttons: Nur gecheckte übernehmen
+                if ($field.is(':radio')) {
+                    if ($field.is(':checked') && name) {
+                        self.setNestedValue(sliceData, name, value);
+                    }
+                    return; // continue - nicht-gecheckte Radios überspringen
+                }
+                
+                // Checkboxen: Nur gecheckte übernehmen
+                if ($field.is(':checkbox')) {
+                    if ($field.is(':checked') && name) {
+                        self.setNestedValue(sliceData, name, value || '1');
+                    }
+                    return; // continue
+                }
                 
                 if (name && value !== undefined && value !== '') {
                     // Verschachteltes Objekt erstellen aus Bracket-Notation
@@ -1069,7 +1147,27 @@
                         }
                         
                         if ($input.is(':checkbox') || $input.is(':radio')) {
-                            $input.prop('checked', false);
+                            // Radio-Buttons: Neue eindeutige ID generieren und Label aktualisieren
+                            if ($input.is(':radio') && oldId) {
+                                var newRadioId = 'radio_' + Math.random().toString(16).slice(2);
+                                $input.attr('id', newRadioId);
+                                // Zugehöriges Label finden und for-Attribut aktualisieren
+                                $newItem.find('label[for="' + oldId + '"]').attr('for', newRadioId);
+                            }
+                            // Default-Wert setzen (erstes Element als checked)
+                            var $radioGroup = $input.closest('.radio-image-group, .color-swatches-group');
+                            if ($radioGroup.length > 0) {
+                                var $firstRadio = $radioGroup.find('input[type="radio"]:first');
+                                if ($input.is($firstRadio)) {
+                                    $input.prop('checked', true);
+                                    $input.closest('.radio-image-item, .color-swatch-item').addClass('active');
+                                } else {
+                                    $input.prop('checked', false);
+                                    $input.closest('.radio-image-item, .color-swatch-item').removeClass('active');
+                                }
+                            } else {
+                                $input.prop('checked', false);
+                            }
                         } else if ($input.is('select')) {
                             // For select fields, check if there's a default selected option
                             var $defaultOption = $input.find('option[selected]');
