@@ -336,9 +336,8 @@ class rex_api_content_builder extends rex_api_function
             return;
         }
 
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp']);
-        $isVideo = in_array($ext, ['mp4', 'webm', 'mov', 'avi', 'mkv', 'ogg']);
+        $isImage = yform_content_builder_helper::isImage($filename);
+        $isVideo = yform_content_builder_helper::isVideo($filename);
 
         $html = '';
         if ($isImage) {

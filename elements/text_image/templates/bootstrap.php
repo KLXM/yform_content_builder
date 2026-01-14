@@ -19,6 +19,12 @@ $linkTarget = $elementData['link_target'] ?? '_self';
 $bgColor = $elementData['background_color'] ?? '';
 $spacing = $elementData['spacing'] ?? 'default';
 
+// Section-Einstellungen
+$sectionBg = $elementData['section_bg'] ?? '';
+$sectionBgImage = $elementData['section_bg_image'] ?? '';
+$sectionPadding = $elementData['section_padding'] ?? '';
+$containerWidth = $elementData['container_width'] ?? 'container';
+
 // Link URL bestimmen
 $finalLinkUrl = '';
 if ($linkType === 'external' && $linkUrl) {
@@ -47,10 +53,79 @@ if ($imageRatio !== 'auto') {
 // Layout Klassen
 $isVertical = in_array($layout, ['image_top', 'text_top']);
 $imageFirst = in_array($layout, ['image_text', 'image_top']);
+
+// Section-Klassen und Styles
+$sectionClasses = ['section'];
+$sectionStyle = '';
+$sectionBgVideoHtml = '';
+$isSectionBgVideo = false;
+
+if ($sectionBg) {
+    // Bootstrap BG-Klassen mapping
+    $bgMap = [
+        'uk-background-default' => 'bg-white',
+        'uk-background-muted' => 'bg-light',
+        'uk-background-primary' => 'bg-primary text-white',
+        'uk-background-secondary' => 'bg-dark text-white'
+    ];
+    $sectionClasses[] = $bgMap[$sectionBg] ?? $sectionBg;
+}
+
+if ($sectionPadding) {
+    // Padding mapping
+    $paddingMap = [
+        'uk-padding-remove' => 'py-0',
+        'uk-padding-small' => 'py-3',
+        'uk-padding' => 'py-4',
+        'uk-padding-large' => 'py-5'
+    ];
+    $sectionClasses[] = $paddingMap[$sectionPadding] ?? '';
+}
+
+if (!empty($sectionBgImage)) {
+    $bgMediaExt = strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION));
+    $videoExtensions = ['mp4', 'webm', 'ogg'];
+    
+    if (in_array($bgMediaExt, $videoExtensions)) {
+        $isSectionBgVideo = true;
+        $videoSrc = rex_url::media($sectionBgImage);
+        $sectionBgVideoHtml = '<video class="section-bg-video" autoplay loop muted playsinline><source src="' . $videoSrc . '" type="video/' . $bgMediaExt . '"></video>';
+        $sectionClasses[] = 'section-video-bg';
+    } else {
+        $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $sectionBgImage);
+        $sectionStyle = ' style="background-image: url(\'' . $bgImageUrl . '\'); background-size: cover; background-position: center;"';
+    }
+}
+
+// Container Mapping
+$containerClass = 'container';
+if ($containerWidth) {
+    $containerMap = [
+        'uk-container' => 'container',
+        'uk-container uk-container-xsmall' => 'container-sm',
+        'uk-container uk-container-small' => 'container-md',
+        'uk-container uk-container-large' => 'container-lg',
+        'uk-container uk-container-xlarge' => 'container-xl',
+        'uk-container uk-container-expand' => 'container-fluid',
+        '' => 'container-fluid px-0'
+    ];
+    $containerClass = $containerMap[$containerWidth] ?? 'container';
+}
+
+// Prüfen ob Section nötig
+$hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
 ?>
 
-<div class="text-image-element <?= $spacingClass ?> <?= $bgColor ?> <?= $isVertical ? 'text-image-vertical' : '' ?>">
-    <div class="container-fluid">
+<?php if ($hasSection): ?>
+<section class="<?= implode(' ', $sectionClasses) ?>"<?= $sectionStyle ?>>
+<?php if ($isSectionBgVideo): ?>
+<?= $sectionBgVideoHtml ?>
+<div class="section-content position-relative">
+<?php endif; ?>
+<?php endif; ?>
+
+<div class="<?= $containerClass ?>">
+    <div class="text-image-element <?= $spacingClass ?> <?= $bgColor ?> <?= $isVertical ? 'text-image-vertical' : '' ?>">
         <div class="row <?= !$isVertical ? 'align-items-center' : '' ?>">
             
             <?php if ($imageFirst && $image): ?>
@@ -61,12 +136,12 @@ $imageFirst = in_array($layout, ['image_text', 'image_top']);
                             <div class="<?= $ratioClass ?>">
                                 <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                      alt="<?= rex_escape($imageAlt) ?>" 
-                                     class="img-responsive">
+                                     class="img-fluid">
                             </div>
                         <?php else: ?>
                             <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                  alt="<?= rex_escape($imageAlt) ?>" 
-                                 class="img-responsive">
+                                 class="img-fluid">
                         <?php endif; ?>
                     </div>
                 </div>
@@ -111,12 +186,12 @@ $imageFirst = in_array($layout, ['image_text', 'image_top']);
                             <div class="<?= $ratioClass ?>">
                                 <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                      alt="<?= rex_escape($imageAlt) ?>" 
-                                     class="img-responsive">
+                                     class="img-fluid">
                             </div>
                         <?php else: ?>
                             <img src="<?= rex_media_manager::getUrl('content_text_image', $image) ?>" 
                                  alt="<?= rex_escape($imageAlt) ?>" 
-                                 class="img-responsive">
+                                 class="img-fluid">
                         <?php endif; ?>
                     </div>
                 </div>
@@ -125,6 +200,13 @@ $imageFirst = in_array($layout, ['image_text', 'image_top']);
         </div>
     </div>
 </div>
+
+<?php if ($hasSection): ?>
+<?php if ($isSectionBgVideo): ?>
+</div>
+<?php endif; ?>
+</section>
+<?php endif; ?>
 
 <style>
 /* Text Image Element Styles */

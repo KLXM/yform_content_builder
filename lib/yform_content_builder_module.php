@@ -1,9 +1,11 @@
 <?php
 
+use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+
 /**
  * YForm Content Builder für Module
  * Ermöglicht die Nutzung von Content Builder Elementen in normalen REDAXO Modulen
- * Verwendet dieselbe Render-Logik wie rex_yform_value_content_builder
+ * Nutzt das Field Plugin System für konsistentes Rendering
  * 
  * Verwendung:
  * Input:  echo yform_content_builder_module::create('gallery')->renderInput();
@@ -14,7 +16,6 @@ class yform_content_builder_module
     protected $elementType;
     protected $data;
     protected $rawValue;
-    protected $helper;
     protected $framework = 'bootstrap';
     
     /**
@@ -31,9 +32,6 @@ class yform_content_builder_module
         $instance->elementType = $type;
         $instance->rawValue = $rawValue;
         $instance->framework = $framework;
-        
-        // Helper-Instanz erstellen (nutzt YForm Content Builder Logik)
-        $instance->helper = new rex_yform_value_content_builder();
         
         // Daten normalisieren
         if (is_string($rawValue)) {
@@ -357,33 +355,24 @@ class yform_content_builder_module
     }
     
     /**
-     * Einzelnes Form-Feld rendern - delegiert an Helper mit angepasstem getNestedValue
+     * Einzelnes Form-Feld rendern - nutzt ContentBuilderFieldRegistry
      */
     protected function renderFormField(string $fieldName, array $fieldConfig, array $sliceData)
     {
-        // Wert aus sliceData extrahieren - BEVOR wir an Helper weitergeben
-        // getNestedValue in Helper hat Bug mit Repeater-Feldern
+        // Wert aus sliceData extrahieren
         $value = $this->getValueForField($fieldName, $sliceData);
         
-        // Wenn ein Wert gefunden wurde, temporär in sliceData einfügen als flachen Key
-        // damit Helper.renderFormField ihn findet
+        // Wenn ein Wert gefunden wurde, in sliceData einfügen
         if ($value !== null && $value !== '') {
-            // Für normale Felder: direkt setzen
             if (strpos($fieldName, '[') === false) {
                 $sliceData[$fieldName] = $value;
-            }
-            // Für Repeater-Felder: als flachen Key setzen
-            else {
-                // z.B. "items[0][title]" wird zu $sliceData['items[0][title]'] = 'value'
+            } else {
                 $sliceData[$fieldName] = $value;
             }
         }
         
-        // Reflection nutzen um auf protected Methode zuzugreifen
-        $reflection = new ReflectionClass($this->helper);
-        $method = $reflection->getMethod('renderFormField');
-        $method->setAccessible(true);
-        $method->invoke($this->helper, $fieldName, $fieldConfig, $sliceData);
+        // Field Registry nutzen für konsistentes Rendering
+        ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
     }
     
     /**
@@ -416,10 +405,43 @@ class yform_content_builder_module
      */
     protected function renderSettingsModalButton(array $config, array $sliceData)
     {
-        $reflection = new ReflectionClass($this->helper);
-        $method = $reflection->getMethod('renderSettingsModalButton');
-        $method->setAccessible(true);
-        $method->invoke($this->helper, $config, $sliceData);
+        $modalId = 'settings_modal_' . uniqid();
+        $modalConfig = $config['settings_modal'];
+        $label = $modalConfig['label'] ?? 'Einstellungen';
+        $icon = $modalConfig['icon'] ?? 'fa-cog';
+        
+        echo '<div class="form-group">';
+        echo '<button type="button" class="btn btn-default btn-block" data-toggle="modal" data-target="#' . $modalId . '">';
+        echo '<i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label);
+        echo '</button>';
+        echo '</div>';
+        
+        // Modal HTML
+        echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" role="dialog">';
+        echo '<div class="modal-dialog modal-lg" role="document">';
+        echo '<div class="modal-content">';
+        echo '<div class="modal-header">';
+        echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
+        echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
+        echo '</div>';
+        echo '<div class="modal-body">';
+        
+        // Felder im Modal rendern
+        if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
+            foreach ($modalConfig['fields'] as $fieldName) {
+                if (isset($config['fields'][$fieldName])) {
+                    $this->renderFormField($fieldName, $config['fields'][$fieldName], $sliceData);
+                }
+            }
+        }
+        
+        echo '</div>';
+        echo '<div class="modal-footer">';
+        echo '<button type="button" class="btn btn-primary" data-dismiss="modal">Übernehmen</button>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
     }
     
     /**
@@ -427,9 +449,45 @@ class yform_content_builder_module
      */
     protected function renderFormWithTabs(array $config, array $sliceData)
     {
-        $reflection = new ReflectionClass($this->helper);
-        $method = $reflection->getMethod('renderFormWithTabs');
-        $method->setAccessible(true);
-        $method->invoke($this->helper, $config, $sliceData);
+        $tabId = 'tab_' . uniqid();
+        
+        echo '<ul class="nav nav-tabs" role="tablist">';
+        $firstTab = true;
+        foreach ($config['field_groups'] as $groupKey => $group) {
+            $active = $firstTab ? ' class="active"' : '';
+            echo '<li role="presentation"' . $active . '>';
+            echo '<a href="#' . $tabId . '_' . $groupKey . '" role="tab" data-toggle="tab">';
+            
+            // Icon anzeigen falls vorhanden
+            if (!empty($group['icon'])) {
+                echo '<i class="fa ' . rex_escape($group['icon']) . '"></i> ';
+            }
+            
+            echo rex_escape($group['label'] ?? $groupKey);
+            echo '</a>';
+            echo '</li>';
+            $firstTab = false;
+        }
+        echo '</ul>';
+        
+        echo '<div class="tab-content" style="padding-top: 20px;">';
+        $firstTab = true;
+        foreach ($config['field_groups'] as $groupKey => $group) {
+            $active = $firstTab ? ' active' : '';
+            echo '<div role="tabpanel" class="tab-pane' . $active . '" id="' . $tabId . '_' . $groupKey . '">';
+            
+            // Felder dieser Gruppe rendern
+            if (isset($group['fields']) && is_array($group['fields'])) {
+                foreach ($group['fields'] as $fieldName) {
+                    if (isset($config['fields'][$fieldName])) {
+                        $this->renderFormField($fieldName, $config['fields'][$fieldName], $sliceData);
+                    }
+                }
+            }
+            
+            echo '</div>';
+            $firstTab = false;
+        }
+        echo '</div>';
     }
 }
