@@ -14,8 +14,10 @@ require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder
 // Modul-Helper-Klasse laden (für Verwendung in normalen REDAXO Modulen)
 require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_module.php');
 
-// AJAX-Handler laden
-require_once rex_path::addon('yform_content_builder', 'lib/ajax_handler.php');
+// Field-Klassen laden (Plugin-System für Feldtypen)
+foreach (glob(rex_path::addon('yform_content_builder', 'lib/fields/*.php')) as $fieldFile) {
+    require_once $fieldFile;
+}
 
 // Theme Builder Integration - Theme für Backend setzen
 if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
@@ -32,13 +34,6 @@ rex_extension::register('PACKAGES_INCLUDED', function() {
     // Templates registrieren
     rex_yform::addTemplatePath(rex_path::addon('yform_content_builder', 'ytemplates'));
 });
-
-// AJAX-Anfragen im Backend verarbeiten
-if (rex::isBackend()) {
-    rex_extension::register('PAGE_CHECKED', function() {
-        yform_content_builder_ajax_handler::handle();
-    });
-}
 
 // Assets für Backend einbinden
 if (rex::isBackend()) {

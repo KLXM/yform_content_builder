@@ -1,22 +1,30 @@
 /**
  * YForm Content Builder JavaScript
- * Edit-on-Click & Drag-a            $(document).on('click', '.btn-delete-media', function(e) {
-                e.preventDefault();
-                var inputId = $(this).data('input-id');
-                $('#' + inputId).val('');
-                $('#preview_' + inputId).hide().empty();
-            });
-
-            // Repeater hinzufügentionalität
+ * Edit-on-Click & Drag-Funktionalität
  */
 
 (function($) {
     'use strict';
+    
+    // Flag um doppelte Initialisierung zu verhindern
+    var eventsInitialized = false;
+    
+    // API-URL für AJAX-Requests (rex_api_function)
+    var apiUrl = '/redaxo/index.php?rex-api-call=content_builder';
 
     var ContentBuilder = {
         
+        // Getter für die API-URL (für AJAX-Requests)
+        getAjaxUrl: function() {
+            return apiUrl;
+        },
+        
         init: function() {
-            this.bindEvents();
+            // Events nur einmal binden (bei erstem init)
+            if (!eventsInitialized) {
+                this.bindEvents();
+                eventsInitialized = true;
+            }
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
@@ -481,15 +489,22 @@
             
             // YForm-Formular per AJAX laden
             $.ajax({
-                url: window.location.href,
+                url: ContentBuilder.getAjaxUrl(),
                 method: 'POST',
                 data: {
                     action: 'load_slice_form',
                     slice_type: sliceType,
                     slice_data: sliceData
                 },
+                dataType: 'html',
                 success: function(response) {
-                    $editForm.html(response);
+                    // Script-Tags aus Response entfernen, um doppelte Variablen zu vermeiden
+                    // (CKEditor, MBlock etc. sind bereits auf der Seite geladen)
+                    var $response = $('<div>').html(response);
+                    $response.find('script').remove();
+                    var cleanedHtml = $response.html();
+                    
+                    $editForm.html(cleanedHtml);
                     
                     // Bootstrap Selectpicker initialisieren (für AJAX-geladene Inhalte)
                     // sanitize: false damit SVG/img src nicht entfernt wird
@@ -626,6 +641,32 @@
             
             // Section-Klassen aktualisieren (falls Section gespeichert wurde)
             this.updateSectionClasses();
+            
+            // Zur gespeicherten Slice scrollen und Glow-Effekt
+            this.scrollToSlice($slice);
+            this.glowEffect($slice);
+        },
+        
+        /**
+         * Glow-Effekt für visuelles Feedback
+         */
+        glowEffect: function($slice) {
+            $slice.css({
+                'box-shadow': '0 0 0 3px rgba(40, 167, 69, 0.6), 0 0 20px rgba(40, 167, 69, 0.4)',
+                'transition': 'box-shadow 0.3s ease-in-out'
+            });
+            
+            setTimeout(function() {
+                $slice.css({
+                    'box-shadow': '0 0 0 6px rgba(40, 167, 69, 0.8), 0 0 30px rgba(40, 167, 69, 0.5)'
+                });
+            }, 150);
+            
+            setTimeout(function() {
+                $slice.css({
+                    'box-shadow': ''
+                });
+            }, 1200);
         },
         
         /**
@@ -688,7 +729,7 @@
             
             // Normale Elemente: Template per AJAX laden und rendern
             $.ajax({
-                url: window.location.href,
+                url: ContentBuilder.getAjaxUrl(),
                 method: 'POST',
                 data: {
                     action: 'render_slice',
@@ -1659,7 +1700,7 @@
                 // Medium wurde ausgewählt - Preview anzeigen
                 var self = this;
                 $.ajax({
-                    url: window.location.href,
+                    url: ContentBuilder.getAjaxUrl(),
                     type: 'POST',
                     data: {
                         ajax_action: 'get_media_preview',
@@ -1742,7 +1783,8 @@
         }
     };
 
-    $(document).ready(function() {
+    // Initialisierungsfunktion
+    function initContentBuilder() {
         ContentBuilder.init();
         
         // Media Browser initialisieren, falls vorhanden
@@ -1751,6 +1793,20 @@
         } else if (window.ContentBuilderMediaBrowser) {
             window.MediaBrowser = window.ContentBuilderMediaBrowser;
             window.MediaBrowser.init();
+        }
+    }
+
+    // Bei Document Ready
+    $(document).ready(function() {
+        initContentBuilder();
+    });
+    
+    // Bei PJAX-Navigation (rex:ready wird nach PJAX-Load gefeuert)
+    $(document).on('rex:ready', function(event, container) {
+        // Nur initialisieren, wenn Content Builder im geladenen Container vorhanden ist
+        if ($(container).find('.yform-content-builder').length > 0 || 
+            $(container).is('.yform-content-builder')) {
+            initContentBuilder();
         }
     });
 

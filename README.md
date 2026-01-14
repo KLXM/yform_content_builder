@@ -29,6 +29,8 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 - **Integration mit uikit_theme_builder**: Dynamische Farben aus DomainContext
 
 ### 🔧 **Developer Experience**
+- **Feld-Plugin-System**: Jeder Feldtyp als eigene Klasse, einfach erweiterbar via Extension Point
+- **rex_api_function**: Dedizierte API für AJAX-Requests (`/redaxo/index.php?rex-api-call=content_builder`)
 - **Element-Filter**: Kontrolle welche Elemente pro Feld verfügbar sind (Multiselect)
 - **Settings-Modals**: Komplexe Optionen in übersichtlichen Modal-Dialogen
 - **CKE5 Integration**: REDAXO's CKEditor 5 nahtlos integriert
@@ -38,6 +40,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 - **Media Manager Integration**: Automatische Bild-URLs via `rex_media_manager::getUrl()`
 
 ### 🏗️ **Architecture**
+- **Field Registry**: Plugin-System für Feldtypen mit Interface und Extension Point
 - **Element-Discovery**: Automatisches Laden aller Elemente aus `/elements/` Verzeichnis
 - **Custom Elements**: Eigene Elemente via Extension Point oder `project/elements/`
 - **Nested Data Structure**: Intelligente Verarbeitung verschachtelter Array-Daten
@@ -416,18 +419,73 @@ Siehe: `DEV.md` für Details.
 
 ## 📚 Feldtypen
 
-| Typ | Beschreibung |
-|-----|--------------|
-| `text` | Einzeiliges Textfeld |
-| `textarea` | Mehrzeiliges Textfeld |
-| `cke5` | CKEditor 5 Rich Text |
-| `be_media` | REDAXO Mediapool |
-| `be_link` | REDAXO Linkmap |
-| `choice` | Select Dropdown |
-| `checkbox` | Checkbox |
-| `repeater` | Wiederholbare Felder |
-| `radio_image` | Layout-Auswahl mit SVG-Vorschaubildern |
-| `color_swatches` | Farbauswahl mit visuellen Farbfeldern |
+Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eigene Klasse und kann einfach erweitert oder überschrieben werden.
+
+| Typ | Klasse | Beschreibung |
+|-----|--------|--------------|
+| `text` | `TextField` | Einzeiliges Textfeld |
+| `textarea` | `TextareaField` | Mehrzeiliges Textfeld |
+| `cke5` | `Cke5Field` | CKEditor 5 Rich Text |
+| `be_media` | `BeMediaField` | REDAXO Mediapool Widget |
+| `be_link` | `BeLinkField` | REDAXO Linkmap Widget |
+| `select` | `SelectField` | Einfaches Select Dropdown |
+| `choice` | `ChoiceField` | Erweitertes Select mit Selectpicker |
+| `checkbox` | `CheckboxField` | Checkbox |
+| `repeater` | `RepeaterField` | Wiederholbare Feldgruppen |
+| `radio_image` | `RadioImageField` | Layout-Auswahl mit SVG-Vorschaubildern |
+| `color_swatches` | `ColorSwatchesField` | Farbauswahl mit visuellen Farbfeldern |
+
+### Eigenen Feldtyp erstellen
+
+```php
+<?php
+namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+
+class MyCustomField extends ContentBuilderFieldAbstract
+{
+    public static function getType(): string
+    {
+        return 'my_custom';
+    }
+
+    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    {
+        $label = $fieldConfig['label'] ?? $fieldName;
+        
+        $this->openFormGroup();
+        $this->renderLabel($label);
+        
+        // Eigene Render-Logik hier
+        echo '<input type="text" class="form-control" name="' . rex_escape($fieldName) . '" value="' . rex_escape($value) . '">';
+        
+        $this->closeFormGroup();
+    }
+}
+```
+
+### Feldtyp registrieren
+
+```php
+// In boot.php deines Addons oder per Extension Point
+use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+
+// Direkt registrieren
+ContentBuilderFieldRegistry::register(new MyCustomField());
+
+// Oder per Extension Point
+rex_extension::register('YFORM_CONTENT_BUILDER_FIELDS', function(rex_extension_point $ep) {
+    $fields = $ep->getSubject();
+    $fields['my_custom'] = new MyCustomField();
+    return $fields;
+});
+```
+
+### Bestehenden Feldtyp überschreiben
+
+```php
+// Eigene Implementierung von be_media mit zusätzlichen Features
+ContentBuilderFieldRegistry::register(new MyEnhancedMediaField());
+```
 
 ### Repeater-Beispiel
 
@@ -528,19 +586,21 @@ $config = ContentBuilderHelper::getElementConfig('text_image');
 ## 📊 Stats
 
 ```
-Lines of Code:     ~5.000
+Lines of Code:     ~6.000
 Elements:          10 (Section, Text&Image, Accordion, Headline, 
                      Divider, Cards, Slideshow, Media Showcase, 
                      Gallery, Kontaktformular)
-Feldtypen:         10 (text, textarea, choice, checkbox, ckeditor5,
-                     be_media, be_media_enhanced, be_link, repeater,
+Feldtypen:         11 (text, textarea, select, choice, checkbox, 
+                     cke5, be_media, be_link, repeater,
                      radio_image, color_swatches)
+Field Classes:     14 (Interface, Abstract, Registry + 11 Felder)
 Templates:         30 (10 × 3 Frameworks)  
 CSS Files:         3 
 JS Files:          2 
-Features:          Enhanced Media Browser, Settings Modals, 
-                   Move Buttons, Grid-View Repeater, SQL-Optionen,
-                   Erweiterte Validierung (IBAN, PLZ, Compare)
+API:               rex_api_content_builder (5 Actions)
+Features:          Feld-Plugin-System, Enhanced Media Browser, 
+                   Settings Modals, Move Buttons, Grid-View Repeater, 
+                   SQL-Optionen, Erweiterte Validierung
 Dokumentation:     5 MD-Files
 Development Time:  Mehrere intensive Sessions 🤖
 ```
