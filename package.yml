@@ -17,6 +17,9 @@ page:
         main:
             title: 'translate:yform_content_builder_overview'
             icon: rex-icon fa-info-circle
+        modules:
+            title: 'translate:yform_content_builder_modules'
+            icon: rex-icon fa-code
         settings:
             title: 'translate:yform_content_builder_settings'
             icon: rex-icon fa-cog

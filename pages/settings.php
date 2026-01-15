@@ -9,6 +9,7 @@ $addon = rex_addon::get('yform_content_builder');
 // Formular verarbeiten
 if (rex_post('save', 'bool')) {
     $addon->setConfig('theme', rex_post('theme', 'string', ''));
+    $addon->setConfig('compact_mode', rex_post('compact_mode', 'bool', false));
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
     // Theme Builder Cache zurücksetzen
@@ -26,6 +27,7 @@ if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitT
 }
 
 $currentTheme = $addon->getConfig('theme', '');
+$compactMode = $addon->getConfig('compact_mode', false);
 
 // Formular bauen
 $content = '';
@@ -44,6 +46,13 @@ foreach ($themes as $value => $label) {
 }
 $n['field'] .= '</select>';
 $n['note'] = rex_i18n::msg('yform_content_builder_theme_notice');
+$formElements[] = $n;
+
+// Kompaktmodus-Toggle
+$n = [];
+$n['label'] = '<label for="compact_mode">' . rex_i18n::msg('yform_content_builder_compact_mode') . '</label>';
+$n['field'] = '<div class="checkbox"><label><input type="hidden" name="compact_mode" value="0"><input type="checkbox" id="compact_mode" name="compact_mode" value="1"' . ($compactMode ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_compact_mode_label') . '</label></div>';
+$n['note'] = rex_i18n::msg('yform_content_builder_compact_mode_notice');
 $formElements[] = $n;
 
 $fragment = new rex_fragment();

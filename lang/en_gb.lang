@@ -1,6 +1,9 @@
 yform_content_builder_title = YForm Content Builder
 yform_content_builder_description = Slice-based Content Builder for YForm
 
+yform_content_builder_modules = Modules
+yform_content_builder_modules_description = Auto-generate REDAXO modules for Content Builder elements
+
 yform_content_builder_element_add = Add element
 yform_content_builder_element_edit = Edit
 yform_content_builder_element_delete = Delete
@@ -8,6 +11,10 @@ yform_content_builder_element_move = Move
 
 yform_content_builder_save = Save
 yform_content_builder_cancel = Cancel
+
+yform_content_builder_compact_mode = Compact Mode
+yform_content_builder_compact_mode_label = Enable compact mode
+yform_content_builder_compact_mode_notice = In compact mode, slices are displayed without borders, backgrounds, and spacing. The toolbar remains visible.
 
 yform_content_builder_empty = No elements yet. Add an element below.
 yform_content_builder_delete_confirm = Really delete element?

@@ -3,6 +3,9 @@ yform_content_builder_description = Slice-basierter Content Builder für YForm
 yform_content_builder_intro = Der YForm Content Builder ermöglicht das Erstellen von flexiblen Content-Elementen in YForm-Formularen und REDAXO-Modulen.
 yform_content_builder_overview = Übersicht
 
+yform_content_builder_modules = Module
+yform_content_builder_modules_description = Generiere automatisch REDAXO-Module für Content Builder Elemente
+
 yform_content_builder_settings = Einstellungen
 yform_content_builder_theme_settings = Theme Builder Integration
 yform_content_builder_theme = Theme
@@ -10,6 +13,10 @@ yform_content_builder_theme_notice = Wähle ein Theme aus dem UIkit Theme Builde
 yform_content_builder_theme_info = Das ausgewählte Theme bestimmt, welche Farben in den Farbauswahl-Feldern (Card-Farbe, Hintergrund, etc.) angezeigt werden. Im Frontend wird weiterhin das Theme der jeweiligen Domain verwendet.
 yform_content_builder_theme_builder_missing = Das Addon "uikit_theme_builder" ist nicht installiert oder aktiviert. Die Theme-Integration ist daher nicht verfügbar.
 yform_content_builder_settings_saved = Einstellungen wurden gespeichert.
+
+yform_content_builder_compact_mode = Kompaktmodus
+yform_content_builder_compact_mode_label = Kompaktmodus aktivieren
+yform_content_builder_compact_mode_notice = Im Kompaktmodus werden Slices ohne Rahmen, Hintergrund und Abstand angezeigt. Die Toolbar bleibt sichtbar.
 
 yform_content_builder_element_add = Element hinzufügen
 yform_content_builder_element_edit = Bearbeiten

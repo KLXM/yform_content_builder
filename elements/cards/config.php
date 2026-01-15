@@ -208,7 +208,8 @@ return [
             'type' => 'choice',
             'label' => 'Abstand zwischen Cards',
             'choices' => [
-                'collapse' => 'Kein Abstand',
+                'collapse' => 'Kein Abstand (alle Richtungen)',
+                'column-collapse' => 'Kein Abstand (links/rechts)',
                 'small' => 'Klein (15px)',
                 'medium' => 'Mittel (30px)',
                 'large' => 'Groß (40px)'

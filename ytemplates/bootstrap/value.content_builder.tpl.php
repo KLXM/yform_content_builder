@@ -16,9 +16,15 @@ $fieldClass = 'yform-content-builder';
 if ($required) {
     $fieldClass .= ' required';
 }
+
+// Kompaktmodus aus Addon-Config laden
+$addon = rex_addon::get('yform_content_builder');
+if ($addon->getConfig('compact_mode')) {
+    $fieldClass .= ' compact-mode';
+}
 ?>
 
-<div class="form-group yform-element yform-content-builder" 
+<div class="form-group yform-element <?= $fieldClass ?>" 
      data-framework="<?= $framework ?>"
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     

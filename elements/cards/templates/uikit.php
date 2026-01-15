@@ -60,6 +60,7 @@ $gridClasses = ['uk-grid'];
 // Gap Mapping
 $gapMap = [
     'collapse' => 'uk-grid-collapse',
+    'column-collapse' => 'uk-grid-column-collapse',
     'small' => 'uk-grid-small',
     'medium' => '',
     'large' => 'uk-grid-large'
