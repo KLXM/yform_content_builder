@@ -15,6 +15,13 @@ $cardStyle = $elementData['card_style'] ?? 'default';
 $cardSize = $elementData['card_size'] ?? 'default';
 $cardShadow = $elementData['card_shadow'] ?? '';
 
+// Animation-Einstellungen (Global)
+$animationsEnabled = !empty($elementData['animations_enabled']);
+$animationsScrollspy = !empty($elementData['animations_scrollspy']);
+$animationsDelay = $elementData['animations_delay'] ?? '100';
+$animationsRepeat = !empty($elementData['animations_repeat']);
+$animationsCascading = !empty($elementData['animations_cascading']);
+
 // Sektion-Einstellungen
 $sectionBg = $elementData['section_bg'] ?? '';
 $sectionBgImage = $elementData['section_bg_image'] ?? '';
@@ -139,8 +146,16 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
 <div class="<?= $containerWidth ?>">
 <?php endif; ?>
 
-<div class="<?= $gridClassStr ?>" uk-grid uk-scrollspy="target: > div; cls: uk-animation-fade; delay: 100">
-    <?php foreach ($items as $item): ?>
+<div class="<?= $gridClassStr ?>" uk-grid>
+    <?php 
+    $cardIndex = 0;
+    foreach ($items as $item): 
+    // Index nur für animierte Cards erhöhen
+    $itemAnimation = $item['animation'] ?? '';
+    if (!empty($itemAnimation)) {
+        $cardIndex++;
+    }
+    ?>
         <?php
         // Item-Daten
         $layout = $item['layout'] ?? 'media-top';
@@ -152,6 +167,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         $mediaWidth = $item['media_width'] ?? '1-3@m';
         $badge = $item['badge'] ?? '';
         $badgeColor = $item['badge_color'] ?? 'primary';
+        // $itemAnimation bereits oben im Loop definiert
         
         // Card-spezifische Überschreibungen
         $itemCardWidth = $item['card_width'] ?? '';
@@ -262,8 +278,20 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         <?php 
         // Match-Height Klassen nur wenn aktiviert
         $matchHeightClasses = $matchHeight ? ' uk-height-1-1 uk-flex uk-flex-column' : '';
+        
+        // ScrollSpy nur wenn:
+        // 1. Animationen aktiviert UND
+        // 2. ScrollSpy aktiviert UND  
+        // 3. Animation auf dieser Card ausgewählt
+        // Delay wird optional kaskadierend addiert pro Card-Position
+        $scrollspyAttr = '';
+        if ($animationsEnabled && $animationsScrollspy && !empty($itemAnimation)) {
+            $cardDelay = $animationsCascading ? intval($animationsDelay) * $cardIndex : intval($animationsDelay);
+            $repeatAttr = $animationsRepeat ? ' repeat: true;' : '';
+            $scrollspyAttr = ' uk-scrollspy="cls: ' . $itemAnimation . ';' . $repeatAttr . ' delay: ' . $cardDelay . '"';
+        }
         ?>
-        <div<?= $itemWidthClass ? ' class="' . $itemWidthClass . '"' : '' ?>>
+        <div<?= $itemWidthClass ? ' class="' . $itemWidthClass . '"' : '' ?><?= $scrollspyAttr ?> data-animation="<?= $itemAnimation ?>" data-card-index="<?= $cardIndex ?>">
             <?php if ($linkCard && $href): ?>
             <a href="<?= $href ?>" class="<?= implode(' ', $cardClasses) ?> uk-display-block<?= $matchHeightClasses ?>">
             <?php else: ?>

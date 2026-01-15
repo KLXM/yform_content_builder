@@ -1055,7 +1055,6 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         return $allElements;
     }
 
-    
     protected function getElementPath(string $elementType): ?string
     {
         $elements = $this->getAvailableElements();

@@ -8,17 +8,19 @@
 $style = $elementData['style'] ?? 'simple';
 $icon = $elementData['icon'] ?? 'fa fa-star';
 $text = $elementData['text'] ?? '';
+$textPosition = $elementData['text_position'] ?? 'center';
 $color = $elementData['color'] ?? 'default';
 $width = $elementData['width'] ?? 'full';
 $spacingTop = $elementData['spacing_top'] ?? 'medium';
 $spacingBottom = $elementData['spacing_bottom'] ?? 'medium';
+$scrollAnchor = $elementData['scroll_anchor'] ?? '#';
 
 // Section-Einstellungen
 $sectionBg = $elementData['section_bg'] ?? '';
 $sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? '';
-$lightText = !empty($elementData['light_text']);
+$sectionLight = !empty($elementData['section_light']);
 
 // Width Mapping
 $widthMap = [
@@ -31,14 +33,18 @@ $widthStyle = $widthMap[$width] ?? '100%';
 
 // Spacing Mapping
 $spacingMapTop = [
+    'none' => '',
     'small' => 'uk-margin-small-top',
     'medium' => 'uk-margin-top',
-    'large' => 'uk-margin-large-top'
+    'large' => 'uk-margin-large-top',
+    'xlarge' => 'uk-margin-xlarge-top'
 ];
 $spacingMapBottom = [
+    'none' => '',
     'small' => 'uk-margin-small-bottom',
     'medium' => 'uk-margin-bottom',
-    'large' => 'uk-margin-large-bottom'
+    'large' => 'uk-margin-large-bottom',
+    'xlarge' => 'uk-margin-xlarge-bottom'
 ];
 
 $marginClasses = [];
@@ -49,7 +55,7 @@ $marginClasses[] = $spacingMapBottom[$spacingBottom] ?? 'uk-margin-bottom';
 $sectionClasses = ['uk-section'];
 if ($sectionBg) $sectionClasses[] = $sectionBg;
 if ($sectionPadding) $sectionClasses[] = $sectionPadding;
-if ($lightText) $sectionClasses[] = 'uk-light';
+if ($sectionLight) $sectionClasses[] = 'uk-light';
 
 // Section Background
 $sectionStyle = '';
@@ -95,6 +101,10 @@ $needsContainer = ($width !== 'full');
     <?php endif; ?>
     
     <?php switch ($style):
+        case 'none': ?>
+        <!-- Keine Linie - nur Abstand -->
+        <?php break;
+        
         case 'simple': ?>
         <hr class="uk-hr" style="width: <?= $widthStyle ?>; border-top-color: <?= $lineColor ?>;">
         <?php break;
@@ -126,16 +136,21 @@ $needsContainer = ($width !== 'full');
         <?php break;
         
         case 'text': ?>
-        <div style="width: <?= $widthStyle ?>;" class="uk-flex uk-flex-middle">
-            <hr class="uk-hr uk-flex-1" style="border-top-color: <?= $lineColor ?>;">
-            <span class="uk-margin-small-left uk-margin-small-right uk-text-muted"><?= rex_escape($text) ?></span>
-            <hr class="uk-hr uk-flex-1" style="border-top-color: <?= $lineColor ?>;">
+        <div style="width: <?= $widthStyle ?>;" class="uk-flex uk-flex-middle<?php if ($textPosition === 'left'): ?> uk-flex-left<?php endif; ?>">
+            <?php if ($textPosition === 'left'): ?>
+                <span class="uk-margin-small-right uk-text-muted"><?= rex_escape($text) ?></span>
+                <hr class="uk-hr uk-flex-1" style="border-top-color: <?= $lineColor ?>;">
+            <?php else: ?>
+                <hr class="uk-hr uk-flex-1" style="border-top-color: <?= $lineColor ?>;">
+                <span class="uk-margin-small-left uk-margin-small-right uk-text-muted"><?= rex_escape($text) ?></span>
+                <hr class="uk-hr uk-flex-1" style="border-top-color: <?= $lineColor ?>;">
+            <?php endif; ?>
         </div>
         <?php break;
         
         case 'scroll': ?>
         <div class="uk-text-center">
-            <a href="#" uk-scroll class="uk-icon-button" uk-icon="icon: chevron-down; ratio: 1.5"></a>
+            <a href="<?= rex_escape($scrollAnchor) ?>" uk-scroll class="uk-icon-button" uk-icon="icon: chevron-down; ratio: 1.5"></a>
         </div>
         <?php break;
         

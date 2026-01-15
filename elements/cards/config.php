@@ -164,7 +164,7 @@ return [
     'settings_modal' => [
         'label' => 'Grid & Sektion Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width']
+        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
     ],
     
     'fields' => [
@@ -293,6 +293,36 @@ return [
         ],
         
         // =============================================================================
+        // GLOBALE ANIMATION EINSTELLUNGEN (UIkit)
+        // =============================================================================
+        'animations_enabled' => [
+            'type' => 'checkbox',
+            'label' => 'Animationen aktivieren (UIkit)',
+            'notice' => 'Aktiviert ScrollSpy-Animationen beim Scrollen (nur UIkit)'
+        ],
+        'animations_scrollspy' => [
+            'type' => 'checkbox',
+            'label' => 'ScrollSpy aktivieren',
+            'notice' => 'Animationen starten wenn Cards in den Viewport kommen (statt sofort). Gilt für alle Cards.'
+        ],
+        'animations_delay' => [
+            'type' => 'text',
+            'label' => 'Animationsverzögerung (ms)',
+            'notice' => 'Verzögerung zwischen Card-Animationen. Standardwert: 100',
+            'default' => '100'
+        ],
+        'animations_repeat' => [
+            'type' => 'checkbox',
+            'label' => 'Animationen wiederholen',
+            'notice' => 'Wenn aktiviert, werden Animationen jedes Mal wiederholt wenn die Cards sichtbar werden'
+        ],
+        'animations_cascading' => [
+            'type' => 'checkbox',
+            'label' => 'Kaskadierende Verzögerung',
+            'notice' => 'Wenn aktiviert, wird die Verzögerung für jede Card addiert (1. Card: 100ms, 2. Card: 200ms, etc.)'
+        ],
+        
+        // =============================================================================
         // CARDS REPEATER
         // =============================================================================
         'items' => [
@@ -306,7 +336,8 @@ return [
                 'fields' => [
                     'subtitle', 'badge', 'badge_color', 
                     'card_width', 'card_style_override', 'card_shadow_override',
-                    'link_type', 'link_url', 'link_internal', 'link_text', 'link_card'
+                    'link_type', 'link_url', 'link_internal', 'link_text', 'link_card',
+                    'animation'
                 ]
             ],
             
@@ -485,6 +516,29 @@ return [
                 'link_card' => [
                     'type' => 'checkbox',
                     'label' => 'Gesamte Card verlinken'
+                ],
+                
+                // Animation Optionen (nur UIkit, im Modal)
+                'animation' => [
+                    'type' => 'choice',
+                    'label' => 'Animation',
+                    'choices' => [
+                        '' => 'Keine',
+                        'uk-animation-fade' => 'Fade In',
+                        'uk-animation-scale-up' => 'Scale Up',
+                        'uk-animation-scale-down' => 'Scale Down',
+                        'uk-animation-slide-top' => 'Slide from Top',
+                        'uk-animation-slide-bottom' => 'Slide from Bottom',
+                        'uk-animation-slide-left' => 'Slide from Left',
+                        'uk-animation-slide-right' => 'Slide from Right',
+                        'uk-animation-slide-top-small' => 'Slide from Top (Small)',
+                        'uk-animation-slide-bottom-small' => 'Slide from Bottom (Small)',
+                        'uk-animation-slide-left-small' => 'Slide from Left (Small)',
+                        'uk-animation-slide-right-small' => 'Slide from Right (Small)',
+                        'uk-animation-shake' => 'Shake'
+                    ],
+                    'default' => '',
+                    'notice' => 'Nur sichtbar wenn Animationen global aktiviert sind'
                 ]
             ]
         ]

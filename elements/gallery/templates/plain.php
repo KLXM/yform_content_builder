@@ -69,7 +69,13 @@ $gridColumns = 'repeat(' . $columns . ', 1fr)';
             <div class="<?= $itemClass . $aspectRatioClass ?>" data-index="<?= $index ?>">
                 <div class="gallery-media-wrapper" <?php if ($aspectRatioStyle): ?>style="position: relative; <?= $aspectRatioStyle ?>"<?php endif; ?>>
                     <?php if ($isImage): ?>
-                        <img src="<?= rex_media_manager::getUrl('gallery_thumb', $media) ?>" 
+                        <?php 
+                        // MediaManager Typ auswählen:
+                        // - gallery_resize: Nur Resize ohne Cropping (für aspect_ratio='auto' + masonry)
+                        // - gallery_thumb: Mit Cropping zu 1:1 (für andere aspect ratios)
+                        $mmType = ($aspectRatio === 'auto') ? 'gallery_resize' : 'gallery_thumb';
+                        ?>
+                        <img src="<?= rex_media_manager::getUrl($mmType, $media) ?>" 
                              alt="<?= htmlspecialchars($altText ?: $caption) ?>"
                              class="gallery-image"
                              data-full="<?= rex_media_manager::getUrl('gallery_full', $media) ?>"

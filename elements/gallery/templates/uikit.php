@@ -134,7 +134,12 @@ $lightboxId = 'gallery-' . uniqid();
             
             // Originalbild für Lightbox, Thumbnail für Grid
             $fullImageUrl = rex_url::media($media);
-            $thumbUrl = $isImage ? rex_media_manager::getUrl('gallery_thumb', $media) : '';
+            
+            // MediaManager Typ auswählen:
+            // - gallery_resize: Nur Resize ohne Cropping (für aspect_ratio='auto' + masonry)
+            // - gallery_thumb: Mit Cropping zu 1:1 (für andere aspect ratios)
+            $mmType = ($aspectRatio === 'auto') ? 'gallery_resize' : 'gallery_thumb';
+            $thumbUrl = $isImage ? rex_media_manager::getUrl($mmType, $media) : '';
             ?>
             
             <div>

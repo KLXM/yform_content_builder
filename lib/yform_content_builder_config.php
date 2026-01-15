@@ -201,6 +201,11 @@ class yform_content_builder_config
                 'label' => 'Container-Breite',
                 'choices' => self::getContainerOptions(),
                 'default' => 'uk-container'
+            ],
+            'section_light' => [
+                'type' => 'checkbox',
+                'label' => 'Heller Text (uk-light)',
+                'notice' => 'Aktiviert uk-light Klasse für Text auf dunklem Hintergrund'
             ]
         ];
     }
@@ -210,7 +215,7 @@ class yform_content_builder_config
      */
     public static function getSectionFieldNames(): array
     {
-        return ['section_bg', 'section_bg_image', 'section_padding', 'container_width'];
+        return ['section_bg', 'section_bg_image', 'section_padding', 'container_width', 'section_light'];
     }
     
     /**

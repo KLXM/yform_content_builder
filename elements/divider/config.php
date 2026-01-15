@@ -17,14 +17,23 @@ $colorOptions = [
     'danger' => 'Danger',
 ];
 
+// ThemeBuilder Farben nur als Strings hinzufügen
 if ($hasThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
-    $colorOptions = array_merge($colorOptions, \UikitThemeBuilder\DomainContext::getTextColorOptions());
+    $themeColors = \UikitThemeBuilder\DomainContext::getTextColorOptions();
+    if (is_array($themeColors)) {
+        foreach ($themeColors as $key => $value) {
+            // Nur hinzufügen wenn Wert ein String ist, nicht array
+            if (is_string($value)) {
+                $colorOptions[$key] = $value;
+            }
+        }
+    }
 }
 
 return [
-    'label' => 'Trennlinie',
+    'label' => 'Trennelement',
     'icon' => 'fa fa-minus',
-    'description' => 'Visuelle Trennelement mit verschiedenen Styles',
+    'description' => 'Trennelement oder Abstandselement mit verschiedenen Styles',
     'settings_modal' => [
         'label' => 'Section-Einstellungen',
         'icon' => 'fa-cog',
@@ -37,6 +46,7 @@ return [
             'type' => 'choice',
             'label' => 'Style',
             'choices' => [
+                'none' => 'Keine Linie (nur Abstand)',
                 'simple' => 'Einfache Linie',
                 'double' => 'Doppelte Linie',
                 'dotted' => 'Gepunktet',
@@ -60,6 +70,16 @@ return [
             'label' => 'Text',
             'notice' => 'Nur bei Style "text"'
         ],
+        'text_position' => [
+            'type' => 'choice',
+            'label' => 'Text Position',
+            'choices' => [
+                'center' => 'Mitte',
+                'left' => 'Links'
+            ],
+            'default' => 'center',
+            'notice' => 'Position des Textes bei "Linie mit Text"'
+        ],
         'color' => [
             'type' => 'choice',
             'label' => 'Farbe',
@@ -81,9 +101,11 @@ return [
             'type' => 'choice',
             'label' => 'Abstand oben',
             'choices' => [
+                'none' => 'Keine',
                 'small' => 'Klein (20px)',
                 'medium' => 'Mittel (40px)',
-                'large' => 'Groß (60px)'
+                'large' => 'Groß (60px)',
+                'xlarge' => 'Extra Groß (80px)'
             ],
             'default' => 'medium'
         ],
@@ -91,11 +113,19 @@ return [
             'type' => 'choice',
             'label' => 'Abstand unten',
             'choices' => [
+                'none' => 'Keine',
                 'small' => 'Klein (20px)',
                 'medium' => 'Mittel (40px)',
-                'large' => 'Groß (60px)'
+                'large' => 'Groß (60px)',
+                'xlarge' => 'Extra Groß (80px)'
             ],
             'default' => 'medium'
+        ],
+        'scroll_anchor' => [
+            'type' => 'text',
+            'label' => 'Scroll Ziel-ID',
+            'notice' => 'ID des Elements, zu dem gescrollt werden soll. Nur bei "Scroll-Animation". Z.B. #mein-element',
+            'default' => '#'
         ]
         ],
         

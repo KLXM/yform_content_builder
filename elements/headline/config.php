@@ -18,8 +18,17 @@ $colorOptions = [
     'muted' => 'Grau',
 ];
 
+// ThemeBuilder Farben nur als Strings hinzufügen
 if ($hasThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
-    $colorOptions = array_merge($colorOptions, \UikitThemeBuilder\DomainContext::getTextColorOptions());
+    $themeColors = \UikitThemeBuilder\DomainContext::getTextColorOptions();
+    if (is_array($themeColors)) {
+        foreach ($themeColors as $key => $value) {
+            // Nur hinzufügen wenn Wert ein String ist, nicht array
+            if (is_string($value)) {
+                $colorOptions[$key] = $value;
+            }
+        }
+    }
 }
 
 return [
@@ -57,10 +66,26 @@ return [
             'label' => 'Größe',
             'choices' => [
                 '' => 'Standard (entsprechend Tag)',
-                'large' => 'Groß',
-                'small' => 'Klein'
+                'small' => 'Klein (uk-heading-small)',
+                'medium' => 'Mittel (uk-heading-medium)',
+                'large' => 'Groß (uk-heading-large)',
+                'xlarge' => 'X-Groß (uk-heading-xlarge)',
+                '2xlarge' => '2X-Groß (uk-heading-2xlarge)',
+                '3xlarge' => '3X-Groß (uk-heading-3xlarge)'
             ],
             'default' => ''
+        ],
+        'modifier' => [
+            'type' => 'choice',
+            'label' => 'UIkit Modifier',
+            'choices' => [
+                '' => 'Keine',
+                'divider' => 'Mit Trennlinie (uk-heading-divider)',
+                'bullet' => 'Mit Kugel (uk-heading-bullet)',
+                'line' => 'Mit Mittel-Linie (uk-heading-line)'
+            ],
+            'default' => '',
+            'notice' => 'UIkit-spezifische Formatierungen'
         ],
         'alignment' => [
             'type' => 'choice',

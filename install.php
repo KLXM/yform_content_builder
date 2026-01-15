@@ -50,6 +50,18 @@ if (rex_addon::get('media_manager')->isAvailable()) {
     }
     
     // =============================================================================
+    // GALLERY RESIZE - Nur Resize ohne Cropping für Masonry + Original Ratio
+    // =============================================================================
+    $mm->addType('gallery_resize', 'Content Builder: Gallery Resize (Original Ratio)');
+    
+    $mm->addEffect('gallery_resize', 'resize', [
+        'width' => 1200,
+        'height' => 1200,
+        'style' => 'maximum',
+        'allow_enlarge' => 'not_enlarge'
+    ], 1);
+    
+    // =============================================================================
     // GALLERY THUMBNAILS - Quadratisch mit Fokuspunkt
     // =============================================================================
     $mm->addType('gallery_thumb', 'Content Builder: Gallery Thumbnail (1:1 mit Fokuspunkt)');
