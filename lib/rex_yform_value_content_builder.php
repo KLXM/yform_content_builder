@@ -1174,6 +1174,59 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         ];
     }
 
+    public static function getListValue($params)
+    {
+        $value = (string) $params['subject'];
+        
+        if (empty($value)) {
+            return '<em>-- Leer --</em>';
+        }
+        
+        $data = json_decode($value, true);
+        
+        if (!is_array($data) || empty($data)) {
+            return '<em>-- Keine Elemente --</em>';
+        }
+        
+        // Element-Übersicht mit Zähler
+        $elements = [];
+        foreach ($data as $slice) {
+            $type = $slice['type'] ?? 'unknown';
+            $label = ucfirst(str_replace('_', ' ', $type));
+            
+            if (!isset($elements[$label])) {
+                $elements[$label] = 0;
+            }
+            $elements[$label]++;
+        }
+        
+        $output = [];
+        foreach ($elements as $label => $count) {
+            if ($count > 1) {
+                $output[] = $label . ' (' . $count . 'x)';
+            } else {
+                $output[] = $label;
+            }
+        }
+        
+        $summary = '<strong>' . count($data) . ' Element' . (count($data) !== 1 ? 'e' : '') . ':</strong> ' . implode(', ', $output);
+        
+        // Im Debug-Mode zusätzlich JSON anzeigen
+        if (rex::isDebugMode()) {
+            $summary .= '<br><details style="margin-top:5px;"><summary style="cursor:pointer; font-size:11px;">JSON (Debug)</summary>';
+            $summary .= '<pre style="background:#f5f5f5; padding:10px; border-radius:3px; font-size:11px; overflow:auto; max-height:300px; margin-top:5px;">';
+            $summary .= rex_escape(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            $summary .= '</pre></details>';
+        }
+        
+        return '<span>' . $summary . '</span>';
+    }
+
+
+    /**
+     * List-Ansicht für Datenbank-Manager
+     * Zeigt Element-Übersicht oder nur JSON mit Debug-Mode
+     */
     /**
      * Baut Element-Choices für das Definitions-Formular
      * Statisch, damit es in getDefinitions() funktioniert
