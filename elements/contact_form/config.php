@@ -158,7 +158,8 @@ return [
                         'type' => 'textarea',
                         'label' => 'SQL-Abfrage',
                         'notice' => 'z.B.: SELECT id AS value, name AS label FROM rex_category WHERE status = 1 ORDER BY name',
-                        'attributes' => ['rows' => 3]
+                        'attributes' => ['rows' => 3],
+                        'perm' => 'admin'
                     ],
                     'field_default' => [
                         'type' => 'text',
@@ -198,12 +199,17 @@ return [
                     'field_error_message' => [
                         'type' => 'text',
                         'label' => 'Fehlermeldung'
+                    ],
+                    'field_attributes' => [
+                        'type' => 'text',
+                        'label' => 'Zusätzliche HTML-Attribute',
+                        'notice' => 'Beispiele: data-custom="wert", uk-tooltip="Hilfetext", class="my-class", autocomplete="off"'
                     ]
                 ],
                 'item_modal' => [
                     'label' => 'Erweiterte Optionen',
                     'icon' => 'fa-sliders',
-                    'fields' => ['field_options_source', 'field_options', 'field_options_sql', 'field_default', 'field_validation_type', 'field_validation_param', 'field_error_message']
+                    'fields' => ['field_options_source', 'field_options', 'field_options_sql', 'field_default', 'field_validation_type', 'field_validation_param', 'field_error_message', 'field_attributes']
                 ]
             ],
             'submit_text' => [

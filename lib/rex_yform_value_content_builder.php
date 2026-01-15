@@ -322,6 +322,14 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
     protected function renderFormField(string $fieldName, array $fieldConfig, array $sliceData)
     {
+        // Berechtigungsprüfung: Feld nicht rendern wenn Berechtigung fehlt
+        if (isset($fieldConfig['perm'])) {
+            // 'admin' => nur für Admins
+            if ($fieldConfig['perm'] === 'admin' && !rex::getUser()?->isAdmin()) {
+                return;
+            }
+        }
+        
         // Wert aus verschachtelten Arrays extrahieren (z.B. "items[0][title]")
         $value = $this->getNestedValue($fieldName, $sliceData);
         $label = $fieldConfig['label'] ?? $fieldName;

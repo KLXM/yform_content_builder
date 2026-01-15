@@ -38,6 +38,7 @@ $sectionBg = $elementData['section_bg'] ?? '';
 $sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? 'uk-container';
+$sectionLight = !empty($elementData['section_light']);
 
 // Im Backend: kein echtes Formular
 $isBackend = rex::isBackend();
@@ -51,70 +52,76 @@ if (empty($emailTo) && !$isBackend) {
 /**
  * Helper: Optionen für Select/Radio laden
  */
-function parseFieldOptions(array $field): array
-{
-    $options = [];
-    $source = $field['field_options_source'] ?? 'manual';
-    
-    if ($source === 'sql' && !empty($field['field_options_sql'])) {
-        try {
-            $sql = rex_sql::factory();
-            $sql->setQuery($field['field_options_sql']);
-            while ($sql->hasNext()) {
-                $optValue = $sql->getValue('value');
-                $optLabel = $sql->getValue('label') ?? $optValue;
-                $options[(string)$optValue] = (string)$optLabel;
-                $sql->next();
+if (!function_exists('parseFieldOptions')) {
+    function parseFieldOptions(array $field): array
+    {
+        $options = [];
+        $source = $field['field_options_source'] ?? 'manual';
+        
+        if ($source === 'sql' && !empty($field['field_options_sql'])) {
+            try {
+                $sql = rex_sql::factory();
+                $sql->setQuery($field['field_options_sql']);
+                while ($sql->hasNext()) {
+                    $optValue = $sql->getValue('value');
+                    $optLabel = $sql->getValue('label') ?? $optValue;
+                    $options[(string)$optValue] = (string)$optLabel;
+                    $sql->next();
+                }
+            } catch (Exception $e) {
+                if (rex::isDebugMode()) {
+                    $options['error'] = 'SQL-Fehler: ' . $e->getMessage();
+                }
             }
-        } catch (Exception $e) {
-            if (rex::isDebugMode()) {
-                $options['error'] = 'SQL-Fehler: ' . $e->getMessage();
-            }
-        }
-    } elseif (!empty($field['field_options'])) {
-        $lines = array_filter(array_map('trim', explode("\n", $field['field_options'])));
-        foreach ($lines as $line) {
-            if (strpos($line, '|') !== false) {
-                [$optValue, $optLabel] = explode('|', $line, 2);
-            } else {
-                $optValue = $optLabel = $line;
+        } elseif (!empty($field['field_options'])) {
+            $lines = array_filter(array_map('trim', explode("\n", $field['field_options'])));
+            foreach ($lines as $line) {
+                if (strpos($line, '|') !== false) {
+                    [$optValue, $optLabel] = explode('|', $line, 2);
+                } else {
+                    $optValue = $optLabel = $line;
             }
             $options[(string)$optValue] = (string)$optLabel;
         }
     }
     
     return $options;
+    }
 }
 
 /**
  * Helper: Select-Feld rendern
  */
-function renderSelect(string $inputName, array $options, string $inputValue, string $placeholder, bool $required, string $errorClass): string
-{
-    $html = '<select class="uk-select ' . $errorClass . '" id="' . $inputName . '" name="' . $inputName . '"' . ($required ? ' required' : '') . '>';
-    $html .= '<option value="">' . rex_escape($placeholder ?: 'Bitte wählen...') . '</option>';
-    foreach ($options as $optValue => $optLabel) {
-        $selected = (string)$inputValue === (string)$optValue ? ' selected' : '';
-        $html .= '<option value="' . rex_escape($optValue) . '"' . $selected . '>' . rex_escape($optLabel) . '</option>';
+if (!function_exists('renderSelect')) {
+    function renderSelect(string $inputName, array $options, string $inputValue, string $placeholder, bool $required, string $errorClass): string
+    {
+        $html = '<select class="uk-select ' . $errorClass . '" id="' . $inputName . '" name="' . $inputName . '"' . ($required ? ' required' : '') . '>';
+        $html .= '<option value="">' . rex_escape($placeholder ?: 'Bitte wählen...') . '</option>';
+        foreach ($options as $optValue => $optLabel) {
+            $selected = (string)$inputValue === (string)$optValue ? ' selected' : '';
+            $html .= '<option value="' . rex_escape($optValue) . '"' . $selected . '>' . rex_escape($optLabel) . '</option>';
+        }
+        $html .= '</select>';
+        return $html;
     }
-    $html .= '</select>';
-    return $html;
 }
 
 /**
  * Helper: Radio-Buttons rendern
  */
-function renderRadio(string $inputName, array $options, string $inputValue, bool $required): string
-{
-    $html = '';
-    $idx = 0;
-    foreach ($options as $optValue => $optLabel) {
-        $checked = (string)$inputValue === (string)$optValue ? ' checked' : '';
-        $req = ($required && $idx === 0) ? ' required' : '';
-        $html .= '<label class="uk-margin-small-right"><input class="uk-radio" type="radio" name="' . $inputName . '" value="' . rex_escape($optValue) . '"' . $checked . $req . '> ' . rex_escape($optLabel) . '</label>';
-        $idx++;
+if (!function_exists('renderRadio')) {
+    function renderRadio(string $inputName, array $options, string $inputValue, bool $required): string
+    {
+        $html = '';
+        $idx = 0;
+        foreach ($options as $optValue => $optLabel) {
+            $checked = (string)$inputValue === (string)$optValue ? ' checked' : '';
+            $req = ($required && $idx === 0) ? ' required' : '';
+            $html .= '<label class="uk-margin-small-right"><input class="uk-radio" type="radio" name="' . $inputName . '" value="' . rex_escape($optValue) . '"' . $checked . $req . '> ' . rex_escape($optLabel) . '</label>';
+            $idx++;
+        }
+        return $html;
     }
-    return $html;
 }
 
 /**
@@ -125,123 +132,125 @@ function renderRadio(string $inputName, array $options, string $inputValue, bool
  * @param array $formData Alle Formulardaten für Vergleiche
  * @return bool|string true wenn gültig, sonst Fehlermeldung
  */
-function validateField(string $value, string $type, string $param, array $formData)
-{
-    if (empty($value) || empty($type)) {
-        return true;
-    }
-    
-    // Vorgefertigte Regex-Muster
-    $patterns = [
-        'iban' => '/^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$/',
-        'bic' => '/^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/',
-        'plz_de' => '/^[0-9]{5}$/',
-        'plz_at' => '/^[0-9]{4}$/',
-        'plz_ch' => '/^[0-9]{4}$/',
-        'phone' => '/^[\+]?[0-9\s\-\/\(\)]{6,20}$/',
-        'url' => '/^https?:\/\/[^\s]+$/',
-        'date_de' => '/^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.[0-9]{4}$/',
-        'date_iso' => '/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/',
-        'time' => '/^([01][0-9]|2[0-3]):[0-5][0-9]$/',
-        'number' => '/^[0-9]+$/',
-        'alpha' => '/^[a-zA-ZäöüÄÖÜß\s]+$/',
-        'alphanumeric' => '/^[a-zA-Z0-9äöüÄÖÜß\s]+$/',
-    ];
-    
-    $errorMessages = [
-        'iban' => 'Ungültige IBAN (Format: DE89370400440532013000)',
-        'bic' => 'Ungültiger BIC/SWIFT-Code',
-        'plz_de' => 'Ungültige deutsche Postleitzahl (5 Ziffern)',
-        'plz_at' => 'Ungültige österreichische Postleitzahl (4 Ziffern)',
-        'plz_ch' => 'Ungültige Schweizer Postleitzahl (4 Ziffern)',
-        'phone' => 'Ungültige Telefonnummer',
-        'url' => 'Ungültige URL (muss mit http:// oder https:// beginnen)',
-        'date_de' => 'Ungültiges Datum (Format: TT.MM.JJJJ)',
-        'date_iso' => 'Ungültiges Datum (Format: JJJJ-MM-TT)',
-        'time' => 'Ungültige Uhrzeit (Format: HH:MM)',
-        'number' => 'Nur Zahlen erlaubt',
-        'alpha' => 'Nur Buchstaben erlaubt',
-        'alphanumeric' => 'Nur Buchstaben und Zahlen erlaubt',
-    ];
-    
-    // IBAN: Leerzeichen entfernen und Großschreibung
-    if ($type === 'iban') {
-        $value = strtoupper(str_replace(' ', '', $value));
-    }
-    
-    // BIC: Großschreibung
-    if ($type === 'bic') {
-        $value = strtoupper($value);
-    }
-    
-    // Pattern-basierte Validierung
-    if (isset($patterns[$type])) {
-        if (!preg_match($patterns[$type], $value)) {
-            return $errorMessages[$type];
-        }
-        return true;
-    }
-    
-    // Mindestlänge
-    if ($type === 'min_length') {
-        $minLen = (int)$param;
-        if (mb_strlen($value) < $minLen) {
-            return "Mindestens {$minLen} Zeichen erforderlich";
-        }
-        return true;
-    }
-    
-    // Maximallänge
-    if ($type === 'max_length') {
-        $maxLen = (int)$param;
-        if (mb_strlen($value) > $maxLen) {
-            return "Maximal {$maxLen} Zeichen erlaubt";
-        }
-        return true;
-    }
-    
-    // Eigenes Regex-Muster
-    if ($type === 'regex' && !empty($param)) {
-        if (!preg_match('/' . $param . '/', $value)) {
-            return 'Ungültiges Format';
-        }
-        return true;
-    }
-    
-    // Wertevergleich: {{feldname}} < {{99000}} oder {{PLZ}} >= {{10000}}
-    if ($type === 'compare' && !empty($param)) {
-        // Platzhalter durch Werte ersetzen
-        $expression = $param;
-        
-        // {{feldname}} durch Feldwert ersetzen
-        if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $expression, $matches)) {
-            foreach ($matches[1] as $fieldRef) {
-                $fieldValue = $formData[$fieldRef] ?? $value;
-                // Prüfen ob numerisch
-                if (is_numeric($fieldValue)) {
-                    $expression = str_replace('{{' . $fieldRef . '}}', (float)$fieldValue, $expression);
-                } else {
-                    $expression = str_replace('{{' . $fieldRef . '}}', '"' . addslashes($fieldValue) . '"', $expression);
-                }
-            }
+if (!function_exists('validateField')) {
+    function validateField(string $value, string $type, string $param, array $formData)
+    {
+        if (empty($value) || empty($type)) {
+            return true;
         }
         
-        // Nur sichere Operatoren erlauben
-        if (preg_match('/^[\d\.\s\<\>\=\!\"\'\+\-\*\/\(\)]+$/', $expression)) {
-            try {
-                // Ausdruck auswerten
-                $result = @eval('return (' . $expression . ');');
-                if ($result === false) {
-                    return 'Wert entspricht nicht den Vorgaben';
-                }
-            } catch (Exception $e) {
-                return 'Validierungsfehler';
-            }
+        // Vorgefertigte Regex-Muster
+        $patterns = [
+            'iban' => '/^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$/',
+            'bic' => '/^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/',
+            'plz_de' => '/^[0-9]{5}$/',
+            'plz_at' => '/^[0-9]{4}$/',
+            'plz_ch' => '/^[0-9]{4}$/',
+            'phone' => '/^[\+]?[0-9\s\-\/\(\)]{6,20}$/',
+            'url' => '/^https?:\/\/[^\s]+$/',
+            'date_de' => '/^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[0-2])\.[0-9]{4}$/',
+            'date_iso' => '/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/',
+            'time' => '/^([01][0-9]|2[0-3]):[0-5][0-9]$/',
+            'number' => '/^[0-9]+$/',
+            'alpha' => '/^[a-zA-ZäöüÄÖÜß\s]+$/',
+            'alphanumeric' => '/^[a-zA-Z0-9äöüÄÖÜß\s]+$/',
+        ];
+        
+        $errorMessages = [
+            'iban' => 'Ungültige IBAN (Format: DE89370400440532013000)',
+            'bic' => 'Ungültiger BIC/SWIFT-Code',
+            'plz_de' => 'Ungültige deutsche Postleitzahl (5 Ziffern)',
+            'plz_at' => 'Ungültige österreichische Postleitzahl (4 Ziffern)',
+            'plz_ch' => 'Ungültige Schweizer Postleitzahl (4 Ziffern)',
+            'phone' => 'Ungültige Telefonnummer',
+            'url' => 'Ungültige URL (muss mit http:// oder https:// beginnen)',
+            'date_de' => 'Ungültiges Datum (Format: TT.MM.JJJJ)',
+            'date_iso' => 'Ungültiges Datum (Format: JJJJ-MM-TT)',
+            'time' => 'Ungültige Uhrzeit (Format: HH:MM)',
+            'number' => 'Nur Zahlen erlaubt',
+            'alpha' => 'Nur Buchstaben erlaubt',
+            'alphanumeric' => 'Nur Buchstaben und Zahlen erlaubt',
+        ];
+        
+        // IBAN: Leerzeichen entfernen und Großschreibung
+        if ($type === 'iban') {
+            $value = strtoupper(str_replace(' ', '', $value));
         }
+        
+        // BIC: Großschreibung
+        if ($type === 'bic') {
+            $value = strtoupper($value);
+        }
+        
+        // Pattern-basierte Validierung
+        if (isset($patterns[$type])) {
+            if (!preg_match($patterns[$type], $value)) {
+                return $errorMessages[$type];
+            }
+            return true;
+        }
+        
+        // Mindestlänge
+        if ($type === 'min_length') {
+            $minLen = (int)$param;
+            if (mb_strlen($value) < $minLen) {
+                return "Mindestens {$minLen} Zeichen erforderlich";
+            }
+            return true;
+        }
+        
+        // Maximallänge
+        if ($type === 'max_length') {
+            $maxLen = (int)$param;
+            if (mb_strlen($value) > $maxLen) {
+                return "Maximal {$maxLen} Zeichen erlaubt";
+            }
+            return true;
+        }
+        
+        // Eigenes Regex-Muster
+        if ($type === 'regex' && !empty($param)) {
+            if (!preg_match('/' . $param . '/', $value)) {
+                return 'Ungültiges Format';
+            }
+            return true;
+        }
+        
+        // Wertevergleich: {{feldname}} < {{99000}} oder {{PLZ}} >= {{10000}}
+        if ($type === 'compare' && !empty($param)) {
+            // Platzhalter durch Werte ersetzen
+            $expression = $param;
+            
+            // {{feldname}} durch Feldwert ersetzen
+            if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $expression, $matches)) {
+                foreach ($matches[1] as $fieldRef) {
+                    $fieldValue = $formData[$fieldRef] ?? $value;
+                    // Prüfen ob numerisch
+                    if (is_numeric($fieldValue)) {
+                        $expression = str_replace('{{' . $fieldRef . '}}', (float)$fieldValue, $expression);
+                    } else {
+                        $expression = str_replace('{{' . $fieldRef . '}}', '"' . addslashes($fieldValue) . '"', $expression);
+                    }
+                }
+            }
+            
+            // Nur sichere Operatoren erlauben
+            if (preg_match('/^[\d\.\s\<\>\=\!\"\'\+\-\*\/\(\)]+$/', $expression)) {
+                try {
+                    // Ausdruck auswerten
+                    $result = @eval('return (' . $expression . ');');
+                    if ($result === false) {
+                        return 'Wert entspricht nicht den Vorgaben';
+                    }
+                } catch (Exception $e) {
+                    return 'Validierungsfehler';
+                }
+            }
+            return true;
+        }
+        
         return true;
     }
-    
-    return true;
 }
 
 // Formular verarbeiten (nur im Frontend)
@@ -416,6 +425,7 @@ if (!$isBackend && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[$formId
 // Section Wrapper
 $hasSection = !empty($sectionBg) || !empty($sectionBgImage) || !empty($sectionPadding);
 $sectionClasses = array_filter([$sectionBg, $sectionPadding]);
+if ($sectionLight) $sectionClasses[] = 'uk-light';
 
 if ($hasSection): ?>
 <section class="<?= implode(' ', $sectionClasses) ?>"<?php if ($sectionBgImage): ?> style="background-image: url('<?= rex_url::media($sectionBgImage) ?>'); background-size: cover; background-position: center;"<?php endif; ?>>
@@ -490,6 +500,7 @@ if ($hasSection): ?>
                 $fieldRequired = !empty($field['field_required']);
                 $fieldDefault = $field['field_default'] ?? '';
                 $fieldWidth = $field['field_width'] ?? '1-1';
+                $fieldAttributes = $field['field_attributes'] ?? '';
                 
                 // Optionen für Select/Radio laden
                 $parsedOptions = parseFieldOptions($field);
@@ -501,6 +512,9 @@ if ($hasSection): ?>
                 $inputValue = $formData[$fieldName] ?? $fieldDefault;
                 $hasError = isset($formErrors[$fieldName]);
                 $errorClass = $hasError ? 'uk-form-danger' : '';
+                
+                // Zusätzliche Attribute
+                $extraAttrs = $fieldAttributes ? ' ' . $fieldAttributes : '';
             ?>
                 
                 <?php if ($fieldType === 'fieldset'): ?>
@@ -540,15 +554,24 @@ if ($hasSection): ?>
                         <?php endif; ?>
                         <div class="uk-form-controls">
                             <?php if ($fieldType === 'textarea'): ?>
-                                <textarea class="uk-textarea <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" rows="5" placeholder="<?= rex_escape($fieldPlaceholder) ?>" <?= $fieldRequired ? 'required' : '' ?>><?= rex_escape($inputValue) ?></textarea>
+                                <textarea class="uk-textarea <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" rows="5" placeholder="<?= rex_escape($fieldPlaceholder) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>><?= rex_escape($inputValue) ?></textarea>
                             <?php elseif ($fieldType === 'select'): ?>
-                                <?= renderSelect($inputName, $parsedOptions, $inputValue, $fieldPlaceholder, $fieldRequired, $errorClass) ?>
+                                <select class="uk-select <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
+                                    <option value=""><?= rex_escape($fieldPlaceholder ?: 'Bitte wählen...') ?></option>
+                                    <?php foreach ($parsedOptions as $optValue => $optLabel): ?>
+                                        <option value="<?= rex_escape($optValue) ?>"<?= (string)$inputValue === (string)$optValue ? ' selected' : '' ?>><?= rex_escape($optLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             <?php elseif ($fieldType === 'radio'): ?>
-                                <?= renderRadio($inputName, $parsedOptions, $inputValue, $fieldRequired) ?>
+                                <div>
+                                    <?php foreach ($parsedOptions as $optValue => $optLabel): ?>
+                                        <label class="uk-margin-small-right"><input class="uk-radio" type="radio" name="<?= $inputName ?>" value="<?= rex_escape($optValue) ?>"<?= (string)$inputValue === (string)$optValue ? ' checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($optLabel) ?></label>
+                                    <?php endforeach; ?>
+                                </div>
                             <?php elseif ($fieldType === 'checkbox'): ?>
-                                <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?> <?= $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
+                                <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
                             <?php else: ?>
-                                <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldPlaceholder) ?>" <?= $fieldRequired ? 'required' : '' ?>>
+                                <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldPlaceholder) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                             <?php endif; ?>
                             <?php if ($hasError): ?><span class="uk-text-danger uk-text-small"><?= rex_escape($formErrors[$fieldName]) ?></span><?php endif; ?>
                         </div>
@@ -558,16 +581,23 @@ if ($hasSection): ?>
                     <!-- Floating Labels -->
                     <div class="uk-width-<?= $fieldWidth ?>@s uk-margin">
                         <?php if ($fieldType === 'textarea'): ?>
-                            <textarea class="uk-textarea <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" rows="5" placeholder="<?= rex_escape($fieldLabel . ($fieldRequired ? ' *' : '')) ?>" <?= $fieldRequired ? 'required' : '' ?>><?= rex_escape($inputValue) ?></textarea>
+                            <textarea class="uk-textarea <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" rows="5" placeholder="<?= rex_escape($fieldLabel . ($fieldRequired ? ' *' : '')) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>><?= rex_escape($inputValue) ?></textarea>
                         <?php elseif ($fieldType === 'select'): ?>
-                            <?= renderSelect($inputName, $parsedOptions, $inputValue, $fieldLabel . ($fieldRequired ? ' *' : ''), $fieldRequired, $errorClass) ?>
+                            <select class="uk-select <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
+                                <option value=""><?= rex_escape($fieldLabel . ($fieldRequired ? ' *' : '')) ?></option>
+                                <?php foreach ($parsedOptions as $optValue => $optLabel): ?>
+                                    <option value="<?= rex_escape($optValue) ?>"<?= (string)$inputValue === (string)$optValue ? ' selected' : '' ?>><?= rex_escape($optLabel) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         <?php elseif ($fieldType === 'checkbox'): ?>
-                            <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?> <?= $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
+                            <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
                         <?php elseif ($fieldType === 'radio'): ?>
                             <div class="uk-margin-small-bottom uk-text-muted"><?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></div>
-                            <?= renderRadio($inputName, $parsedOptions, $inputValue, $fieldRequired) ?>
+                            <?php foreach ($parsedOptions as $optValue => $optLabel): ?>
+                                <label class="uk-margin-small-right"><input class="uk-radio" type="radio" name="<?= $inputName ?>" value="<?= rex_escape($optValue) ?>"<?= (string)$inputValue === (string)$optValue ? ' checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($optLabel) ?></label>
+                            <?php endforeach; ?>
                         <?php else: ?>
-                            <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldLabel . ($fieldRequired ? ' *' : '')) ?>" <?= $fieldRequired ? 'required' : '' ?>>
+                            <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldLabel . ($fieldRequired ? ' *' : '')) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                         <?php endif; ?>
                         <?php if ($hasError): ?><span class="uk-text-danger uk-text-small"><?= rex_escape($formErrors[$fieldName]) ?></span><?php endif; ?>
                     </div>
@@ -583,15 +613,24 @@ if ($hasSection): ?>
                         <?php endif; ?>
                         <div class="uk-form-controls">
                             <?php if ($fieldType === 'textarea'): ?>
-                                <textarea class="uk-textarea <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" rows="5" placeholder="<?= rex_escape($fieldPlaceholder) ?>" <?= $fieldRequired ? 'required' : '' ?>><?= rex_escape($inputValue) ?></textarea>
+                                <textarea class="uk-textarea <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" rows="5" placeholder="<?= rex_escape($fieldPlaceholder) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>><?= rex_escape($inputValue) ?></textarea>
                             <?php elseif ($fieldType === 'select'): ?>
-                                <?= renderSelect($inputName, $parsedOptions, $inputValue, $fieldPlaceholder, $fieldRequired, $errorClass) ?>
+                                <select class="uk-select <?= $errorClass ?>" id="<?= $inputName ?>" name="<?= $inputName ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
+                                    <option value=""><?= rex_escape($fieldPlaceholder ?: 'Bitte wählen...') ?></option>
+                                    <?php foreach ($parsedOptions as $optValue => $optLabel): ?>
+                                        <option value="<?= rex_escape($optValue) ?>"<?= (string)$inputValue === (string)$optValue ? ' selected' : '' ?>><?= rex_escape($optLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             <?php elseif ($fieldType === 'radio'): ?>
-                                <?= renderRadio($inputName, $parsedOptions, $inputValue, $fieldRequired) ?>
+                                <div>
+                                    <?php foreach ($parsedOptions as $optValue => $optLabel): ?>
+                                        <label class="uk-margin-small-right"><input class="uk-radio" type="radio" name="<?= $inputName ?>" value="<?= rex_escape($optValue) ?>"<?= (string)$inputValue === (string)$optValue ? ' checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($optLabel) ?></label>
+                                    <?php endforeach; ?>
+                                </div>
                             <?php elseif ($fieldType === 'checkbox'): ?>
-                                <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?> <?= $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
+                                <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
                             <?php else: ?>
-                                <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldPlaceholder) ?>" <?= $fieldRequired ? 'required' : '' ?>>
+                                <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldPlaceholder) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                             <?php endif; ?>
                             <?php if ($hasError): ?><span class="uk-text-danger uk-text-small"><?= rex_escape($formErrors[$fieldName]) ?></span><?php endif; ?>
                         </div>
@@ -602,7 +641,7 @@ if ($hasSection): ?>
             <?php if ($privacyCheckbox): ?>
                 <div class="uk-width-1-1 uk-margin">
                     <label>
-                        <input class="uk-checkbox" type="checkbox" name="<?= $formId ?>_privacy" value="1" required>
+                        <input class="uk-checkbox" type="checkbox" name="<?= $formId ?>_privacy" value="1" <?= !$isBackend ? 'required' : '' ?>>
                         <?php 
                         $privacyTextOutput = $privacyText;
                         if ($privacyLink && strpos($privacyTextOutput, '{link}') !== false) {

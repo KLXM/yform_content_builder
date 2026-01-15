@@ -2,6 +2,7 @@
 
 namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
 
+use rex;
 use rex_escape;
 
 /**
@@ -11,6 +12,7 @@ use rex_escape;
  * - Label-Rendering
  * - Verschachtelte Werte extrahieren
  * - Notice/Hilfetext
+ * - Berechtigungsprüfung
  */
 abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterface
 {
@@ -30,6 +32,29 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     public function setRegistry(ContentBuilderFieldRegistry $registry): void
     {
         $this->registry = $registry;
+    }
+
+    /**
+     * Prüft ob der Benutzer die Berechtigung hat dieses Feld zu sehen
+     * 
+     * @param array $fieldConfig Feldkonfiguration mit optionalem 'perm' Key
+     * @return bool True wenn Feld sichtbar sein soll, false sonst
+     */
+    protected function hasPermission(array $fieldConfig): bool
+    {
+        if (!isset($fieldConfig['perm'])) {
+            // Keine Berechtigung definiert = für alle sichtbar
+            return true;
+        }
+
+        // Berechtigungsprüfung
+        if ($fieldConfig['perm'] === 'admin') {
+            // Nur für Admins
+            return rex::getUser()?->isAdmin() ?? false;
+        }
+
+        // Unbekannte Berechtigung = erlauben (Fallback)
+        return true;
     }
 
     /**

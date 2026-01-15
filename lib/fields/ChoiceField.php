@@ -16,6 +16,11 @@ class ChoiceField extends ContentBuilderFieldAbstract
 
     public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
     {
+        // Berechtigungsprüfung: Feld nicht rendern wenn Berechtigung fehlt
+        if (!$this->hasPermission($fieldConfig)) {
+            return;
+        }
+
         $label = $fieldConfig['label'] ?? $fieldName;
         $choices = $fieldConfig['choices'] ?? [];
         $default = $fieldConfig['default'] ?? '';
