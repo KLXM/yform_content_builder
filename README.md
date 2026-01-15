@@ -533,7 +533,91 @@ $elements = ContentBuilderHelper::getAvailableElements();
 $config = ContentBuilderHelper::getElementConfig('text_image');
 ```
 
-## 🐛 Troubleshooting
+## � Permission System
+
+Mit dem Permission System kannst du einzelne Felder nur für bestimmte Benutzerrollen sichtbar machen. Das ist ideal für Admin-Funktionen, die nicht für alle Redakteure sichtbar sein sollen.
+
+### Basis-Nutzung
+
+Füge einfach `'perm'` zu deiner Feld-Konfiguration hinzu:
+
+```php
+'fields' => [
+    'title' => ['type' => 'text', 'label' => 'Titel'],
+    
+    // Nur für Admins
+    'sql_query' => [
+        'type' => 'textarea',
+        'label' => 'SQL-Abfrage',
+        'perm' => 'admin'
+    ],
+    
+    // Nur für Redakteure
+    'internal_notes' => [
+        'type' => 'textarea',
+        'label' => 'Interne Notizen',
+        'perm' => 'editor'
+    ]
+]
+```
+
+### Mehrere Rollen kombinieren
+
+**Pipe-Format** (einfach und lesbar):
+```php
+'perm' => 'editor|reviewer|admin'  // Eine dieser Rollen genügt
+```
+
+**Array-Format** (für mehr Struktur):
+```php
+'perm' => ['editor', 'reviewer', 'admin']
+```
+
+### Praktische Beispiele
+
+```php
+// Kontaktformular Element
+'fields' => [
+    'form_fields' => ['type' => 'repeater', ...],
+    
+    // Nur Admins können technische SQL-Optionen bearbeiten
+    'field_options_sql' => [
+        'type' => 'textarea',
+        'label' => 'Erweiterte SQL-Optionen',
+        'perm' => 'admin'
+    ],
+    
+    // Nur Power-User und Admins sehen erweiterte Settings
+    'advanced_settings' => [
+        'type' => 'repeater',
+        'label' => 'Erweiterte Einstellungen',
+        'perm' => 'power|admin'
+    ]
+]
+```
+
+### Verfügbare Rollen
+
+Die Rollen stammen aus deinem REDAXO-System:
+
+```php
+// Standard REDAXO Rollen (falls definiert)
+'admin'      // Admin-Benutzer (isAdmin() = true)
+'editor'     // Redakteur
+'reviewer'   // Freigabekontrolle
+'contributor' // Mitarbeiter
+'power'      // Power User
+// Plus alle benutzerdefinierten Rollen aus deinem System
+```
+
+### Sicherheit
+
+- ✅ Permission-Prüfung läuft **serverseitig** - Felder sind für nicht berechtigte Benutzer unsichtbar
+- ✅ Funktioniert in **allen Feldtypen** (text, textarea, cke5, repeater, etc.)
+- ✅ Funktioniert im **Frontend-Formular** und **Backend-Editor**
+- ✅ Keine Umwege möglich - nicht berechtigt = nicht zu sehen
+
+## �🐛 Troubleshooting
 
 ### Element wird nicht angezeigt
 1. Prüfe Ordnerstruktur: `/elements/mein_element/config.php`

@@ -39,6 +39,12 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
      * 
      * @param array $fieldConfig Feldkonfiguration mit optionalem 'perm' Key
      * @return bool True wenn Feld sichtbar sein soll, false sonst
+     * 
+     * Unterstützte perm-Optionen:
+     * - 'admin': Nur für Admin-Benutzer
+     * - 'rolename': Nur für Benutzer mit dieser Rolle
+     * - ['role1', 'role2']: Für Benutzer mit einer dieser Rollen
+     * - 'power|editor': Für Benutzer mit rolle "power" ODER "editor" (pipe-getrennt)
      */
     protected function hasPermission(array $fieldConfig): bool
     {
@@ -47,13 +53,50 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
             return true;
         }
 
-        // Berechtigungsprüfung
-        if ($fieldConfig['perm'] === 'admin') {
-            // Nur für Admins
-            return rex::getUser()?->isAdmin() ?? false;
+        $user = rex::getUser();
+        if (!$user) {
+            // Kein Benutzer eingeloggt
+            return false;
         }
 
-        // Unbekannte Berechtigung = erlauben (Fallback)
+        $perm = $fieldConfig['perm'];
+
+        // String-Format: Einzelne Rolle oder "admin"
+        if (is_string($perm)) {
+            // Spezialfall: "admin"
+            if ($perm === 'admin') {
+                return $user->isAdmin();
+            }
+
+            // Pipe-getrennte Rollen: "role1|role2|role3"
+            if (strpos($perm, '|') !== false) {
+                $roles = array_map('trim', explode('|', $perm));
+                foreach ($roles as $role) {
+                    if ($user->hasRole($role)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // Einzelne benutzerdefinierte Rolle
+            return $user->hasRole($perm);
+        }
+
+        // Array-Format: Mehrere erlaubte Rollen
+        if (is_array($perm)) {
+            foreach ($perm as $role) {
+                if ($role === 'admin' && $user->isAdmin()) {
+                    return true;
+                }
+                if ($user->hasRole($role)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Unbekanntes Format = erlauben (Fallback)
         return true;
     }
 

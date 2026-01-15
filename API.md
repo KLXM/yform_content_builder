@@ -8,6 +8,8 @@ Diese Dokumentation beschreibt die API des YForm Content Builders, wie man eigen
 - [Modul-Integration](#modul-integration)
 - [Feldtypen-System](#feldtypen-system)
 - [Feld-Konfiguration](#feld-konfiguration)
+  - [Gemeinsame Optionen](#gemeinsame-optionen-alle-felder)
+  - [Permission System](#permission-system)
 - [Eigene Elemente erstellen](#eigene-elemente-erstellen)
 - [Eigene Feldtypen erstellen](#eigene-feldtypen-erstellen)
 - [Extension Points](#extension-points)
@@ -181,6 +183,74 @@ Jeder Feldtyp unterstützt spezifische Konfigurationsoptionen:
 | `label` | string | Beschriftung des Feldes |
 | `notice` | string | Hilfetext unter dem Feld |
 | `default` | mixed | Standardwert |
+| `perm` | string/array | Berechtigungen - siehe Permission System unten |
+
+### Permission System
+
+Mit dem `perm` Key kannst du einzelne Felder nur für bestimmte Benutzerrollen sichtbar machen:
+
+#### Format
+
+**Einzelne Rolle:**
+```php
+'perm' => 'admin'      // Nur für Admins
+'perm' => 'editor'     // Nur für Redakteure
+```
+
+**Mehrere Rollen (pipe-getrennt):**
+```php
+'perm' => 'editor|reviewer|admin'  // Eine dieser Rollen genügt
+```
+
+**Array-Format:**
+```php
+'perm' => ['editor', 'reviewer', 'admin']
+```
+
+#### Verfügbare Rollen
+
+```php
+'admin'      // Admin-Benutzer (isAdmin() = true)
+'editor'     // Redakteur
+'reviewer'   // Freigabekontrolle
+'contributor' // Mitarbeiter
+'power'      // Power User
+// Plus alle benutzerdefinierten Rollen aus deinem REDAXO-System
+```
+
+#### Praktische Beispiele
+
+```php
+// Kontaktformular mit Admin-Feld
+'fields' => [
+    'form_title' => [
+        'type' => 'text',
+        'label' => 'Formular-Titel'
+    ],
+    
+    // Nur Admins sehen diese Feld
+    'sql_options' => [
+        'type' => 'textarea',
+        'label' => 'SQL-Optionen',
+        'notice' => 'Nur für Administratoren sichtbar',
+        'perm' => 'admin'
+    ],
+    
+    // Nur Power-User und Admins
+    'advanced_settings' => [
+        'type' => 'repeater',
+        'label' => 'Erweiterte Einstellungen',
+        'perm' => 'power|admin'
+    ]
+]
+```
+
+#### Sicherheit
+
+- ✅ Permission-Prüfung läuft **serverseitig** (nicht zu umgehen)
+- ✅ Funktioniert in **allen Feldtypen**
+- ✅ Funktioniert im **Backend-Editor** und **Frontend-Formular**
+- ✅ Nicht berechtigt = gar nicht zu sehen
 
 ### text
 
