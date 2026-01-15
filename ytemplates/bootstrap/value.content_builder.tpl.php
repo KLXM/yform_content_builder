@@ -97,7 +97,7 @@ if ($addon->getConfig('compact_mode')) {
                     
                     <div class="slice-rendered">
                         <?php if ($isSection): ?>
-                            <!-- Section-Label im Backend anzeigen -->
+                            <!-- Section-Label mit Hintergrund-Thumbnail -->
                             <div class="section-backend-label">
                                 <i class="fa fa-object-group"></i>
                                 <strong>Section:</strong> <?= rex_escape($elementData['label'] ?? 'Unbenannt') ?>
@@ -109,6 +109,19 @@ if ($addon->getConfig('compact_mode')) {
                                         <span class="label label-info">#<?= rex_escape($elementData['custom_id']) ?></span>
                                     <?php endif; ?>
                                 </span>
+                                <!-- Hintergrund-Thumbnail -->
+                                <?php
+                                $bgColor = $elementData['background_color'] ?? 'light';
+                                $bgImage = $elementData['background_image'] ?? '';
+                                $bgThumbnailClass = 'bg-' . ($bgColor ?: 'light');
+                                $bgThumbnailStyle = '';
+                                
+                                if ($bgImage) {
+                                    $bgImage = is_numeric($bgImage) ? rex_media::get($bgImage)->getFullPath() : $bgImage;
+                                    $bgThumbnailStyle = ' style="background-image: url(' . rex_url::media($bgImage) . ');"';
+                                }
+                                ?>
+                                <span class="section-bg-thumbnail <?= $bgThumbnailClass ?>"<?= $bgThumbnailStyle ?>></span>
                             </div>
                         <?php else: ?>
                             <?php if (file_exists($templateFile)): ?>
