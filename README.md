@@ -5,7 +5,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 ## ✨ Features
 
 ### 🎯 **Content-Elemente**
-- **10 fertige Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery, Kontaktformular
+- **11 fertige Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery, Kontaktformular, Moving Tiles
 - **Professional Media Widget**: 16:9 Preview-Container, object-fit: contain, globaler Counter für eindeutige IDs
 - **Professional Gallery**: Grid/Masonry Layout, Mixed Media (Bilder + Videos), Responsive Design
 - **Auto-Close Sections**: Visueller Container für Abschnitte ohne verschachtelte Hierarchie
@@ -184,6 +184,36 @@ SELECT code AS value, bezeichnung AS label FROM rex_laender ORDER BY bezeichnung
 | `min_length` | `10` | Mindestens 10 Zeichen |
 | `compare` | `{{plz}} < {{99000}}` | PLZ-Bereich prüfen |
 | `regex` | `^[A-Z]{3}$` | Eigenes Muster |
+
+### Moving Tiles Element (NEU)
+Parallax Tiles mit alternierenden Layouts - inspiriert vom Juno Template:
+
+- **Alternierende Layouts**: Bild links/rechts wechselt automatisch
+- **Parallax-Effekt**: Horizontale Bewegung beim Scrollen (konfigurierbar)
+- **Fade-In Animation**: Optional, integriert im Parallax
+- **Video-Support**: MP4, WebM mit autoplay/pause beim Scrollen (`uk-video="autoplay: inview"`)
+- **Mobile-First**: 
+  - Bilder immer zuerst auf Mobile (`uk-flex-first`)
+  - Feste Höhe auf Mobile, Cover auf Desktop
+- **Tile-Farben**: Global oder pro Item (Default, Muted, Primary, Secondary)
+- **Section-Hintergrund**: Transparent, Default, Muted, Primary, Secondary
+
+**Konfigurationsoptionen:**
+| Option | Beschreibung |
+|--------|-------------|
+| `tile_style` | Globale Textbereich-Farbe |
+| `section_bg` | Hintergrund der Section |
+| `section_padding` | Padding (klein/standard/groß/extra groß) |
+| `first_position` | Erstes Bild links oder rechts |
+| `parallax_enabled` | Parallax-Effekt an/aus |
+| `parallax_offset` | Versatz in Pixel (z.B. 30) |
+| `fade_enabled` | Fade-In Animation an/aus |
+
+**Pro Item:**
+- Bild oder Video
+- Text (CKE5)
+- Optionale eigene Tile-Farbe (überschreibt global)
+- Alt-Text, Dekorativ-Flag, Lightbox
 
 ### Enhanced Workflow
 - **Settings-Modals**: Erweiterte Optionen in übersichtlichen Dialogen  

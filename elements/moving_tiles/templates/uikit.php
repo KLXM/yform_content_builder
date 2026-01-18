@@ -79,7 +79,7 @@ if (!function_exists('movingTilesIsVideo')) {
             $itemTileLight = ' uk-light';
         }
         
-        // Alt-Text aus Medienpool wenn leer
+        // Alt-Text aus Medienpool wenn leer (nur med_alt)
         if (empty($imageAlt) && !empty($media)) {
             $mediaObj = rex_media::get($media);
             if ($mediaObj) {
