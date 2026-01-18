@@ -69,8 +69,8 @@ class RepeaterField extends ContentBuilderFieldAbstract
         echo 'data-view="' . htmlspecialchars($view, ENT_QUOTES, 'UTF-8') . '" ';
         echo 'data-grid-columns="' . htmlspecialchars($gridColumns, ENT_QUOTES, 'UTF-8') . '">';
 
-        // Template-Item erstellen wenn keine Items vorhanden sind
-        if (empty($items) && $hasItemModal) {
+        // Template-Item IMMER erstellen (für JS-Klonen beim Hinzufügen)
+        if (empty($items)) {
             $this->renderTemplateItem($fieldName, $fieldConfig, $baseFieldName, $itemModalFields, $triggerModals, $hasItemModal);
         }
 
