@@ -71,13 +71,17 @@ class RepeaterField extends ContentBuilderFieldAbstract
 
         // Template-Item IMMER erstellen (für JS-Klonen beim Hinzufügen)
         if (empty($items)) {
-            $this->renderTemplateItem($fieldName, $fieldConfig, $baseFieldName, $itemModalFields, $triggerModals, $hasItemModal);
+            // Bei leerem Repeater ein erstes echtes Item rendern, damit Daten beim ersten Speichern vorhanden sind
+            $items = [[]]; // Ein leeres Item hinzufügen
         }
 
         // Vorhandene Items rendern
         foreach ($items as $index => $item) {
             $this->renderItem($fieldName, $fieldConfig, $baseFieldName, $index, $item, $itemModalFields, $triggerModals, $hasItemModal);
         }
+        
+        // Template-Item für JS-Klonen (versteckt)
+        $this->renderTemplateItem($fieldName, $fieldConfig, $baseFieldName, $itemModalFields, $triggerModals, $hasItemModal);
 
         echo '</div>'; // .repeater-container
         
