@@ -76,7 +76,7 @@ class yform_content_builder_module
         
         // Script um Selectpicker mit sanitize:false zu initialisieren (für SVG/img data-content)
         ?>
-        <script>
+        <script nonce="<?= rex_response::getNonce() ?>">
         $(function() {
             // Selectpicker mit sanitize:false neu initialisieren, damit SVG-Icons angezeigt werden
             $('#yform_cb_form .selectpicker').each(function() {
@@ -96,7 +96,7 @@ class yform_content_builder_module
         
         // JavaScript für automatisches Data-Sync
         ?>
-        <script>
+        <script nonce="<?= rex_response::getNonce() ?>">
         (function() {
             var storage = document.getElementById('yform_cb_data_storage');
             var form = document.getElementById('yform_cb_form');
