@@ -98,6 +98,9 @@ class RepeaterField extends ContentBuilderFieldAbstract
     {
         $templateId = 'repeater_item_template_' . uniqid();
         
+        // Arrays zum Sammeln der Modals (werden am Ende gerendert)
+        $modalsToRender = [];
+        
         echo '<div class="repeater-item repeater-item-template" data-index="0" id="' . $templateId . '" style="display:none;">';
         
         $this->renderMoveButtons();
@@ -114,19 +117,31 @@ class RepeaterField extends ContentBuilderFieldAbstract
             ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
             $templateFieldCount++;
 
-            // Trigger-Modal nach diesem Feld
-            if (isset($triggerModals[$subFieldName])) {
-                $modalKey = $triggerModals[$subFieldName];
-                $this->renderFieldModal($templateId, 0, $fieldName, $fieldConfig, [], $baseFieldName, $modalKey);
+            // Item-Modal Button nach 2. Feld - nur Button rendern, Modal später
+            if ($hasItemModal && $templateFieldCount === 2) {
+                $this->renderItemModalButton($templateId, $fieldConfig);
+                $modalsToRender['item_modal'] = ['itemId' => $templateId, 'index' => 0, 'item' => []];
             }
 
-            // Item-Modal Button nach 2. Feld
-            if ($hasItemModal && $templateFieldCount === 2) {
-                $this->renderItemModal($templateId, 0, $fieldName, $fieldConfig, [], $baseFieldName);
+            // Trigger-Modal Button nach diesem Feld - nur Button rendern, Modal später
+            if (isset($triggerModals[$subFieldName])) {
+                $modalKey = $triggerModals[$subFieldName];
+                $this->renderFieldModalButton($templateId, $fieldConfig, $modalKey);
+                $modalsToRender[$modalKey] = ['itemId' => $templateId, 'index' => 0, 'item' => [], 'modalKey' => $modalKey];
             }
         }
 
         echo '<button type="button" class="btn btn-sm btn-danger btn-remove-repeater"><i class="fa fa-trash"></i></button>';
+        
+        // JETZT alle Modals am Ende rendern (Bootstrap findet sie dann korrekt per data-target)
+        foreach ($modalsToRender as $type => $data) {
+            if ($type === 'item_modal') {
+                $this->renderItemModalDialog($data['itemId'], $data['index'], $fieldName, $fieldConfig, $data['item'], $baseFieldName);
+            } else {
+                $this->renderFieldModalDialog($data['itemId'], $data['index'], $fieldName, $fieldConfig, $data['item'], $baseFieldName, $data['modalKey']);
+            }
+        }
+        
         echo '</div>';
     }
 
@@ -136,6 +151,9 @@ class RepeaterField extends ContentBuilderFieldAbstract
     protected function renderItem(string $fieldName, array $fieldConfig, string $baseFieldName, int $index, array $item, array $itemModalFields, array $triggerModals, bool $hasItemModal): void
     {
         $itemId = 'repeater_item_' . uniqid();
+        
+        // Arrays zum Sammeln der Modals (werden am Ende gerendert)
+        $modalsToRender = [];
         
         echo '<div class="repeater-item" data-index="' . $index . '" id="' . $itemId . '">';
         
@@ -153,19 +171,31 @@ class RepeaterField extends ContentBuilderFieldAbstract
             ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
             $fieldsRendered++;
 
-            // Trigger-Modal nach diesem Feld
-            if (isset($triggerModals[$subFieldName])) {
-                $modalKey = $triggerModals[$subFieldName];
-                $this->renderFieldModal($itemId, $index, $fieldName, $fieldConfig, $item, $baseFieldName, $modalKey);
+            // Item-Modal Button nach 2. Feld - nur Button rendern, Modal später
+            if ($hasItemModal && $fieldsRendered === 2) {
+                $this->renderItemModalButton($itemId, $fieldConfig);
+                $modalsToRender['item_modal'] = ['itemId' => $itemId, 'index' => $index, 'item' => $item];
             }
 
-            // Item-Modal Button nach 2. Feld
-            if ($hasItemModal && $fieldsRendered === 2) {
-                $this->renderItemModal($itemId, $index, $fieldName, $fieldConfig, $item, $baseFieldName);
+            // Trigger-Modal Button nach diesem Feld - nur Button rendern, Modal später
+            if (isset($triggerModals[$subFieldName])) {
+                $modalKey = $triggerModals[$subFieldName];
+                $this->renderFieldModalButton($itemId, $fieldConfig, $modalKey);
+                $modalsToRender[$modalKey] = ['itemId' => $itemId, 'index' => $index, 'item' => $item, 'modalKey' => $modalKey];
             }
         }
 
         echo '<button type="button" class="btn btn-sm btn-danger btn-remove-repeater"><i class="fa fa-trash"></i></button>';
+        
+        // JETZT alle Modals am Ende rendern (Bootstrap findet sie dann korrekt per data-target)
+        foreach ($modalsToRender as $type => $data) {
+            if ($type === 'item_modal') {
+                $this->renderItemModalDialog($data['itemId'], $data['index'], $fieldName, $fieldConfig, $data['item'], $baseFieldName);
+            } else {
+                $this->renderFieldModalDialog($data['itemId'], $data['index'], $fieldName, $fieldConfig, $data['item'], $baseFieldName, $data['modalKey']);
+            }
+        }
+        
         echo '</div>';
     }
 
@@ -181,20 +211,31 @@ class RepeaterField extends ContentBuilderFieldAbstract
     }
 
     /**
-     * Rendert ein Item-Modal
+     * Rendert nur den Item-Modal Button (Modal-Dialog wird später gerendert)
      */
-    protected function renderItemModal(string $itemId, int $index, string $fieldName, array $fieldConfig, array $item, string $baseFieldName): void
+    protected function renderItemModalButton(string $itemId, array $fieldConfig): void
     {
-        $modalId = $itemId . '_modal';
+        $modalId = $itemId . '_item_modal';
         $modalConfig = $fieldConfig['item_modal'];
         $label = $modalConfig['label'] ?? 'Erweiterte Optionen';
-        $icon = $modalConfig['icon'] ?? 'fa-cog';
+        $icon = $modalConfig['icon'] ?? 'fa-ellipsis-h';
 
         echo '<div class="form-group">';
         echo '<button type="button" class="btn btn-default btn-sm btn-block" data-toggle="modal" data-target="#' . $modalId . '">';
         echo '<i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label);
         echo '</button>';
         echo '</div>';
+    }
+
+    /**
+     * Rendert den Item-Modal Dialog (ohne Button)
+     */
+    protected function renderItemModalDialog(string $itemId, int $index, string $fieldName, array $fieldConfig, array $item, string $baseFieldName): void
+    {
+        $modalId = $itemId . '_item_modal';
+        $modalConfig = $fieldConfig['item_modal'];
+        $label = $modalConfig['label'] ?? 'Erweiterte Optionen';
+        $icon = $modalConfig['icon'] ?? 'fa-ellipsis-h';
 
         echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" role="dialog">';
         echo '<div class="modal-dialog" role="document">';
@@ -225,17 +266,72 @@ class RepeaterField extends ContentBuilderFieldAbstract
     }
 
     /**
-     * Rendert ein Feld-Modal (z.B. media_modal)
+     * Rendert nur den Field-Modal Button (Modal-Dialog wird später gerendert)
      */
-    protected function renderFieldModal(string $itemId, int $index, string $fieldName, array $fieldConfig, array $item, string $baseFieldName, string $modalKey): void
+    protected function renderFieldModalButton(string $itemId, array $fieldConfig, string $modalKey): void
     {
         $modalConfig = $fieldConfig[$modalKey];
         $modalId = $itemId . '_' . $modalKey;
         $label = $modalConfig['label'] ?? 'Optionen';
-        $icon = $modalConfig['icon'] ?? 'fa-cog';
+        $icon = $modalConfig['icon'] ?? 'fa-sliders';
 
         echo '<div class="form-group">';
         echo '<button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#' . $modalId . '">';
+        echo '<i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label);
+        echo '</button>';
+        echo '</div>';
+    }
+
+    /**
+     * Rendert den Field-Modal Dialog (ohne Button)
+     */
+    protected function renderFieldModalDialog(string $itemId, int $index, string $fieldName, array $fieldConfig, array $item, string $baseFieldName, string $modalKey): void
+    {
+        $modalConfig = $fieldConfig[$modalKey];
+        $modalId = $itemId . '_' . $modalKey;
+        $label = $modalConfig['label'] ?? 'Optionen';
+        $icon = $modalConfig['icon'] ?? 'fa-sliders';
+
+        echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" role="dialog">';
+        echo '<div class="modal-dialog" role="document">';
+        echo '<div class="modal-content">';
+        echo '<div class="modal-header">';
+        echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
+        echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
+        echo '</div>';
+        echo '<div class="modal-body">';
+
+        if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
+            foreach ($modalConfig['fields'] as $subFieldName) {
+                if (isset($fieldConfig['fields'][$subFieldName])) {
+                    $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
+                    $subData = [$baseFieldName => [$index => $item]];
+                    ContentBuilderFieldRegistry::renderField($fullFieldName, $fieldConfig['fields'][$subFieldName], $subData);
+                }
+            }
+        }
+
+        echo '</div>';
+        echo '<div class="modal-footer">';
+        echo '<button type="button" class="btn btn-primary" data-dismiss="modal">Übernehmen</button>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+    }
+
+    /**
+     * @deprecated Alte Methode - wird nicht mehr verwendet (Button und Dialog sind nun getrennt)
+     */
+    protected function renderItemModal(string $itemId, int $index, string $fieldName, array $fieldConfig, array $item, string $baseFieldName): void
+    {
+        $modalId = $itemId . '_item_modal';
+        $modalConfig = $fieldConfig['item_modal'];
+        $label = $modalConfig['label'] ?? 'Erweiterte Optionen';
+        $icon = $modalConfig['icon'] ?? 'fa-cog';
+
+        echo '<div class="form-group">';
+        echo '<button type="button" class="btn btn-default btn-sm btn-block" data-toggle="modal" data-target="#' . $modalId . '">';
         echo '<i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label);
         echo '</button>';
         echo '</div>';

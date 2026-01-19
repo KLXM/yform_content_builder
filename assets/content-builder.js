@@ -154,6 +154,41 @@
                 }
             });
             
+            // REDAXO Linkmap Widget Events (global für alle Kontexte: YForm + Struktur)
+            $(document).on('click', '.rex-linkmap-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var linkId = $(this).data('id');
+                var params = $(this).data('params') || '';
+                
+                if (typeof openLinkMap === 'function') {
+                    // REDAXO's openLinkMap Funktion aufrufen
+                    // Format: openLinkMap('REX_LINK_1', '&clang=1&category_id=1')
+                    openLinkMap(linkId, params);
+                } else {
+                    console.error('openLinkMap function not found');
+                }
+                
+                return false;
+            });
+            
+            $(document).on('click', '.rex-linkmap-delete-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var linkId = $(this).data('id');
+                
+                if (typeof deleteREXLink === 'function') {
+                    // REDAXO's deleteREXLink Funktion aufrufen
+                    deleteREXLink(linkId);
+                } else {
+                    console.error('deleteREXLink function not found');
+                }
+                
+                return false;
+            });
+            
             // Enhanced Media Platzhalter und Preview klickbar machen
             $(document).on('click', '.media-preview-enhanced', function(e) {
                 // Nur wenn nicht auf Delete-Button geklickt wurde
