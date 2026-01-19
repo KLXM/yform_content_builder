@@ -123,8 +123,6 @@ class yform_content_builder_module
                 var allFields = form.querySelectorAll('input[name], textarea[name], select[name]');
                 var processedFields = new Set(); // Track welche Felder wir schon verarbeitet haben
                 
-                console.log('Found fields:', allFields.length);
-                
                 // Alle Inputs, Textareas und Selects sammeln
                 allFields.forEach(function(field) {
                     var name = field.getAttribute('name');
@@ -144,16 +142,12 @@ class yform_content_builder_module
                     }
                     processedFields.add(name);
                     
-                    console.log('Processing field:', name, 'value:', field.value, 'type:', field.type);
-                    
                     // Repeater-Felder (z.B. items[0][media]) zu verschachteltem Array konvertieren
                     var repeaterMatch = name.match(/^(\w+)\[(\d+)\]\[(\w+)\]$/);
                     if (repeaterMatch) {
                         var repeaterName = repeaterMatch[1];  // z.B. "items"
                         var index = parseInt(repeaterMatch[2]); // z.B. 0
                         var fieldName = repeaterMatch[3];      // z.B. "media"
-                        
-                        console.log('  -> Repeater field:', repeaterName, index, fieldName);
                         
                         // Repeater-Array initialisieren
                         if (!data[repeaterName]) {
@@ -202,9 +196,6 @@ class yform_content_builder_module
                         }
                     }
                 });
-                
-                // Debug: Console-Log
-                console.log('Collected form data:', data);
                 
                 // JSON in Hidden Field speichern
                 storage.value = JSON.stringify(data);
