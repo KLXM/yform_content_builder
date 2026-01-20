@@ -127,6 +127,12 @@ class yform_content_builder_module
                 allFields.forEach(function(field) {
                     var name = field.getAttribute('name');
                     
+                    // Skip fields from template items (hidden repeater templates)
+                    var isInTemplate = field.closest('.repeater-item-template');
+                    if (isInTemplate) {
+                        return; // Skip template fields
+                    }
+                    
                     // Radio-Buttons: Nur den gechecked Button verarbeiten
                     if (field.type === 'radio') {
                         if (!field.checked) {
