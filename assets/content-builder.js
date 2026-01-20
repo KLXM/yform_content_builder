@@ -446,8 +446,11 @@
                 e.preventDefault();
                 var $item = $(this).closest('.repeater-item');
                 var $container = $item.closest('.repeater-container');
+                var self = ContentBuilder;
                 $item.fadeOut(200, function() {
                     $item.remove();
+                    // Update indices after removal
+                    self.updateRepeaterIndices($container);
                     // Trigger custom event for module context to update form data
                     $container.trigger('repeater:item-removed');
                 });
