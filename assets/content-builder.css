@@ -1087,20 +1087,11 @@
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
 }
 
-/* Fix für Bootstrap Modal - verhindert Springen der Seite (wie in REDAXO be_style) */
+/* Fix für Bootstrap Modal - verhindert Springen */
 .modal-open {
     padding-right: 0 !important;
 }
 
 body.modal-open {
-    overflow: inherit;
-}
-
-/* Modal-Backdrop standardmäßig ausblenden (wie in REDAXO be_style) */
-.modal-backdrop {
-    display: none !important;
-}
-
-.modal-open .modal-backdrop {
-    display: block !important;
+    overflow: inherit !important;
 }

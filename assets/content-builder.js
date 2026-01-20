@@ -11,6 +11,9 @@
     
     // API-URL für AJAX-Requests (rex_api_function)
     var apiUrl = '/redaxo/index.php?rex-api-call=content_builder';
+    
+    // Scroll-Position merken für Modal-Fix
+    var scrollPosition = 0;
 
     var ContentBuilder = {
         
@@ -23,11 +26,29 @@
             // Events nur einmal binden (bei erstem init)
             if (!eventsInitialized) {
                 this.bindEvents();
+                this.bindModalScrollFix();
                 eventsInitialized = true;
             }
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+        },
+        
+        bindModalScrollFix: function() {
+            // Scroll-Position vor dem Öffnen speichern
+            $(document).on('show.bs.modal', '.modal', function() {
+                scrollPosition = $(window).scrollTop();
+            });
+            
+            // Nach dem Öffnen zur gespeicherten Position scrollen
+            $(document).on('shown.bs.modal', '.modal', function() {
+                $(window).scrollTop(scrollPosition);
+            });
+            
+            // Nach dem Schließen zur gespeicherten Position scrollen
+            $(document).on('hidden.bs.modal', '.modal', function() {
+                $(window).scrollTop(scrollPosition);
+            });
         },
 
         bindEvents: function() {
