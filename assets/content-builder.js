@@ -23,51 +23,11 @@
             // Events nur einmal binden (bei erstem init)
             if (!eventsInitialized) {
                 this.bindEvents();
-                this.initModals();
                 eventsInitialized = true;
             }
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
-        },
-        
-        initModals: function() {
-            // Modal öffnen per data-target
-            $(document).on('click', '[data-target^="#"]', function(e) {
-                var target = $(this).data('target');
-                if ($(target).hasClass('modal')) {
-                    e.preventDefault();
-                    ContentBuilder.openModal(target);
-                }
-            });
-            
-            // Modal schließen per close button
-            $(document).on('click', '[data-dismiss="modal"]', function(e) {
-                e.preventDefault();
-                var $modal = $(this).closest('.modal');
-                ContentBuilder.closeModal($modal);
-            });
-            
-            // ESC zum Schließen
-            $(document).keyup(function(e) {
-                if (e.key === "Escape") {
-                    $('.modal.cb-modal-open').each(function() {
-                        ContentBuilder.closeModal(this);
-                    });
-                }
-            });
-        },
-        
-        openModal: function(modalSelector) {
-            var $modal = $(modalSelector);
-            $modal.addClass('cb-modal-open');
-            $modal.show();
-        },
-        
-        closeModal: function(modal) {
-            var $modal = $(modal);
-            $modal.removeClass('cb-modal-open');
-            $modal.hide();
         },
 
         bindEvents: function() {
