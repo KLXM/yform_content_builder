@@ -36,18 +36,24 @@
         
         bindModalScrollFix: function() {
             // Scroll-Position speichern wenn Modal geöffnet wird
+            // Bei REDAXO mit height:100% müssen wir body.scrollTop speichern
             $(document).on('show.bs.modal', '.modal', function() {
                 var modalId = $(this).attr('id');
                 if (modalId) {
-                    modalScrollPositions[modalId] = $(window).scrollTop();
+                    // Beide Werte speichern (je nach Browser/Layout kann es unterschiedlich sein)
+                    var scrollTop = $(window).scrollTop() || $('body').scrollTop() || $('html').scrollTop();
+                    modalScrollPositions[modalId] = scrollTop;
                 }
             });
             
-            // Scroll-Position NACH dem Öffnen wiederherstellen (Bootstrap scrollt vorher nach oben)
+            // Scroll-Position NACH dem Öffnen wiederherstellen
             $(document).on('shown.bs.modal', '.modal', function() {
                 var modalId = $(this).attr('id');
                 if (modalId && typeof modalScrollPositions[modalId] !== 'undefined') {
-                    $(window).scrollTop(modalScrollPositions[modalId]);
+                    var scrollPos = modalScrollPositions[modalId];
+                    // Beide setzen für Kompatibilität
+                    $(window).scrollTop(scrollPos);
+                    $('html, body').scrollTop(scrollPos);
                 }
             });
             
