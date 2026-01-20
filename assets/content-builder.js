@@ -43,11 +43,18 @@
                 }
             });
             
-            // Scroll-Position wiederherstellen wenn Modal geschlossen wird
-            $(document).on('hidden.bs.modal', '.modal', function() {
+            // Scroll-Position NACH dem Öffnen wiederherstellen (Bootstrap scrollt vorher nach oben)
+            $(document).on('shown.bs.modal', '.modal', function() {
                 var modalId = $(this).attr('id');
                 if (modalId && typeof modalScrollPositions[modalId] !== 'undefined') {
                     $(window).scrollTop(modalScrollPositions[modalId]);
+                }
+            });
+            
+            // Scroll-Position beim Schließen aufräumen
+            $(document).on('hidden.bs.modal', '.modal', function() {
+                var modalId = $(this).attr('id');
+                if (modalId) {
                     delete modalScrollPositions[modalId];
                 }
             });
