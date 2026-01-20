@@ -114,42 +114,35 @@ if (!empty($allWidgets)) {
     $n['label'] = '';
     $n['field'] = $widgetListHtml;
     $n['note'] = rex_i18n::msg('yform_content_builder_widgets_notice');
-    $widgetFormElements[] = $n;
+    $formElements[] = $n;
 } else {
     $n = [];
     $n['label'] = '';
     $n['field'] = '<div class="alert alert-info">' . rex_i18n::msg('yform_content_builder_no_widgets') . '</div>';
-    $widgetFormElements[] = $n;
+    $formElements[] = $n;
 }
 
 $fragment = new rex_fragment();
-$fragment->setVar('elements', $widgetFormElements, false);
-$widgetContent .= $fragment->parse('core/form/form.php');
+$fragment->setVar('elements', $formElements, false);
+$content .= $fragment->parse('core/form/form.php');
 
-$widgetContent .= '</fieldset>';
+$content .= '</fieldset>';
 
-// Submit-Button für Widgets
-$widgetFormElements = [];
+// Submit-Button (für alle Einstellungen)
+$formElements = [];
 $n = [];
 $n['field'] = '<button class="btn btn-save rex-form-aligned" type="submit" name="save" value="1">' . rex_i18n::msg('yform_content_builder_save') . '</button>';
-$widgetFormElements[] = $n;
+$formElements[] = $n;
 
 $fragment = new rex_fragment();
-$fragment->setVar('elements', $widgetFormElements, false);
-$widgetContent .= $fragment->parse('core/form/submit.php');
+$fragment->setVar('elements', $formElements, false);
+$content .= $fragment->parse('core/form/submit.php');
 
-// Formular ausgeben
+// Ein Formular mit allen Einstellungen ausgeben
 $fragment = new rex_fragment();
 $fragment->setVar('class', 'edit', false);
 $fragment->setVar('title', rex_i18n::msg('yform_content_builder_settings'), false);
 $fragment->setVar('body', '<form action="' . rex_url::currentBackendPage() . '" method="post">' . $content . '</form>', false);
-echo $fragment->parse('core/page/section.php');
-
-// Widgets-Sektion ausgeben
-$fragment = new rex_fragment();
-$fragment->setVar('class', 'edit', false);
-$fragment->setVar('title', rex_i18n::msg('yform_content_builder_widgets_title'), false);
-$fragment->setVar('body', '<form action="' . rex_url::currentBackendPage() . '" method="post">' . $widgetContent . '</form>', false);
 echo $fragment->parse('core/page/section.php');
 
 // Info-Box

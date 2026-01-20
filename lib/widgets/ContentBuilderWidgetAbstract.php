@@ -34,6 +34,8 @@ abstract class ContentBuilderWidgetAbstract implements ContentBuilderWidgetInter
         }
         
         ob_start();
+        // Note: extract() ist hier sicher, da nur kontrollierte Widget-Daten übergeben werden
+        // und die Template-Dateien vom Widget-Entwickler selbst erstellt werden
         extract($data);
         include $templatePath;
         return ob_get_clean();
