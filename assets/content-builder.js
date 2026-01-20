@@ -11,9 +11,6 @@
     
     // API-URL für AJAX-Requests (rex_api_function)
     var apiUrl = '/redaxo/index.php?rex-api-call=content_builder';
-    
-    // Scroll-Position Speicher für Modals
-    var modalScrollPositions = {};
 
     var ContentBuilder = {
         
@@ -26,7 +23,7 @@
             // Events nur einmal binden (bei erstem init)
             if (!eventsInitialized) {
                 this.bindEvents();
-                this.bindModalScrollFix();
+                this.initModals();
                 eventsInitialized = true;
             }
             this.initMoveButtons();
@@ -34,36 +31,43 @@
             this.updateSectionClasses();
         },
         
-        bindModalScrollFix: function() {
-            // Scroll-Position speichern wenn Modal geöffnet wird
-            // Bei REDAXO mit height:100% müssen wir body.scrollTop speichern
-            $(document).on('show.bs.modal', '.modal', function() {
-                var modalId = $(this).attr('id');
-                if (modalId) {
-                    // Beide Werte speichern (je nach Browser/Layout kann es unterschiedlich sein)
-                    var scrollTop = $(window).scrollTop() || $('body').scrollTop() || $('html').scrollTop();
-                    modalScrollPositions[modalId] = scrollTop;
+        initModals: function() {
+            // Modal öffnen per data-target
+            $(document).on('click', '[data-target^="#"]', function(e) {
+                var target = $(this).data('target');
+                if ($(target).hasClass('modal')) {
+                    e.preventDefault();
+                    ContentBuilder.openModal(target);
                 }
             });
             
-            // Scroll-Position NACH dem Öffnen wiederherstellen
-            $(document).on('shown.bs.modal', '.modal', function() {
-                var modalId = $(this).attr('id');
-                if (modalId && typeof modalScrollPositions[modalId] !== 'undefined') {
-                    var scrollPos = modalScrollPositions[modalId];
-                    // Beide setzen für Kompatibilität
-                    $(window).scrollTop(scrollPos);
-                    $('html, body').scrollTop(scrollPos);
-                }
+            // Modal schließen per close button
+            $(document).on('click', '[data-dismiss="modal"]', function(e) {
+                e.preventDefault();
+                var $modal = $(this).closest('.modal');
+                ContentBuilder.closeModal($modal);
             });
             
-            // Scroll-Position beim Schließen aufräumen
-            $(document).on('hidden.bs.modal', '.modal', function() {
-                var modalId = $(this).attr('id');
-                if (modalId) {
-                    delete modalScrollPositions[modalId];
+            // ESC zum Schließen
+            $(document).keyup(function(e) {
+                if (e.key === "Escape") {
+                    $('.modal.cb-modal-open').each(function() {
+                        ContentBuilder.closeModal(this);
+                    });
                 }
             });
+        },
+        
+        openModal: function(modalSelector) {
+            var $modal = $(modalSelector);
+            $modal.addClass('cb-modal-open');
+            $modal.show();
+        },
+        
+        closeModal: function(modal) {
+            var $modal = $(modal);
+            $modal.removeClass('cb-modal-open');
+            $modal.hide();
         },
 
         bindEvents: function() {
