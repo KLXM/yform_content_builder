@@ -253,7 +253,7 @@ class RepeaterField extends ContentBuilderFieldAbstract
         $label = $modalConfig['label'] ?? 'Erweiterte Optionen';
         $icon = $modalConfig['icon'] ?? 'fa-ellipsis-h';
 
-        echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" role="dialog">';
+        echo '<div class="modal" id="' . $modalId . '" tabindex="-1" role="dialog">';
         echo '<div class="modal-dialog" role="document">';
         echo '<div class="modal-content">';
         echo '<div class="modal-header">';
@@ -308,7 +308,7 @@ class RepeaterField extends ContentBuilderFieldAbstract
         $label = $modalConfig['label'] ?? 'Optionen';
         $icon = $modalConfig['icon'] ?? 'fa-sliders';
 
-        echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" role="dialog">';
+        echo '<div class="modal" id="' . $modalId . '" tabindex="-1" role="dialog">';
         echo '<div class="modal-dialog" role="document">';
         echo '<div class="modal-content">';
         echo '<div class="modal-header">';
