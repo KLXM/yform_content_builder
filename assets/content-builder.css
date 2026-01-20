@@ -1093,5 +1093,5 @@
 }
 
 body.modal-open {
-    overflow: inherit !important;
+    overflow: visible !important;
 }
