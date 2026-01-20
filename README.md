@@ -30,6 +30,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 
 ### 🔧 **Developer Experience**
 - **Feld-Plugin-System**: Jeder Feldtyp als eigene Klasse, einfach erweiterbar via Extension Point
+- **Widget-System**: Erweitere bestehende Elemente um zusätzliche Felder (Datum, Social Media, Kontakte, etc.)
 - **rex_api_function**: Dedizierte API für AJAX-Requests (`/redaxo/index.php?rex-api-call=content_builder`)
 - **Element-Filter**: Kontrolle welche Elemente pro Feld verfügbar sind (Multiselect)
 - **Settings-Modals**: Komplexe Optionen in übersichtlichen Modal-Dialogen
@@ -41,6 +42,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 
 ### 🏗️ **Architecture**
 - **Field Registry**: Plugin-System für Feldtypen mit Interface und Extension Point
+- **Widget System**: Erweitere Elemente mit zusätzlichen Feldern von externen AddOns
 - **Element-Discovery**: Automatisches Laden aller Elemente aus `/elements/` Verzeichnis
 - **Custom Elements**: Eigene Elemente via Extension Point oder `project/elements/`
 - **Nested Data Structure**: Intelligente Verarbeitung verschachtelter Array-Daten
@@ -646,6 +648,66 @@ Die Rollen stammen aus deinem REDAXO-System:
 - ✅ Funktioniert in **allen Feldtypen** (text, textarea, cke5, repeater, etc.)
 - ✅ Funktioniert im **Frontend-Formular** und **Backend-Editor**
 - ✅ Keine Umwege möglich - nicht berechtigt = nicht zu sehen
+
+## 🧩 Widget System
+
+Das Widget-System ermöglicht es, bestehende Elemente um zusätzliche Felder zu erweitern, ohne die Element-Konfiguration direkt zu ändern.
+
+### Was sind Widgets?
+
+Widgets sind kleine, wiederverwendbare Erweiterungen, die:
+- **Zusätzliche Felder** zu Elementen hinzufügen
+- **Eigene Frontend-Ausgabe** haben
+- Von **externen AddOns** registriert werden können
+- In den **Einstellungen** aktiviert/deaktiviert werden können
+
+### Mitgelieferte Demo-Widgets
+
+#### 1. Datum-Widget
+Fügt ein Datumsfeld mit optionalem Label hinzu. **Anwendung**: Events, Artikel-Datum, Veröffentlichungsdatum
+
+#### 2. Social Media Widget
+Fügt Links zu Social Media Plattformen hinzu (Facebook, Instagram, LinkedIn, Twitter/X, YouTube). **Anwendung**: Kontaktseiten, Team-Profile, Unternehmensprofile
+
+### Eigenes Widget erstellen
+
+```php
+<?php
+namespace FriendsOfREDAXO\YFormContentBuilder\Widgets;
+
+class ContactPickerWidget extends ContentBuilderWidgetAbstract
+{
+    public static function getType(): string { return 'contact_picker'; }
+    public static function getLabel(): string { return 'Kontakt-Picker'; }
+    public static function getDescription(): string { return 'Wähle einen Kontakt aus YForm-Tabelle aus'; }
+    
+    public function getFields(): array
+    {
+        return [
+            'contact_id' => ['type' => 'select', 'label' => 'Kontakt', 'choices' => $this->getContactChoices()]
+        ];
+    }
+    
+    public function getHookName(): string { return 'after_content'; }
+    
+    public function render(array $widgetData, string $framework = 'bootstrap'): string
+    {
+        // Kontakt rendern...
+    }
+}
+```
+
+### Widget registrieren & aktivieren
+
+```php
+// In boot.php deines AddOns
+use FriendsOfREDAXO\YFormContentBuilder\Widgets\ContentBuilderWidgetRegistry;
+ContentBuilderWidgetRegistry::register(new ContactPickerWidget());
+```
+
+Dann in **YForm Content Builder** → **Einstellungen** → **Widget-Verwaltung** aktivieren.
+
+**Weitere Informationen**: Siehe [WIDGETS.md](WIDGETS.md) für vollständige Dokumentation.
 
 ## �🐛 Troubleshooting
 
