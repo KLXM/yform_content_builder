@@ -329,26 +329,26 @@ return [
             'type' => 'repeater',
             'label' => 'Cards',
             
-            // Modal für erweiterte Card-Optionen
-            'item_modal' => [
-                'label' => 'Erweiterte Optionen',
-                'icon' => 'fa-ellipsis-h',
-                'fields' => [
-                    'subtitle', 'badge', 'badge_color', 
-                    'card_width', 'card_style_override', 'card_shadow_override',
-                    'link_type', 'link_url', 'link_internal', 'link_text', 'link_card',
-                    'animation'
-                ]
-            ],
-            
-            // Medien-Modal für erweiterte Bildoptionen
+// Medien-Modal für erweiterte Bildoptionen
             'media_modal' => [
                 'label' => 'Medieneinstellungen',
                 'icon' => 'fa-sliders',
                 'trigger_after' => 'image',
                 'fields' => [
-                    'image_alt', 'image_decorative', 'image_title', 'media_width', 
+                    'image_alt', 'image_decorative', 'image_title', 'media_width',
                     'video_display', 'video_controls', 'media_lightbox', 'media_cover'
+                ]
+            ],
+
+            // Modal für erweiterte Card-Optionen
+            'item_modal' => [
+                'label' => 'Erweiterte Optionen',
+                'icon' => 'fa-ellipsis-h',
+                'fields' => [
+                    'subtitle', 'badge', 'badge_color',
+                    'card_width', 'card_style_override', 'card_shadow_override',
+                    'link_type', 'link_url', 'link_internal', 'link_text', 'link_card',
+                    'animation'
                 ]
             ],
             
