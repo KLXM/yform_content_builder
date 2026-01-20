@@ -5,12 +5,15 @@ namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
 use rex_article;
 use rex_clang;
 use rex_escape;
+use rex_i18n;
+use rex_response;
 
 /**
  * REDAXO Backend Link Widget
  */
 class BeLinkField extends ContentBuilderFieldAbstract
 {
+    private static bool $jsIncluded = false;
     public static function getType(): string
     {
         return 'be_link';
@@ -44,7 +47,7 @@ class BeLinkField extends ContentBuilderFieldAbstract
         $this->openFormGroup();
         $this->renderLabel($label);
 
-        echo '<div class="input-group">';
+        echo '<div class="input-group cb-link-widget-wrapper" data-widget-id="' . $linkCounter . '" data-clang="' . rex_clang::getCurrentId() . '">';
         
         // Sichtbares Textfeld mit Artikel-Name
         echo '<input class="form-control" type="text" ';
@@ -75,5 +78,124 @@ class BeLinkField extends ContentBuilderFieldAbstract
         echo '</div>';
 
         $this->closeFormGroup($notice);
+        
+        // JavaScript nur einmal einfügen
+        if (!self::$jsIncluded) {
+            self::$jsIncluded = true;
+            echo $this->getEditScript();
+        }
+    }
+    
+    /**
+     * JavaScript für Edit-Button
+     */
+    private function getEditScript(): string
+    {
+        $editTitle = rex_i18n::msg('content_editarticle');
+        $nonce = rex_response::getNonce();
+
+        return <<<JS
+            <script nonce="{$nonce}">
+            (function() {
+                function initLinkEditButtons() {
+                    document.querySelectorAll('.cb-link-widget-wrapper').forEach(function(wrapper) {
+                        const widgetId = wrapper.dataset.widgetId;
+                        const clang = wrapper.dataset.clang || 1;
+                        const btnGroup = wrapper.querySelector('.input-group-btn');
+                        
+                        if (btnGroup && !btnGroup.querySelector('.cb-link-edit')) {
+                            const editBtn = document.createElement('a');
+                            editBtn.href = '#';
+                            editBtn.className = 'btn btn-popup cb-link-edit';
+                            editBtn.title = '{$editTitle}';
+                            editBtn.dataset.widgetId = widgetId;
+                            editBtn.dataset.clang = clang;
+                            editBtn.innerHTML = '<i class="rex-icon fa-pencil"></i>';
+                            btnGroup.appendChild(editBtn);
+                        }
+                    });
+                }
+                
+                // Initial bei rex:ready
+                jQuery(document).on('rex:ready', function() {
+                    initLinkEditButtons();
+                });
+                
+                // Bei Modal-Öffnung
+                jQuery(document).on('shown.bs.modal', '.modal', function() {
+                    initLinkEditButtons();
+                });
+                
+                // Nach Modal-Schließen (für Haupt-Seite)
+                jQuery(document).on('hidden.bs.modal', '.modal', function() {
+                    initLinkEditButtons();
+                });
+                
+                // Bei Pjax-Reload
+                jQuery(document).on('pjax:end', function() {
+                    initLinkEditButtons();
+                });
+                
+                // Bei Content Builder Element-Hinzufügen/Änderungen
+                jQuery(document).on('content-builder:element-added content-builder:element-updated', function() {
+                    initLinkEditButtons();
+                });
+                
+                // Mutation Observer für dynamisch hinzugefügte Widgets
+                const observer = new MutationObserver(function(mutations) {
+                    let shouldInit = false;
+                    mutations.forEach(function(mutation) {
+                        if (mutation.addedNodes.length > 0) {
+                            mutation.addedNodes.forEach(function(node) {
+                                if (node.nodeType === 1 && (node.classList.contains('cb-link-widget-wrapper') || node.querySelector('.cb-link-widget-wrapper'))) {
+                                    shouldInit = true;
+                                }
+                            });
+                        }
+                    });
+                    if (shouldInit) {
+                        initLinkEditButtons();
+                    }
+                });
+                
+                // Observer starten
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+                
+                // Click-Handler für Edit-Buttons
+                document.addEventListener('click', function(e) {
+                    const btn = e.target.closest('.cb-link-edit');
+                    if (!btn) return;
+                    
+                    e.preventDefault();
+                    
+                    const widgetId = btn.dataset.widgetId;
+                    const clang = btn.dataset.clang || 1;
+                    const input = document.getElementById('REX_LINK_' + widgetId);
+                    
+                    // Wenn leer: Zur Struktur springen um neue Seite anzulegen
+                    if (!input || !input.value || input.value === '') {
+                        const url = 'index.php?page=structure&clang=' + clang;
+                        window.open(url, '_blank');
+                        return;
+                    }
+                    
+                    const articleId = parseInt(input.value, 10);
+                    if (isNaN(articleId) || articleId < 1) {
+                        // Fallback zur Struktur wenn ungültige ID
+                        const url = 'index.php?page=structure&clang=' + clang;
+                        window.open(url, '_blank');
+                        return;
+                    }
+                    
+                    // Artikel im Backend öffnen
+                    const url = 'index.php?page=content/edit&article_id=' + articleId + '&clang=' + clang + '&mode=edit';
+                    window.open(url, '_blank');
+                });
+            })();
+            </script>
+            JS;
     }
 }
