@@ -35,11 +35,31 @@ return [
     'label' => 'Überschrift',
     'icon' => 'fa fa-header',
     'description' => 'Überschrift mit Styling-Optionen',
-    'settings_modal' => [
-        'label' => 'Section-Einstellungen',
-        'icon' => 'fa-cog',
-        'fields' => $config::getSectionFieldNames()
+    
+    // Tab-Gruppierung
+    'field_groups' => [
+        'content_tab' => [
+            'label' => 'Inhalt',
+            'icon' => 'fa-text-width',
+            'fields' => ['text', 'tag', 'size', 'modifier']
+        ],
+        'style_tab' => [
+            'label' => 'Styling',
+            'icon' => 'fa-paint-brush',
+            'fields' => ['alignment', 'color', 'underline', 'spacing_top', 'spacing_bottom']
+        ],
+        'link_tab' => [
+            'label' => 'Link',
+            'icon' => 'fa-link',
+            'fields' => ['link_type', 'link_url', 'link_internal']
+        ],
+        'section_tab' => [
+            'label' => 'Sektion',
+            'icon' => 'fa-columns',
+            'fields' => $config::getSectionFieldNames()
+        ]
     ],
+    
     'fields' => array_merge(
         // Element-spezifische Felder
         [
