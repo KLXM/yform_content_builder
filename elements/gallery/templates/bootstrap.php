@@ -296,7 +296,7 @@ if ($columns == 5) {
 }
 </style>
 
-<script>
+<script nonce="<?= rex_response::getNonce() ?>">
 $(document).ready(function() {
     // Gallery Video Controls
     $('.btn-gallery-video-play').on('click', function(e) {

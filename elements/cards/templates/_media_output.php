@@ -96,7 +96,7 @@ if ($isVideoFile): ?>
                    <?= $mediaCover ? 'uk-cover' : '' ?>></video>
         </div>
         
-        <script>
+        <script nonce="<?= rex_response::getNonce() ?>">
         (function() {
             var container = document.getElementById('<?= $posterContainerId ?>');
             if (!container || container.dataset.initialized) return;
