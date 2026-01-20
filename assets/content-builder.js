@@ -1082,13 +1082,21 @@
                 var newItemId = 'repeater_item_' + Math.random().toString(16).slice(2);
                 $newItem.attr('id', newItemId);
                 
-                // Modal ID aktualisieren (falls vorhanden)
-                var $modal = $newItem.find('.modal');
-                if ($modal.length > 0) {
-                    var newModalId = newItemId + '_modal';
+                // ALLE Modals aktualisieren (es können mehrere sein: media_modal, item_modal, etc.)
+                $newItem.find('.modal').each(function() {
+                    var $modal = $(this);
+                    var oldModalId = $modal.attr('id');
+                    
+                    // Modalname extrahieren (z.B. "_item_modal", "_media_modal")
+                    var modalSuffix = oldModalId ? oldModalId.replace(/^repeater_item_[^_]+/, '') : '_modal';
+                    var newModalId = newItemId + modalSuffix;
+                    
                     $modal.attr('id', newModalId);
-                    $newItem.find('[data-toggle="modal"]').attr('data-target', '#' + newModalId);
-                }
+                    
+                    // Den entsprechenden Button finden und aktualisieren
+                    // Button sollte im gleichen Item sein (nicht in verschachtelten Items!)
+                    $newItem.children().find('[data-target="#' + oldModalId + '"]').attr('data-target', '#' + newModalId);
+                });
                 
                 // CKE5 Elemente entfernen
                 $newItem.find('.ck-editor__editable').remove();
