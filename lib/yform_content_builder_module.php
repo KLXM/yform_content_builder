@@ -205,6 +205,11 @@ class yform_content_builder_module
             form.addEventListener('change', collectFormData);
             form.addEventListener('input', collectFormData);
             
+            // Repeater item removal event
+            $(form).on('repeater:item-removed', function() {
+                collectFormData();
+            });
+            
             // REDAXO Media Widget Change Events (für REX_MEDIA_ Felder)
             // REDAXO schreibt in Felder mit ID REX_MEDIA_X, triggert aber jQuery change
             $(form).on('change', 'input[id^="REX_MEDIA_"]', function() {
