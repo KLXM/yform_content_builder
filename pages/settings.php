@@ -6,10 +6,13 @@
 
 $addon = rex_addon::get('yform_content_builder');
 
+use FriendsOfREDAXO\YFormContentBuilder\Widgets\ContentBuilderWidgetRegistry;
+
 // Formular verarbeiten
 if (rex_post('save', 'bool')) {
     $addon->setConfig('theme', rex_post('theme', 'string', ''));
     $addon->setConfig('compact_mode', rex_post('compact_mode', 'bool', false));
+    $addon->setConfig('enabled_widgets', rex_post('enabled_widgets', 'array', []));
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
     // Theme Builder Cache zurücksetzen
@@ -28,6 +31,7 @@ if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitT
 
 $currentTheme = $addon->getConfig('theme', '');
 $compactMode = $addon->getConfig('compact_mode', false);
+$enabledWidgets = $addon->getConfig('enabled_widgets', []);
 
 // Formular bauen
 $content = '';
@@ -71,11 +75,81 @@ $fragment = new rex_fragment();
 $fragment->setVar('elements', $formElements, false);
 $content .= $fragment->parse('core/form/submit.php');
 
+// Widgets-Sektion
+$widgetContent = '';
+$widgetContent .= '<fieldset>';
+$widgetContent .= '<legend>' . rex_i18n::msg('yform_content_builder_widgets') . '</legend>';
+
+$widgetFormElements = [];
+
+// Widget-Liste
+ContentBuilderWidgetRegistry::init();
+$allWidgets = ContentBuilderWidgetRegistry::getAll();
+
+if (!empty($allWidgets)) {
+    $widgetListHtml = '<div class="table-responsive"><table class="table table-striped">';
+    $widgetListHtml .= '<thead><tr>';
+    $widgetListHtml .= '<th style="width: 30px;"></th>';
+    $widgetListHtml .= '<th>' . rex_i18n::msg('yform_content_builder_widget_name') . '</th>';
+    $widgetListHtml .= '<th>' . rex_i18n::msg('yform_content_builder_widget_description') . '</th>';
+    $widgetListHtml .= '<th>' . rex_i18n::msg('yform_content_builder_widget_hook') . '</th>';
+    $widgetListHtml .= '</tr></thead>';
+    $widgetListHtml .= '<tbody>';
+    
+    foreach ($allWidgets as $widget) {
+        $type = $widget::getType();
+        $checked = in_array($type, $enabledWidgets, true) ? ' checked' : '';
+        
+        $widgetListHtml .= '<tr>';
+        $widgetListHtml .= '<td><input type="checkbox" name="enabled_widgets[]" value="' . rex_escape($type) . '"' . $checked . '></td>';
+        $widgetListHtml .= '<td><strong>' . rex_escape($widget::getLabel()) . '</strong><br><small class="text-muted">' . rex_escape($type) . '</small></td>';
+        $widgetListHtml .= '<td>' . rex_escape($widget::getDescription()) . '</td>';
+        $widgetListHtml .= '<td><code>' . rex_escape($widget->getHookName()) . '</code></td>';
+        $widgetListHtml .= '</tr>';
+    }
+    
+    $widgetListHtml .= '</tbody></table></div>';
+    
+    $n = [];
+    $n['label'] = '';
+    $n['field'] = $widgetListHtml;
+    $n['note'] = rex_i18n::msg('yform_content_builder_widgets_notice');
+    $widgetFormElements[] = $n;
+} else {
+    $n = [];
+    $n['label'] = '';
+    $n['field'] = '<div class="alert alert-info">' . rex_i18n::msg('yform_content_builder_no_widgets') . '</div>';
+    $widgetFormElements[] = $n;
+}
+
+$fragment = new rex_fragment();
+$fragment->setVar('elements', $widgetFormElements, false);
+$widgetContent .= $fragment->parse('core/form/form.php');
+
+$widgetContent .= '</fieldset>';
+
+// Submit-Button für Widgets
+$widgetFormElements = [];
+$n = [];
+$n['field'] = '<button class="btn btn-save rex-form-aligned" type="submit" name="save" value="1">' . rex_i18n::msg('yform_content_builder_save') . '</button>';
+$widgetFormElements[] = $n;
+
+$fragment = new rex_fragment();
+$fragment->setVar('elements', $widgetFormElements, false);
+$widgetContent .= $fragment->parse('core/form/submit.php');
+
 // Formular ausgeben
 $fragment = new rex_fragment();
 $fragment->setVar('class', 'edit', false);
 $fragment->setVar('title', rex_i18n::msg('yform_content_builder_settings'), false);
 $fragment->setVar('body', '<form action="' . rex_url::currentBackendPage() . '" method="post">' . $content . '</form>', false);
+echo $fragment->parse('core/page/section.php');
+
+// Widgets-Sektion ausgeben
+$fragment = new rex_fragment();
+$fragment->setVar('class', 'edit', false);
+$fragment->setVar('title', rex_i18n::msg('yform_content_builder_widgets_title'), false);
+$fragment->setVar('body', '<form action="' . rex_url::currentBackendPage() . '" method="post">' . $widgetContent . '</form>', false);
 echo $fragment->parse('core/page/section.php');
 
 // Info-Box

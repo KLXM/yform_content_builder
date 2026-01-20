@@ -36,6 +36,10 @@ return [
     'icon' => 'fa fa-header',
     'description' => 'Überschrift mit Styling-Optionen',
     
+    // Widget-Hooks definieren (optional)
+    // Wenn nicht definiert, wird 'after_content' verwendet
+    'widget_hooks' => ['after_content'],
+    
     // Tab-Gruppierung
     'field_groups' => [
         'content_tab' => [

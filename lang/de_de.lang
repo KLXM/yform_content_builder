@@ -18,6 +18,14 @@ yform_content_builder_compact_mode = Kompaktmodus
 yform_content_builder_compact_mode_label = Kompaktmodus aktivieren
 yform_content_builder_compact_mode_notice = Im Kompaktmodus werden Slices ohne Rahmen, Hintergrund und Abstand angezeigt. Die Toolbar bleibt sichtbar.
 
+yform_content_builder_widgets = Widgets
+yform_content_builder_widgets_title = Widget-Verwaltung
+yform_content_builder_widgets_notice = Widgets fügen zusätzliche Felder zu bestehenden Elementen hinzu. Aktiviere nur die Widgets, die du benötigst.
+yform_content_builder_widget_name = Widget
+yform_content_builder_widget_description = Beschreibung
+yform_content_builder_widget_hook = Hook
+yform_content_builder_no_widgets = Keine Widgets verfügbar.
+
 yform_content_builder_element_add = Element hinzufügen
 yform_content_builder_element_edit = Bearbeiten
 yform_content_builder_element_delete = Löschen

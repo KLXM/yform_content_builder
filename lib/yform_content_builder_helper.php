@@ -134,6 +134,50 @@ class yform_content_builder_helper
         ob_start();
         include $templateFile;
         $output = ob_get_clean();
+        
+        // Widget-Daten rendern (falls vorhanden)
+        $output .= self::renderWidgets($elementData, $framework);
+        
+        return $output;
+    }
+    
+    /**
+     * Rendert Widget-Daten
+     * 
+     * @param array $elementData Element-Daten
+     * @param string $framework Framework
+     * @return string HTML-Ausgabe
+     */
+    protected static function renderWidgets(array $elementData, string $framework): string
+    {
+        $output = '';
+        
+        // Widget Registry laden
+        if (!class_exists('FriendsOfREDAXO\YFormContentBuilder\Widgets\ContentBuilderWidgetRegistry')) {
+            return $output;
+        }
+        
+        \FriendsOfREDAXO\YFormContentBuilder\Widgets\ContentBuilderWidgetRegistry::init();
+        $enabledWidgets = \FriendsOfREDAXO\YFormContentBuilder\Widgets\ContentBuilderWidgetRegistry::getEnabled();
+        
+        foreach ($enabledWidgets as $widget) {
+            // Widget-Daten aus elementData extrahieren
+            $widgetType = $widget::getType();
+            $widgetData = [];
+            
+            foreach ($elementData as $key => $value) {
+                // Felder die mit widget_{widgetType}_ beginnen
+                if (strpos($key, 'widget_' . $widgetType . '_') === 0) {
+                    $fieldName = str_replace('widget_' . $widgetType . '_', '', $key);
+                    $widgetData[$fieldName] = $value;
+                }
+            }
+            
+            if (!empty($widgetData)) {
+                $output .= $widget->render($widgetData, $framework);
+            }
+        }
+        
         return $output;
     }
 

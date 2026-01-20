@@ -19,6 +19,11 @@ foreach (glob(rex_path::addon('yform_content_builder', 'lib/fields/*.php')) as $
     require_once $fieldFile;
 }
 
+// Widget-Klassen laden (Plugin-System für Widgets)
+foreach (glob(rex_path::addon('yform_content_builder', 'lib/widgets/*.php')) as $widgetFile) {
+    require_once $widgetFile;
+}
+
 // Theme Builder Integration - Theme für Backend setzen
 if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
     $configuredTheme = rex_addon::get('yform_content_builder')->getConfig('theme');

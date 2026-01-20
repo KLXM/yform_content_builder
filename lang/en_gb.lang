@@ -16,6 +16,14 @@ yform_content_builder_compact_mode = Compact Mode
 yform_content_builder_compact_mode_label = Enable compact mode
 yform_content_builder_compact_mode_notice = In compact mode, slices are displayed without borders, backgrounds, and spacing. The toolbar remains visible.
 
+yform_content_builder_widgets = Widgets
+yform_content_builder_widgets_title = Widget Management
+yform_content_builder_widgets_notice = Widgets add additional fields to existing elements. Only activate the widgets you need.
+yform_content_builder_widget_name = Widget
+yform_content_builder_widget_description = Description
+yform_content_builder_widget_hook = Hook
+yform_content_builder_no_widgets = No widgets available.
+
 yform_content_builder_empty = No elements yet. Add an element below.
 yform_content_builder_delete_confirm = Really delete element?
 

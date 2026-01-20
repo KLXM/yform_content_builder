@@ -1,6 +1,7 @@
 <?php
 
 use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use FriendsOfREDAXO\YFormContentBuilder\Widgets\ContentBuilderWidgetRegistry;
 use rex;
 use rex_addon;
 use rex_api_function;
@@ -87,6 +88,9 @@ class rex_api_content_builder extends rex_api_function
             echo '<div class="alert alert-danger">Element-Konfiguration fehlerhaft: ' . rex_escape($sliceType) . '</div>';
             return;
         }
+        
+        // Widget-Felder zu Config hinzufügen
+        $config = $this->injectWidgetFields($config);
 
         // YForm-Formular generieren
         echo '<form class="slice-form">';
@@ -349,5 +353,56 @@ class rex_api_content_builder extends rex_api_function
         }
 
         rex_response::sendJson(['success' => true, 'html' => $html]);
+    }
+    
+    /**
+     * Fügt Widget-Felder zu Element-Config hinzu
+     * 
+     * @param array $config
+     * @return array
+     */
+    protected function injectWidgetFields(array $config): array
+    {
+        // Prüfe ob Widget-Hooks definiert sind
+        $hooks = $config['widget_hooks'] ?? [];
+        
+        if (empty($hooks)) {
+            // Fallback: Standard-Hook "after_content"
+            $hooks = ['after_content'];
+        }
+        
+        // Widget-Felder für jeden Hook hinzufügen
+        foreach ($hooks as $hook) {
+            $widgetFields = ContentBuilderWidgetRegistry::getFieldsForHook($hook);
+            
+            if (!empty($widgetFields)) {
+                // Felder zur Config hinzufügen
+                $config['fields'] = array_merge($config['fields'], $widgetFields);
+                
+                // Wenn field_groups existieren, Widget-Tab hinzufügen
+                if (isset($config['field_groups']) && is_array($config['field_groups'])) {
+                    $widgetFieldNames = array_keys($widgetFields);
+                    
+                    if (!empty($widgetFieldNames)) {
+                        // Prüfe ob Widget-Tab bereits existiert
+                        if (!isset($config['field_groups']['widgets_tab'])) {
+                            $config['field_groups']['widgets_tab'] = [
+                                'label' => 'Widgets',
+                                'icon' => 'fa-puzzle-piece',
+                                'fields' => []
+                            ];
+                        }
+                        
+                        // Füge Widget-Felder zum Widget-Tab hinzu
+                        $config['field_groups']['widgets_tab']['fields'] = array_merge(
+                            $config['field_groups']['widgets_tab']['fields'],
+                            $widgetFieldNames
+                        );
+                    }
+                }
+            }
+        }
+        
+        return $config;
     }
 }
