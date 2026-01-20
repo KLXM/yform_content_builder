@@ -407,10 +407,26 @@ Mit dem `perm` Key kannst du einzelne Felder nur für bestimmte Benutzerrollen s
     'item_modal' => [
         'label' => 'Erweiterte Optionen',
         'icon' => 'fa-cog',
-        'fields' => ['description']  // Diese Felder im Modal
+        'fields' => ['description'],  // Diese Felder im Modal
+        // Optional: Modal nach einem bestimmten Feld positionieren
+        'trigger_after' => 'title'  // Button wird nach 'title'-Feld gezeigt
+        // Ohne trigger_after: Button erscheint ganz am Anfang
+    ],
+    // Optional: Weitere Modals mit trigger_after
+    'settings_modal' => [
+        'label' => 'Einstellungen',
+        'icon' => 'fa-sliders',
+        'trigger_after' => 'image',  // Button nach 'image'-Feld
+        'fields' => ['alt_text', 'caption']
     ]
 ]
 ```
+
+**Modal-Buttons Positionierung:**
+- `item_modal` **ohne** `trigger_after`: Button erscheint ganz am Anfang (nach Move-Buttons)
+- `item_modal` **mit** `trigger_after`: Button erscheint nach dem angegebenen Feld
+- Beliebig viele Modals mit `trigger_after` möglich (z.B. `media_modal`, `settings_modal`, etc.)
+- Alle Modal-Namen müssen mit `_modal` enden
 
 ---
 
