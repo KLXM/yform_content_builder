@@ -329,7 +329,7 @@ return [
             'type' => 'repeater',
             'label' => 'Cards',
             
-// Medien-Modal für erweiterte Bildoptionen
+            // Modal für Medieneinstellungen (wird nach image-Feld angezeigt)
             'media_modal' => [
                 'label' => 'Medieneinstellungen',
                 'icon' => 'fa-sliders',
@@ -340,10 +340,11 @@ return [
                 ]
             ],
 
-            // Modal für erweiterte Card-Optionen
+            // Modal für Card-Optionen (wird nach Layout-Feld angezeigt)
             'item_modal' => [
-                'label' => 'Erweiterte Optionen',
-                'icon' => 'fa-ellipsis-h',
+                'label' => 'Card Optionen',
+                'icon' => 'fa-cog',
+                'trigger_after' => 'layout',
                 'fields' => [
                     'subtitle', 'badge', 'badge_color',
                     'card_width', 'card_style_override', 'card_shadow_override',

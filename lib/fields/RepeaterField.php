@@ -35,15 +35,31 @@ class RepeaterField extends ContentBuilderFieldAbstract
         $hasItemModal = isset($fieldConfig['item_modal']) && is_array($fieldConfig['item_modal']);
         $itemModalFields = $hasItemModal ? $fieldConfig['item_modal']['fields'] : [];
 
+        // Prüfen ob item_modal ein trigger_after hat
+        $itemModalHasTrigger = $hasItemModal && isset($fieldConfig['item_modal']['trigger_after']);
+
         // Alle Modals mit trigger_after sammeln
         $triggerModals = [];
         foreach ($fieldConfig as $configKey => $configValue) {
-            if (str_ends_with($configKey, '_modal') && $configKey !== 'item_modal' && is_array($configValue)) {
+            if (str_ends_with($configKey, '_modal') && is_array($configValue)) {
+                // item_modal nur hinzufügen wenn es trigger_after hat
+                if ($configKey === 'item_modal' && !$itemModalHasTrigger) {
+                    continue;
+                }
+                
                 if (isset($configValue['trigger_after']) && isset($configValue['fields'])) {
                     $triggerModals[$configValue['trigger_after']] = $configKey;
-                    $itemModalFields = array_merge($itemModalFields, $configValue['fields']);
+                    // Felder nur hinzufügen wenn es nicht item_modal ist (dessen Felder sind schon in itemModalFields)
+                    if ($configKey !== 'item_modal') {
+                        $itemModalFields = array_merge($itemModalFields, $configValue['fields']);
+                    }
                 }
             }
+        }
+        
+        // Wenn item_modal trigger_after hat, ist es kein "klassisches" item_modal mehr
+        if ($itemModalHasTrigger) {
+            $hasItemModal = false;
         }
 
         // View Config
@@ -109,7 +125,12 @@ class RepeaterField extends ContentBuilderFieldAbstract
         
         $this->renderMoveButtons();
 
-        $templateFieldCount = 0;
+        // Item-Modal Button am Anfang (ohne trigger_after) - nur Button rendern, Modal später
+        if ($hasItemModal) {
+            $this->renderItemModalButton($templateId, $fieldConfig);
+            $modalsToRender['item_modal'] = ['itemId' => $templateId, 'index' => 0, 'item' => []];
+        }
+
         foreach ($fieldConfig['fields'] as $subFieldName => $subFieldConfig) {
             if (in_array($subFieldName, $itemModalFields)) {
                 continue;
@@ -119,13 +140,6 @@ class RepeaterField extends ContentBuilderFieldAbstract
             $subData = [$baseFieldName => [0 => []]];
             
             ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
-            $templateFieldCount++;
-
-            // Item-Modal Button nach 2. Feld - nur Button rendern, Modal später
-            if ($hasItemModal && $templateFieldCount === 2) {
-                $this->renderItemModalButton($templateId, $fieldConfig);
-                $modalsToRender['item_modal'] = ['itemId' => $templateId, 'index' => 0, 'item' => []];
-            }
 
             // Trigger-Modal Button nach diesem Feld - nur Button rendern, Modal später
             if (isset($triggerModals[$subFieldName])) {
@@ -163,7 +177,12 @@ class RepeaterField extends ContentBuilderFieldAbstract
         
         $this->renderMoveButtons();
 
-        $fieldsRendered = 0;
+        // Item-Modal Button am Anfang (ohne trigger_after) - nur Button rendern, Modal später
+        if ($hasItemModal) {
+            $this->renderItemModalButton($itemId, $fieldConfig);
+            $modalsToRender['item_modal'] = ['itemId' => $itemId, 'index' => $index, 'item' => $item];
+        }
+
         foreach ($fieldConfig['fields'] as $subFieldName => $subFieldConfig) {
             if (in_array($subFieldName, $itemModalFields)) {
                 continue;
@@ -173,13 +192,6 @@ class RepeaterField extends ContentBuilderFieldAbstract
             $subData = [$baseFieldName => [$index => $item]];
             
             ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
-            $fieldsRendered++;
-
-            // Item-Modal Button nach 2. Feld - nur Button rendern, Modal später
-            if ($hasItemModal && $fieldsRendered === 2) {
-                $this->renderItemModalButton($itemId, $fieldConfig);
-                $modalsToRender['item_modal'] = ['itemId' => $itemId, 'index' => $index, 'item' => $item];
-            }
 
             // Trigger-Modal Button nach diesem Feld - nur Button rendern, Modal später
             if (isset($triggerModals[$subFieldName])) {
