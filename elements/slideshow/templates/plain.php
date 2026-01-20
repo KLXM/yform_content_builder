@@ -237,7 +237,7 @@ echo '</div>';
 
 // JavaScript für einfache Slideshow-Funktionalität
 if ($autoplay || $showNavigation || $showDots) {
-    echo '<script>
+    echo '<script nonce="' . rex_response::getNonce() . '">
     (function() {
         var slideshowId = "' . $slideshowId . '";
         var currentSlide = 0;

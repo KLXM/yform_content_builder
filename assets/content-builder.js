@@ -444,8 +444,14 @@
             // Repeater: Item entfernen
             $(document).on('click', '.btn-remove-repeater', function(e) {
                 e.preventDefault();
-                $(this).closest('.repeater-item').fadeOut(200, function() {
-                    $(this).remove();
+                var $item = $(this).closest('.repeater-item');
+                var $container = $item.closest('.repeater-container');
+                $item.fadeOut(200, function() {
+                    $item.remove();
+                    // Update indices after removal
+                    self.updateRepeaterIndices($container);
+                    // Trigger custom event for module context to update form data
+                    $container.trigger('repeater:item-removed');
                 });
             });
         },

@@ -337,7 +337,7 @@ $gridColumns = 'repeat(' . $columns . ', 1fr)';
 }
 </style>
 
-<script>
+<script nonce="<?= rex_response::getNonce() ?>">
 document.addEventListener('DOMContentLoaded', function() {
     // Gallery Video Controls
     document.querySelectorAll('.btn-gallery-video-play').forEach(function(button) {
