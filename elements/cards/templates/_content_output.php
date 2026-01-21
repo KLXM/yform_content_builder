@@ -78,7 +78,15 @@ if (!empty($extraFields)) {
     <?php endif; ?>
 
     <?php if (!empty($text)): ?>
-        <div class="uk-card-body<?= $matchHeight ? ' uk-flex-1' : '' ?><?= $transparentPadding ?>">
+        <?php 
+        $bodyFlexClass = '';
+        // In horizontalen Layouts mit vertikaler Ausrichtung darf der Body nicht flex-1 sein,
+        // sonst funktioniert das Zentrieren der gesamten Gruppe nicht.
+        if ($matchHeight && !$isHorizontal) {
+            $bodyFlexClass = ' uk-flex-1';
+        }
+        ?>
+        <div class="uk-card-body<?= $bodyFlexClass ?><?= $transparentPadding ?>">
             <div class="uk-text"><?= $text ?></div>
         </div>
     <?php endif; ?>
