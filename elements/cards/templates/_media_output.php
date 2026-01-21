@@ -2,7 +2,7 @@
 /**
  * Media Output Helper für Cards
  * Variablen werden vom Parent-Template bereitgestellt:
- * $image, $imageSrc, $imageAlt, $imageTitle, $mediaLightbox, $mediaCover, $isVideo, $isImage
+ * $image, $imageSrc, $imageAlt, $imageTitle, $mediaPoolTitle, $mediaLightbox, $mediaCover, $isVideo, $isImage, $title
  * $videoDisplay (inline|poster), $videoControls (autoplay|controls|hover)
  */
 
@@ -46,7 +46,7 @@ if ($isVideoFile): ?>
     if ($mediaLightbox): ?>
         <div class="uk-inline uk-width-1-1 uk-transition-toggle" uk-lightbox="video-autoplay: true">
             <a href="<?= $videoSrc ?>" 
-               data-caption="<?= rex_escape($imageTitle ?: $imageAlt) ?>" 
+               data-caption="<?= rex_escape($imageTitle ?: ($mediaPoolTitle ?: $imageAlt)) ?>" 
                data-type="video">
                 <!-- Poster-Bild -->
                 <img loading="lazy" 
@@ -158,7 +158,7 @@ if ($isVideoFile): ?>
 ?>
     <?php if ($mediaLightbox): ?>
         <div uk-lightbox>
-            <a href="<?= rex_url::media($image) ?>" data-caption="<?= rex_escape($imageTitle ?: $imageAlt) ?>">
+            <a href="<?= rex_url::media($image) ?>" data-caption="<?= rex_escape($imageTitle ?: ($mediaPoolTitle ?: $imageAlt)) ?>">
                 <img loading="lazy" 
                      src="<?= $imageSrc ?>" 
                      srcset="<?= $srcsetString ?>"

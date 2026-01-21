@@ -11,6 +11,7 @@ $columnsTablet = $elementData['columns_tablet'] ?? '2';
 $columnsMobile = $elementData['columns_mobile'] ?? '1';
 $gap = $elementData['gap'] ?? 'medium';
 $matchHeight = !empty($elementData['match_height']);
+$mediaVerticalAlign = $elementData['media_vertical_align'] ?? '';
 $cardStyle = $elementData['card_style'] ?? 'default';
 $cardSize = $elementData['card_size'] ?? 'default';
 $cardShadow = $elementData['card_shadow'] ?? '';
@@ -195,18 +196,22 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         // 2. Sonst: med_alt aus Medienpool holen
         // 3. Dekorativ wenn: Checkbox gesetzt ODER gesamte Card verlinkt
         $imageAlt = '';
+        $mediaPoolTitle = '';
         $altWarning = false;
         
         if (!empty($image) && $isImage($image)) {
+            $media = rex_media::get($image);
+            
             // Manuell eingegebener Alt-Text hat Vorrang
             if (!empty($item['image_alt'])) {
                 $imageAlt = $item['image_alt'];
-            } else {
-                // Nur med_alt aus Medienpool holen
-                $media = rex_media::get($image);
-                if ($media) {
-                    $imageAlt = $media->getValue('med_alt') ?: '';
-                }
+            } elseif ($media) {
+                $imageAlt = $media->getValue('med_alt') ?: '';
+            }
+            
+            // Titel aus Medienpool für Fallbacks holen
+            if ($media) {
+                $mediaPoolTitle = $media->getValue('title') ?: '';
             }
             
             // Dekorativ wenn Checkbox oder wenn gesamte Card verlinkt
@@ -319,7 +324,15 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                             </div>
                         <?php endif; ?>
                         
-                        <div class="uk-width-expand">
+                        <?php
+                        $contentAlignClass = '';
+                        if ($mediaVerticalAlign === 'middle') {
+                            $contentAlignClass = ' uk-flex uk-flex-column uk-flex-center';
+                        } elseif ($mediaVerticalAlign === 'bottom') {
+                            $contentAlignClass = ' uk-flex uk-flex-column uk-flex-right';
+                        }
+                        ?>
+                        <div class="uk-width-expand<?= $contentAlignClass ?>">
                             <?php include __DIR__ . '/_content_output.php'; ?>
                         </div>
                         

@@ -125,6 +125,13 @@ $shadowIcons = [
     'uk-card-hover' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="2" y="2" width="20" height="14" fill="#fff" stroke="#ccc" rx="2" stroke-dasharray="2,2"/><text x="12" y="12" font-size="8" text-anchor="middle" fill="#999">↑</text></svg>'
 ];
 
+// Vertical Align Icons
+$vAlignIcons = [
+    '' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="2" width="22" height="4" fill="#666" rx="1"/><rect x="1" y="8" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="14" width="22" height="4" fill="#ccc" rx="1"/></svg>',
+    'middle' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="2" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="8" width="22" height="4" fill="#666" rx="1"/><rect x="1" y="14" width="22" height="4" fill="#ccc" rx="1"/></svg>',
+    'bottom' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="2" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="8" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="14" width="22" height="4" fill="#666" rx="1"/></svg>'
+];
+
 // Card-Width Optionen für individuelle Breiten (responsive)
 $cardWidthChoices = [
     '' => 'Standard (aus Grid)',
@@ -175,7 +182,7 @@ return [
     'settings_modal' => [
         'label' => 'Grid & Sektion Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
+        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'media_vertical_align', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
     ],
     
     'fields' => [
@@ -230,6 +237,19 @@ return [
         'match_height' => [
             'type' => 'checkbox',
             'label' => 'Gleiche Höhe für alle Cards'
+        ],
+        'media_vertical_align' => [
+            'type' => 'choice',
+            'label' => 'Vertikale Ausrichtung (Horizontal-Layout)',
+            'choices' => [
+                '' => 'Oben',
+                'middle' => 'Mittig',
+                'bottom' => 'Unten'
+            ],
+            'choice_icons' => $vAlignIcons,
+            'selectpicker' => true,
+            'default' => '',
+            'notice' => 'Greift nur bei Layouts mit Bild links oder rechts'
         ],
         
         // =============================================================================
