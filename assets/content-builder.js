@@ -177,19 +177,24 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
-                var linkId = $(this).data('id');
+                var $btn = $(this);
+                var linkId = $btn.data('id');
+                var counter = $btn.data('counter');
                 
-                if (typeof deleteREXLink === 'function') {
-                    // REDAXO's deleteREXLink Funktion aufrufen
-                    deleteREXLink(linkId);
-                } else {
-                    // Fallback
-                    $('#' + linkId).val('');
-                    $('#' + linkId + '_NAME').val('');
-                }
+                // 1. Core-Funktion aufrufen wenn möglich (für UI-Konstanz)
+                if (typeof deleteREXLink === 'function' && counter) {
+                    deleteREXLink(counter);
+                } 
                 
-                // Trigger change damit Content Builder die Änderung bemerkt
-                $('#' + linkId).trigger('change');
+                // 2. Fallback/Zusatz: Manuell leeren (sicherer für AJAX/Modals)
+                var $input = $('#' + linkId);
+                var $nameInput = $('#' + linkId + '_NAME');
+                
+                $input.val('');
+                $nameInput.val('');
+                
+                // 3. Trigger change damit Content Builder die Änderung bemerkt
+                $input.trigger('change');
                 
                 return false;
             });
@@ -568,26 +573,6 @@
                         if (typeof openLinkMap === 'function') {
                             openLinkMap(inputId, params);
                         }
-                        return false;
-                    });
-                    
-                    // REX Linkmap Delete-Buttons
-                    $editForm.on('click', '.rex-linkmap-delete-btn', function(e) {
-                        e.preventDefault();
-                        var $btn = $(this);
-                        var linkId = $btn.data('id');
-                        
-                        if (typeof deleteREXLink === 'function') {
-                            deleteREXLink(linkId);
-                        } else {
-                            // Fallback
-                            $('#' + linkId).val('');
-                            $('#' + linkId + '_NAME').val('');
-                        }
-                        
-                        // Trigger change damit Content Builder die Änderung bemerkt
-                        $('#' + linkId).trigger('change');
-                        
                         return false;
                     });
                     
