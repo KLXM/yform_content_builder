@@ -49,40 +49,44 @@ if (!empty($extraFields)) {
     <div class="uk-card-badge uk-label uk-label-<?= rex_escape($badgeColor) ?>"><?= rex_escape($badge) ?></div>
 <?php endif; ?>
 
-<?php if (!empty($title) || !empty($subtitle)): ?>
-    <div class="uk-card-header<?= $transparentPadding ?>">
-        <?php if (!empty($title)): ?>
-            <h3 class="uk-card-title<?= $linkCard ? ' uk-link-heading' : '' ?>"><?= rex_escape($title) ?></h3>
-        <?php endif; ?>
-        <?php if (!empty($subtitle)): ?>
-            <p class="uk-text-meta uk-margin-remove-top"><?= rex_escape($subtitle) ?></p>
-        <?php endif; ?>
-    </div>
-<?php endif; ?>
-
-<?php if (!empty($extraFields)): ?>
-    <?php if (!empty($extraFieldsHtml)): ?>
-        <div class="uk-margin-small-bottom">
-            <?= $extraFieldsHtml ?>
+<div class="uk-card-content-wrapper">
+    <?php if (!empty($title) || !empty($subtitle)): ?>
+        <?php 
+        $headerPaddingClass = $transparentPadding;
+        if ($isHorizontal && !$isTransparent) {
+            $headerPaddingClass .= ' uk-padding-small uk-padding-remove-vertical uk-border-remove';
+        }
+        ?>
+        <div class="uk-card-header<?= $headerPaddingClass ?>">
+            <?php if (!empty($title)): ?>
+                <h3 class="uk-card-title<?= $linkCard ? ' uk-link-heading' : '' ?>"><?= rex_escape($title) ?></h3>
+            <?php endif; ?>
+            <?php if (!empty($subtitle)): ?>
+                <p class="uk-text-meta uk-margin-remove-top"><?= rex_escape($subtitle) ?></p>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
-<?php endif; ?>
 
-<?php if (!empty($text)): ?>
-    <?php 
-    // Padding Logik für Body
-    $bodyPaddingClass = '';
-    if ($isHorizontal) {
-        $bodyPaddingClass = ' uk-padding-small uk-padding-remove-vertical';
-        if ($mediaVerticalAlign === 'middle') {
-            // Bei mittig lassen wir das Standard-Padding für vertikale Abstände weg? 
-            // Wunsch: oben/unten entfernen
+    <?php if (!empty($extraFields)): ?>
+        <?php if (!empty($extraFieldsHtml)): ?>
+            <div class="<?= $isHorizontal ? 'uk-padding-small uk-padding-remove-vertical' : 'uk-card-body' ?>">
+                <?= $extraFieldsHtml ?>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if (!empty($text)): ?>
+        <?php 
+        // Padding Logik für Body
+        $bodyPaddingClass = '';
+        if ($isHorizontal) {
+            $bodyPaddingClass = ' uk-padding-small uk-padding-remove-vertical';
         }
-    }
-    ?>
-    <div class="uk-card-body<?= $matchHeight ? ' uk-flex-1' : '' ?><?= $bodyPaddingClass ?><?= $transparentPadding ?>">
-        <div class="uk-text"><?= $text ?></div>
-    </div>
-<?php endif; ?>
+        ?>
+        <div class="uk-card-body<?= $matchHeight ? ' uk-flex-1' : '' ?><?= $bodyPaddingClass ?><?= $transparentPadding ?>">
+            <div class="uk-text"><?= $text ?></div>
+        </div>
+    <?php endif; ?>
+</div>
 
 
