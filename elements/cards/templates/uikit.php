@@ -383,21 +383,21 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     
                     <?php include __DIR__ . '/_content_output.php'; ?>
                     
+                    <?php if ($href && !$linkCard): ?>
+                        <?php $footerPadding = $isTransparent ? ' uk-padding-remove' : ''; ?>
+                        <div class="uk-card-footer<?= $matchHeight ? ' uk-margin-auto-top' : '' ?><?= $footerPadding ?>">
+                            <a href="<?= $href ?>" class="uk-button uk-button-text">
+                                <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($layout === 'media-bottom' && $image): ?>
                         <div class="uk-card-media-bottom uk-position-relative">
                             <?= $altWarningHtml ?>
                             <?php include __DIR__ . '/_media_output.php'; ?>
                         </div>
                     <?php endif; ?>
-                <?php endif; ?>
-                
-                <?php if ($href && !$linkCard): ?>
-                    <?php $footerPadding = $isTransparent ? ' uk-padding-remove' : ''; ?>
-                    <div class="uk-card-footer<?= $matchHeight ? ' uk-margin-auto-top' : '' ?><?= $footerPadding ?>">
-                        <a href="<?= $href ?>" class="uk-button uk-button-text">
-                            <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
-                        </a>
-                    </div>
                 <?php endif; ?>
                 
             <?php if ($linkCard && $href): ?>
