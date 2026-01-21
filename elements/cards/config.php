@@ -258,7 +258,7 @@ return [
                 'default' => 'Standard',
                 'large' => 'Groß'
             ],
-            'default' => 'default'
+            'default' => 'small'
         ],
         'card_shadow' => [
             'type' => 'choice',
