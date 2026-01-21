@@ -182,7 +182,7 @@ return [
     'settings_modal' => [
         'label' => 'Grid & Sektion Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'media_vertical_align', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
+        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
     ],
     
     'fields' => [
@@ -237,19 +237,6 @@ return [
         'match_height' => [
             'type' => 'checkbox',
             'label' => 'Gleiche Höhe für alle Cards'
-        ],
-        'media_vertical_align' => [
-            'type' => 'choice',
-            'label' => 'Vertikale Ausrichtung (Horizontal-Layout)',
-            'choices' => [
-                '' => 'Oben',
-                'middle' => 'Mittig',
-                'bottom' => 'Unten'
-            ],
-            'choice_icons' => $vAlignIcons,
-            'selectpicker' => true,
-            'default' => '',
-            'notice' => 'Greift nur bei Layouts mit Bild links oder rechts'
         ],
         
         // =============================================================================
@@ -377,7 +364,7 @@ return [
                 'icon' => 'fa-cog',
                 'trigger_after' => 'layout',
                 'fields' => [
-                    'subtitle', 'badge', 'badge_color',
+                    'subtitle', 'badge', 'badge_color', 'media_vertical_align',
                     'card_width', 'card_style_override', 'card_shadow_override',
                     'link_type', 'link_url', 'link_internal', 'link_text', 'link_card',
                     'animation'
@@ -516,6 +503,19 @@ return [
                         'danger' => 'Danger'
                     ],
                     'default' => 'primary'
+                ],
+                'media_vertical_align' => [
+                    'type' => 'choice',
+                    'label' => 'Vertikale Ausrichtung (Horizontal-Layout)',
+                    'choices' => [
+                        '' => 'Oben',
+                        'middle' => 'Mittig',
+                        'bottom' => 'Unten'
+                    ],
+                    'choice_icons' => $vAlignIcons,
+                    'selectpicker' => true,
+                    'default' => '',
+                    'notice' => 'Greift nur bei Layouts mit Bild links oder rechts'
                 ],
                 
                 // Card-spezifische Überschreibungen

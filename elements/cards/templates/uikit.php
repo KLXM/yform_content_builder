@@ -11,7 +11,6 @@ $columnsTablet = $elementData['columns_tablet'] ?? '2';
 $columnsMobile = $elementData['columns_mobile'] ?? '1';
 $gap = $elementData['gap'] ?? 'medium';
 $matchHeight = !empty($elementData['match_height']);
-$mediaVerticalAlign = $elementData['media_vertical_align'] ?? '';
 $cardStyle = $elementData['card_style'] ?? 'default';
 $cardSize = $elementData['card_size'] ?? 'default';
 $cardShadow = $elementData['card_shadow'] ?? '';
@@ -166,6 +165,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         $image = $item['image'] ?? '';
         $imageTitle = $item['image_title'] ?? '';
         $mediaWidth = $item['media_width'] ?? '1-3@m';
+        $mediaVerticalAlign = $item['media_vertical_align'] ?? '';
         $badge = $item['badge'] ?? '';
         $badgeColor = $item['badge_color'] ?? 'primary';
         // $itemAnimation bereits oben im Loop definiert
