@@ -305,11 +305,10 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         }
         ?>
         <div<?= $itemWidthClass ? ' class="' . $itemWidthClass . '"' : '' ?><?= $scrollspyAttr ?> data-animation="<?= $itemAnimation ?>" data-card-index="<?= $cardIndex ?>">
-            <?php if ($linkCard && $href): ?>
-            <a href="<?= $href ?>" class="<?= implode(' ', $cardClasses) ?> uk-display-block<?= $matchHeightClasses ?>">
-            <?php else: ?>
-            <div class="<?= implode(' ', $cardClasses) ?><?= $matchHeightClasses ?>">
-            <?php endif; ?>
+            <div class="<?= implode(' ', $cardClasses) ?><?= $matchHeightClasses ?> uk-position-relative">
+                <?php if ($linkCard && $href): ?>
+                    <a href="<?= $href ?>" class="uk-position-cover" style="z-index: 2;"></a>
+                <?php endif; ?>
                 
                 <?php if ($isHorizontal): ?>
                     <!-- Horizontales Layout (links/rechts) -->
@@ -339,6 +338,14 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         ?>
                         <div class="uk-width-expand<?= $contentAlignClass ?>">
                             <?php include __DIR__ . '/_content_output.php'; ?>
+                            
+                            <?php if ($href && !$linkCard): ?>
+                                <div class="uk-card-body uk-padding-remove-top">
+                                    <a href="<?= $href ?>" class="uk-button uk-button-text">
+                                        <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         
                         <?php if ($layout === 'media-right' && $image): ?>
@@ -351,8 +358,6 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                             </div>
                         <?php endif; ?>
                     </div>
-                <?php elseif ($isOverlay && $image): ?>
-                    
                 <?php elseif ($isOverlay && $image): ?>
                     <!-- Overlay Layout - nimmt volle Card-Höhe bei match-height -->
                     <div class="uk-cover-container uk-position-relative<?= ($matchHeight) ? ' uk-flex-1' : '' ?>">
@@ -368,6 +373,13 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                             <?php endif; ?>
                             <?php if ($text): ?>
                                 <div class="uk-text-small"><?= $text ?></div>
+                            <?php endif; ?>
+                            <?php if ($href && !$linkCard): ?>
+                                <div class="uk-margin-small-top">
+                                    <a href="<?= $href ?>" class="uk-button uk-button-text">
+                                        <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
+                                    </a>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -399,12 +411,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
-                
-            <?php if ($linkCard && $href): ?>
-            </a>
-            <?php else: ?>
             </div>
-            <?php endif; ?>
         </div>
         
     <?php endforeach; ?>
