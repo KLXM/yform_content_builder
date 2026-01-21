@@ -1028,10 +1028,11 @@ Lines of Code:     ~6.000
 Elements:          10 (Section, Text&Image, Accordion, Headline, 
                      Divider, Cards, Slideshow, Media Showcase, 
                      Gallery, Kontaktformular)
-Feldtypen:         11 (text, textarea, select, choice, checkbox, 
+Feldtypen:         13 (text, textarea, select, choice, checkbox, 
                      cke5, be_media, be_link, repeater,
-                     radio_image, color_swatches)
-Field Classes:     14 (Interface, Abstract, Registry + 11 Felder)
+                     radio_image, color_swatches,
+                     be_table_select, yformpicker)
+Field Classes:     16 (Interface, Abstract, Registry + 13 Felder)
 Templates:         30 (10 × 3 Frameworks)  
 CSS Files:         3 
 JS Files:          2 

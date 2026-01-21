@@ -84,6 +84,11 @@ class BeTableSelectField extends ContentBuilderFieldAbstract
         
         echo '<select name="' . rex_escape($fieldName) . '" class="form-control selectpicker" data-live-search="true" data-style="btn-default"' . $multipleAttr . $sizeAttr . '>';
 
+        // Leer-Option für Single-Select
+        if (!$multiple) {
+            echo '<option value="">-- Bitte wählen --</option>';
+        }
+
         // Datensätze laden
         try {
             $query = rex_sql::factory();

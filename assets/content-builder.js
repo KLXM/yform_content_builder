@@ -676,10 +676,10 @@
                 // (Datensatz wurde gelöscht oder nicht ausgewählt)
                 if ($field.hasClass('yform-dataset-real')) {
                     if (name) {
-                        console.log('YForm Picker Value for ' + name + ':', value);
-                        self.setNestedValue(sliceData, name, value);
+                        const pickerValue = $field.val();
+                        self.setNestedValue(sliceData, name, pickerValue);
                     }
-                } else if (name && value !== undefined && value !== '') {
+                } else if (name && value !== undefined && (value !== '' || $field.is('select'))) {
                     // Verschachteltes Objekt erstellen aus Bracket-Notation
                     self.setNestedValue(sliceData, name, value);
                 }
@@ -731,23 +731,24 @@
          * Set nested value from bracket notation (e.g. "items[0][title]" = "value")
          */
         setNestedValue: function(obj, path, value) {
+            // Falls der Pfad keine Klammern hat, direkt setzen
+            if (path.indexOf('[') === -1) {
+                obj[path] = value;
+                return;
+            }
+
             // items[0][title] -> ['items', '0', 'title']
-            var keys = path.match(/[^\[\]]+/g);
+            var keys = path.split(/[\[\]]+/).filter(function(k) { return k !== ''; });
             
             var current = obj;
             for (var i = 0; i < keys.length - 1; i++) {
                 var key = keys[i];
                 var nextKey = keys[i + 1];
                 
-                // Wenn nächster Key eine Zahl ist, Array erstellen
-                if (!isNaN(nextKey)) {
-                    if (!current[key]) {
-                        current[key] = [];
-                    }
-                } else {
-                    if (!current[key]) {
-                        current[key] = {};
-                    }
+                // Wenn nächster Key eine Zahl ist, Array/Objekt vorbereiten
+                if (!current[key]) {
+                    // Falls der Key eine Zahl ist, nutzen wir ein Objekt (bessere Kompatibilität)
+                    current[key] = (!isNaN(nextKey)) ? [] : {};
                 }
                 
                 current = current[key];
@@ -1496,6 +1497,22 @@
             $newItem.find('input[id^="REX_MEDIA_"]').each(function() {
                 $(this).data('last-value', $(this).val() || '');
             });
+
+            // YForm Picker Widgets in neuem Item initialisieren
+            $newItem.find('.yform-dataset-widget').each(function() {
+                var $widget = $(this);
+                var oldId = $widget.attr('id');
+                var newId = 'yform-dataset-' + Math.random().toString(16).slice(2);
+                $widget.attr('id', newId);
+                
+                // Name-Input (für Display) leeren
+                $widget.find('.yform-dataset-view').val('');
+                // Real-Input (Hidden ID) leeren
+                $widget.find('.yform-dataset-real').val('');
+            });
+            
+            // REDO REX:READY for everything in this item (YForm, etc.)
+            $(document).trigger('rex:ready', [$newItem]);
             
             // Move Button States aktualisieren
             this.updateMoveButtonStates();
