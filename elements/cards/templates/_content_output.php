@@ -50,7 +50,7 @@ if (!empty($extraFields)) {
 <?php endif; ?>
 
 <?php if ($isHorizontal): ?>
-<div class="uk-card-content-wrapper">
+<div class="uk-card-content-wrapper<?= $contentWrapperClass ?? '' ?>">
 <?php endif; ?>
     <?php if (!empty($title) || !empty($subtitle)): ?>
         <?php 

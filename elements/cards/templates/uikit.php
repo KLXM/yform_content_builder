@@ -327,19 +327,19 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         <?php endif; ?>
                         
                         <?php
-                        $contentAlignClass = '';
+                        $contentWrapperClass = '';
                         if ($mediaVerticalAlign === 'middle') {
-                            $contentAlignClass = ' uk-flex uk-flex-column uk-flex-center';
+                            $contentWrapperClass = ' uk-flex uk-flex-column uk-flex-center';
                         } elseif ($mediaVerticalAlign === 'bottom') {
-                            $contentAlignClass = ' uk-flex uk-flex-column uk-flex-right';
+                            $contentWrapperClass = ' uk-flex uk-flex-column uk-flex-right';
                         }
                         
-                        // Wenn horizontale Ausrichtung gewählt ist, brauchen wir volle Höhe im Container
-                        if ($contentAlignClass) {
-                            $contentAlignClass .= ' uk-height-1-1';
+                        // Der Wrapper muss volle Höhe haben damit Flex-Alignment innerhalb funktioniert
+                        if ($isHorizontal) {
+                            $contentWrapperClass .= ' uk-height-1-1';
                         }
                         ?>
-                        <div class="uk-width-expand<?= $contentAlignClass ?>">
+                        <div class="uk-width-expand">
                             <?php include __DIR__ . '/_content_output.php'; ?>
                         </div>
                         
