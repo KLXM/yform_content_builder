@@ -230,7 +230,8 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
 
         // Ratio Spacer Logic
         $canvasW = 16; $canvasH = 9;
-        if ($mediaRatio === '4-3') { $canvasW = 4; $canvasH = 3; }
+        if ($mediaRatio === '21-9') { $canvasW = 21; $canvasH = 9; }
+        elseif ($mediaRatio === '4-3') { $canvasW = 4; $canvasH = 3; }
         elseif ($mediaRatio === '1-1') { $canvasW = 1; $canvasH = 1; }
         
         // Cover-Logik fixieren: Nur für Overlay und Horizontal (wenn gewählt)
