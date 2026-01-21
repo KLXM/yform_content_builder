@@ -17,11 +17,55 @@ if (rex_addon::get('media_manager')->isAvailable()) {
     $hasFocuspoint = rex_addon::get('focuspoint')->isAvailable();
     
     // =============================================================================
-    // CARD BILDER - 16:9 Format mit Fokuspunkt
+    // CARD BILDER - Verschiedene Formate für Responsive Design
     // =============================================================================
-    $mm->addType('content_card', 'Content Builder: Card Bild (16:9 mit Fokuspunkt)');
+    $ratios = [
+        '16_9' => ['w' => 16, 'h' => 9],
+        '4_3' => ['w' => 4, 'h' => 3],
+        '1_1' => ['w' => 1, 'h' => 1]
+    ];
     
-    // Zuerst auf max Breite begrenzen
+    $widths = [400, 800, 1200, 1600];
+    
+    foreach ($ratios as $ratioKey => $ratio) {
+        foreach ($widths as $width) {
+            $typeName = 'card_' . $ratioKey . '_w' . $width;
+            $height = round(($width / $ratio['w']) * $ratio['h']);
+            
+            $mm->addType($typeName, 'Card ' . str_replace('_', ':', $ratioKey) . ' (' . $width . 'px)');
+            
+            // 1. Resize auf max Breite
+            $mm->addEffect($typeName, 'resize', [
+                'width' => $width,
+                'height' => $height,
+                'style' => 'maximum',
+                'allow_enlarge' => 'not_enlarge'
+            ], 1);
+            
+            // 2. Zuschneiden mit Fokuspunkt
+            if ($hasFocuspoint) {
+                $mm->addEffect($typeName, 'focuspoint_fit', [
+                    'width' => $ratio['w'] . 'fr',
+                    'height' => $ratio['h'] . 'fr',
+                    'zoom' => '0',
+                    'meta' => 'med_focuspoint',
+                    'focus' => '50.0,50.0'
+                ], 2);
+            } else {
+                $mm->addEffect($typeName, 'crop', [
+                    'width' => $width,
+                    'height' => $height,
+                    'offset_width' => '',
+                    'offset_height' => '',
+                    'hpos' => 'center',
+                    'vpos' => 'middle'
+                ], 2);
+            }
+        }
+    }
+
+    // Default Card Typ (Abwärtskompatibilität)
+    $mm->addType('content_card', 'Content Builder: Card Bild (Default 16:9)');
     $mm->addEffect('content_card', 'resize', [
         'width' => 1200,
         'height' => 1200,
@@ -29,7 +73,6 @@ if (rex_addon::get('media_manager')->isAvailable()) {
         'allow_enlarge' => 'not_enlarge'
     ], 1);
     
-    // Dann 16:9 zuschneiden
     if ($hasFocuspoint) {
         $mm->addEffect('content_card', 'focuspoint_fit', [
             'width' => '16fr',

@@ -226,13 +226,20 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         // Layout-spezifische Klassen
         $isHorizontal = in_array($layout, ['media-left', 'media-right']);
         $isOverlay = $layout === 'media-overlay';
+        $mediaRatio = $item['media_ratio'] ?? '16-9';
+
+        // Ratio Spacer Logic
+        $canvasW = 16; $canvasH = 9;
+        if ($mediaRatio === '4-3') { $canvasW = 4; $canvasH = 3; }
+        elseif ($mediaRatio === '1-1') { $canvasW = 1; $canvasH = 1; }
         
-        // Bei horizontalen Layouts: uk-cover nur wenn explizit aktiviert
-        // Bei Overlay: uk-cover immer aktivieren
+        // Cover-Logik fixieren: Nur für Overlay und Horizontal (wenn gewählt)
         if ($isOverlay) {
             $mediaCover = true;
+        } elseif (!$isHorizontal) {
+            $mediaCover = false;
         }
-        
+
         // Link generieren
         $href = '';
         if ($linkType === 'external' && !empty($linkUrl)) {
@@ -300,9 +307,12 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                 
                 <?php if ($isHorizontal): ?>
                     <!-- Horizontales Layout (links/rechts) -->
-                    <div class="uk-grid-small uk-child-width-expand" uk-grid>
+                    <div class="uk-grid-small uk-child-width-expand uk-grid-match" uk-grid>
                         <?php if ($layout === 'media-left' && $image): ?>
                             <div class="uk-card-media-left uk-width-<?= $mediaWidth ?><?= $mediaCover ? ' uk-cover-container' : '' ?> uk-position-relative">
+                                <?php if ($mediaCover): ?>
+                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>" style="display: block; width: 100%; height: auto; visibility: hidden;"></canvas>
+                                <?php endif; ?>
                                 <?= $altWarningHtml ?>
                                 <?php include __DIR__ . '/_media_output.php'; ?>
                             </div>
@@ -314,6 +324,9 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         
                         <?php if ($layout === 'media-right' && $image): ?>
                             <div class="uk-card-media-right uk-width-<?= $mediaWidth ?><?= $mediaCover ? ' uk-cover-container' : '' ?> uk-position-relative">
+                                <?php if ($mediaCover): ?>
+                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>" style="display: block; width: 100%; height: auto; visibility: hidden;"></canvas>
+                                <?php endif; ?>
                                 <?= $altWarningHtml ?>
                                 <?php include __DIR__ . '/_media_output.php'; ?>
                             </div>
@@ -322,7 +335,8 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     
                 <?php elseif ($isOverlay && $image): ?>
                     <!-- Overlay Layout - nimmt volle Card-Höhe bei match-height -->
-                    <div class="uk-cover-container uk-position-relative<?= $matchHeight ? ' uk-flex-1' : ' uk-height-medium' ?>" style="min-height: 200px;">
+                    <div class="uk-cover-container uk-position-relative<?= ($matchHeight) ? ' uk-flex-1' : '' ?>">
+                        <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>" style="display: block; width: 100%; height: auto; visibility: hidden;"></canvas>
                         <?= $altWarningHtml ?>
                         <?php 
                         $mediaCover = true;
@@ -341,7 +355,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                 <?php else: ?>
                     <!-- Vertikales Layout (oben/unten) -->
                     <?php if ($layout === 'media-top' && $image): ?>
-                        <div class="uk-card-media-top<?= $mediaCover ? ' uk-cover-container uk-height-medium' : '' ?> uk-position-relative">
+                        <div class="uk-card-media-top uk-position-relative">
                             <?= $altWarningHtml ?>
                             <?php include __DIR__ . '/_media_output.php'; ?>
                         </div>
@@ -350,7 +364,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <?php include __DIR__ . '/_content_output.php'; ?>
                     
                     <?php if ($layout === 'media-bottom' && $image): ?>
-                        <div class="uk-card-media-bottom<?= $mediaCover ? ' uk-cover-container uk-height-medium' : '' ?> uk-position-relative">
+                        <div class="uk-card-media-bottom uk-position-relative">
                             <?= $altWarningHtml ?>
                             <?php include __DIR__ . '/_media_output.php'; ?>
                         </div>

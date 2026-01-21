@@ -346,7 +346,7 @@ return [
                 'icon' => 'fa-sliders',
                 'trigger_after' => 'image',
                 'fields' => [
-                    'image_alt', 'image_decorative', 'image_title', 'media_width',
+                    'image_alt', 'image_decorative', 'image_title', 'media_width', 'media_ratio',
                     'video_display', 'video_controls', 'media_lightbox', 'media_cover'
                 ]
             ],
@@ -419,6 +419,16 @@ return [
                         '2-3@m' => '66% (Breit)'
                     ],
                     'default' => '1-3@m'
+                ],
+                'media_ratio' => [
+                    'type' => 'choice',
+                    'label' => 'Seitenverhältnis',
+                    'choices' => [
+                        '16-9' => '16:9 (Standard)',
+                        '4-3' => '4:3',
+                        '1-1' => '1:1'
+                    ],
+                    'default' => '16-9'
                 ],
                 'media_lightbox' => [
                     'type' => 'checkbox',
