@@ -267,7 +267,10 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         $cardClasses = ['uk-card', $itemCardStyleClass, 'uk-overflow-hidden'];
         if ($cardSizeClass && !$isTransparent) $cardClasses[] = $cardSizeClass; // Kein Size-Padding bei transparent
         if ($itemShadowClass) $cardClasses[] = $itemShadowClass;
-        if ($linkCard && $href) $cardClasses[] = 'uk-link-toggle';
+        if ($linkCard && $href) {
+            $cardClasses[] = 'uk-link-toggle';
+            $cardClasses[] = 'uk-link-reset';
+        }
         
         // Width-Klassen für Item
         $itemWidthClass = $itemCardWidth ? 'uk-width-' . $itemCardWidth : '';
@@ -338,14 +341,6 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         ?>
                         <div class="uk-width-expand<?= $contentAlignClass ?>">
                             <?php include __DIR__ . '/_content_output.php'; ?>
-                            
-                            <?php if ($href && !$linkCard): ?>
-                                <div class="uk-card-body uk-padding-remove-top">
-                                    <a href="<?= $href ?>" class="uk-button uk-button-text">
-                                        <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
-                                    </a>
-                                </div>
-                            <?php endif; ?>
                         </div>
                         
                         <?php if ($layout === 'media-right' && $image): ?>
@@ -394,15 +389,6 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <?php endif; ?>
                     
                     <?php include __DIR__ . '/_content_output.php'; ?>
-                    
-                    <?php if ($href && !$linkCard): ?>
-                        <?php $footerPadding = $isTransparent ? ' uk-padding-remove' : ''; ?>
-                        <div class="uk-card-footer<?= $matchHeight ? ' uk-margin-auto-top' : '' ?><?= $footerPadding ?>">
-                            <a href="<?= $href ?>" class="uk-button uk-button-text">
-                                <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
-                            </a>
-                        </div>
-                    <?php endif; ?>
 
                     <?php if ($layout === 'media-bottom' && $image): ?>
                         <div class="uk-card-media-bottom uk-position-relative">

@@ -82,6 +82,24 @@ if (!empty($extraFields)) {
             <div class="uk-text"><?= $text ?></div>
         </div>
     <?php endif; ?>
+
+    <?php if ($href && !$linkCard): ?>
+        <?php if ($isHorizontal): ?>
+             <div class="uk-card-body uk-padding-remove-top<?= $transparentPadding ?>">
+                <a href="<?= $href ?>" class="uk-button uk-button-text">
+                    <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
+                </a>
+            </div>
+        <?php elseif (!$isOverlay): ?>
+            <?php $footerPadding = ($isTransparent ?? false) ? ' uk-padding-remove' : ''; ?>
+            <div class="uk-card-footer<?= ($matchHeight ?? false) ? ' uk-margin-auto-top' : '' ?><?= $footerPadding ?>">
+                <a href="<?= $href ?>" class="uk-button uk-button-text">
+                    <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
+                </a>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
 <?php if ($isHorizontal): ?>
 </div>
 <?php endif; ?>
