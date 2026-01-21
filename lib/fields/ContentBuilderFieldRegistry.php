@@ -141,6 +141,8 @@ class ContentBuilderFieldRegistry
             new BeLinkField(),
             new RadioImageField(),
             new ColorSwatchesField(),
+            new BeTableSelectField(),
+            new YFormPickerField(),
             new RepeaterField(),
         ];
 

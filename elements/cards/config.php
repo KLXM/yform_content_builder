@@ -6,6 +6,17 @@
  * Unterstützt Integration mit uikit_theme_builder (DomainContext)
  */
 
+// ============================================================================
+// EXTRA FELDER - von CardsRepeaterExtra Klasse befüllt
+// ============================================================================
+$extra = [];
+
+// Lade CardsRepeaterExtra wenn vorhanden
+if (class_exists('CardsRepeaterExtra') && method_exists('CardsRepeaterExtra', 'GetConfig')) {
+    $extra = CardsRepeaterExtra::GetConfig();
+    #dd('CardsRepeaterExtra gefunden!', $extra);
+}
+
 // Prüfen ob uikit_theme_builder verfügbar ist für dynamische Farboptionen
 $hasUikitThemeBuilder = rex_addon::get('uikit_theme_builder')->isAvailable();
 
@@ -353,6 +364,16 @@ return [
                 ]
             ],
             
+            // Modal für Extra-Felder (nur wenn Extra-Felder vorhanden sind)
+            ...(!empty($extra) ? [
+                'extras_modal' => [
+                    'label' => 'Extras',
+                    'icon' => 'fa-star',
+                    'trigger_after' => 'title',
+                    'fields' => array_keys($extra)
+                ]
+            ] : []),
+            
             'fields' => [
                 // Layout-Auswahl
                 'layout' => [
@@ -540,7 +561,10 @@ return [
                     ],
                     'default' => '',
                     'notice' => 'Nur sichtbar wenn Animationen global aktiviert sind'
-                ]
+                ],
+                
+                // Extra-Felder (im Modal "Extras" sichtbar)
+                ...$extra
             ]
         ]
     ],

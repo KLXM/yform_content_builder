@@ -43,6 +43,12 @@ if (rex::isBackend()) {
     rex_view::addCssFile(rex_addon::get('yform_content_builder')->getAssetsUrl('cards.css'));
     rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('content-builder.js'));
     rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('media-browser.js'));
+    
+    // YForm Manager Assets laden (für YFormPickerField)
+    if (rex_addon::get('yform')->isAvailable()) {
+        rex_view::addJsFile(rex_addon::get('yform')->getAssetsUrl('widget.js'));
+        rex_view::addJsFile(rex_addon::get('yform')->getAssetsUrl('manager.js'));
+    }
 }
 
 // Assets für Frontend einbinden (CSS für Elemente)

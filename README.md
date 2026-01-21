@@ -697,6 +697,330 @@ Die Rollen stammen aus deinem REDAXO-System:
 - [ ] Element-Bibliothek (Community)
 - [ ] Import/Export für Konfigurationen
 
+## 🎯 Extra-Felder System
+
+Das Extra-Felder System ermöglicht es, beliebige zusätzliche Felder zu bestehenden Elementen hinzuzufügen, **ohne den Element-Code zu modifizieren**. Perfekt für projektspezifische Erweiterungen!
+
+### Wie Extra-Felder funktionieren
+
+1. **Extra-Klasse erstellen** - Eine externe PHP-Klasse definiert zusätzliche Felder
+2. **Backend Rendering** - Felder werden automatisch in Modal oder Extras-Tab angezeigt
+3. **Datenspeicherung** - Werte werden mit den Element-Daten gespeichert
+4. **Frontend Output** - Eine `GetOutput()` Methode formatiert die Werte für die Ausgabe
+
+### Extra-Klasse erstellen
+
+**Beispiel: CardsRepeaterExtra.php** (im Projekt-Addon)
+
+```php
+<?php
+
+/**
+ * Projekt-spezifische Extra-Felder für Cards Element (Repeater Items)
+ */
+class CardsRepeaterExtra
+{
+    /**
+     * Definiert zusätzliche Felder für Backend
+     * Rückgabe: Array mit Feldkonfigurationen wie in Element-Config
+     */
+    public static function GetConfig()
+    {
+        return [
+            // Text-Feld Beispiel
+            'card_rocket' => [
+                'type' => 'text',
+                'label' => '🚀 Raketenprogramm',
+                'notice' => 'Zusätzliche Feature-Info'
+            ],
+            
+            // Choice-Feld Beispiel
+            'card_premium' => [
+                'type' => 'choice',
+                'label' => '💎 Premium-Status',
+                'choices' => [
+                    'free' => '🆓 Kostenlos',
+                    'standard' => '💰 Standard',
+                    'premium' => '💎 Premium',
+                    'platinum' => '👑 Platinum'
+                ],
+                'default' => 'standard'
+            ],
+            
+            // Datensatz-Picker Beispiel (neuer Field Type)
+            'card_events' => [
+                'type' => 'be_table_select',
+                'label' => '📅 Termine',
+                'table' => 'rex_yform_calendar',
+                'field' => 'title',
+                'multiple' => true,
+                'notice' => 'Mehrere Termine können verknüpft werden'
+            ]
+        ];
+    }
+
+    /**
+     * Formatiert Extra-Felder zu HTML für Frontend
+     * Wird in Card-Templates aufgerufen
+     */
+    public static function GetOutput($item)
+    {
+        $html = '';
+
+        // Raketenprogramm
+        if (!empty($item['card_rocket'])) {
+            $html .= '<div class="card-extra-rocket">';
+            $html .= '<span class="label" style="display: inline-block; background: #ff6b6b; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">';
+            $html .= '🚀 ' . rex_escape($item['card_rocket']);
+            $html .= '</span>';
+            $html .= '</div>';
+        }
+
+        // Premium-Status
+        if (!empty($item['card_premium'])) {
+            $statusEmoji = [
+                'free' => '🆓',
+                'standard' => '💰',
+                'premium' => '💎',
+                'platinum' => '👑'
+            ];
+            $emoji = $statusEmoji[$item['card_premium']] ?? '📌';
+            
+            $html .= '<div class="card-extra-premium" style="padding: 10px; background: rgba(100, 200, 255, 0.1); border-left: 4px solid #64c8ff; border-radius: 3px;">';
+            $html .= '<strong>' . $emoji . ' ' . rex_escape($item['card_premium']) . '</strong>';
+            $html .= '</div>';
+        }
+
+        // Termine
+        if (!empty($item['card_events'])) {
+            $eventIds = array_map('trim', explode(',', $item['card_events']));
+            
+            if (!empty($eventIds)) {
+                $html .= '<div class="card-extra-events" style="padding: 10px; background: rgba(255, 200, 0, 0.1); border-left: 4px solid #ffc800; border-radius: 3px; margin-top: 10px;">';
+                $html .= '<strong>📅 Verknüpfte Termine:</strong>';
+                $html .= '<ul style="margin: 5px 0 0 20px; padding: 0;">';
+                
+                try {
+                    $sql = rex_sql::factory();
+                    $placeholders = implode(',', array_fill(0, count($eventIds), '?'));
+                    $sql->setQuery("SELECT id, title FROM rex_yform_calendar WHERE id IN ({$placeholders})", array_map('intval', $eventIds));
+                    
+                    while ($sql->hasNext()) {
+                        $html .= '<li>' . rex_escape($sql->getValue('title')) . '</li>';
+                        $sql->next();
+                    }
+                } catch (\Exception $e) {
+                    // Fallback auf IDs
+                    foreach ($eventIds as $id) {
+                        $html .= '<li>#' . rex_escape($id) . '</li>';
+                    }
+                }
+                
+                $html .= '</ul>';
+                $html .= '</div>';
+            }
+        }
+
+        return $html;
+    }
+}
+```
+
+### Element-Config für Extra-Felder anpassen
+
+In der `config.php` des Elements werden die Extra-Felder automatisch geladen:
+
+```php
+<?php
+
+// Extra-Felder von Projekt-Addon laden
+$extra = [];
+if (class_exists('CardsRepeaterExtra') && method_exists('CardsRepeaterExtra', 'GetConfig')) {
+    $extra = CardsRepeaterExtra::GetConfig();
+}
+
+return [
+    'items' => [
+        'type' => 'repeater',
+        'label' => 'Cards',
+        
+        // Extras Modal - nur wenn Extra-Felder vorhanden
+        ...(!empty($extra) ? [
+            'extras_modal' => [
+                'label' => 'Extras',
+                'icon' => 'fa-star',
+                'trigger_after' => 'title',
+                'fields' => array_keys($extra)
+            ]
+        ] : []),
+        
+        'fields' => [
+            // Standard-Felder...
+            'title' => ['type' => 'text', 'label' => 'Titel'],
+            'text' => ['type' => 'cke5', 'label' => 'Text'],
+            
+            // Extra-Felder integrieren
+            ...$extra
+        ]
+    ]
+];
+```
+
+### Frontend Template mit Extra-Ausgabe
+
+In den Card-Templates werden Extra-Felder automatisch ausgegeben:
+
+```php
+<?php
+// _content_output.php
+
+// Extra-Felder erkennen
+$standardFields = ['layout', 'image', 'title', 'text', ...];
+$extraFields = [];
+if (is_array($item)) {
+    foreach ($item as $key => $value) {
+        if (!in_array($key, $standardFields) && !empty($value)) {
+            $extraFields[$key] = $value;
+        }
+    }
+}
+
+// GetOutput() aufrufen wenn vorhanden
+$extraFieldsHtml = '';
+if (!empty($extraFields)) {
+    if (class_exists('CardsRepeaterExtra') && method_exists('CardsRepeaterExtra', 'GetOutput')) {
+        $extraFieldsHtml = CardsRepeaterExtra::GetOutput($item);
+    }
+}
+?>
+
+<!-- Extra-Felder Ausgabe -->
+<?php if (!empty($extraFields)): ?>
+    <div>
+        <?php if (!empty($extraFieldsHtml)): ?>
+            <?= $extraFieldsHtml ?>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+
+<!-- Standard Content -->
+<div class="uk-card-body">
+    <div class="uk-text"><?= $text ?></div>
+</div>
+```
+
+---
+
+## 🎛️ Neuer Feldtyp: `be_table_select`
+
+Der neue `be_table_select` Feldtyp ermöglicht es, Datensätze aus beliebigen Tabellen auszuwählen mit Live-Search Funktionalität.
+
+### Features
+
+- ✅ **Beliebige Tabellen**: YForm-Tabellen oder Native REDAXO Tabellen
+- ✅ **Single & Multiple**: Einzelauswahl oder Mehrfachauswahl
+- ✅ **Live Search**: selectpicker mit `data-live-search="true"`
+- ✅ **Komma-getrennte Speicherung**: Bei Multiple werden Werte als `"1,2,3"` gespeichert
+
+### Verwendung
+
+```php
+'events' => [
+    'type' => 'be_table_select',
+    'label' => 'Termine verknüpfen',
+    'table' => 'rex_yform_calendar',    // Tabelle
+    'field' => 'title',                  // Anzeige-Feld
+    'multiple' => true,                  // true/false
+    'notice' => 'Mehrere Einträge möglich'
+]
+```
+
+### Parameter
+
+| Parameter | Typ | Erforderlich | Beschreibung |
+|-----------|-----|--------------|-------------|
+| `table` | string | ✅ | Tabellenname (z.B. `rex_yform_calendar`) |
+| `field` | string | ✅ | Spaltenname für Anzeige (z.B. `title`) |
+| `multiple` | bool | ❌ | Mehrfachauswahl (default: `false`) |
+| `label` | string | ✅ | Feldbezeichnung im Backend |
+| `notice` | string | ❌ | Hinweis-Text |
+
+### Backend Ausgabe
+
+```
+📅 Termine verknüpfen
+┌─────────────────────────┐
+│ [🔍 Live Search]        │
+│ ☑ cvcv [#1]             │
+│ ☐ Termin 2 [#2]         │
+│ ☐ Termin 3 [#3]         │
+└─────────────────────────┘
+```
+
+### In Extra-Klasse verwenden
+
+```php
+'card_events' => [
+    'type' => 'be_table_select',
+    'label' => '📅 Termine',
+    'table' => 'rex_yform_calendar',
+    'field' => 'title',
+    'multiple' => true,
+    'notice' => 'Mehrere Termine können verknüpft werden'
+]
+```
+
+---
+
+## 🎛️ Datensatz-Picker Feldtypen
+
+Es gibt **zwei verschiedene Feldtypen** für Datensatz-Auswahl mit unterschiedlichen Möglichkeiten:
+
+### 1️⃣ `be_table_select` - Einfacher Datensatz-Picker (Selectpicker)
+
+Der `be_table_select` Feldtyp ist ein **leichtgewichtiger selectpicker** für einfache Datensatz-Auswahl.
+
+**Features:**
+- ✅ **Single & Multiple**: Einzelauswahl oder Mehrfachauswahl
+- ✅ **Live Search**: selectpicker mit `data-live-search="true"`
+- ✅ **Komma-getrennte Speicherung**: Bei Multiple als `"1,2,3"`
+- ✅ **Responsive Dropdown**: Platzsparend
+
+**Beispiel:**
+```php
+'featured_event' => [
+    'type' => 'be_table_select',
+    'label' => '⭐ Highlight Termin',
+    'table' => 'rex_yform_calendar',
+    'field' => 'title',
+    'multiple' => false
+```
+
+---
+
+### 2️⃣ `yformpicker` - YForm Datensatz-Picker (Popup)
+
+Das `yformpicker` Feld öffnet den YForm-Manager in einem Popup zur Auswahl von Datensäzten. Ideal für große Datenmengen.
+
+**Features:**
+- ✅ **Native YForm Integration**: Nutzt das Standard YForm Widget
+- ✅ **Single & Multiple**: Unterstützt beide Modi
+- ✅ **Sortierbar**: Drag & Drop oder Move-Buttons bei Multiple
+- ✅ **Große Datenmengen**: Durch Pagination im Modal kein Problem
+
+**Beispiel:**
+```php
+'main_event' => [
+    'type' => 'yformpicker',
+    'label' => '🎯 Haupttermin',
+    'table' => 'rex_yform_calendar',
+    'field' => 'title',
+    'multiple' => false
+]
+```
+
+---
+
 ## 📊 Stats
 
 ```

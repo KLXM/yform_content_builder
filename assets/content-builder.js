@@ -662,7 +662,24 @@
                     return; // continue
                 }
                 
-                if (name && value !== undefined && value !== '') {
+                // Multiple Selects: Komma-getrennte Liste speichern
+                if ($field.is('select') && $field.prop('multiple')) {
+                    var selectedValues = $field.val();
+                    if (selectedValues && selectedValues.length > 0) {
+                        value = selectedValues.join(',');
+                    } else {
+                        value = '';
+                    }
+                }
+                
+                // YForm Hidden Inputs (.yform-dataset-real) speichern auch mit leerem Wert
+                // (Datensatz wurde gelöscht oder nicht ausgewählt)
+                if ($field.hasClass('yform-dataset-real')) {
+                    if (name) {
+                        console.log('YForm Picker Value for ' + name + ':', value);
+                        self.setNestedValue(sliceData, name, value);
+                    }
+                } else if (name && value !== undefined && value !== '') {
                     // Verschachteltes Objekt erstellen aus Bracket-Notation
                     self.setNestedValue(sliceData, name, value);
                 }

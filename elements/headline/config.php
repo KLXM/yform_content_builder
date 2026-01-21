@@ -3,6 +3,16 @@
  * Überschrift Element - Konfiguration mit zentraler Config
  */
 
+// ============================================================================
+// EXTRA FELDER - von außen erweiterbar
+// ============================================================================
+$extra = [];
+
+// Lade HeadlineExtra wenn vorhanden (aus beliebigen Addons)
+if (class_exists('HeadlineExtra') && method_exists('HeadlineExtra', 'GetConfig')) {
+    $extra = HeadlineExtra::GetConfig();
+}
+
 // Zentrale Konfigurationsklasse
 $config = yform_content_builder_config::class;
 $hasThemeBuilder = $config::hasThemeBuilder();
@@ -41,7 +51,10 @@ return [
         'content_tab' => [
             'label' => 'Inhalt',
             'icon' => 'fa-text-width',
-            'fields' => ['text', 'tag', 'size', 'modifier']
+            'fields' => array_merge(
+                ['text', 'tag', 'size', 'modifier'],
+                array_keys($extra) // Extra-Felder hinzufügen
+            )
         ],
         'style_tab' => [
             'label' => 'Styling',
@@ -172,6 +185,9 @@ return [
         ],
         
         // Section-Felder aus zentraler Config
-        $config::getSectionFields()
+        $config::getSectionFields(),
+        
+        // Extra-Felder wenn vorhanden
+        $extra
     ),
 ];
