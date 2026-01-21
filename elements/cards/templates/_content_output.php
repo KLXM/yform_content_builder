@@ -10,7 +10,7 @@ $transparentPadding = isset($isTransparent) && $isTransparent ? ' uk-padding-rem
 
 // Standard-Feldnamen die NICHT als Extra-Felder zählen
 $standardFields = [
-    'layout', 'image', 'image_alt', 'image_decorative', 'image_title', 'media_width',
+    'layout', 'image', 'image_alt', 'image_decorative', 'image_title', 'media_width', 'media_ratio',
     'media_lightbox', 'media_cover', 'video_display', 'video_controls',
     'title', 'text', 'subtitle', 'badge', 'badge_color',
     'card_width', 'card_style_override', 'card_shadow_override',
