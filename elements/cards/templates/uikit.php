@@ -331,6 +331,11 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         } elseif ($mediaVerticalAlign === 'bottom') {
                             $contentAlignClass = ' uk-flex uk-flex-column uk-flex-right';
                         }
+                        
+                        // Wenn horizontale Ausrichtung gewählt ist, brauchen wir volle Höhe im Container
+                        if ($contentAlignClass) {
+                            $contentAlignClass .= ' uk-height-1-1';
+                        }
                         ?>
                         <div class="uk-width-expand<?= $contentAlignClass ?>">
                             <?php include __DIR__ . '/_content_output.php'; ?>

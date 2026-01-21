@@ -54,7 +54,7 @@ if (!empty($extraFields)) {
         <?php 
         $headerPaddingClass = $transparentPadding;
         if ($isHorizontal && !$isTransparent) {
-            $headerPaddingClass .= ' uk-padding-remove-vertical uk-border-remove';
+            $headerPaddingClass .= ' uk-border-remove';
         }
         ?>
         <div class="uk-card-header<?= $headerPaddingClass ?>">
@@ -69,21 +69,14 @@ if (!empty($extraFields)) {
 
     <?php if (!empty($extraFields)): ?>
         <?php if (!empty($extraFieldsHtml)): ?>
-            <div class="<?= $isHorizontal ? 'uk-padding-remove-vertical' : 'uk-card-body' ?>">
+            <div class="uk-card-body">
                 <?= $extraFieldsHtml ?>
             </div>
         <?php endif; ?>
     <?php endif; ?>
 
     <?php if (!empty($text)): ?>
-        <?php 
-        // Padding Logik für Body
-        $bodyPaddingClass = '';
-        if ($isHorizontal) {
-            $bodyPaddingClass = ' uk-padding-remove-vertical';
-        }
-        ?>
-        <div class="uk-card-body<?= $matchHeight ? ' uk-flex-1' : '' ?><?= $bodyPaddingClass ?><?= $transparentPadding ?>">
+        <div class="uk-card-body<?= $matchHeight ? ' uk-flex-1' : '' ?><?= $transparentPadding ?>">
             <div class="uk-text"><?= $text ?></div>
         </div>
     <?php endif; ?>
