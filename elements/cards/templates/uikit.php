@@ -259,7 +259,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
             $itemShadowClass = ''; // Kein Schatten bei transparent
         }
         
-        $cardClasses = ['uk-card', $itemCardStyleClass];
+        $cardClasses = ['uk-card', $itemCardStyleClass, 'uk-overflow-hidden'];
         if ($cardSizeClass && !$isTransparent) $cardClasses[] = $cardSizeClass; // Kein Size-Padding bei transparent
         if ($itemShadowClass) $cardClasses[] = $itemShadowClass;
         if ($linkCard && $href) $cardClasses[] = 'uk-link-toggle';
