@@ -13,6 +13,7 @@ $columnsMobile = intval($elementData['columns_mobile'] ?? 1);
 $aspectRatio = $elementData['aspect_ratio'] ?? 'auto';
 $gap = $elementData['gap'] ?? 'medium';
 $lightbox = !empty($elementData['lightbox']);
+$mediaCaptionFallback = !empty($elementData['media_caption_fallback']);
 $items = $elementData['items'] ?? [];
 
 // Section-Einstellungen
@@ -123,11 +124,26 @@ $lightboxId = 'gallery-' . uniqid();
             <?php 
             $media = $item['media'] ?? '';
             $caption = $item['caption'] ?? '';
-            $altText = $item['alt_text'] ?? $caption;
+            $altTextManual = $item['alt_text'] ?? '';
             $linkUrl = $item['link_url'] ?? '';
             
             if (!$media) continue;
             
+            // Medienpool Informationen holen
+            $mediaPoolTitle = '';
+            $mediaPoolAlt = '';
+            $rexMedia = rex_media::get($media);
+            if ($rexMedia) {
+                $mediaPoolTitle = $rexMedia->getTitle();
+                $mediaPoolAlt = $rexMedia->getValue('med_description') ?: $mediaPoolTitle;
+            }
+
+            // Bildunterschrift Priorität: Manuell -> Medienpool (wenn Fallback check) -> Leer
+            $displayCaption = $caption ?: ($mediaCaptionFallback ? $mediaPoolTitle : '');
+            
+            // Alt-Text Priorität: Manuell -> Medienpool Alt -> Medienpool Titel -> Filename
+            $finalAlt = $altTextManual ?: ($mediaPoolAlt ?: $media);
+
             // Media-Typ bestimmen
             $isImage = yform_content_builder_helper::isImage($media);
             $isVideo = yform_content_builder_helper::isVideo($media);
@@ -135,9 +151,7 @@ $lightboxId = 'gallery-' . uniqid();
             // Originalbild für Lightbox, Thumbnail für Grid
             $fullImageUrl = rex_url::media($media);
             
-            // MediaManager Typ auswählen:
-            // - gallery_resize: Nur Resize ohne Cropping (für aspect_ratio='auto' + masonry)
-            // - gallery_thumb: Mit Cropping zu 1:1 (für andere aspect ratios)
+            // MediaManager Typ auswählen
             $mmType = ($aspectRatio === 'auto') ? 'gallery_resize' : 'gallery_thumb';
             $thumbUrl = $isImage ? rex_media_manager::getUrl($mmType, $media) : '';
             ?>
@@ -146,10 +160,12 @@ $lightboxId = 'gallery-' . uniqid();
                 <?php if ($isImage): ?>
                     <?php if ($lightbox && empty($linkUrl)): ?>
                         <!-- Lightbox Link -->
-                        <a href="<?= $fullImageUrl ?>" data-caption="<?= rex_escape($caption) ?>">
+                        <a href="<?= $fullImageUrl ?>" data-caption="<?= rex_escape($displayCaption) ?>">
+                            <span class="uk-hidden"><?= rex_escape($finalAlt) ?></span>
                     <?php elseif ($linkUrl): ?>
                         <!-- Custom Link -->
                         <a href="<?= rex_escape($linkUrl) ?>">
+                            <span class="uk-hidden"><?= rex_escape($finalAlt) ?></span>
                     <?php endif; ?>
                     
                     <div class="uk-card uk-card-default uk-card-hover uk-overflow-hidden">
@@ -157,18 +173,18 @@ $lightboxId = 'gallery-' . uniqid();
                             <!-- Fixed Aspect Ratio -->
                             <div class="uk-inline-clip uk-transition-toggle" style="width: 100%;">
                                 <canvas width="<?= explode(':', $aspectRatio)[0] * 100 ?>" height="<?= explode(':', $aspectRatio)[1] * 100 ?>"></canvas>
-                                <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($altText) ?>" class="uk-transition-opaque uk-transition-scale-up" uk-cover>
+                                <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($finalAlt) ?>" class="uk-transition-opaque uk-transition-scale-up" uk-cover>
                             </div>
                         <?php else: ?>
                             <!-- Auto Aspect Ratio -->
                             <div class="uk-inline-clip uk-transition-toggle">
-                                <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($altText) ?>" class="uk-width-1-1" style="transition: transform 0.3s ease;">
+                                <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($finalAlt) ?>" class="uk-width-1-1" style="transition: transform 0.3s ease;">
                             </div>
                         <?php endif; ?>
                         
-                        <?php if ($caption): ?>
+                        <?php if ($displayCaption): ?>
                             <div class="uk-card-body uk-padding-small">
-                                <p class="uk-text-small uk-margin-remove"><?= rex_escape($caption) ?></p>
+                                <p class="uk-text-small uk-margin-remove"><?= rex_escape($displayCaption) ?></p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -200,9 +216,9 @@ $lightboxId = 'gallery-' . uniqid();
                             <?php endif; ?>
                         </div>
                         
-                        <?php if ($caption): ?>
+                        <?php if ($displayCaption): ?>
                             <div class="uk-card-body uk-padding-small">
-                                <p class="uk-text-small uk-margin-remove"><?= rex_escape($caption) ?></p>
+                                <p class="uk-text-small uk-margin-remove"><?= rex_escape($displayCaption) ?></p>
                             </div>
                         <?php endif; ?>
                     </div>

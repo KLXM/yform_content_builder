@@ -61,6 +61,11 @@ return [
                 'label' => 'Lightbox aktivieren',
                 'default' => true
             ],
+            'media_caption_fallback' => [
+                'type' => 'checkbox',
+                'label' => 'Medienpool Titel als Fallback',
+                'notice' => 'Wenn in der Item-Liste keine Bildunterschrift eingegeben wurde, wird der Titel aus dem Medienpool verwendet.'
+            ],
             
             // Items Repeater
             'items' => [
