@@ -346,6 +346,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                             </div>
                         <?php endif; ?>
                     </div>
+                <?php elseif ($isOverlay && $image): ?>
                     
                 <?php elseif ($isOverlay && $image): ?>
                     <!-- Overlay Layout - nimmt volle Card-Höhe bei match-height -->

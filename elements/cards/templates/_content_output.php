@@ -11,7 +11,7 @@ $transparentPadding = isset($isTransparent) && $isTransparent ? ' uk-padding-rem
 // Standard-Feldnamen die NICHT als Extra-Felder zählen
 $standardFields = [
     'layout', 'image', 'image_alt', 'image_decorative', 'image_title', 'media_width', 'media_ratio',
-    'media_lightbox', 'media_cover', 'video_display', 'video_controls',
+    'media_lightbox', 'media_cover', 'media_vertical_align', 'video_display', 'video_controls',
     'title', 'text', 'subtitle', 'badge', 'badge_color',
     'card_width', 'card_style_override', 'card_shadow_override',
     'link_type', 'link_url', 'link_internal', 'link_text', 'link_card',
@@ -61,15 +61,26 @@ if (!empty($extraFields)) {
 <?php endif; ?>
 
 <?php if (!empty($extraFields)): ?>
-    <div>
-        <?php if (!empty($extraFieldsHtml)): ?>
+    <?php if (!empty($extraFieldsHtml)): ?>
+        <div class="uk-margin-small-bottom">
             <?= $extraFieldsHtml ?>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php if (!empty($text)): ?>
-    <div class="uk-card-body<?= $matchHeight ? ' uk-flex-1' : '' ?><?= $transparentPadding ?>">
+    <?php 
+    // Padding Logik für Body
+    $bodyPaddingClass = '';
+    if ($isHorizontal) {
+        $bodyPaddingClass = ' uk-padding-small uk-padding-remove-vertical';
+        if ($mediaVerticalAlign === 'middle') {
+            // Bei mittig lassen wir das Standard-Padding für vertikale Abstände weg? 
+            // Wunsch: oben/unten entfernen
+        }
+    }
+    ?>
+    <div class="uk-card-body<?= $matchHeight ? ' uk-flex-1' : '' ?><?= $bodyPaddingClass ?><?= $transparentPadding ?>">
         <div class="uk-text"><?= $text ?></div>
     </div>
 <?php endif; ?>
