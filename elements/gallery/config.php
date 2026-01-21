@@ -40,7 +40,9 @@ return [
                 'label' => 'Layout',
                 'choices' => [
                     'grid' => 'Grid (gleichmäßig)',
-                    'masonry' => 'Masonry (Pinterest-Style)'
+                    'masonry' => 'Masonry (Pinterest-Style)',
+                    'featured' => 'Featured (Erstes Bild groß)',
+                    'logowall' => 'Logo Wall (Optimiert für Logos)'
                 ],
                 'default' => 'grid'
             ],

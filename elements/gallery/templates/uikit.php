@@ -75,15 +75,25 @@ if (isset($gapMap[$gap]) && $gapMap[$gap]) {
 }
 
 // Responsive Width Classes
-$gridClasses[] = 'uk-child-width-1-' . $columnsMobile;
-$gridClasses[] = 'uk-child-width-1-' . $columnsTablet . '@s';
-$gridClasses[] = 'uk-child-width-1-' . $columns . '@m';
+if ($layout !== 'featured' && $layout !== 'logowall') {
+    $gridClasses[] = 'uk-child-width-1-' . $columnsMobile;
+    $gridClasses[] = 'uk-child-width-1-' . $columnsTablet . '@s';
+    $gridClasses[] = 'uk-child-width-1-' . $columns . '@m';
+} elseif ($layout === 'logowall') {
+    $gridClasses[] = 'uk-child-width-1-2';
+    $gridClasses[] = 'uk-child-width-1-4@s';
+    $gridClasses[] = 'uk-child-width-1-6@m';
+}
 
 // Masonry mit UIkit's nativem Masonry
 $gridAttrs = 'uk-grid';
 if ($layout === 'masonry') {
     $gridAttrs = 'uk-grid="masonry: true"';
     $gridClasses[] = 'uk-grid-match';
+}
+
+if ($layout === 'logowall') {
+    $gridClasses[] = 'uk-flex-middle uk-flex-center';
 }
 
 $gridClassStr = implode(' ', $gridClasses);
@@ -152,42 +162,91 @@ $lightboxId = 'gallery-' . uniqid();
             $fullImageUrl = rex_url::media($media);
             
             // MediaManager Typ auswählen
-            $mmType = ($aspectRatio === 'auto') ? 'gallery_resize' : 'gallery_thumb';
+            $mmType = ($aspectRatio === 'auto' || $layout === 'featured' && $index === 0) ? 'gallery_resize' : 'gallery_thumb';
             $thumbUrl = $isImage ? rex_media_manager::getUrl($mmType, $media) : '';
+            
+            // Item Width
+            $itemWidthClass = '';
+            if ($layout === 'featured') {
+                if ($index === 0) {
+                    $itemWidthClass = 'uk-width-1-1';
+                } else {
+                    $itemWidthClass = 'uk-width-1-' . $columnsMobile;
+                    $itemWidthClass .= ' uk-width-1-' . $columnsTablet . '@s';
+                    $itemWidthClass .= ' uk-width-1-' . $columns . '@m';
+                }
+            }
             ?>
             
-            <div>
+            <?php
+            $wrapperClasses = [];
+            if ($itemWidthClass) $wrapperClasses[] = trim($itemWidthClass);
+            if ($layout === 'logowall') $wrapperClasses[] = 'uk-transition-toggle';
+            $wrapperClassStr = count($wrapperClasses) ? ' class="' . implode(' ', $wrapperClasses) . '"' : '';
+            ?>
+            
+            <div<?= $wrapperClassStr ?>>
                 <?php if ($isImage): ?>
+                    <?php 
+                    $linkClasses = ['uk-display-block', 'uk-link-reset'];
+                    $linkClassStr = implode(' ', $linkClasses);
+                    ?>
+
                     <?php if ($lightbox && empty($linkUrl)): ?>
                         <!-- Lightbox Link -->
-                        <a href="<?= $fullImageUrl ?>" data-caption="<?= rex_escape($displayCaption) ?>">
+                        <a href="<?= $fullImageUrl ?>" data-caption="<?= rex_escape($displayCaption) ?>" class="<?= $linkClassStr ?>">
                             <span class="uk-hidden"><?= rex_escape($finalAlt) ?></span>
                     <?php elseif ($linkUrl): ?>
                         <!-- Custom Link -->
-                        <a href="<?= rex_escape($linkUrl) ?>">
+                        <a href="<?= rex_escape($linkUrl) ?>" class="<?= $linkClassStr ?>">
                             <span class="uk-hidden"><?= rex_escape($finalAlt) ?></span>
                     <?php endif; ?>
                     
-                    <div class="uk-card uk-card-default uk-card-hover uk-overflow-hidden">
-                        <?php if ($aspectRatio !== 'auto'): ?>
-                            <!-- Fixed Aspect Ratio -->
-                            <div class="uk-inline-clip uk-transition-toggle" style="width: 100%;">
-                                <canvas width="<?= explode(':', $aspectRatio)[0] * 100 ?>" height="<?= explode(':', $aspectRatio)[1] * 100 ?>"></canvas>
-                                <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($finalAlt) ?>" class="uk-transition-opaque uk-transition-scale-up" uk-cover>
+                    <?php if ($layout === 'logowall'): ?>
+                        <!-- Logo Wall Item -->
+                        <div class="uk-text-center uk-flex uk-flex-column uk-flex-middle uk-flex-center" style="min-height: 120px;">
+                            <div class="uk-flex uk-flex-middle uk-flex-center uk-flex-1">
+                                <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($finalAlt) ?>" style="max-height: 80px; max-width: 100%; width: auto; height: auto; transition: transform 0.3s ease-in-out; display: inline-block;" class="uk-transition-opaque uk-transition-scale-up">
                             </div>
-                        <?php else: ?>
-                            <!-- Auto Aspect Ratio -->
-                            <div class="uk-inline-clip uk-transition-toggle">
-                                <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($finalAlt) ?>" class="uk-width-1-1" style="transition: transform 0.3s ease;">
+                            <?php if ($displayCaption): ?>
+                                <p class="uk-text-meta uk-margin-small-top uk-margin-remove-bottom"><?= rex_escape($displayCaption) ?></p>
+                            <?php endif; ?>
+                        </div>
+                    <?php elseif ($layout === 'featured' && $index === 0): ?>
+                        <!-- Featured Image Presentation -->
+                        <div class="uk-margin-medium-bottom">
+                            <div class="uk-inline-clip uk-transition-toggle uk-width-1-1">
+                                <img src="<?= $fullImageUrl ?>" alt="<?= rex_escape($finalAlt) ?>" class="uk-width-1-1">
+                                <?php if ($displayCaption): ?>
+                                    <div class="uk-overlay uk-overlay-primary uk-position-bottom">
+                                        <p class="uk-margin-remove"><?= rex_escape($displayCaption) ?></p>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                        <?php endif; ?>
-                        
-                        <?php if ($displayCaption): ?>
-                            <div class="uk-card-body uk-padding-small">
-                                <p class="uk-text-small uk-margin-remove"><?= rex_escape($displayCaption) ?></p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                        </div>
+                    <?php else: ?>
+                        <!-- Standard Card Item -->
+                        <div class="uk-card uk-card-default uk-card-hover uk-overflow-hidden">
+                            <?php if ($aspectRatio !== 'auto'): ?>
+                                <!-- Fixed Aspect Ratio -->
+                                <div class="uk-inline-clip uk-transition-toggle" style="width: 100%;">
+                                    <canvas width="<?= explode(':', $aspectRatio)[0] * 100 ?>" height="<?= explode(':', $aspectRatio)[1] * 100 ?>"></canvas>
+                                    <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($finalAlt) ?>" class="uk-transition-opaque uk-transition-scale-up" uk-cover>
+                                </div>
+                            <?php else: ?>
+                                <!-- Auto Aspect Ratio -->
+                                <div class="uk-inline-clip uk-transition-toggle">
+                                    <img src="<?= $thumbUrl ?>" alt="<?= rex_escape($finalAlt) ?>" class="uk-width-1-1" style="transition: transform 0.3s ease;">
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($displayCaption): ?>
+                                <div class="uk-card-body uk-padding-small">
+                                    <p class="uk-text-small uk-margin-remove"><?= rex_escape($displayCaption) ?></p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                     
                     <?php if (($lightbox && empty($linkUrl)) || $linkUrl): ?>
                         </a>
@@ -197,7 +256,7 @@ $lightboxId = 'gallery-' . uniqid();
                     <!-- Video -->
                     <div class="uk-card uk-card-default uk-overflow-hidden">
                         <div class="uk-inline-clip uk-transition-toggle uk-light" tabindex="0">
-                            <?php if ($aspectRatio !== 'auto'): ?>
+                            <?php if ($aspectRatio !== 'auto' && !($layout === 'featured' && $index === 0)): ?>
                                 <canvas width="<?= explode(':', $aspectRatio)[0] * 100 ?>" height="<?= explode(':', $aspectRatio)[1] * 100 ?>"></canvas>
                                 <video class="uk-transition-opaque" preload="metadata" playsinline uk-cover>
                                     <source src="<?= rex_url::media($media) ?>" type="video/<?= strtolower(pathinfo($media, PATHINFO_EXTENSION)) ?>">
@@ -208,7 +267,7 @@ $lightboxId = 'gallery-' . uniqid();
                                 </video>
                             <?php endif; ?>
                             
-                            <?php if ($aspectRatio !== 'auto'): ?>
+                            <?php if ($aspectRatio !== 'auto' && !($layout === 'featured' && $index === 0)): ?>
                                 <!-- Play Button Overlay -->
                                 <div class="uk-position-center">
                                     <a class="uk-icon-button" uk-icon="icon: play; ratio: 2" href="<?= rex_url::media($media) ?>" uk-lightbox="video-autoplay: true"></a>

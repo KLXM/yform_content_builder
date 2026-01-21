@@ -173,7 +173,8 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     protected static function getNextMediaCounter(): int
     {
         if (!isset($GLOBALS['yform_cb_media_counter'])) {
-            $GLOBALS['yform_cb_media_counter'] = 0;
+            // Wir starten bei 1000 um Kollisionen mit Standard-Slices zu vermeiden
+            $GLOBALS['yform_cb_media_counter'] = 1000;
         }
         return ++$GLOBALS['yform_cb_media_counter'];
     }
@@ -184,7 +185,8 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     protected static function getNextLinkCounter(): int
     {
         if (!isset($GLOBALS['yform_cb_link_counter'])) {
-            $GLOBALS['yform_cb_link_counter'] = 0;
+            // Wir starten bei 1000 um Kollisionen mit Standard-Slices zu vermeiden
+            $GLOBALS['yform_cb_link_counter'] = 1000;
         }
         return ++$GLOBALS['yform_cb_link_counter'];
     }
