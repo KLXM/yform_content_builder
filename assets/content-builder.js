@@ -183,8 +183,13 @@
                     // REDAXO's deleteREXLink Funktion aufrufen
                     deleteREXLink(linkId);
                 } else {
-                    console.error('deleteREXLink function not found');
+                    // Fallback
+                    $('#' + linkId).val('');
+                    $('#' + linkId + '_NAME').val('');
                 }
+                
+                // Trigger change damit Content Builder die Änderung bemerkt
+                $('#' + linkId).trigger('change');
                 
                 return false;
             });
@@ -570,11 +575,19 @@
                     $editForm.on('click', '.rex-linkmap-delete-btn', function(e) {
                         e.preventDefault();
                         var $btn = $(this);
-                        var counter = $btn.data('counter');
+                        var linkId = $btn.data('id');
                         
                         if (typeof deleteREXLink === 'function') {
-                            deleteREXLink(counter);
+                            deleteREXLink(linkId);
+                        } else {
+                            // Fallback
+                            $('#' + linkId).val('');
+                            $('#' + linkId + '_NAME').val('');
                         }
+                        
+                        // Trigger change damit Content Builder die Änderung bemerkt
+                        $('#' + linkId).trigger('change');
+                        
                         return false;
                     });
                     

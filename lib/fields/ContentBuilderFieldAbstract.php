@@ -183,6 +183,9 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
      */
     protected static function getNextLinkCounter(): int
     {
-        return ++self::$widgetCounters['link'];
+        if (!isset($GLOBALS['yform_cb_link_counter'])) {
+            $GLOBALS['yform_cb_link_counter'] = 0;
+        }
+        return ++$GLOBALS['yform_cb_link_counter'];
     }
 }
