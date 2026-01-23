@@ -290,9 +290,11 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         $cardClasses = ['uk-card', $itemCardStyleClass, 'uk-overflow-hidden'];
         if ($cardSizeClass && !$isTransparent) $cardClasses[] = $cardSizeClass; // Kein Size-Padding bei transparent
         if ($itemShadowClass) $cardClasses[] = $itemShadowClass;
-        if ($linkCard && $href) {
-            $cardClasses[] = 'uk-link-toggle';
+        if ($linkCard) {
             $cardClasses[] = 'uk-link-reset';
+            if ($href) {
+                $cardClasses[] = 'uk-link-toggle';
+            }
         }
         
         // Width-Klassen für Item
