@@ -148,13 +148,25 @@ if ($isVideoFile): ?>
     
 <?php elseif ($isImageFile && $imageSrc): 
     $mediaRatioForMM = str_replace('-', '_', ($mediaRatio ?? '16-9'));
-    // Fallback falls Typen nicht passen
+    
+    // Srcset-Generierung abhängig vom Ratio
     $srcset = [];
-    foreach ([400, 800, 1200, 1600] as $w) {
-        $srcset[] = rex_media_manager::getUrl('card_' . $mediaRatioForMM . '_w' . $w, $image) . ' ' . $w . 'w';
+    if ($mediaRatio === 'original') {
+        // Original Ratio: verwende card_original_wX Typen (nur resize)
+        foreach ([400, 800, 1200, 1600] as $w) {
+            $srcset[] = rex_media_manager::getUrl('card_original_w' . $w, $image) . ' ' . $w . 'w';
+        }
+    } else {
+        // Feste Ratios: verwende card_RATIO_wX Typen (resize + crop)
+        foreach ([400, 800, 1200, 1600] as $w) {
+            $srcset[] = rex_media_manager::getUrl('card_' . $mediaRatioForMM . '_w' . $w, $image) . ' ' . $w . 'w';
+        }
     }
     $srcsetString = implode(', ', $srcset);
     $sizes = '(min-width: 1200px) 400px, (min-width: 600px) 50vw, 100vw';
+    
+    // uk-cover Attribut: object-fit:cover; object-position:center; sorgt für korrektes Ausfüllen ohne Verzerrung
+    $coverAttr = $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"';
 ?>
     <?php if ($mediaLightbox): ?>
         <div uk-lightbox>
@@ -164,7 +176,7 @@ if ($isVideoFile): ?>
                      srcset="<?= $srcsetString ?>"
                      sizes="<?= $sizes ?>"
                      alt="<?= rex_escape($imageAlt) ?>" 
-                     <?= $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"' ?>>
+                     <?= $coverAttr ?>>
             </a>
         </div>
     <?php else: ?>
@@ -174,6 +186,6 @@ if ($isVideoFile): ?>
              sizes="<?= $sizes ?>"
              alt="<?= rex_escape($imageAlt) ?>"
              title="<?= rex_escape($imageTitle) ?>"
-             <?= $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"' ?>>
+             <?= $coverAttr ?>>
     <?php endif; ?>
 <?php endif; ?>

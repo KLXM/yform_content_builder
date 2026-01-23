@@ -184,7 +184,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         
         // Media-Optionen
         $mediaLightbox = !empty($item['media_lightbox']);
-        $mediaCover = !empty($item['media_cover']);
+        $mediaCoverCheckbox = !empty($item['media_cover']); // Original Checkbox-Wert
         $imageDecorative = !empty($item['image_decorative']);
         
         // Video-Optionen
@@ -239,11 +239,34 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         elseif ($mediaRatio === '4-3') { $canvasW = 4; $canvasH = 3; }
         elseif ($mediaRatio === '1-1') { $canvasW = 1; $canvasH = 1; }
         
-        // Cover-Logik fixieren: Nur für Overlay und Horizontal (wenn gewählt)
+        // Cover-Logik: 
+        // - Cover aktiv (Checkbox): Bild füllt Container-Höhe aus, kein festes Ratio (kein Canvas)
+        // - Cover inaktiv: Festes Ratio via Canvas (außer bei 'original')
+        // - Overlay: Immer Canvas für Ratio
+        // - Top/Bottom: Immer Canvas für Ratio (außer bei 'original')
+        
+        $useCanvas = false;
+        $applyCover = false; // Diese Variable wird an _media_output.php übergeben
+        
         if ($isOverlay) {
-            $mediaCover = true;
-        } elseif (!$isHorizontal) {
-            $mediaCover = false;
+            // Overlay: Immer Canvas + Cover
+            $useCanvas = true;
+            $applyCover = true;
+        } elseif ($isHorizontal) {
+            // Horizontal: Abhängig von Checkbox
+            if ($mediaCoverCheckbox) {
+                // Cover aktiv: Kein Canvas, Bild füllt Container-Höhe
+                $useCanvas = false;
+                $applyCover = true;
+            } else {
+                // Cover inaktiv: Canvas für Ratio (außer original)
+                $useCanvas = ($mediaRatio !== 'original');
+                $applyCover = ($mediaRatio !== 'original');
+            }
+        } else {
+            // Top/Bottom: Immer Canvas (außer original)
+            $useCanvas = ($mediaRatio !== 'original');
+            $applyCover = ($mediaRatio !== 'original');
         }
 
         // Link generieren
@@ -317,12 +340,27 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <!-- Horizontales Layout (links/rechts) -->
                     <div class="uk-grid-small uk-child-width-expand uk-grid-match" uk-grid>
                         <?php if ($layout === 'media-left' && $image): ?>
-                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?><?= $mediaCover ? ' uk-cover-container' : '' ?> uk-position-relative">
-                                <?php if ($mediaCover): ?>
-                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>" style="display: block; width: 100%; height: auto; visibility: hidden;"></canvas>
+                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?>">
+                                <?php if ($useCanvas): ?>
+                                    <!-- Festes Ratio via Canvas -->
+                                    <div class="uk-cover-container uk-position-relative">
+                                        <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
+                                <?php elseif ($applyCover): ?>
+                                    <!-- Cover-Modus: Bild füllt Container-Höhe -->
+                                    <div class="uk-cover-container uk-height-1-1 uk-position-relative" style="overflow: hidden;">
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <!-- Original: Natürliche Proportionen -->
+                                    <div class="uk-position-relative">
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
                                 <?php endif; ?>
-                                <?= $altWarningHtml ?>
-                                <?php include __DIR__ . '/_media_output.php'; ?>
                             </div>
                         <?php endif; ?>
                         
@@ -344,12 +382,27 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         </div>
                         
                         <?php if ($layout === 'media-right' && $image): ?>
-                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?><?= $mediaCover ? ' uk-cover-container' : '' ?> uk-position-relative">
-                                <?php if ($mediaCover): ?>
-                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>" style="display: block; width: 100%; height: auto; visibility: hidden;"></canvas>
+                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?>">
+                                <?php if ($useCanvas): ?>
+                                    <!-- Festes Ratio via Canvas -->
+                                    <div class="uk-cover-container uk-position-relative">
+                                        <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
+                                <?php elseif ($applyCover): ?>
+                                    <!-- Cover-Modus: Bild füllt Container-Höhe -->
+                                    <div class="uk-cover-container uk-height-1-1 uk-position-relative" style="overflow: hidden;">
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <!-- Original: Natürliche Proportionen -->
+                                    <div class="uk-position-relative">
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
                                 <?php endif; ?>
-                                <?= $altWarningHtml ?>
-                                <?php include __DIR__ . '/_media_output.php'; ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -358,10 +411,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <div class="uk-cover-container uk-position-relative<?= ($matchHeight) ? ' uk-flex-1' : '' ?>">
                         <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>" style="display: block; width: 100%; height: auto; visibility: hidden;"></canvas>
                         <?= $altWarningHtml ?>
-                        <?php 
-                        $mediaCover = true;
-                        include __DIR__ . '/_media_output.php'; 
-                        ?>
+                        <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                         <div class="uk-overlay uk-overlay-primary uk-position-bottom uk-light">
                             <?php if ($title): ?>
                                 <h3 class="uk-card-title"><?= rex_escape($title) ?></h3>
@@ -382,18 +432,38 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                 <?php else: ?>
                     <!-- Vertikales Layout (oben/unten) -->
                     <?php if ($layout === 'media-top' && $image): ?>
-                        <div class="uk-card-media-top uk-position-relative">
-                            <?= $altWarningHtml ?>
-                            <?php include __DIR__ . '/_media_output.php'; ?>
+                        <div class="uk-card-media-top">
+                            <?php if ($useCanvas): ?>
+                                <div class="uk-cover-container uk-position-relative">
+                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
+                                    <?= $altWarningHtml ?>
+                                    <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="uk-position-relative">
+                                    <?= $altWarningHtml ?>
+                                    <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php include __DIR__ . '/_content_output.php'; ?>
 
                     <?php if ($layout === 'media-bottom' && $image): ?>
-                        <div class="uk-card-media-bottom uk-position-relative">
-                            <?= $altWarningHtml ?>
-                            <?php include __DIR__ . '/_media_output.php'; ?>
+                        <div class="uk-card-media-bottom">
+                            <?php if ($useCanvas): ?>
+                                <div class="uk-cover-container uk-position-relative">
+                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
+                                    <?= $altWarningHtml ?>
+                                    <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="uk-position-relative">
+                                    <?= $altWarningHtml ?>
+                                    <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>

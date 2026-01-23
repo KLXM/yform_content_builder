@@ -65,6 +65,19 @@ if (rex_addon::get('media_manager')->isAvailable()) {
         }
     }
 
+    // Original Ratio Card Typen - nur Resize ohne Crop
+    $widthsOriginal = [400, 800, 1200, 1600];
+    foreach ($widthsOriginal as $width) {
+        $typeName = 'card_original_w' . $width;
+        $mm->addType($typeName, 'Card Original Ratio (' . $width . 'px)');
+        $mm->addEffect($typeName, 'resize', [
+            'width' => $width,
+            'height' => $width,
+            'style' => 'maximum',
+            'allow_enlarge' => 'not_enlarge'
+        ], 1);
+    }
+
     // Default Card Typ (Abwärtskompatibilität)
     $mm->addType('content_card', 'Content Builder: Card Bild (Default 16:9)');
     $mm->addEffect('content_card', 'resize', [
