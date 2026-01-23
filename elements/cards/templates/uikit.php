@@ -349,8 +349,9 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                                         <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
                                 <?php elseif ($applyCover): ?>
-                                    <!-- Cover-Modus: Bild füllt Container-Höhe -->
-                                    <div class="uk-cover-container uk-height-1-1 uk-position-relative" style="overflow: hidden;">
+                                    <!-- Cover-Modus: Mobile ausgewähltes Ratio, ab @m Container-Höhe -->
+                                    <div class="uk-cover-container uk-height-1-1@m uk-position-relative" style="overflow: hidden;">
+                                        <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
                                         <?= $altWarningHtml ?>
                                         <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
@@ -391,8 +392,9 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                                         <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
                                 <?php elseif ($applyCover): ?>
-                                    <!-- Cover-Modus: Bild füllt Container-Höhe -->
-                                    <div class="uk-cover-container uk-height-1-1 uk-position-relative" style="overflow: hidden;">
+                                    <!-- Cover-Modus: Mobile ausgewähltes Ratio, ab @m Container-Höhe -->
+                                    <div class="uk-cover-container uk-height-1-1@m uk-position-relative" style="overflow: hidden;">
+                                        <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
                                         <?= $altWarningHtml ?>
                                         <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
