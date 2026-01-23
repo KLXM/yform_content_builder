@@ -1679,15 +1679,23 @@
          * Update repeater indices after reordering
          */
         updateRepeaterIndices: function($container) {
+            // Finde das Base-Feld für diesen Repeater-Container
+            var fieldBaseName = $container.data('field');
+            
             $container.find('.repeater-item:not(.repeater-item-template)').each(function(index) {
                 $(this).attr('data-index', index);
                 
-                // Input-Namen aktualisieren
+                // Input-Namen aktualisieren - nur den Index für DIESEN Repeater
                 $(this).find('input, textarea, select').each(function() {
                     var $input = $(this);
                     var name = $input.attr('name');
-                    if (name && name.indexOf('[') !== -1) {
-                        var newName = name.replace(/\[(\d+)\]/g, '[' + index + ']');
+                    
+                    if (name && fieldBaseName && name.indexOf(fieldBaseName + '[') === 0) {
+                        // Nur den ersten Index nach dem Base-Namen ersetzen
+                        // z.B. fieldname[2][sub] -> fieldname[0][sub]
+                        // Aber NICHT fieldname[2][nested][1] -> fieldname[0][nested][0]
+                        var pattern = new RegExp('^(' + fieldBaseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\[(\\d+)\\]');
+                        var newName = name.replace(pattern, '$1[' + index + ']');
                         $input.attr('name', newName);
                     }
                 });
