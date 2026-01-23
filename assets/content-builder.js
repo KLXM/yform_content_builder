@@ -1699,6 +1699,75 @@
             
             // Button states aktualisieren
             this.updateMoveButtonStates();
+            
+            // Für Module: Serialisiere Daten zurück ins JSON hidden field
+            this.serializeModuleData($container);
+        },
+        
+        /**
+         * Serialisiert Repeater-Daten zurück ins Module hidden field (yform_cb_data_storage)
+         */
+        serializeModuleData: function($container) {
+            // Prüfe ob wir in einem Modul sind (hat hidden field yform_cb_data_storage)
+            var $hiddenField = $('#yform_cb_data_storage');
+            if ($hiddenField.length === 0) {
+                return; // Nicht in einem Modul
+            }
+            
+            try {
+                // Parse aktuelles JSON
+                var data = JSON.parse($hiddenField.val() || '{}');
+                
+                // Hole field name aus Container (z.B. "items")
+                var fieldName = $container.data('field');
+                if (!fieldName) {
+                    return;
+                }
+                
+                // Sammle Items in korrekter Reihenfolge
+                var items = [];
+                $container.find('.repeater-item:not(.repeater-item-template)').each(function() {
+                    var $item = $(this);
+                    var itemData = {};
+                    
+                    // Sammle alle Inputs für dieses Item
+                    $item.find('input, textarea, select').each(function() {
+                        var $input = $(this);
+                        var name = $input.attr('name');
+                        
+                        // Nur Inputs für diesen Repeater (z.B. items[0][title])
+                        if (name && name.indexOf(fieldName + '[') === 0) {
+                            // Extrahiere Feldname: items[0][title] -> title
+                            var match = name.match(/\[\d+\]\[([^\]]+)\]/);
+                            if (match) {
+                                var key = match[1];
+                                var value = $input.val();
+                                
+                                // Handle Checkboxen
+                                if ($input.attr('type') === 'checkbox') {
+                                    value = $input.is(':checked') ? $input.val() || '1' : '';
+                                }
+                                
+                                itemData[key] = value;
+                            }
+                        }
+                    });
+                    
+                    // Nur hinzufügen wenn Item Daten hat
+                    if (Object.keys(itemData).length > 0) {
+                        items.push(itemData);
+                    }
+                });
+                
+                // Update data object
+                data[fieldName] = items;
+                
+                // Schreibe zurück ins hidden field
+                $hiddenField.val(JSON.stringify(data));
+                
+            } catch(e) {
+                console.error('Fehler beim Serialisieren der Module-Daten:', e);
+            }
         },
         
         /**
