@@ -1633,14 +1633,19 @@
                 e.stopPropagation();
                 
                 var $item = $(this).closest('.repeater-item');
+                var $container = $item.closest('.repeater-container');
                 var $prevItem = $item.prev('.repeater-item:not(.repeater-item-template)');
                 
                 if ($prevItem.length > 0) {
-                    $item.fadeOut(150, function() {
-                        $item.insertBefore($prevItem);
-                        $item.fadeIn(150);
-                        self.updateRepeaterIndices($item.closest('.repeater-container'));
-                    });
+                    // Sofort verschieben ohne Animation
+                    $item.insertBefore($prevItem);
+                    self.updateRepeaterIndices($container);
+                    
+                    // Kurzes visuelles Feedback
+                    $item.css('background', '#d9edf7');
+                    setTimeout(function() {
+                        $item.css('background', '');
+                    }, 300);
                 }
             });
             
@@ -1650,14 +1655,19 @@
                 e.stopPropagation();
                 
                 var $item = $(this).closest('.repeater-item');
+                var $container = $item.closest('.repeater-container');
                 var $nextItem = $item.next('.repeater-item:not(.repeater-item-template)');
                 
                 if ($nextItem.length > 0) {
-                    $item.fadeOut(150, function() {
-                        $item.insertAfter($nextItem);
-                        $item.fadeIn(150);
-                        self.updateRepeaterIndices($item.closest('.repeater-container'));
-                    });
+                    // Sofort verschieben ohne Animation
+                    $item.insertAfter($nextItem);
+                    self.updateRepeaterIndices($container);
+                    
+                    // Kurzes visuelles Feedback
+                    $item.css('background', '#d9edf7');
+                    setTimeout(function() {
+                        $item.css('background', '');
+                    }, 300);
                 }
             });
             
