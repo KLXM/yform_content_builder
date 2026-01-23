@@ -1679,23 +1679,19 @@
          * Update repeater indices after reordering
          */
         updateRepeaterIndices: function($container) {
-            // Finde das Base-Feld für diesen Repeater-Container
-            var fieldBaseName = $container.data('field');
-            
             $container.find('.repeater-item:not(.repeater-item-template)').each(function(index) {
-                $(this).attr('data-index', index);
+                var $item = $(this);
+                $item.attr('data-index', index);
                 
-                // Input-Namen aktualisieren - nur den Index für DIESEN Repeater
-                $(this).find('input, textarea, select').each(function() {
+                // Input-Namen aktualisieren - nur den ersten numerischen Index ersetzen
+                $item.find('input, textarea, select').each(function() {
                     var $input = $(this);
                     var name = $input.attr('name');
                     
-                    if (name && fieldBaseName && name.indexOf(fieldBaseName + '[') === 0) {
-                        // Nur den ersten Index nach dem Base-Namen ersetzen
-                        // z.B. fieldname[2][sub] -> fieldname[0][sub]
-                        // Aber NICHT fieldname[2][nested][1] -> fieldname[0][nested][0]
-                        var pattern = new RegExp('^(' + fieldBaseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\\[(\\d+)\\]');
-                        var newName = name.replace(pattern, '$1[' + index + ']');
+                    if (name && name.indexOf('[') !== -1) {
+                        // Ersetze nur den ERSTEN numerischen Index: items[2][title] -> items[0][title]
+                        // Lässt verschachtelte Indizes unberührt: items[2][nested][1] bleibt bei [1] für nested
+                        var newName = name.replace(/\[(\d+)\]/, '[' + index + ']');
                         $input.attr('name', newName);
                     }
                 });
