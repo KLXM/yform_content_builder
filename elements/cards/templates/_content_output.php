@@ -61,7 +61,7 @@ if (!empty($extraFields)) {
         ?>
         <div class="uk-card-header<?= $headerPaddingClass ?>">
             <?php if (!empty($title)): ?>
-                <h3 class="uk-card-title<?= $linkCard ? ' uk-link-heading' : '' ?>"><?= rex_escape($title) ?></h3>
+                <h3 class="uk-card-title"><?= rex_escape($title) ?></h3>
             <?php endif; ?>
             <?php if (!empty($subtitle)): ?>
                 <p class="uk-text-meta uk-margin-remove-top"><?= rex_escape($subtitle) ?></p>
