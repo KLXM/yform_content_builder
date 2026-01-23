@@ -264,9 +264,9 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                 $applyCover = ($mediaRatio !== 'original');
             }
         } else {
-            // Top/Bottom: Immer Canvas (außer original)
-            $useCanvas = ($mediaRatio !== 'original');
-            $applyCover = ($mediaRatio !== 'original');
+            // Top/Bottom: Kein Canvas/Cover - Ratio kommt vom Media Manager
+            $useCanvas = false;
+            $applyCover = false;
         }
 
         // Link generieren
@@ -434,38 +434,18 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                 <?php else: ?>
                     <!-- Vertikales Layout (oben/unten) -->
                     <?php if ($layout === 'media-top' && $image): ?>
-                        <div class="uk-card-media-top">
-                            <?php if ($useCanvas): ?>
-                                <div class="uk-cover-container uk-position-relative">
-                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
-                                    <?= $altWarningHtml ?>
-                                    <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
-                                </div>
-                            <?php else: ?>
-                                <div class="uk-position-relative">
-                                    <?= $altWarningHtml ?>
-                                    <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
-                                </div>
-                            <?php endif; ?>
+                        <div class="uk-card-media-top uk-position-relative">
+                            <?= $altWarningHtml ?>
+                            <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
                         </div>
                     <?php endif; ?>
                     
                     <?php include __DIR__ . '/_content_output.php'; ?>
 
                     <?php if ($layout === 'media-bottom' && $image): ?>
-                        <div class="uk-card-media-bottom">
-                            <?php if ($useCanvas): ?>
-                                <div class="uk-cover-container uk-position-relative">
-                                    <canvas width="<?= $canvasW ?>" height="<?= $canvasH ?>"></canvas>
-                                    <?= $altWarningHtml ?>
-                                    <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
-                                </div>
-                            <?php else: ?>
-                                <div class="uk-position-relative">
-                                    <?= $altWarningHtml ?>
-                                    <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
-                                </div>
-                            <?php endif; ?>
+                        <div class="uk-card-media-bottom uk-position-relative">
+                            <?= $altWarningHtml ?>
+                            <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
