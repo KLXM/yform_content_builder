@@ -222,6 +222,20 @@ class yform_content_builder_module
                 collectFormData();
             });
             
+            // REDAXO Link Widget Change Events (für REX_LINK_ Felder)
+            // REDAXO's Linkmap setzt das Hidden Field, aber triggert kein change Event
+            $(form).on('change', 'input[id^="REX_LINK_"]', function() {
+                collectFormData();
+            });
+            
+            // REDAXO's rex:selectLink Event (wird nach Linkmap-Auswahl gefeuert)
+            $(window).on('rex:selectLink', function(event, link, name) {
+                // Kurz warten, damit REDAXO's Callback das Hidden Field setzen kann
+                setTimeout(function() {
+                    collectFormData();
+                }, 100);
+            });
+            
             // CKEditor5 Change Events abfangen (REDAXO CKE5)
             // REDAXO CKE5 verwendet ClassicEditor und speichert Instanzen in window.ckeditors
             $(window).on('rex:cke5IsInit', function(event, editor, editorId) {
