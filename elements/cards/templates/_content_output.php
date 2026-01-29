@@ -45,13 +45,12 @@ if (!empty($extraFields)) {
 }
 ?>
 
-<?php if (!empty($badge)): ?>
-    <div class="uk-card-badge uk-label uk-label-<?= rex_escape($badgeColor) ?>"><?= rex_escape($badge) ?></div>
-<?php endif; ?>
-
 <?php if ($isHorizontal): ?>
 <div class="uk-card-content-wrapper<?= $contentWrapperClass ?? '' ?>">
 <?php endif; ?>
+    <?php if (!empty($badge)): ?>
+        <div class="uk-card-badge uk-label uk-label-<?= rex_escape($badgeColor) ?>"><?= rex_escape($badge) ?></div>
+    <?php endif; ?>
     <?php if (!empty($title) || !empty($subtitle)): ?>
         <?php 
         $headerPaddingClass = $transparentPadding;
