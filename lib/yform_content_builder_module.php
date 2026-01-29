@@ -120,11 +120,20 @@ class yform_content_builder_module
                 }
                 
                 var data = {};
+                
+                // Sammle Felder aus dem Hauptformular UND aus allen Modals
                 var allFields = form.querySelectorAll('input[name], textarea[name], select[name]');
+                
+                // Auch Felder in Bootstrap Modals sammeln (die sind außerhalb des Forms)
+                var modalFields = document.querySelectorAll('.modal input[name], .modal textarea[name], .modal select[name]');
+                
+                // Beide NodeLists kombinieren
+                var combinedFields = Array.from(allFields).concat(Array.from(modalFields));
+                
                 var processedFields = new Set(); // Track welche Felder wir schon verarbeitet haben
                 
                 // Alle Inputs, Textareas und Selects sammeln
-                allFields.forEach(function(field) {
+                combinedFields.forEach(function(field) {
                     var name = field.getAttribute('name');
                     
                     // Skip fields from template items (hidden repeater templates)
@@ -234,6 +243,16 @@ class yform_content_builder_module
                 setTimeout(function() {
                     collectFormData();
                 }, 100);
+            });
+            
+            // Bootstrap Modal Events - Daten sammeln wenn Modal geschlossen wird
+            $('.modal').on('hidden.bs.modal', function() {
+                collectFormData();
+            });
+            
+            // Auch auf Änderungen in Modals reagieren
+            $(document).on('change input', '.modal input, .modal textarea, .modal select', function() {
+                collectFormData();
             });
             
             // CKEditor5 Change Events abfangen (REDAXO CKE5)
