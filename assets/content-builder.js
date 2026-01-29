@@ -268,6 +268,29 @@
                 if ($preview.length && $preview.hasClass('media-preview-enhanced')) {
                     self.updateEnhancedMediaPreview($input, $preview);
                 }
+                
+                // Trigger serialization für Module
+                var $repeaterContainer = $input.closest('.repeater-container');
+                if ($repeaterContainer.length > 0) {
+                    // Verzögert, damit REDAXO's Logik fertig ist
+                    setTimeout(function() {
+                        self.serializeModuleData($repeaterContainer);
+                    }, 500);
+                }
+            });
+            
+            // Watch for REX_LINK input changes (hidden fields)
+            $(document).on('change', 'input[id^="REX_LINK_"]', function() {
+                var $input = $(this);
+                
+                // Prüfe ob wir in einem Repeater sind
+                var $repeaterContainer = $input.closest('.repeater-container');
+                if ($repeaterContainer.length > 0) {
+                    // Verzögert serialisieren, damit REDAXO's Linkmap-Callback fertig ist
+                    setTimeout(function() {
+                        self.serializeModuleData($repeaterContainer);
+                    }, 500);
+                }
             });
             
             // Polling für Enhanced Media Widgets (da openREXMedia nicht immer change-Event feuert)
