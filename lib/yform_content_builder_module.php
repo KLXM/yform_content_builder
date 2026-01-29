@@ -234,15 +234,18 @@ class yform_content_builder_module
             // REDAXO Link Widget Change Events (für REX_LINK_ Felder)
             // REDAXO's Linkmap setzt das Hidden Field, aber triggert kein change Event
             $(form).on('change', 'input[id^="REX_LINK_"]', function() {
+                console.log('REX_LINK change event triggered');
                 collectFormData();
             });
             
             // REDAXO's rex:selectLink Event (wird nach Linkmap-Auswahl gefeuert)
             $(window).on('rex:selectLink', function(event, link, name) {
-                // Kurz warten, damit REDAXO's Callback das Hidden Field setzen kann
+                console.log('rex:selectLink event received:', link, name);
+                // Länger warten, damit REDAXO's Callback das Hidden Field sicher gesetzt hat
                 setTimeout(function() {
+                    console.log('Collecting form data after link selection...');
                     collectFormData();
-                }, 100);
+                }, 300);
             });
             
             // Bootstrap Modal Events - Daten sammeln wenn Modal geschlossen wird
