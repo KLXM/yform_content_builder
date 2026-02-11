@@ -5,8 +5,10 @@
  * $title, $subtitle, $text, $badge, $badgeColor, $href, $linkText, $linkCard, $isTransparent, $item
  */
 
-// Bei transparent Cards: uk-padding-remove für Header/Body/Footer
-$transparentPadding = isset($isTransparent) && $isTransparent ? ' uk-padding-remove' : '';
+// Bei transparent Cards: seitliche Paddings entfernen
+$transparentPadding = isset($isTransparent) && $isTransparent ? ' uk-padding-remove-left uk-padding-remove-right' : '';
+// Body zusätzlich: auch top-Padding entfernen
+$transparentBodyPadding = isset($isTransparent) && $isTransparent ? ' uk-padding-remove-left uk-padding-remove-right uk-padding-remove-top' : '';
 
 // Standard-Feldnamen die NICHT als Extra-Felder zählen
 $standardFields = [
@@ -85,7 +87,7 @@ if (!empty($extraFields)) {
             $bodyFlexClass = ' uk-flex-1';
         }
         ?>
-        <div class="uk-card-body<?= $bodyFlexClass ?><?= $transparentPadding ?>">
+        <div class="uk-card-body<?= $bodyFlexClass ?><?= $transparentBodyPadding ?>">
             <div class="uk-text"><?= $text ?></div>
         </div>
     <?php endif; ?>
@@ -98,7 +100,7 @@ if (!empty($extraFields)) {
                 </a>
             </div>
         <?php elseif (!$isOverlay): ?>
-            <?php $footerPadding = ($isTransparent ?? false) ? ' uk-padding-remove' : ''; ?>
+            <?php $footerPadding = ($isTransparent ?? false) ? ' uk-padding-remove-left uk-padding-remove-right' : ''; ?>
             <div class="uk-card-footer<?= ($matchHeight ?? false) ? ' uk-margin-auto-top' : '' ?><?= $footerPadding ?>">
                 <a href="<?= $href ?>" class="uk-button uk-button-text">
                     <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
