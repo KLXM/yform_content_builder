@@ -137,6 +137,7 @@ class ContentBuilderFieldRegistry
             new SelectField(),
             new ChoiceField(),
             new Cke5Field(),
+            new TinyMceField(),
             new BeMediaField(),
             new BeLinkField(),
             new RadioImageField(),

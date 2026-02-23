@@ -6,6 +6,8 @@
 (function($) {
     'use strict';
     
+    console.log('Content Builder JS loaded');
+    
     // Flag um doppelte Initialisierung zu verhindern
     var eventsInitialized = false;
     
@@ -23,11 +25,25 @@
             // Events nur einmal binden (bei erstem init)
             if (!eventsInitialized) {
                 this.bindEvents();
+                this.fixTinyMCEInModals();
                 eventsInitialized = true;
             }
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+        },
+        
+        /**
+         * FIX: TinyMCE in Bootstrap-Modals erlauben
+         * Bootstrap blockiert Focus-Events in Modals, aber TinyMCE braucht diese
+         */
+        fixTinyMCEInModals: function() {
+            // Prevent Bootstrap modal from blocking TinyMCE focus events
+            $(document).on('focusin', function(e) {
+                if ($(e.target).closest('.tox-tinymce, .tox-tinymce-aux, .moxman-window, .tam-assetmanager-root').length) {
+                    e.stopImmediatePropagation();
+                }
+            });
         },
 
         bindEvents: function() {
@@ -479,6 +495,10 @@
                 e.preventDefault();
                 var $item = $(this).closest('.repeater-item');
                 var $container = $item.closest('.repeater-container');
+                
+                // TinyMCE-Instanzen im Item entfernen
+                self.destroyTinyMCEInContainer($item);
+                
                 $item.fadeOut(200, function() {
                     $item.remove();
                     // Update indices after removal
@@ -520,6 +540,26 @@
                 });
             });
         },
+        
+        /**
+         * Entfernt TinyMCE-Instanzen in einem Container
+         */
+        destroyTinyMCEInContainer: function($container) {
+            if (typeof tinymce === 'undefined') {
+                return;
+            }
+            
+            $container.find('textarea.tiny-editor').each(function() {
+                var textareaId = $(this).attr('id');
+                if (textareaId && tinymce.get(textareaId)) {
+                    try {
+                        tinymce.get(textareaId).remove();
+                    } catch(e) {
+                        // Silent fail if editor already removed
+                    }
+                }
+            });
+        },
 
         initSortable: function() {
             var self = this;
@@ -540,6 +580,8 @@
         },
 
         editSlice: function($slice) {
+            var self = this;
+            
             // Gerenderte Ansicht ausblenden
             $slice.find('.slice-rendered').hide();
             $slice.find('.slice-toolbar').hide();
@@ -550,12 +592,74 @@
             if ($editForm.children().length === 0) {
                 // Formular erstmal laden
                 this.loadSliceForm($slice);
+            } else {
+                // Formular ist bereits geladen - TinyMCE neu initialisieren/refreshen
+                $editForm.show();
+                
+                // TinyMCE Editoren refreshen (da sie vorher versteckt waren)
+                setTimeout(function() {
+                    $editForm.find('textarea.tiny-editor').each(function() {
+                        var $ta = $(this);
+                        var id = $ta.attr('id');
+                        
+                        if (id && typeof tinymce !== 'undefined') {
+                            var editor = tinymce.get(id);
+                            
+                            if (editor) {
+                                // Editor existiert - Layout neu berechnen
+                                try {
+                                    if (typeof editor.dispatch === 'function') {
+                                        editor.dispatch('ResizeEditor');
+                                        editor.dispatch('ResizeContent');
+                                    }
+                                    // Container sichtbar machen falls versteckt
+                                    var $container = $ta.siblings('.tox-tinymce');
+                                    if ($container.length && !$container.is(':visible')) {
+                                        $container.show();
+                                    }
+                                } catch(e) {}
+                            }
+                        }
+                    });
+                    
+                    // Check for uninitialized textareas (e.g., newly added repeater items)
+                    var $uninitializedTextareas = $editForm.find('textarea.tiny-editor').filter(function() {
+                        return !$(this).hasClass('mce-initialized');
+                    });
+                    
+                    if ($uninitializedTextareas.length > 0) {
+                        // Re-init for uninitialized textareas
+                        $editForm.find('.repeater-item:not(.repeater-item-template)').each(function() {
+                            var $item = $(this);
+                            var $itemUninit = $item.find('textarea.tiny-editor').filter(function() {
+                                return !$(this).hasClass('mce-initialized');
+                            });
+                            
+                            if ($itemUninit.length > 0) {
+                                tiny_init($item);
+                            }
+                        });
+                        
+                        // Second pass: Force visibility for ALL TinyMCE containers
+                        setTimeout(function() {
+                            $editForm.find('textarea.tiny-editor').each(function() {
+                                var $ta = $(this);
+                                var $editorContainer = $ta.siblings('.tox-tinymce');
+                                
+                                if ($editorContainer.length > 0 && !$editorContainer.is(':visible')) {
+                                    $editorContainer.show();
+                                }
+                            });
+                        }, 300);
+                    }
+                }, 100);
             }
             
             $editForm.show();
         },
 
         loadSliceForm: function($slice) {
+            var self = this;
             var sliceType = $slice.data('slice-type');
             var sliceData = this.getSliceData($slice);
             var $editForm = $slice.find('.slice-edit-form');
@@ -612,6 +716,61 @@
                                 }
                             }
                         });
+                        
+                        // TinyMCE initialisieren
+                        if (typeof tiny_init === 'function') {
+                            try {
+                                tiny_init($editForm);
+                                
+                                // Fix: Ensure TinyMCE editor containers are visible
+                                setTimeout(function() {
+                                    // First pass: show all visible TinyMCE containers
+                                    $editForm.find('textarea.tiny-editor').each(function() {
+                                        var $ta = $(this);
+                                        var $editorContainer = $ta.siblings('.tox-tinymce');
+                                        
+                                        if ($editorContainer.length > 0 && !$editorContainer.is(':visible')) {
+                                            $editorContainer.css({
+                                                'display': 'block',
+                                                'visibility': 'visible',
+                                                'opacity': '1'
+                                            });
+                                        }
+                                    });
+                                    
+                                    // Re-init TinyMCE for all existing repeater items
+                                    // (when editing a saved slice with multiple repeater items)
+                                    $editForm.find('.repeater-item:not(.repeater-item-template)').each(function() {
+                                        var $item = $(this);
+                                        // Only re-init if this item has textareas without initialized TinyMCE
+                                        var $uninitializedTextareas = $item.find('textarea.tiny-editor').filter(function() {
+                                            return !$(this).hasClass('mce-initialized');
+                                        });
+                                        
+                                        if ($uninitializedTextareas.length > 0) {
+                                            tiny_init($item);
+                                        }
+                                    });
+                                    
+                                    // Second pass: Force visibility for ALL TinyMCE containers after all inits
+                                    setTimeout(function() {
+                                        $editForm.find('textarea.tiny-editor').each(function() {
+                                            var $ta = $(this);
+                                            var $editorContainer = $ta.siblings('.tox-tinymce');
+                                            
+                                            if ($editorContainer.length > 0 && !$editorContainer.is(':visible')) {
+                                                $editorContainer.show();
+                                            }
+                                        });
+                                    }, 300);
+                                }, 100);
+                            } catch(e) {
+                                console.error('TinyMCE initialization failed:', e);
+                            }
+                        }
+                        
+                        // Initialize move button states for repeater items
+                        self.updateMoveButtonStates();
                     }, 300);
                 }
             });
@@ -632,6 +791,19 @@
                 if (typeof ckeditors !== 'undefined' && ckeditors[textareaId]) {
                     var editorData = ckeditors[textareaId].getData();
                     $textarea.val(editorData);
+                }
+            });
+            
+            // WICHTIG: TinyMCE-Instanzen in Textareas zurückschreiben
+            $editForm.find('textarea.tiny-editor').each(function() {
+                var $textarea = $(this);
+                var textareaId = $textarea.attr('id');
+                
+                // TinyMCE-Instanz finden und Daten in Textarea schreiben
+                if (typeof tinymce !== 'undefined' && tinymce.get(textareaId)) {
+                    var editor = tinymce.get(textareaId);
+                    var editorContent = editor.getContent();
+                    $textarea.val(editorContent);
                 }
             });
             
@@ -827,6 +999,9 @@
         },
 
         cancelEdit: function($slice) {
+            // TinyMCE-Instanzen entfernen
+            this.destroyTinyMCEInContainer($slice);
+            
             $slice.find('.slice-edit-form').hide();
             $slice.find('.slice-rendered').show();
             $slice.find('.slice-toolbar').show();
@@ -862,6 +1037,9 @@
             $('#confirm-delete-slice').on('click', function() {
                 $modal.modal('hide');
                 
+                // TinyMCE-Instanzen entfernen
+                self.destroyTinyMCEInContainer($slice);
+                
                 $slice.fadeOut(300, function() {
                     $(this).remove();
                     self.updateIndices();
@@ -876,8 +1054,15 @@
                 $(this).remove();
             });
             
-            // Modal anzeigen
-            $modal.modal('show');
+            // Modal anzeigen (mit enforceFocus deaktiviert für TinyMCE)
+            $modal.modal({
+                show: true,
+                backdrop: true,
+                keyboard: true
+            });
+            
+            // Bootstrap 3 enforceFocus deaktivieren für dieses Modal
+            $modal.data('bs.modal').options.enforceFocus = false;
         },
         
         moveSliceUp: function($slice) {
@@ -1110,6 +1295,7 @@
         },
 
         addRepeaterItem: function($container) {
+            var self = this;
             var fieldName = $container.data('field');
             var $items = $container.find('.repeater-item:not(.repeater-item-template)');
             var $templateItem = $container.find('.repeater-item-template');
@@ -1122,6 +1308,9 @@
                 $newItem.removeClass('repeater-item-template');
                 $newItem.show();
                 $newItem.attr('data-index', newIndex);
+                
+                // Move-Buttons enablen (werden vom Template als disabled geklont)
+                $newItem.find('.btn-move').prop('disabled', false);
                 
                 // Neue eindeutige IDs für das Item und Modal generieren
                 var newItemId = 'repeater_item_' + Math.random().toString(16).slice(2);
@@ -1149,6 +1338,24 @@
                 $newItem.find('.ck-editor__main').remove();
                 $newItem.find('.ck-editor').remove();
                 $newItem.find('.ck').remove();
+                
+                // TinyMCE Elemente entfernen
+                $newItem.find('.tox-tinymce').remove();
+                $newItem.find('textarea.tiny-editor').each(function() {
+                    var $ta = $(this);
+                    var oldId = $ta.attr('id');
+                    // TinyMCE-Instanz entfernen falls vorhanden
+                    if (oldId && typeof tinymce !== 'undefined' && tinymce.get(oldId)) {
+                        try {
+                            tinymce.get(oldId).remove();
+                        } catch(e) {}
+                    }
+                    $ta.removeAttr('id');
+                    $ta.removeClass('mce-initialized');
+                    if (!$ta.attr('data-profile')) {
+                        $ta.attr('data-profile', 'default');
+                    }
+                });
                 
                 // Textareas zurücksetzen
                 $newItem.find('textarea.cke5-editor').each(function() {
@@ -1180,6 +1387,12 @@
                         
                         if ($input.hasClass('cke5-editor')) {
                             var newId = 'cke5_' + Math.random().toString(16).slice(2);
+                            $input.attr('id', newId);
+                        }
+                        
+                        // TinyMCE: Neue ID generieren
+                        if ($input.hasClass('tiny-editor')) {
+                            var newId = 'tinymce_' + Math.random().toString(16).slice(2);
                             $input.attr('id', newId);
                         }
                         
@@ -1353,6 +1566,9 @@
                 
                 $newItem.attr('data-index', newIndex);
                 
+                // Move-Buttons enablen (werden vom letzten Item evtl. als disabled geklont)
+                $newItem.find('.btn-move').prop('disabled', false);
+                
                 // Neue eindeutige IDs für das Item und Modal generieren
                 var oldItemId = $lastItem.attr('id');
                 var newItemId = 'repeater_item_' + Math.random().toString(16).slice(2);
@@ -1377,6 +1593,23 @@
                 $newItem.find('.ck-editor').remove();
                 $newItem.find('.ck').remove();
                 
+                // TinyMCE-DOM-Elemente entfernen
+                $newItem.find('.tox-tinymce').remove();
+                $newItem.find('textarea.tiny-editor').each(function() {
+                    var $ta = $(this);
+                    var oldId = $ta.attr('id');
+                    // TinyMCE-Instanz entfernen
+                    if (oldId && typeof tinymce !== 'undefined' && tinymce.get(oldId)) {
+                        try {
+                            tinymce.get(oldId).remove();
+                        } catch(e) {}
+                    }
+                    $ta.removeAttr('id');
+                    $ta.removeClass('mce-initialized');
+                    if (!$ta.attr('data-profile')) {
+                        $ta.attr('data-profile', 'default');
+                    }
+                });
                 
                 // Alle Textareas zurücksetzen und neue IDs geben
                 $newItem.find('textarea.cke5-editor').each(function() {
@@ -1410,6 +1643,12 @@
                             var newId = 'cke5_' + Math.random().toString(16).slice(2);
                             $input.attr('id', newId);
                             $input.removeAttr('repeater_cke'); // Damit cke5_init neue ID generiert
+                        }
+                        
+                        // Neue eindeutige ID für TinyMCE-Textareas generieren
+                        if ($input.hasClass('tiny-editor')) {
+                            var newId = 'tinymce_' + Math.random().toString(16).slice(2);
+                            $input.attr('id', newId);
                         }
                         
                         // Media/Link-Inputs: Neue ID generieren
@@ -1503,7 +1742,13 @@
                 });
             }
             
-            $container.append($newItem);
+            // Insert new item BEFORE the template item (not at the end)
+            var $template = $container.find('.repeater-item-template');
+            if ($template.length > 0) {
+                $template.before($newItem);
+            } else {
+                $container.append($newItem);
+            }
             $newItem.hide().fadeIn(200);
             
             // Enhanced Media Previews zurücksetzen
@@ -1551,6 +1796,42 @@
                         }
                     }
                 });
+                
+                // TinyMCE in neuem Item initialisieren
+                if (typeof tiny_init === 'function') {
+                    setTimeout(function() {
+                        try {
+                            tiny_init($newItem);
+                            
+                            // Fix: TinyMCE editor container visibility in repeater items
+                            setTimeout(function() {
+                                $newItem.find('textarea.tiny-editor').each(function() {
+                                    var $ta = $(this);
+                                    var id = $ta.attr('id');
+                                    var editor = (typeof tinymce !== 'undefined' && id) ? tinymce.get(id) : null;
+                                    var $editorContainer = $ta.siblings('.tox-tinymce');
+                                    
+                                    // Force editor container to be visible
+                                    if ($editorContainer.length > 0 && !$editorContainer.is(':visible')) {
+                                        $editorContainer.show();
+                                    }
+                                    
+                                    // Trigger layout refresh
+                                    if (editor && typeof editor.dispatch === 'function') {
+                                        try {
+                                            editor.dispatch('ResizeContent');
+                                        } catch(e) {}
+                                    }
+                                });
+                                
+                                // Update button states again after all initializations
+                                self.updateMoveButtonStates();
+                            }, 100);
+                        } catch(e) {
+                            console.error('TinyMCE initialization in repeater failed:', e);
+                        }
+                    }, 500);
+                }
             }, 500); // Länger warten
             
         },
@@ -1655,20 +1936,58 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
+                // Ignore clicks on disabled buttons
+                if ($(this).prop('disabled')) {
+                    return;
+                }
+                
                 var $item = $(this).closest('.repeater-item');
                 var $container = $item.closest('.repeater-container');
                 var $prevItem = $item.prev('.repeater-item:not(.repeater-item-template)');
                 
                 if ($prevItem.length > 0) {
-                    // Sofort verschieben ohne Animation
+                    // Destroy TinyMCE instances before moving (like mblock does)
+                    $container.find('.tiny-editor').each(function() {
+                        var editorId = $(this).attr('id');
+                        if (editorId && typeof tinymce !== 'undefined' && tinymce.get(editorId)) {
+                            try {
+                                tinymce.get(editorId).save(); // Save content first
+                                tinymce.get(editorId).remove(); // Remove instance
+                            } catch(e) {
+                                console.warn('TinyMCE remove error:', e);
+                            }
+                        }
+                    });
+                    
+                    // Move item
                     $item.insertBefore($prevItem);
                     self.updateRepeaterIndices($container);
+                    self.updateMoveButtonStates();
                     
-                    // Kurzes visuelles Feedback
-                    $item.css('background', '#d9edf7');
+                    // Re-initialize widgets (like mblock does)
                     setTimeout(function() {
-                        $item.css('background', '');
-                    }, 300);
+                        $container.find('.repeater-item:not(.repeater-item-template)').each(function() {
+                            $(this).trigger('rex:ready', [$(this)]);
+                        });
+                        
+                        // Force TinyMCE editor containers to be visible after re-init
+                        setTimeout(function() {
+                            $container.find('textarea.tiny-editor').each(function() {
+                                var $ta = $(this);
+                                var $editorContainer = $ta.siblings('.tox-tinymce');
+                                
+                                if ($editorContainer.length > 0 && !$editorContainer.is(':visible')) {
+                                    $editorContainer.show();
+                                }
+                            });
+                        }, 200);
+                        
+                        // Visual feedback
+                        $item.css('background', '#d9edf7');
+                        setTimeout(function() {
+                            $item.css('background', '');
+                        }, 300);
+                    }, 100);
                 }
             });
             
@@ -1677,20 +1996,58 @@
                 e.preventDefault();
                 e.stopPropagation();
                 
+                // Ignore clicks on disabled buttons
+                if ($(this).prop('disabled')) {
+                    return;
+                }
+                
                 var $item = $(this).closest('.repeater-item');
                 var $container = $item.closest('.repeater-container');
                 var $nextItem = $item.next('.repeater-item:not(.repeater-item-template)');
                 
                 if ($nextItem.length > 0) {
-                    // Sofort verschieben ohne Animation
+                    // Destroy TinyMCE instances before moving (like mblock does)
+                    $container.find('.tiny-editor').each(function() {
+                        var editorId = $(this).attr('id');
+                        if (editorId && typeof tinymce !== 'undefined' && tinymce.get(editorId)) {
+                            try {
+                                tinymce.get(editorId).save(); // Save content first
+                                tinymce.get(editorId).remove(); // Remove instance
+                            } catch(e) {
+                                console.warn('TinyMCE remove error:', e);
+                            }
+                        }
+                    });
+                    
+                    // Move item
                     $item.insertAfter($nextItem);
                     self.updateRepeaterIndices($container);
+                    self.updateMoveButtonStates();
                     
-                    // Kurzes visuelles Feedback
-                    $item.css('background', '#d9edf7');
+                    // Re-initialize widgets (like mblock does)
                     setTimeout(function() {
-                        $item.css('background', '');
-                    }, 300);
+                        $container.find('.repeater-item:not(.repeater-item-template)').each(function() {
+                            $(this).trigger('rex:ready', [$(this)]);
+                        });
+                        
+                        // Force TinyMCE editor containers to be visible after re-init
+                        setTimeout(function() {
+                            $container.find('textarea.tiny-editor').each(function() {
+                                var $ta = $(this);
+                                var $editorContainer = $ta.siblings('.tox-tinymce');
+                                
+                                if ($editorContainer.length > 0 && !$editorContainer.is(':visible')) {
+                                    $editorContainer.show();
+                                }
+                            });
+                        }, 200);
+                        
+                        // Visual feedback
+                        $item.css('background', '#d9edf7');
+                        setTimeout(function() {
+                            $item.css('background', '');
+                        }, 300);
+                    }, 100);
                 }
             });
             
