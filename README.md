@@ -1046,7 +1046,7 @@ Development Time:  Mehrere intensive Sessions 🤖
 
 ## 📄 Lizenz
 
-MIT License
+KLXM License
 
 ## 👤 Author
 
