@@ -408,18 +408,24 @@ echo formatPrice($price);
 
 ### 💡 Architektur-Konzept: Custom vs. Demo Elemente
 
-**"Exclusive OR" Prinzip für maximale Kontrolle**
+Das Addon unterstützt zwei Betriebsmodi beim Laden eigener Elemente:
 
-Das Addon folgt einer strikten Philosophie für den produktiven Einsatz:
+1. **`replace`** (Standard):
+    - Sobald eigene Element-Pfade registriert sind, werden nur Custom-Elemente geladen.
+    - Demo-Elemente aus dem Addon sind ausgeblendet.
+2. **`merge`**:
+    - Demo-Elemente und Custom-Elemente werden gemeinsam geladen.
+    - Bei Namensgleichheit überschreibt das Custom-Element das Demo-Element.
 
-1.  **Demo-Modus**: Solange keine eigenen Elemente registriert sind, lädt das Addon die mitgelieferten Demo-Elemente (Section, Text & Bild, etc.), damit du sofort starten und testen kannst.
-2.  **Production-Modus**: Sobald du **auch nur ein einziges eigenes Element** registrierst (z.B. im `project` Addon oder via Extension Point), werden die **Demo-Elemente automatisch deaktiviert**.
+Der Modus wird über den Extension Point `YFORM_CONTENT_BUILDER_ELEMENT_MODE` gesteuert.
 
-**Warum?**
-In einem echten Kundenprojekt möchtest du volle Kontrolle. Du willst nicht, dass Updates des Addons plötzlich neue Demo-Elemente in dein sorgfältig kuratiertes Backend spülen. Du definierst exakt, welche Bausteine zur Verfügung stehen.
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function (): string {
+     return 'merge'; // 'merge' oder 'replace'
+});
+```
 
-**Wie nutze ich die Demo-Elemente trotzdem?**
-Kopiere einfach die gewünschten Elemente aus `redaxo/src/addons/yform_content_builder/elements/` in deinen eigenen Elements-Ordner (z.B. `redaxo/src/addons/project/elements/`). So werden sie zu "deinen" Elementen und du hast die volle Hoheit über Code und Updates.
+Eigene Element-Pfade registrierst du weiterhin über `YFORM_CONTENT_BUILDER_ELEMENT_PATHS`.
 
 ## 🎨 Tab-Gruppierung (Advanced)
 

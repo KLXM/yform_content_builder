@@ -690,9 +690,12 @@ return [
 
 ### WICHTIG: Demo-Elemente
 
-Sobald du **eigene Elemente** erstellst (via `project/elements/` oder Extension Point), werden die mitgelieferten **Demo-Elemente NICHT mehr geladen**.
+Das Verhalten ist über den Modus steuerbar:
 
-➡️ Kopiere benötigte Demo-Elemente aus `yform_content_builder/elements/` in dein `project/elements/` Verzeichnis!
+- `replace` (Standard): nur eigene Elemente
+- `merge`: Demo-Elemente + eigene Elemente
+
+Bei Namensgleichheit gewinnt im `merge`-Modus immer das eigene Element.
 
 ### Registrierung via Extension Point (Alternative)
 
@@ -703,6 +706,11 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_PATHS', function($ep) {
     $paths = $ep->getSubject();
     $paths[] = rex_addon::get('mein_addon')->getPath('content_elements/');
     return $paths;
+});
+
+// Optional: Ladeverhalten steuern
+rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function(): string {
+    return 'merge'; // 'merge' oder 'replace'
 });
 ```
 
@@ -987,6 +995,19 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_PATHS', function($ep) {
     $paths[] = rex_addon::get('mein_addon')->getPath('content_elements/');
     return $paths;
 });
+
+### YFORM_CONTENT_BUILDER_ELEMENT_MODE
+
+Steuert, wie Demo- und Custom-Elemente kombiniert werden.
+
+- `replace` (Default): Nur registrierte Custom-Pfade
+- `merge`: Demo-Elemente plus Custom-Pfade
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function(): string {
+    return 'merge';
+});
+```
 ```
 
 ---

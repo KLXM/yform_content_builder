@@ -965,6 +965,14 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
             []
         ));
+
+        $elementMode = (string) rex_extension::registerPoint(new rex_extension_point(
+            'YFORM_CONTENT_BUILDER_ELEMENT_MODE',
+            'replace'
+        ));
+        if (!in_array($elementMode, ['replace', 'merge'], true)) {
+            $elementMode = 'replace';
+        }
         
         // 2. Automatisch: project AddOn prüfen (wenn kein Extension Point)
         if (empty($customPaths) && rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
@@ -974,23 +982,23 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             }
         }
         
-        // WENN Extension Point ODER project/elements verwendet wird:
-        // → NUR Custom-Elemente laden (Demos werden NICHT geladen!)
-        if (!empty($customPaths)) {
+        // Bei mode=replace: nur Custom laden.
+        // Bei mode=merge: Demo zuerst, dann Custom darüberlegen.
+        if (!empty($customPaths) && $elementMode === 'replace') {
             foreach ($customPaths as $customPath) {
                 if (!is_dir($customPath)) {
                     continue;
                 }
-                
+
                 $dirs = scandir($customPath);
                 foreach ($dirs as $dir) {
                     if ($dir === '.' || $dir === '..') {
                         continue;
                     }
-                    
+
                     $elementPath = $customPath . $dir;
                     $configFile = $elementPath . '/config.php';
-                    
+
                     if (is_dir($elementPath) && file_exists($configFile)) {
                         $config = include $configFile;
                         $config['_source'] = 'custom';
@@ -999,7 +1007,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     }
                 }
             }
-            
+
             return $elements;
         }
         
@@ -1021,6 +1029,31 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     $config['_source'] = 'demo';
                     $config['_path'] = $elementPath;
                     $elements[$dir] = $config;
+                }
+            }
+        }
+
+        if (!empty($customPaths) && $elementMode === 'merge') {
+            foreach ($customPaths as $customPath) {
+                if (!is_dir($customPath)) {
+                    continue;
+                }
+
+                $dirs = scandir($customPath);
+                foreach ($dirs as $dir) {
+                    if ($dir === '.' || $dir === '..') {
+                        continue;
+                    }
+
+                    $elementPath = $customPath . $dir;
+                    $configFile = $elementPath . '/config.php';
+
+                    if (is_dir($elementPath) && file_exists($configFile)) {
+                        $config = include $configFile;
+                        $config['_source'] = 'custom';
+                        $config['_path'] = $elementPath;
+                        $elements[$dir] = $config;
+                    }
                 }
             }
         }
