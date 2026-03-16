@@ -163,7 +163,45 @@ if ($isVideoFile): ?>
         }
     }
     $srcsetString = implode(', ', $srcset);
-    $sizes = '(min-width: 1200px) 400px, (min-width: 600px) 50vw, 100vw';
+    
+    // =========================================================================
+    // Dynamische sizes-Berechnung basierend auf Layout-Kontext
+    // Retina: Browser wählt automatisch 2x Quelle wenn sizes korrekt ist
+    // =========================================================================
+    $containerMaxPx = 1200; // Standard uk-container
+    if (isset($containerWidth)) {
+        if (strpos($containerWidth, 'xsmall') !== false) { $containerMaxPx = 640; }
+        elseif (strpos($containerWidth, 'small') !== false) { $containerMaxPx = 900; }
+        elseif (strpos($containerWidth, 'xlarge') !== false) { $containerMaxPx = 1600; }
+        elseif (strpos($containerWidth, 'large') !== false) { $containerMaxPx = 1400; }
+        elseif (strpos($containerWidth, 'expand') !== false || $containerWidth === '') { $containerMaxPx = 1920; }
+    }
+    
+    $cols = max(1, intval($columns ?? 3));
+    $colsTablet = max(1, intval($columnsTablet ?? 2));
+    $colsMobile = max(1, intval($columnsMobile ?? 1));
+    
+    // Medien-Anteil berechnen (für horizontale Layouts)
+    $mediaFrac = 1.0;
+    if (isset($isHorizontal) && $isHorizontal && isset($mediaWidth)) {
+        if (preg_match('/^(\d+)-(\d+)/', $mediaWidth, $mw)) {
+            $mediaFrac = intval($mw[1]) / max(1, intval($mw[2]));
+        }
+    }
+    
+    // Desktop: feste Pixelbreite basierend auf Container und Spalten
+    $desktopImgPx = round($containerMaxPx / $cols * $mediaFrac);
+    // Tablet: Viewport-Prozent
+    $tabletImgVw = round(100 / $colsTablet * $mediaFrac);
+    // Mobile: Viewport-Prozent
+    $mobileImgVw = round(100 / $colsMobile * $mediaFrac);
+    
+    $sizes = sprintf(
+        '(min-width: 1200px) %dpx, (min-width: 640px) %dvw, %dvw',
+        $desktopImgPx,
+        $tabletImgVw,
+        $mobileImgVw
+    );
     
     // uk-cover Attribut: object-fit:cover; object-position:center; sorgt für korrektes Ausfüllen ohne Verzerrung
     $coverAttr = $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"';
