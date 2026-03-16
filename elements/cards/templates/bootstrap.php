@@ -74,13 +74,31 @@ $cardClassStr = implode(' ', $cardClasses);
             $href = rex_getUrl($linkInternal);
         }
         
-        // Bild Pfad via Media Manager
+        // Bild Pfad via Media Manager (korrektes Ratio + Retina-Srcset)
         $imageSrc = '';
+        $srcsetString = '';
+        $sizesAttr = '';
         
         if (!empty($image)) {
             $media = rex_media::get($image);
             if ($media) {
-                $imageSrc = rex_media_manager::getUrl('content_card', $image);
+                $imageSrc = rex_media_manager::getUrl('card_16_9_w1200', $image);
+                
+                // Srcset für responsive + Retina
+                $srcset = [];
+                foreach ([400, 800, 1200, 1600] as $w) {
+                    $srcset[] = rex_media_manager::getUrl('card_16_9_w' . $w, $image) . ' ' . $w . 'w';
+                }
+                $srcsetString = implode(', ', $srcset);
+                
+                // sizes basierend auf Spalten
+                $cols = max(1, intval($columns));
+                $colsTablet = max(1, intval($columnsTablet));
+                $colsMobile = max(1, intval($columnsMobile));
+                $desktopPx = round(1200 / $cols);
+                $tabletVw = round(100 / $colsTablet);
+                $mobileVw = round(100 / $colsMobile);
+                $sizesAttr = sprintf('(min-width: 1200px) %dpx, (min-width: 640px) %dvw, %dvw', $desktopPx, $tabletVw, $mobileVw);
             }
         }
         ?>
@@ -89,7 +107,10 @@ $cardClassStr = implode(' ', $cardClasses);
             <div class="<?= $cardClassStr ?>">
                 <?php if (!empty($imageSrc) && $imagePosition === 'top'): ?>
                     <div class="cb-card-image cb-card-image-top">
-                        <img src="<?= $imageSrc ?>" alt="<?= rex_escape($title) ?>">
+                        <img loading="lazy" 
+                             src="<?= $imageSrc ?>" 
+                             <?php if ($srcsetString): ?>srcset="<?= $srcsetString ?>" sizes="<?= $sizesAttr ?>"<?php endif; ?>
+                             alt="<?= rex_escape($title) ?>">
                     </div>
                 <?php endif; ?>
                 
@@ -119,7 +140,10 @@ $cardClassStr = implode(' ', $cardClasses);
                 
                 <?php if (!empty($imageSrc) && $imagePosition === 'bottom'): ?>
                     <div class="cb-card-image cb-card-image-bottom">
-                        <img src="<?= $imageSrc ?>" alt="<?= rex_escape($title) ?>">
+                        <img loading="lazy" 
+                             src="<?= $imageSrc ?>" 
+                             <?php if ($srcsetString): ?>srcset="<?= $srcsetString ?>" sizes="<?= $sizesAttr ?>"<?php endif; ?>
+                             alt="<?= rex_escape($title) ?>">
                     </div>
                 <?php endif; ?>
             </div>
