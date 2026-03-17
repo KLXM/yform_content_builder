@@ -204,14 +204,7 @@ if ($isVideoFile): ?>
     );
     
     // uk-cover Attribut: object-fit:cover; object-position:center; sorgt für korrektes Ausfüllen ohne Verzerrung
-    // 'responsive' = Cover nur ab @m (Desktop), darunter normales Bild
-    if ($mediaCover === 'responsive') {
-        $coverAttr = 'class="cb-cover-responsive-img uk-width-1-1"';
-    } elseif ($mediaCover) {
-        $coverAttr = 'uk-cover';
-    } else {
-        $coverAttr = 'class="uk-width-1-1"';
-    }
+    $coverAttr = $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"';
 ?>
     <?php if ($mediaLightbox): ?>
         <div uk-lightbox>

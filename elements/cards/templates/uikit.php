@@ -347,11 +347,21 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <!-- Horizontales Layout (links/rechts) -->
                     <div class="uk-grid-small uk-child-width-expand uk-grid-match<?= $matchHeight ? ' uk-flex-1' : '' ?>" uk-grid>
                         <?php if ($layout === 'media-left' && $image): ?>
-                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?><?= $applyCover ? ' cb-cover-responsive' : '' ?>">
+                            <?php
+                            // Echtes Bild-Ratio ermitteln für Mobile-Fallback
+                            $imgRatioStyle = '';
+                            if ($applyCover && !empty($image) && $isImage($image)) {
+                                $media = rex_media::get($image);
+                                if ($media && $media->getWidth() > 0 && $media->getHeight() > 0) {
+                                    $imgRatioStyle = ' style="--img-ratio: ' . $media->getWidth() . '/' . $media->getHeight() . ';"';
+                                }
+                            }
+                            ?>
+                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?><?= $applyCover ? ' uk-cover-container cb-cover-responsive' : '' ?>"<?= $imgRatioStyle ?>>
                                 <?php if ($applyCover): ?>
-                                    <!-- Cover-Modus: Desktop Cover, Mobile normales Bild -->
+                                    <!-- Cover-Modus: Desktop volle Höhe, Mobile echtes Bild-Ratio -->
                                     <?= $altWarningHtml ?>
-                                    <?php $mediaCover = 'responsive'; include __DIR__ . '/_media_output.php'; ?>
+                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                 <?php elseif ($mediaRatio !== 'original'): ?>
                                     <!-- Festes Ratio via aspect-ratio -->
                                     <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
@@ -386,11 +396,21 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         </div>
                         
                         <?php if ($layout === 'media-right' && $image): ?>
-                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?><?= $applyCover ? ' cb-cover-responsive' : '' ?>">
+                            <?php
+                            // Echtes Bild-Ratio ermitteln für Mobile-Fallback
+                            $imgRatioStyle = '';
+                            if ($applyCover && !empty($image) && $isImage($image)) {
+                                $media = rex_media::get($image);
+                                if ($media && $media->getWidth() > 0 && $media->getHeight() > 0) {
+                                    $imgRatioStyle = ' style="--img-ratio: ' . $media->getWidth() . '/' . $media->getHeight() . ';"';
+                                }
+                            }
+                            ?>
+                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?><?= $applyCover ? ' uk-cover-container cb-cover-responsive' : '' ?>"<?= $imgRatioStyle ?>>
                                 <?php if ($applyCover): ?>
-                                    <!-- Cover-Modus: Desktop Cover, Mobile normales Bild -->
+                                    <!-- Cover-Modus: Desktop volle Höhe, Mobile echtes Bild-Ratio -->
                                     <?= $altWarningHtml ?>
-                                    <?php $mediaCover = 'responsive'; include __DIR__ . '/_media_output.php'; ?>
+                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                 <?php elseif ($mediaRatio !== 'original'): ?>
                                     <!-- Festes Ratio via aspect-ratio -->
                                     <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">

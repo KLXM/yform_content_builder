@@ -311,33 +311,18 @@
 
 /* ============================================================
    Responsive Cover für horizontale Card-Layouts (UIkit)
-   Mobile: normales Bild mit aspect-ratio
-   Desktop (@m / 960px+): Cover-Verhalten (object-fit:cover, position:absolute)
+   Mobile: aspect-ratio aus echtem Bild-Ratio (CSS Custom Property)
+   Desktop (@m / 960px+): volle Spalten-Höhe via uk-grid-match
    ============================================================ */
 
-/* Mobile: Normales Bild */
-.cb-cover-responsive-img {
-    display: block;
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    aspect-ratio: 16/9;
+/* Mobile: Bild-Container bekommt Höhe via echtem Bild-Ratio */
+.cb-cover-responsive {
+    aspect-ratio: var(--img-ratio, 16/9);
 }
 
-/* Desktop: Cover-Verhalten aktivieren */
+/* Desktop: aspect-ratio entfernen, Höhe kommt vom Grid */
 @media (min-width: 960px) {
     .cb-cover-responsive {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .cb-cover-responsive-img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
         aspect-ratio: auto;
     }
 }
