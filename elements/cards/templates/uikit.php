@@ -347,21 +347,13 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <!-- Horizontales Layout (links/rechts) -->
                     <div class="uk-grid-small uk-child-width-expand uk-grid-match<?= $matchHeight ? ' uk-flex-1' : '' ?>" uk-grid>
                         <?php if ($layout === 'media-left' && $image): ?>
-                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?>">
-                                <?php if ($useCanvas): ?>
-                                    <!-- Festes Ratio via CSS aspect-ratio -->
-                                    <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
-                                        <?= $altWarningHtml ?>
-                                        <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
-                                    </div>
-                                <?php elseif ($applyCover): ?>
-                                    <!-- Cover-Modus: Bild füllt volle Card-Höhe aus -->
-                                    <div class="uk-cover-container uk-position-relative" style="height: 100%; min-height: 200px; overflow: hidden;">
-                                        <?= $altWarningHtml ?>
-                                        <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
-                                    </div>
+                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?><?= $applyCover ? ' uk-cover-container' : '' ?>">
+                                <?php if ($applyCover): ?>
+                                    <!-- Cover-Modus: Bild füllt volle Spalten-Höhe aus -->
+                                    <?= $altWarningHtml ?>
+                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                 <?php elseif ($mediaRatio !== 'original'): ?>
-                                    <!-- Festes Ratio ohne Cover -->
+                                    <!-- Festes Ratio via aspect-ratio -->
                                     <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
                                         <?= $altWarningHtml ?>
                                         <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
@@ -394,21 +386,13 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         </div>
                         
                         <?php if ($layout === 'media-right' && $image): ?>
-                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?>">
-                                <?php if ($useCanvas): ?>
-                                    <!-- Festes Ratio via CSS aspect-ratio -->
-                                    <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
-                                        <?= $altWarningHtml ?>
-                                        <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
-                                    </div>
-                                <?php elseif ($applyCover): ?>
-                                    <!-- Cover-Modus: Bild füllt volle Card-Höhe aus -->
-                                    <div class="uk-cover-container uk-position-relative" style="height: 100%; min-height: 200px; overflow: hidden;">
-                                        <?= $altWarningHtml ?>
-                                        <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
-                                    </div>
+                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?><?= $applyCover ? ' uk-cover-container' : '' ?>">
+                                <?php if ($applyCover): ?>
+                                    <!-- Cover-Modus: Bild füllt volle Spalten-Höhe aus -->
+                                    <?= $altWarningHtml ?>
+                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                 <?php elseif ($mediaRatio !== 'original'): ?>
-                                    <!-- Festes Ratio ohne Cover -->
+                                    <!-- Festes Ratio via aspect-ratio -->
                                     <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
                                         <?= $altWarningHtml ?>
                                         <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
