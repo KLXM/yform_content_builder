@@ -347,11 +347,11 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <!-- Horizontales Layout (links/rechts) -->
                     <div class="uk-grid-small uk-child-width-expand uk-grid-match<?= $matchHeight ? ' uk-flex-1' : '' ?>" uk-grid>
                         <?php if ($layout === 'media-left' && $image): ?>
-                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?><?= $applyCover ? ' uk-cover-container' : '' ?>">
+                            <div class="uk-card-media-left uk-width-<?= $mediaWidth ?><?= $applyCover ? ' cb-cover-responsive' : '' ?>">
                                 <?php if ($applyCover): ?>
-                                    <!-- Cover-Modus: Bild füllt volle Spalten-Höhe aus -->
+                                    <!-- Cover-Modus: Desktop Cover, Mobile normales Bild -->
                                     <?= $altWarningHtml ?>
-                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                    <?php $mediaCover = 'responsive'; include __DIR__ . '/_media_output.php'; ?>
                                 <?php elseif ($mediaRatio !== 'original'): ?>
                                     <!-- Festes Ratio via aspect-ratio -->
                                     <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
@@ -386,11 +386,11 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         </div>
                         
                         <?php if ($layout === 'media-right' && $image): ?>
-                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?><?= $applyCover ? ' uk-cover-container' : '' ?>">
+                            <div class="uk-card-media-right uk-width-<?= $mediaWidth ?><?= $applyCover ? ' cb-cover-responsive' : '' ?>">
                                 <?php if ($applyCover): ?>
-                                    <!-- Cover-Modus: Bild füllt volle Spalten-Höhe aus -->
+                                    <!-- Cover-Modus: Desktop Cover, Mobile normales Bild -->
                                     <?= $altWarningHtml ?>
-                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                    <?php $mediaCover = 'responsive'; include __DIR__ . '/_media_output.php'; ?>
                                 <?php elseif ($mediaRatio !== 'original'): ?>
                                     <!-- Festes Ratio via aspect-ratio -->
                                     <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
