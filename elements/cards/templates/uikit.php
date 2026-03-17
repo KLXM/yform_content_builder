@@ -345,7 +345,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                 
                 <?php if ($isHorizontal): ?>
                     <!-- Horizontales Layout (links/rechts) -->
-                    <div class="uk-grid-small uk-child-width-expand uk-grid-match" uk-grid>
+                    <div class="uk-grid-small uk-child-width-expand uk-grid-match<?= $matchHeight ? ' uk-flex-1' : '' ?>" uk-grid>
                         <?php if ($layout === 'media-left' && $image): ?>
                             <div class="uk-card-media-left uk-width-<?= $mediaWidth ?>">
                                 <?php if ($useCanvas): ?>
@@ -355,8 +355,14 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                                         <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
                                 <?php elseif ($applyCover): ?>
-                                    <!-- Cover-Modus: Mobile Ratio via aspect-ratio, ab @m Container-Höhe -->
-                                    <div class="uk-cover-container uk-height-1-1@m uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>; overflow: hidden;">
+                                    <!-- Cover-Modus: Bild füllt volle Card-Höhe aus -->
+                                    <div class="uk-cover-container uk-position-relative" style="height: 100%; min-height: 200px; overflow: hidden;">
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
+                                <?php elseif ($mediaRatio !== 'original'): ?>
+                                    <!-- Festes Ratio ohne Cover -->
+                                    <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
                                         <?= $altWarningHtml ?>
                                         <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
@@ -396,8 +402,14 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                                         <?php $mediaCover = $applyCover; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
                                 <?php elseif ($applyCover): ?>
-                                    <!-- Cover-Modus: Mobile Ratio via aspect-ratio, ab @m Container-Höhe -->
-                                    <div class="uk-cover-container uk-height-1-1@m uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>; overflow: hidden;">
+                                    <!-- Cover-Modus: Bild füllt volle Card-Höhe aus -->
+                                    <div class="uk-cover-container uk-position-relative" style="height: 100%; min-height: 200px; overflow: hidden;">
+                                        <?= $altWarningHtml ?>
+                                        <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                    </div>
+                                <?php elseif ($mediaRatio !== 'original'): ?>
+                                    <!-- Festes Ratio ohne Cover -->
+                                    <div class="uk-cover-container uk-position-relative" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
                                         <?= $altWarningHtml ?>
                                         <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                     </div>
