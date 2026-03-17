@@ -310,6 +310,21 @@
 }
 
 /* ============================================================
+   Cover-Bild (reines CSS, ersetzt uk-cover JS-Component)
+   Vermeidet Safari Resize-Probleme
+   ============================================================ */
+
+.cb-cover-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* ============================================================
    Responsive Cover für horizontale Card-Layouts (UIkit)
    Mobile: aspect-ratio aus echtem Bild-Ratio (CSS Custom Property)
    Desktop (@m / 960px+): volle Spalten-Höhe via uk-grid-match
