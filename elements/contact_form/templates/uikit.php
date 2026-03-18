@@ -22,6 +22,7 @@ $layout = $elementData['layout'] ?? 'default';
 $privacyCheckbox = !empty($elementData['privacy_checkbox']);
 $privacyText = $elementData['privacy_text'] ?? '';
 $privacyLink = $elementData['privacy_link'] ?? '';
+$ajaxEnhancement = !empty($elementData['ajax_enhancement']);
 $sendCopy = !empty($elementData['send_copy']);
 $copySubject = $elementData['copy_subject'] ?? 'Ihre Anfrage';
 
@@ -32,6 +33,8 @@ $formIntro = $elementData['form_intro'] ?? '';
 
 // Formular-Felder
 $fields = $elementData['fields'] ?? [];
+$formInstanceKey = substr(sha1((string) json_encode([$emailTo, $formHeadline, $fields], JSON_UNESCAPED_UNICODE)), 0, 16);
+$csrfToken = rex_csrf_token::factory('cb_contact_form_' . $formInstanceKey);
 
 // Section Settings
 $sectionBg = $elementData['section_bg'] ?? '';
@@ -218,35 +221,53 @@ if (!function_exists('validateField')) {
         
         // Wertevergleich: {{feldname}} < {{99000}} oder {{PLZ}} >= {{10000}}
         if ($type === 'compare' && !empty($param)) {
-            // Platzhalter durch Werte ersetzen
-            $expression = $param;
-            
-            // {{feldname}} durch Feldwert ersetzen
-            if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $expression, $matches)) {
-                foreach ($matches[1] as $fieldRef) {
-                    $fieldValue = $formData[$fieldRef] ?? $value;
-                    // Prüfen ob numerisch
-                    if (is_numeric($fieldValue)) {
-                        $expression = str_replace('{{' . $fieldRef . '}}', (float)$fieldValue, $expression);
-                    } else {
-                        $expression = str_replace('{{' . $fieldRef . '}}', '"' . addslashes($fieldValue) . '"', $expression);
-                    }
-                }
+            if (!preg_match('/^\s*\{\{\s*([a-zA-Z0-9_]+)\s*\}\}\s*(<=|>=|==|!=|<|>)\s*\{\{\s*(.+?)\s*\}\}\s*$/', $param, $parts)) {
+                return 'Ungültiges Vergleichsformat. Nutze {{feld}} < {{wert}}';
             }
-            
-            // Nur sichere Operatoren erlauben
-            if (preg_match('/^[\d\.\s\<\>\=\!\"\'\+\-\*\/\(\)]+$/', $expression)) {
-                try {
-                    // Ausdruck auswerten
-                    $result = @eval('return (' . $expression . ');');
-                    if ($result === false) {
-                        return 'Wert entspricht nicht den Vorgaben';
-                    }
-                } catch (Exception $e) {
-                    return 'Validierungsfehler';
-                }
+
+            $leftRef = $parts[1];
+            $operator = $parts[2];
+            $rightRaw = $parts[3];
+
+            $leftValue = (string) ($formData[$leftRef] ?? $value);
+            $rightValue = '';
+
+            if (preg_match('/^[a-zA-Z0-9_]+$/', $rightRaw) && array_key_exists($rightRaw, $formData)) {
+                $rightValue = (string) $formData[$rightRaw];
+            } else {
+                $rightValue = (string) $rightRaw;
             }
-            return true;
+
+            $leftIsNumeric = is_numeric($leftValue);
+            $rightIsNumeric = is_numeric($rightValue);
+
+            if ($leftIsNumeric && $rightIsNumeric) {
+                $leftNumber = (float) $leftValue;
+                $rightNumber = (float) $rightValue;
+
+                return match ($operator) {
+                    '<' => $leftNumber < $rightNumber,
+                    '>' => $leftNumber > $rightNumber,
+                    '<=' => $leftNumber <= $rightNumber,
+                    '>=' => $leftNumber >= $rightNumber,
+                    '==' => $leftNumber === $rightNumber,
+                    '!=' => $leftNumber !== $rightNumber,
+                    default => false,
+                } ? true : 'Wert entspricht nicht den Vorgaben';
+            }
+
+            $leftText = mb_strtolower(trim($leftValue));
+            $rightText = mb_strtolower(trim($rightValue));
+
+            return match ($operator) {
+                '==' => $leftText === $rightText,
+                '!=' => $leftText !== $rightText,
+                '<' => $leftText < $rightText,
+                '>' => $leftText > $rightText,
+                '<=' => $leftText <= $rightText,
+                '>=' => $leftText >= $rightText,
+                default => false,
+            } ? true : 'Wert entspricht nicht den Vorgaben';
         }
         
         return true;
@@ -259,8 +280,13 @@ $formSuccess = false;
 $formErrors = [];
 $formData = [];
 
-if (!$isBackend && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[$formId . '_submit'])) {
+if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' && isset($_POST[$formId . '_submit'])) {
     $formSubmitted = true;
+
+    // CSRF-Check
+    if (!$csrfToken->isValid()) {
+        $formErrors[] = 'Sicherheitsprüfung fehlgeschlagen. Bitte Formular erneut absenden.';
+    }
     
     // Spam-Check: Honeypot
     if (in_array($spamProtection, ['honeypot', 'both'])) {
@@ -376,13 +402,28 @@ if (!$isBackend && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[$formId
             
             // PHPMailer verwenden
             $mail = new rex_mailer();
-            $mail->addAddress($emailTo);
+            $emailRecipients = preg_split('/\s*[,;]\s*/', (string) $emailTo, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $validRecipients = [];
+            foreach ($emailRecipients as $recipient) {
+                $recipient = trim($recipient);
+                if ('' !== $recipient && filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                    $validRecipients[] = $recipient;
+                }
+            }
+
+            if ([] === $validRecipients) {
+                throw new RuntimeException('Keine gültige Empfängeradresse konfiguriert.');
+            }
+
+            foreach ($validRecipients as $recipient) {
+                $mail->addAddress($recipient);
+            }
             $mail->Subject = $subject;
             $mail->Body = $body;
             $mail->isHTML(true);
             
-            // Absender setzen
-            if ($emailFromField === 'email' && !empty($senderEmail)) {
+            // Reply-To setzen, wenn eine Absender-Mail aus den Feldern ermittelt wurde
+            if (!empty($senderEmail)) {
                 $mail->addReplyTo($senderEmail, $senderName);
             }
             
@@ -447,6 +488,9 @@ if ($hasSection): ?>
     </div>
 <?php endif; ?>
 
+<div data-cb-contact-form-wrapper="1" data-cb-contact-form-key="<?= rex_escape($formInstanceKey) ?>" data-cb-ajax-enhancement="<?= (!$isBackend && $ajaxEnhancement) ? '1' : '0' ?>">
+    <div class="uk-hidden" data-cb-form-live="1" aria-live="polite" aria-atomic="true"></div>
+
 <?php if ($formSuccess): ?>
     <div class="uk-alert-success" uk-alert>
         <a class="uk-alert-close" uk-close></a>
@@ -472,12 +516,16 @@ if ($hasSection): ?>
     
     $formTag = $isBackend ? 'div' : 'form';
     ?>
-    <<?= $formTag ?> id="<?= $formId ?>"<?= !$isBackend ? ' method="post"' : '' ?> class="<?= $formClass ?>">
+    <<?= $formTag ?> id="<?= $formId ?>"<?= !$isBackend ? ' method="post"' : '' ?> class="<?= $formClass ?>" data-cb-contact-form="1">
         
         <?php if ($isBackend): ?>
             <div class="uk-alert-primary" uk-alert>
                 <p><strong>Vorschau:</strong> Das Formular ist im Backend deaktiviert.</p>
             </div>
+        <?php endif; ?>
+
+        <?php if (!$isBackend): ?>
+            <?= $csrfToken->getHiddenField() ?>
         <?php endif; ?>
         
         <!-- Spam Protection -->
@@ -670,6 +718,8 @@ if ($hasSection): ?>
     </<?= $formTag ?>>
 <?php endif; ?>
 
+</div>
+
 <?php if ($containerWidth): ?>
 </div>
 <?php endif; ?>
@@ -677,3 +727,12 @@ if ($hasSection): ?>
 <?php if ($hasSection): ?>
 </section>
 <?php endif; ?>
+
+<?php
+if (!$isBackend && $ajaxEnhancement && !defined('YFORM_CB_CONTACT_FORM_AJAX_JS_INCLUDED')) {
+    define('YFORM_CB_CONTACT_FORM_AJAX_JS_INCLUDED', true);
+    ?>
+    <script src="<?= rex_escape(rex_url::addonAssets('yform_content_builder', 'contact_form/contact-form-ajax.js')) ?>"></script>
+    <?php
+}
+?>

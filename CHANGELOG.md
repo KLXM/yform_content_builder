@@ -6,6 +6,26 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.7.0] – 2026-03-18
+
+### Kontaktformular: Progressive AJAX + Security-Hardening
+
+**Barrierefreies AJAX als Zusatz (Progressive Enhancement)**
+- Neues Feld im Design-Tab: `ajax_enhancement`
+- Ohne JavaScript bleibt das klassische POST-Verhalten vollständig erhalten.
+- Mit JavaScript wird das Formular optional per Fetch gesendet, der Formularbereich aus der Server-Antwort ersetzt und Feedback per `aria-live` + Fokussteuerung zugänglich gemacht.
+- Umsetzung über externe Datei `assets/contact_form/contact-form-ajax.js` (kein Inline-JS).
+
+**Sicherheit verbessert**
+- CSRF-Schutz ergänzt (`rex_csrf_token`) inkl. Hidden Field und Validierung beim Submit.
+- `compare`-Validierung ohne `eval()`: sichere Parser-Logik für Vergleiche wie `{{feld}} < {{100}}` oder `{{feldA}} == {{feldB}}`.
+
+**E-Mail-Versand verbessert**
+- Feld `email_to` unterstützt jetzt mehrere Empfänger (Komma/Semikolon getrennt).
+- Reply-To wird gesetzt, sobald eine Absender-E-Mail im Formular erkannt wurde.
+
+---
+
 ## [1.6.0] – 2026-03-18
 
 ### Neue Elemente & Bildeffekte

@@ -38,7 +38,7 @@ return [
         'design_tab' => [
             'label' => 'Design',
             'icon' => 'fa-paint-brush',
-            'fields' => ['submit_style', 'layout', 'privacy_checkbox', 'privacy_text', 'privacy_link']
+            'fields' => ['submit_style', 'layout', 'privacy_checkbox', 'privacy_text', 'privacy_link', 'ajax_enhancement']
         ],
         'copy_tab' => [
             'label' => 'Bestätigung',
@@ -222,7 +222,7 @@ return [
             'email_to' => [
                 'type' => 'text',
                 'label' => 'Empfänger E-Mail',
-                'notice' => 'E-Mail-Adresse für den Empfang',
+                'notice' => 'Eine oder mehrere E-Mail-Adressen (mit Komma oder Semikolon trennen)',
                 'required' => true
             ],
             'email_subject' => [
@@ -298,6 +298,12 @@ return [
             'privacy_link' => [
                 'type' => 'be_link',
                 'label' => 'Datenschutz-Seite'
+            ],
+            'ajax_enhancement' => [
+                'type' => 'checkbox',
+                'label' => 'AJAX als progressive Verbesserung aktivieren',
+                'default' => true,
+                'notice' => 'Barrierefrei: Ohne JavaScript bleibt das normale Formular-Posting aktiv. Mit JavaScript wird nur die Übertragung ohne Seitenreload ergänzt.'
             ],
             
             // === TAB 4: BESTÄTIGUNG ===
