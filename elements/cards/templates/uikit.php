@@ -470,7 +470,13 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <?php if ($layout === 'media-top' && $image): ?>
                         <div class="uk-card-media-top uk-position-relative">
                             <?= $altWarningHtml ?>
-                            <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                            <?php if ($mediaCoverCheckbox && $mediaRatio !== 'original'): ?>
+                                <div class="uk-cover-container" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
+                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                </div>
+                            <?php else: ?>
+                                <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                     
@@ -479,7 +485,13 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                     <?php if ($layout === 'media-bottom' && $image): ?>
                         <div class="uk-card-media-bottom uk-position-relative">
                             <?= $altWarningHtml ?>
-                            <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                            <?php if ($mediaCoverCheckbox && $mediaRatio !== 'original'): ?>
+                                <div class="uk-cover-container" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
+                                    <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
+                                </div>
+                            <?php else: ?>
+                                <?php $mediaCover = false; include __DIR__ . '/_media_output.php'; ?>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
