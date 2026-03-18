@@ -52,7 +52,7 @@ if ($isVideoFile): ?>
                 <img loading="lazy" 
                      src="<?= $posterSrc ?>" 
                      alt="<?= rex_escape($imageAlt ?: 'Video abspielen') ?>"
-                     <?= $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"' ?>>
+                     <?= $mediaCover ? 'class="cb-cover-img"' : 'class="uk-width-1-1"' ?>>
                 
                 <!-- Play-Button Overlay -->
                 <div class="uk-position-center">
@@ -77,7 +77,7 @@ if ($isVideoFile): ?>
                  src="<?= $posterSrc ?>" 
                  alt="<?= rex_escape($imageAlt ?: 'Video abspielen') ?>"
                  class="video-poster-image uk-width-1-1"
-                 <?= $mediaCover ? 'uk-cover' : '' ?>>
+                 <?= $mediaCover ? 'style="object-fit:cover"' : '' ?>>
             
             <!-- Play-Button Overlay -->
             <div class="uk-position-center video-play-button" style="cursor: pointer;">
@@ -93,7 +93,7 @@ if ($isVideoFile): ?>
                    style="display: none;"
                    <?= $videoControls === 'controls' ? 'controls' : 'muted loop' ?>
                    playsinline
-                   <?= $mediaCover ? 'uk-cover' : '' ?>></video>
+                   <?= $mediaCover ? 'class="cb-cover-img"' : '' ?>></video>
         </div>
         
         <script nonce="<?= rex_response::getNonce() ?>">
@@ -143,7 +143,7 @@ if ($isVideoFile): ?>
                src="<?= $videoSrc ?>" 
                poster="<?= $posterSrc ?>"
                <?= $videoAttrs ?>
-               <?= $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"' ?>></video>
+               <?= $mediaCover ? 'class="cb-cover-img"' : 'class="uk-width-1-1"' ?>></video>
     <?php endif; ?>
     
 <?php elseif ($isImageFile && $imageSrc): 
@@ -203,8 +203,8 @@ if ($isVideoFile): ?>
         $mobileImgVw
     );
     
-    // uk-cover Attribut: object-fit:cover; object-position:center; sorgt für korrektes Ausfüllen ohne Verzerrung
-    $coverAttr = $mediaCover ? 'uk-cover' : 'class="uk-width-1-1"';
+    // Cover: reines CSS statt uk-cover JS-Component (vermeidet Safari Resize-Probleme)
+    $coverAttr = $mediaCover ? 'class="cb-cover-img"' : 'class="uk-width-1-1"';
 ?>
     <?php if ($mediaLightbox): ?>
         <div uk-lightbox>
