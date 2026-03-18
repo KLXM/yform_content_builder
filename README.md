@@ -5,7 +5,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 ## ✨ Features
 
 ### 🎯 **Content-Elemente**
-- **11 fertige Elemente**: Section, Text & Bild, Accordion, Headline, Divider, Cards, Slideshow, Media Showcase, Gallery, Kontaktformular, Moving Tiles
+- **20+ fertige Elemente**: u.a. Section, Media Text, Accordion/Tabs, Headline, Divider, Cards, Slideshow, Gallery, Hero Banner, Feature Grid, Testimonial, Timeline, Kontaktformular, Moving Tiles
 - **Professional Media Widget**: 16:9 Preview-Container, object-fit: contain, globaler Counter für eindeutige IDs
 - **Professional Gallery**: Grid/Masonry Layout, Mixed Media (Bilder + Videos), Responsive Design
 - **Auto-Close Sections**: Visueller Container für Abschnitte ohne verschachtelte Hierarchie
@@ -14,7 +14,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 - **Click-to-Edit**: Intuitives Bearbeiten per Edit-Button  
 - **⬆️⬇️ Pfeil-Sortierung**: Zuverlässiges Verschieben von Elementen nach oben/unten
 - **Modal-Gruppierung**: Übersichtliche Formulare durch Settings-Modals
-- **AJAX Forms**: Dynamisches Laden und Speichern ohne Page-Reload
+- **Progressive AJAX Forms**: Optionales Enhancement mit vollständigem Non-JS-Fallback
 - **Responsive Backend**: Touch-optimierte Controls für mobile Nutzung
 
 ### 🎨 **Design & Templates**
@@ -158,14 +158,17 @@ Professionelles Kontaktformular mit PHPMailer-Integration:
 - **SQL-Optionen**: Dynamische Select/Radio-Optionen aus Datenbank (`SELECT id AS value, name AS label FROM tabelle`)
 - **Erweiterte Validierung**:
   - **Vorgefertigte Typen**: IBAN, BIC, PLZ (DE/AT/CH), Telefon, URL, Datum, Uhrzeit, Zahlen, Buchstaben
-  - **Wertevergleiche**: `{{plz}} < {{99000}}`, `{{alter}} >= {{18}}`
+    - **Wertevergleiche (ohne eval)**: `{{plz}} < {{99000}}`, `{{alter}} >= {{18}}`, `{{feldA}} == {{feldB}}`
   - **Längenprüfung**: Mindest- und Maximallänge
   - **Regex**: Eigene Muster
 - **Spam-Schutz**: Honeypot-Feld und/oder Zeit-Check
+- **CSRF-Schutz**: Token-basierte Sicherheitsprüfung beim Absenden
 - **Bestätigungs-E-Mail**: Automatische Kopie an Absender mit anpassbarem Intro/Footer
 - **4 Layout-Optionen**: Standard, Horizontal, Floating Labels, Kompakt
 - **Privacy-Checkbox**: Mit Linkmap-Verknüpfung zur Datenschutzseite
 - **Backend-Vorschau**: Sicherer Preview ohne Formular-Interferenz
+- **Mehrfach-Empfänger**: Mehrere Zieladressen in `email_to` (Komma oder Semikolon)
+- **Progressives AJAX-Enhancement**: Ohne JS klassischer POST, mit JS optional ohne Reload inkl. Fokus- und aria-live-Feedback
 
 **SQL-Optionen Beispiele:**
 ```sql
