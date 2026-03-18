@@ -106,13 +106,13 @@ class rex_api_content_builder extends rex_api_function
                 $modalFields = $config['settings_modal']['fields'];
             }
 
-            foreach ($config['fields'] as $fieldName => $fieldConfig) {
-                // Felder die im Modal sind überspringen
-                if (!in_array($fieldName, $modalFields)) {
-                    // Nutze die Field Registry
+            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                $config['fields'],
+                $modalFields,
+                function (string $fieldName, array $fieldConfig) use ($sliceData): void {
                     ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
                 }
-            }
+            );
         }
 
         echo '<div class="form-group">';
@@ -202,11 +202,19 @@ class rex_api_content_builder extends rex_api_function
             echo '<div role="tabpanel" class="tab-pane' . $active . '" id="' . $tabId . '_' . $groupKey . '">';
 
             if (isset($group['fields']) && is_array($group['fields'])) {
+                $groupFieldMap = [];
                 foreach ($group['fields'] as $fieldName) {
                     if (isset($config['fields'][$fieldName])) {
-                        ContentBuilderFieldRegistry::renderField($fieldName, $config['fields'][$fieldName], $sliceData);
+                        $groupFieldMap[$fieldName] = $config['fields'][$fieldName];
                     }
                 }
+                ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                    $groupFieldMap,
+                    [],
+                    function (string $fieldName, array $fieldConfig) use ($sliceData): void {
+                        ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                    }
+                );
             }
 
             echo '</div>';
@@ -242,11 +250,19 @@ class rex_api_content_builder extends rex_api_function
         echo '<div class="modal-body">';
 
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
+            $modalFieldMap = [];
             foreach ($modalConfig['fields'] as $fieldName) {
                 if (isset($config['fields'][$fieldName])) {
-                    ContentBuilderFieldRegistry::renderField($fieldName, $config['fields'][$fieldName], $sliceData);
+                    $modalFieldMap[$fieldName] = $config['fields'][$fieldName];
                 }
             }
+            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                $modalFieldMap,
+                [],
+                function (string $fieldName, array $fieldConfig) use ($sliceData): void {
+                    ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                }
+            );
         }
 
         echo '</div>';

@@ -1750,7 +1750,30 @@
                 $container.append($newItem);
             }
             $newItem.hide().fadeIn(200);
-            
+
+            // Bootstrap Selectpicker: Geklonte Instanz wiederherstellen und neu initialisieren.
+            // Beim Klonen wird der Bootstrap-Select-Wrapper mitkopiert, der Dropdown ist aber leer.
+            // Lösung: Wrapper entfernen, natives Select wiederherstellen, Selectpicker neu init.
+            if (typeof $.fn.selectpicker !== 'undefined') {
+                $newItem.find('div.bootstrap-select').each(function() {
+                    var $wrapper = $(this);
+                    var $select = $wrapper.find('> select');
+                    if ($select.length) {
+                        // Select ohne Wrapper wiederherstellen
+                        $wrapper.replaceWith($select.detach());
+                        // selectpicker-Klasse sicherstellen (Bootstrap Select entfernt sie beim Init)
+                        if (!$select.hasClass('selectpicker')) {
+                            $select.addClass('selectpicker');
+                        }
+                        $select.removeAttr('tabindex');
+                    }
+                });
+                // Neu initialisieren – sanitize: false ist erforderlich für SVG/img in data-content
+                $newItem.find('select.selectpicker').selectpicker({
+                    sanitize: false
+                });
+            }
+
             // Enhanced Media Previews zurücksetzen
             $newItem.find('.media-preview-enhanced').each(function() {
                 var $preview = $(this);

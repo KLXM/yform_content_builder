@@ -2,10 +2,30 @@
 
 /**
  * SVG Layout Preview Generator
- * Generiert programmatisch SVG-Vorschaubilder für Layout-Optionen
+ * Generiert programmatisch SVG-Vorschaubilder für Layout-Optionen.
+ * Vorrangig werden externe SVG-Dateien aus assets/icons/ verwendet,
+ * da data:-URLs in Bootstrap-Select nicht zuverlässig gerendert werden.
  */
 class YFormContentBuilderSvg
 {
+    /**
+     * Gibt die URL zu einer Icon-SVG-Datei zurück.
+     * Dateien liegen in assets/icons/<name>.svg
+     */
+    public static function iconUrl(string $name): string
+    {
+        return rex_addon::get('yform_content_builder')->getAssetsUrl('icons/' . $name . '.svg');
+    }
+
+    /**
+     * Erzeugt img-Tag für Selectpicker-Icon.
+     */
+    public static function iconImg(string $name, string $style = 'width:24px;height:18px;vertical-align:middle;margin-right:6px;'): string
+    {
+        return '<img src="' . rex_escape(self::iconUrl($name)) . '" style="' . $style . '" alt="">';
+    }
+
+
     private int $width = 100;
     private int $height = 80;
     private string $bgColor = '#f8f8f8';
@@ -167,32 +187,31 @@ class YFormContentBuilderSvg
     }
 
     /**
-     * Generiert alle Standard-Layouts als Array für RadioImgField
+     * Generiert alle Standard-Layouts als Array für ChoiceField / RadioImgField.
+     * Gibt externe SVG-URLs zurück (kein Base64 mehr).
      * @return array<string, array{img: string, label: string}>
      */
     public static function getLayoutOptions(): array
     {
-        $svg = self::factory();
-        
         return [
             'media-top' => [
-                'img' => $svg->mediaTop(),
+                'img' => self::iconUrl('layout-media-top'),
                 'label' => 'Medium oben'
             ],
             'media-bottom' => [
-                'img' => $svg->mediaBottom(),
+                'img' => self::iconUrl('layout-media-bottom'),
                 'label' => 'Medium unten'
             ],
             'media-left' => [
-                'img' => $svg->mediaLeft(),
+                'img' => self::iconUrl('layout-media-left'),
                 'label' => 'Medium links'
             ],
             'media-right' => [
-                'img' => $svg->mediaRight(),
+                'img' => self::iconUrl('layout-media-right'),
                 'label' => 'Medium rechts'
             ],
             'media-overlay' => [
-                'img' => $svg->mediaOverlay(),
+                'img' => self::iconUrl('layout-media-overlay'),
                 'label' => 'Overlay'
             ]
         ];

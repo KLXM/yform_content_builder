@@ -82,6 +82,63 @@ class ContentBuilderFieldRegistry
     }
 
     /**
+     * Rendert eine Feldliste mit optionalem Bootstrap-Column-Layout.
+     *
+     * Felder mit 'col' => N (1-12) werden automatisch in eine .row gruppiert.
+     * Felder ohne 'col' werden wie gewohnt als volle Breite gerendert.
+     *
+     * @param iterable<string, array>  $fields     Assoziatives Array fieldName => fieldConfig
+     * @param string[]                 $skipFields Feldnamen überspringen (z.B. Modal-Felder)
+     * @param callable                 $renderFn   function(string $fieldName, array $fieldConfig): void
+     */
+    public static function renderFieldRowsGroup(iterable $fields, array $skipFields, callable $renderFn): void
+    {
+        $rowOpen = false;
+        $colSum = 0;
+
+        foreach ($fields as $fieldName => $fieldConfig) {
+            if (!empty($skipFields) && in_array($fieldName, $skipFields, true)) {
+                continue;
+            }
+
+            $col = isset($fieldConfig['col']) ? (int)$fieldConfig['col'] : null;
+
+            // Row öffnen wenn das erste col-Feld kommt
+            if ($col !== null && !$rowOpen) {
+                echo '<div class="row" style="margin-left:-5px;margin-right:-5px;">';
+                $rowOpen = true;
+                $colSum = 0;
+            }
+            // Row schließen wenn ein Feld ohne col kommt
+            elseif ($col === null && $rowOpen) {
+                echo '</div>';
+                $rowOpen = false;
+            }
+
+            if ($col !== null) {
+                echo '<div class="col-sm-' . $col . '" style="padding-left:5px;padding-right:5px;">';
+            }
+
+            $renderFn($fieldName, $fieldConfig);
+
+            if ($col !== null) {
+                echo '</div>';
+                $colSum += $col;
+                // Row schließen wenn Spalten voll (≥12)
+                if ($colSum >= 12) {
+                    echo '</div>';
+                    $rowOpen = false;
+                    $colSum = 0;
+                }
+            }
+        }
+
+        if ($rowOpen) {
+            echo '</div>';
+        }
+    }
+
+    /**
      * Rendert ein Feld basierend auf Typ
      */
     public static function renderField(string $fieldName, array $fieldConfig, array $sliceData): void

@@ -15,8 +15,8 @@ $standardFields = [
     'layout', 'image', 'image_alt', 'image_decorative', 'image_title', 'media_width', 'media_ratio',
     'media_lightbox', 'media_cover', 'media_vertical_align', 'video_display', 'video_controls',
     'title', 'text', 'subtitle', 'badge', 'badge_color',
-    'card_width', 'card_style_override', 'card_shadow_override',
-    'link_type', 'link_url', 'link_internal', 'link_text', 'link_card',
+    'card_width', 'card_width_mobile', 'card_width_tablet', 'card_style_override', 'card_shadow_override',
+    'link_type', 'link_url', 'link_internal', 'link_text', 'link_button_style', 'link_button_align', 'link_card',
     'animation'
 ];
 
@@ -92,19 +92,29 @@ if (!empty($extraFields)) {
         </div>
     <?php endif; ?>
 
+    <?php
+        $linkButtonStyle = $item['link_button_style'] ?? 'uk-button-text';
+        $linkButtonAlign = $item['link_button_align'] ?? 'uk-text-center';
+        $linkButtonAlignClass = $linkButtonAlign ? ' ' . $linkButtonAlign : '';
+        $linkIcon = ($linkButtonStyle === 'uk-button-text') ? ' <span uk-icon="chevron-right"></span>' : '';
+    ?>
     <?php if ($href && !$linkCard): ?>
         <?php if ($isHorizontal): ?>
-             <div class="uk-card-body uk-padding-remove-top<?= $transparentPadding ?>">
-                <a href="<?= $href ?>" class="uk-button uk-button-text">
-                    <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
-                </a>
+            <div class="uk-card-body uk-padding-remove-top<?= $transparentPadding ?>">
+                <div class="<?= rex_escape(ltrim($linkButtonAlignClass)) ?>">
+                    <a href="<?= $href ?>" class="uk-button <?= rex_escape($linkButtonStyle) ?>">
+                        <?= rex_escape($linkText) ?><?= $linkIcon ?>
+                    </a>
+                </div>
             </div>
         <?php elseif (!$isOverlay): ?>
             <?php $footerPadding = ($isTransparent ?? false) ? ' uk-padding-remove-left uk-padding-remove-right' : ''; ?>
             <div class="uk-card-footer<?= ($matchHeight ?? false) ? ' uk-margin-auto-top' : '' ?><?= $footerPadding ?>">
-                <a href="<?= $href ?>" class="uk-button uk-button-text">
-                    <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
-                </a>
+                <div class="<?= rex_escape(ltrim($linkButtonAlignClass)) ?>">
+                    <a href="<?= $href ?>" class="uk-button <?= rex_escape($linkButtonStyle) ?>">
+                        <?= rex_escape($linkText) ?><?= $linkIcon ?>
+                    </a>
+                </div>
             </div>
         <?php endif; ?>
     <?php endif; ?>

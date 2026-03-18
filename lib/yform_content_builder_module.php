@@ -380,12 +380,14 @@ class yform_content_builder_module
                 $modalFields = $config['settings_modal']['fields'];
             }
             
-            foreach ($config['fields'] as $fieldName => $fieldConfig) {
-                // Felder die im Modal sind überspringen
-                if (!in_array($fieldName, $modalFields)) {
-                    $this->renderFormField($fieldName, $fieldConfig, $sliceData);
+            $self = $this;
+            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                $config['fields'],
+                $modalFields,
+                function (string $fieldName, array $fieldConfig) use ($self, $sliceData): void {
+                    $self->renderFormField($fieldName, $fieldConfig, $sliceData);
                 }
-            }
+            );
         }
     }
     
@@ -513,11 +515,20 @@ class yform_content_builder_module
             
             // Felder dieser Gruppe rendern
             if (isset($group['fields']) && is_array($group['fields'])) {
+                $groupFieldMap = [];
                 foreach ($group['fields'] as $fieldName) {
                     if (isset($config['fields'][$fieldName])) {
-                        $this->renderFormField($fieldName, $config['fields'][$fieldName], $sliceData);
+                        $groupFieldMap[$fieldName] = $config['fields'][$fieldName];
                     }
                 }
+                $self = $this;
+                ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                    $groupFieldMap,
+                    [],
+                    function (string $fieldName, array $fieldConfig) use ($self, $sliceData): void {
+                        $self->renderFormField($fieldName, $fieldConfig, $sliceData);
+                    }
+                );
             }
             
             echo '</div>';

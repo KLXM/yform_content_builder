@@ -171,6 +171,8 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         // $itemAnimation bereits oben im Loop definiert
         
         // Card-spezifische Überschreibungen
+        $itemCardWidthMobile = $item['card_width_mobile'] ?? '';
+        $itemCardWidthTablet = $item['card_width_tablet'] ?? '';
         $itemCardWidth = $item['card_width'] ?? '';
         $itemCardStyle = $item['card_style_override'] ?? '';
         $itemCardShadow = $item['card_shadow_override'] ?? '';
@@ -181,6 +183,8 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         $linkInternal = $item['link_internal'] ?? '';
         $linkText = $item['link_text'] ?? 'Mehr erfahren';
         $linkCard = !empty($item['link_card']);
+        $linkButtonStyle = $item['link_button_style'] ?? 'uk-button-text';
+        $linkButtonAlign = $item['link_button_align'] ?? 'uk-text-center';
         
         // Media-Optionen
         $mediaLightbox = !empty($item['media_lightbox']);
@@ -297,8 +301,20 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
             }
         }
         
-        // Width-Klassen für Item
-        $itemWidthClass = $itemCardWidth ? 'uk-width-' . $itemCardWidth : '';
+        // Width-Klassen für Item (responsiv: Mobil / Tablet @s / Desktop @m)
+        // Alten Breakpoint-Suffix entfernen (BC: frühere Werte enthielten z.B. "1-2@m")
+        $stripBp = static fn(string $v): string => preg_replace('/@[a-z]+$/', '', $v);
+        $itemWidthParts = [];
+        if ($itemCardWidthMobile) {
+            $itemWidthParts[] = 'uk-width-' . $stripBp($itemCardWidthMobile);
+        }
+        if ($itemCardWidthTablet) {
+            $itemWidthParts[] = 'uk-width-' . $stripBp($itemCardWidthTablet) . '@s';
+        }
+        if ($itemCardWidth) {
+            $itemWidthParts[] = 'uk-width-' . $stripBp($itemCardWidth) . '@m';
+        }
+        $itemWidthClass = implode(' ', $itemWidthParts);
         
         // Bild-URL via Media Manager (korrektes Ratio, 1200px als src-Fallback)
         $imageSrc = '';
@@ -440,9 +456,9 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                                 <div class="uk-text-small"><?= $text ?></div>
                             <?php endif; ?>
                             <?php if ($href && !$linkCard): ?>
-                                <div class="uk-margin-small-top">
-                                    <a href="<?= $href ?>" class="uk-button uk-button-text">
-                                        <?= rex_escape($linkText) ?> <span uk-icon="chevron-right"></span>
+                                <div class="uk-margin-small-top<?= $linkButtonAlign ? ' ' . rex_escape($linkButtonAlign) : '' ?>">
+                                    <a href="<?= $href ?>" class="uk-button <?= rex_escape($linkButtonStyle) ?>">
+                                        <?= rex_escape($linkText) ?><?php if ($linkButtonStyle === 'uk-button-text'): ?> <span uk-icon="chevron-right"></span><?php endif; ?>
                                     </a>
                                 </div>
                             <?php endif; ?>

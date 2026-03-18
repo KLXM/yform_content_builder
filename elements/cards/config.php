@@ -97,13 +97,19 @@ $layoutChoices = [
     'media-overlay' => 'Overlay'
 ];
 
-// Layout-Icons für Selectpicker (kleine SVG-Piktogramme)
+// Layout-Icons für Selectpicker – externe SVG-Dateien aus assets/icons/
+$_cbIconImg = function(string $name): string {
+    if (class_exists('YFormContentBuilderSvg')) {
+        return YFormContentBuilderSvg::iconImg($name);
+    }
+    return '';
+};
 $layoutIcons = [
-    'media-top' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="1" width="22" height="7" fill="#666" rx="1"/><rect x="1" y="10" width="22" height="7" fill="none" stroke="#ccc" rx="1"/></svg>',
-    'media-bottom' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="1" width="22" height="7" fill="none" stroke="#ccc" rx="1"/><rect x="1" y="10" width="22" height="7" fill="#666" rx="1"/></svg>',
-    'media-left' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="1" width="10" height="16" fill="#666" rx="1"/><rect x="13" y="1" width="10" height="16" fill="none" stroke="#ccc" rx="1"/></svg>',
-    'media-right' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="1" width="10" height="16" fill="none" stroke="#ccc" rx="1"/><rect x="13" y="1" width="10" height="16" fill="#666" rx="1"/></svg>',
-    'media-overlay' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="1" width="22" height="16" fill="#666" rx="1"/><rect x="3" y="10" width="18" height="5" fill="#333" opacity="0.7" rx="1"/></svg>'
+    'media-top'     => $_cbIconImg('layout-media-top'),
+    'media-bottom'  => $_cbIconImg('layout-media-bottom'),
+    'media-left'    => $_cbIconImg('layout-media-left'),
+    'media-right'   => $_cbIconImg('layout-media-right'),
+    'media-overlay' => $_cbIconImg('layout-media-overlay'),
 ];
 
 // Schatten-Icons für Selectpicker (visualisieren die Schattenstärke)
@@ -117,45 +123,30 @@ $shadowChoices = [
 ];
 
 $shadowIcons = [
-    '' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="2" y="2" width="20" height="14" fill="#fff" stroke="#ccc" rx="2"/></svg>',
-    'uk-box-shadow-small' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="3" y="3" width="20" height="14" fill="#e0e0e0" rx="2"/><rect x="1" y="1" width="20" height="14" fill="#fff" stroke="#ccc" rx="2"/></svg>',
-    'uk-box-shadow-medium' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="4" y="4" width="20" height="14" fill="#ccc" rx="2"/><rect x="1" y="1" width="20" height="14" fill="#fff" stroke="#bbb" rx="2"/></svg>',
-    'uk-box-shadow-large' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="5" y="5" width="20" height="14" fill="#aaa" rx="2"/><rect x="1" y="1" width="20" height="14" fill="#fff" stroke="#999" rx="2"/></svg>',
-    'uk-box-shadow-xlarge' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="6" y="6" width="20" height="14" fill="#888" rx="2"/><rect x="1" y="1" width="20" height="14" fill="#fff" stroke="#777" rx="2"/></svg>',
-    'uk-card-hover' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="2" y="2" width="20" height="14" fill="#fff" stroke="#ccc" rx="2" stroke-dasharray="2,2"/><text x="12" y="12" font-size="8" text-anchor="middle" fill="#999">↑</text></svg>'
+    ''                     => $_cbIconImg('shadow-none'),
+    'uk-box-shadow-small'  => $_cbIconImg('shadow-small'),
+    'uk-box-shadow-medium' => $_cbIconImg('shadow-medium'),
+    'uk-box-shadow-large'  => $_cbIconImg('shadow-large'),
+    'uk-box-shadow-xlarge' => $_cbIconImg('shadow-xlarge'),
+    'uk-card-hover'        => $_cbIconImg('shadow-hover'),
 ];
 
-// Vertical Align Icons
+// Vertical Align Icons – externe SVG-Dateien
 $vAlignIcons = [
-    '' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="2" width="22" height="4" fill="#666" rx="1"/><rect x="1" y="8" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="14" width="22" height="4" fill="#ccc" rx="1"/></svg>',
-    'middle' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="2" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="8" width="22" height="4" fill="#666" rx="1"/><rect x="1" y="14" width="22" height="4" fill="#ccc" rx="1"/></svg>',
-    'bottom' => '<svg width="24" height="18" viewBox="0 0 24 18" style="vertical-align:middle;margin-right:6px;"><rect x="1" y="2" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="8" width="22" height="4" fill="#ccc" rx="1"/><rect x="1" y="14" width="22" height="4" fill="#666" rx="1"/></svg>'
+    ''       => $_cbIconImg('valign-top'),
+    'middle' => $_cbIconImg('valign-middle'),
+    'bottom' => $_cbIconImg('valign-bottom'),
 ];
 
-// Card-Width Optionen für individuelle Breiten (responsive)
-$cardWidthChoices = [
-    '' => 'Standard (aus Grid)',
-    '1-1' => '100% (alle Screens)',
-    '1-2' => '50% (alle Screens)',
-    '1-3' => '33% (alle Screens)',
-    '2-3' => '66% (alle Screens)',
-    '1-4' => '25% (alle Screens)',
-    '3-4' => '75% (alle Screens)',
-    '1-5' => '20% (alle Screens)',
-    '2-5' => '40% (alle Screens)',
-    '3-5' => '60% (alle Screens)',
-    '4-5' => '80% (alle Screens)',
-    'expand' => 'Ausdehnen',
-    'auto' => 'Automatisch',
-    // Responsive Varianten ab Medium
-    '1-1@m' => '100% (ab Medium)',
-    '1-2@m' => '50% (ab Medium)',
-    '1-3@m' => '33% (ab Medium)',
-    '2-3@m' => '66% (ab Medium)',
-    '1-4@m' => '25% (ab Medium)',
-    '3-4@m' => '75% (ab Medium)',
-    'expand@m' => 'Ausdehnen (ab Medium)',
-    'auto@m' => 'Automatisch (ab Medium)'
+// Card-Width Optionen – gleiche Werte für alle Breakpoints (Suffix wird im Template ergänzt)
+$cardWidthChoicesBase = [
+    ''      => 'Standard (aus Grid)',
+    '1-1'   => 'Vollbreite (100%)',
+    '3-4'   => '3/4 Breite (75%)',
+    '2-3'   => '2/3 Breite (66%)',
+    '1-2'   => '1/2 Breite (50%)',
+    '1-3'   => '1/3 Breite (33%)',
+    '1-4'   => '1/4 Breite (25%)',
 ];
 
 // Optional: Layouts aus SVG-Klasse laden wenn verfügbar
@@ -165,10 +156,7 @@ if (class_exists('YFormContentBuilderSvg')) {
         $layoutChoices = [];
         foreach ($rawLayouts as $key => $data) {
             $layoutChoices[$key] = $data['label'] ?? $key;
-            // Wenn SVG vorhanden, für Icon verwenden
-            if (!empty($data['img'])) {
-                $layoutIcons[$key] = '<img src="' . $data['img'] . '" style="width:24px;height:18px;vertical-align:middle;margin-right:6px;">';
-            }
+            // Icons wurden bereits über $_cbIconImg gesetzt; hier kein Überschreiben nötig
         }
     }
 }
@@ -180,7 +168,7 @@ return [
     
     // Settings Modal für Grid/Section-Einstellungen
     'settings_modal' => [
-        'label' => 'Grid & Sektion Einstellungen',
+        'label' => 'Allgemeine Block-Einstellungen',
         'icon' => 'fa-cog',
         'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
     ],
@@ -358,16 +346,25 @@ return [
                 ]
             ],
 
-            // Modal für Card-Optionen (wird nach Layout-Feld angezeigt)
+            // Modal: Individuelle Layout-Einstellungen
             'item_modal' => [
-                'label' => 'Card Optionen',
+                'label' => 'Layout-Einstellungen',
                 'icon' => 'fa-cog',
                 'trigger_after' => 'layout',
                 'fields' => [
-                    'subtitle', 'badge', 'badge_color', 'media_vertical_align',
-                    'card_width', 'card_style_override', 'card_shadow_override',
-                    'link_type', 'link_url', 'link_internal', 'link_text', 'link_card',
-                    'animation'
+                    'card_width_mobile', 'card_width_tablet', 'card_width',
+                    'badge', 'badge_color', 'media_vertical_align',
+                    'card_shadow_override',
+                ]
+            ],
+
+            // Modal: Verlinkung
+            'link_modal' => [
+                'label' => 'Verlinkung',
+                'icon' => 'fa-link',
+                'trigger_after' => 'card_style_override',
+                'fields' => [
+                    'link_type', 'link_url', 'link_internal', 'link_text', 'link_button_style', 'link_button_align', 'link_card'
                 ]
             ],
             
@@ -382,17 +379,66 @@ return [
             ] : []),
             
             'fields' => [
-                // Layout-Auswahl
+                // Zeile 1: Layout / Farbe / Animation nebeneinander
                 'layout' => [
                     'type' => 'choice',
                     'label' => 'Layout',
                     'choices' => $layoutChoices,
                     'choice_icons' => $layoutIcons,
                     'selectpicker' => true,
-                    'default' => 'media-top'
+                    'default' => 'media-top',
+                    'col' => 4,
+                ],
+                'card_style_override' => [
+                    'type' => 'choice',
+                    'label' => 'Farbe',
+                    'choices' => array_merge(['' => 'Standard'], $cardStyleChoices),
+                    'choice_colors' => array_merge(['' => ['color' => 'transparent', 'label' => 'Standard']], $cardStyleColors),
+                    'selectpicker' => true,
+                    'default' => '',
+                    'col' => 4,
+                ],
+                'animation' => [
+                    'type' => 'choice',
+                    'label' => 'Animation',
+                    'choices' => [
+                        '' => 'Keine',
+                        'uk-animation-fade' => 'Fade In',
+                        'uk-animation-scale-up' => 'Scale Up',
+                        'uk-animation-scale-down' => 'Scale Down',
+                        'uk-animation-slide-top-small' => 'Slide von oben',
+                        'uk-animation-slide-bottom-small' => 'Slide von unten',
+                        'uk-animation-slide-left-small' => 'Slide von links',
+                        'uk-animation-slide-right-small' => 'Slide von rechts',
+                    ],
+                    'default' => '',
+                    'col' => 4,
                 ],
                 
-                // Media - nur Hauptfeld sichtbar
+                // Zeile 2: Individuelle Breite (Mobil / Tablet / Desktop) → jetzt im Layout-Modal
+                'card_width_mobile' => [
+                    'type' => 'choice',
+                    'label' => 'Breite Mobil',
+                    'choices' => $cardWidthChoicesBase,
+                    'default' => '',
+                    'col' => 4,
+                ],
+                'card_width_tablet' => [
+                    'type' => 'choice',
+                    'label' => 'Breite Tablet',
+                    'choices' => $cardWidthChoicesBase,
+                    'default' => '',
+                    'col' => 4,
+                ],
+                'card_width' => [
+                    'type' => 'choice',
+                    'label' => 'Breite Desktop',
+                    'choices' => $cardWidthChoicesBase,
+                    'default' => '',
+                    'col' => 4,
+                ],
+                
+                // Media - volle Breite
                 'image' => [
                     'type' => 'be_media',
                     'label' => 'Bild oder Video',
@@ -473,10 +519,17 @@ return [
                     'notice' => 'Nur wenn Video direkt abgespielt wird'
                 ],
                 
-                // Content - Hauptfelder sichtbar
+                // Content - Titel und Untertitel nebeneinander (2 Spalten)
                 'title' => [
                     'type' => 'text',
-                    'label' => 'Titel'
+                    'label' => 'Titel',
+                    'col' => 6,
+                ],
+                'subtitle' => [
+                    'type' => 'text',
+                    'label' => 'Untertitel',
+                    'notice' => 'Optional',
+                    'col' => 6,
                 ],
                 'text' => [
                     'type' => 'cke5',
@@ -484,11 +537,6 @@ return [
                 ],
                 
                 // Erweiterte Optionen (im Modal)
-                'subtitle' => [
-                    'type' => 'text',
-                    'label' => 'Untertitel',
-                    'notice' => 'Optional'
-                ],
                 'badge' => [
                     'type' => 'text',
                     'label' => 'Badge',
@@ -519,21 +567,7 @@ return [
                     'notice' => 'Greift nur bei Layouts mit Bild links oder rechts'
                 ],
                 
-                // Card-spezifische Überschreibungen
-                'card_width' => [
-                    'type' => 'choice',
-                    'label' => 'Card Breite (individuell)',
-                    'choices' => $cardWidthChoices,
-                    'default' => ''
-                ],
-                'card_style_override' => [
-                    'type' => 'choice',
-                    'label' => 'Card Farbe (überschreiben)',
-                    'choices' => array_merge(['' => 'Standard (aus Grid)'], $cardStyleChoices),
-                    'choice_colors' => array_merge(['' => ['color' => 'transparent', 'label' => 'Standard']], $cardStyleColors),
-                    'selectpicker' => true,
-                    'default' => ''
-                ],
+                // Card-spezifische Überschreibungen (jetzt im Modal)
                 'card_shadow_override' => [
                     'type' => 'choice',
                     'label' => 'Schatten (überschreiben)',
@@ -565,34 +599,35 @@ return [
                 'link_text' => [
                     'type' => 'text',
                     'label' => 'Link Text',
-                    'default' => 'Mehr erfahren'
+                    'default' => 'Mehr erfahren',
+                    'col' => 6,
+                ],
+                'link_button_style' => [
+                    'type' => 'choice',
+                    'label' => 'Button-Stil',
+                    'choices' => [
+                        'uk-button-text'      => 'Text (mit Pfeil)',
+                        'uk-button-default'   => 'Standard',
+                        'uk-button-primary'   => 'Primary',
+                        'uk-button-secondary' => 'Secondary',
+                        'uk-button-danger'    => 'Danger',
+                    ],
+                    'default' => 'uk-button-text',
+                    'col' => 6,
+                ],
+                'link_button_align' => [
+                    'type' => 'choice',
+                    'label' => 'Button-Ausrichtung',
+                    'choices' => [
+                        ''                => 'Links',
+                        'uk-text-center'  => 'Zentriert',
+                        'uk-text-right'   => 'Rechts',
+                    ],
+                    'default' => 'uk-text-center',
                 ],
                 'link_card' => [
                     'type' => 'checkbox',
                     'label' => 'Gesamte Card verlinken'
-                ],
-                
-                // Animation Optionen (nur UIkit, im Modal)
-                'animation' => [
-                    'type' => 'choice',
-                    'label' => 'Animation',
-                    'choices' => [
-                        '' => 'Keine',
-                        'uk-animation-fade' => 'Fade In',
-                        'uk-animation-scale-up' => 'Scale Up',
-                        'uk-animation-scale-down' => 'Scale Down',
-                        'uk-animation-slide-top' => 'Slide from Top',
-                        'uk-animation-slide-bottom' => 'Slide from Bottom',
-                        'uk-animation-slide-left' => 'Slide from Left',
-                        'uk-animation-slide-right' => 'Slide from Right',
-                        'uk-animation-slide-top-small' => 'Slide from Top (Small)',
-                        'uk-animation-slide-bottom-small' => 'Slide from Bottom (Small)',
-                        'uk-animation-slide-left-small' => 'Slide from Left (Small)',
-                        'uk-animation-slide-right-small' => 'Slide from Right (Small)',
-                        'uk-animation-shake' => 'Shake'
-                    ],
-                    'default' => '',
-                    'notice' => 'Nur sichtbar wenn Animationen global aktiviert sind'
                 ],
                 
                 // Extra-Felder (im Modal "Extras" sichtbar)

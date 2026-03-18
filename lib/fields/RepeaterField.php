@@ -48,7 +48,7 @@ class RepeaterField extends ContentBuilderFieldAbstract
                 }
                 
                 if (isset($configValue['trigger_after']) && isset($configValue['fields'])) {
-                    $triggerModals[$configValue['trigger_after']] = $configKey;
+                    $triggerModals[$configValue['trigger_after']][] = $configKey;
                     // Felder nur hinzufügen wenn es nicht item_modal ist (dessen Felder sind schon in itemModalFields)
                     if ($configKey !== 'item_modal') {
                         $itemModalFields = array_merge($itemModalFields, $configValue['fields']);
@@ -131,23 +131,24 @@ class RepeaterField extends ContentBuilderFieldAbstract
             $modalsToRender['item_modal'] = ['itemId' => $templateId, 'index' => 0, 'item' => []];
         }
 
-        foreach ($fieldConfig['fields'] as $subFieldName => $subFieldConfig) {
-            if (in_array($subFieldName, $itemModalFields)) {
-                continue;
-            }
+        $self = $this;
+        ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            $fieldConfig['fields'],
+            $itemModalFields,
+            function (string $subFieldName, array $subFieldConfig) use ($self, $fieldName, $fieldConfig, $baseFieldName, $templateId, $triggerModals, &$modalsToRender): void {
+                $fullFieldName = $fieldName . '[0][' . $subFieldName . ']';
+                $subData = [$baseFieldName => [0 => []]];
+                ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
 
-            $fullFieldName = $fieldName . '[0][' . $subFieldName . ']';
-            $subData = [$baseFieldName => [0 => []]];
-            
-            ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
-
-            // Trigger-Modal Button nach diesem Feld - nur Button rendern, Modal später
-            if (isset($triggerModals[$subFieldName])) {
-                $modalKey = $triggerModals[$subFieldName];
-                $this->renderFieldModalButton($templateId, $fieldConfig, $modalKey);
-                $modalsToRender[$modalKey] = ['itemId' => $templateId, 'index' => 0, 'item' => [], 'modalKey' => $modalKey];
+                // Trigger-Modal Button(s) nach diesem Feld
+                if (isset($triggerModals[$subFieldName])) {
+                    foreach ($triggerModals[$subFieldName] as $modalKey) {
+                        $self->renderFieldModalButton($templateId, $fieldConfig, $modalKey);
+                        $modalsToRender[$modalKey] = ['itemId' => $templateId, 'index' => 0, 'item' => [], 'modalKey' => $modalKey];
+                    }
+                }
             }
-        }
+        );
 
         echo '<button type="button" class="btn btn-sm btn-danger btn-remove-repeater"><i class="fa fa-trash"></i></button>';
         
@@ -183,23 +184,24 @@ class RepeaterField extends ContentBuilderFieldAbstract
             $modalsToRender['item_modal'] = ['itemId' => $itemId, 'index' => $index, 'item' => $item];
         }
 
-        foreach ($fieldConfig['fields'] as $subFieldName => $subFieldConfig) {
-            if (in_array($subFieldName, $itemModalFields)) {
-                continue;
-            }
+        $self = $this;
+        ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            $fieldConfig['fields'],
+            $itemModalFields,
+            function (string $subFieldName, array $subFieldConfig) use ($self, $fieldName, $fieldConfig, $baseFieldName, $index, $item, $itemId, $triggerModals, &$modalsToRender): void {
+                $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
+                $subData = [$baseFieldName => [$index => $item]];
+                ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
 
-            $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
-            $subData = [$baseFieldName => [$index => $item]];
-            
-            ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
-
-            // Trigger-Modal Button nach diesem Feld - nur Button rendern, Modal später
-            if (isset($triggerModals[$subFieldName])) {
-                $modalKey = $triggerModals[$subFieldName];
-                $this->renderFieldModalButton($itemId, $fieldConfig, $modalKey);
-                $modalsToRender[$modalKey] = ['itemId' => $itemId, 'index' => $index, 'item' => $item, 'modalKey' => $modalKey];
+                // Trigger-Modal Button(s) nach diesem Feld
+                if (isset($triggerModals[$subFieldName])) {
+                    foreach ($triggerModals[$subFieldName] as $modalKey) {
+                        $self->renderFieldModalButton($itemId, $fieldConfig, $modalKey);
+                        $modalsToRender[$modalKey] = ['itemId' => $itemId, 'index' => $index, 'item' => $item, 'modalKey' => $modalKey];
+                    }
+                }
             }
-        }
+        );
 
         echo '<button type="button" class="btn btn-sm btn-danger btn-remove-repeater"><i class="fa fa-trash"></i></button>';
         
@@ -318,13 +320,21 @@ class RepeaterField extends ContentBuilderFieldAbstract
         echo '<div class="modal-body">';
 
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
+            $modalFieldMap = [];
             foreach ($modalConfig['fields'] as $subFieldName) {
                 if (isset($fieldConfig['fields'][$subFieldName])) {
-                    $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
-                    $subData = [$baseFieldName => [$index => $item]];
-                    ContentBuilderFieldRegistry::renderField($fullFieldName, $fieldConfig['fields'][$subFieldName], $subData);
+                    $modalFieldMap[$subFieldName] = $fieldConfig['fields'][$subFieldName];
                 }
             }
+            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                $modalFieldMap,
+                [],
+                function (string $subFieldName, array $subFieldConfig) use ($fieldName, $index, $item, $baseFieldName): void {
+                    $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
+                    $subData = [$baseFieldName => [$index => $item]];
+                    ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
+                }
+            );
         }
 
         echo '</div>';
@@ -362,13 +372,21 @@ class RepeaterField extends ContentBuilderFieldAbstract
         echo '<div class="modal-body">';
 
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
+            $modalFieldMap = [];
             foreach ($modalConfig['fields'] as $subFieldName) {
                 if (isset($fieldConfig['fields'][$subFieldName])) {
-                    $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
-                    $subData = [$baseFieldName => [$index => $item]];
-                    ContentBuilderFieldRegistry::renderField($fullFieldName, $fieldConfig['fields'][$subFieldName], $subData);
+                    $modalFieldMap[$subFieldName] = $fieldConfig['fields'][$subFieldName];
                 }
             }
+            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                $modalFieldMap,
+                [],
+                function (string $subFieldName, array $subFieldConfig) use ($fieldName, $index, $item, $baseFieldName): void {
+                    $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
+                    $subData = [$baseFieldName => [$index => $item]];
+                    ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
+                }
+            );
         }
 
         echo '</div>';
