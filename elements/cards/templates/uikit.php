@@ -471,7 +471,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         <div class="uk-card-media-top uk-position-relative">
                             <?= $altWarningHtml ?>
                             <?php if ($mediaCoverCheckbox && $mediaRatio !== 'original'): ?>
-                                <div class="uk-cover-container" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
+                                <div class="cb-cover-ratio" style="--card-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
                                     <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                 </div>
                             <?php else: ?>
@@ -486,7 +486,7 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
                         <div class="uk-card-media-bottom uk-position-relative">
                             <?= $altWarningHtml ?>
                             <?php if ($mediaCoverCheckbox && $mediaRatio !== 'original'): ?>
-                                <div class="uk-cover-container" style="aspect-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
+                                <div class="cb-cover-ratio" style="--card-ratio: <?= $canvasW ?>/<?= $canvasH ?>;">
                                     <?php $mediaCover = true; include __DIR__ . '/_media_output.php'; ?>
                                 </div>
                             <?php else: ?>

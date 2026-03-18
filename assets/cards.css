@@ -341,3 +341,35 @@
         aspect-ratio: auto;
     }
 }
+
+/* ============================================================
+   Responsives Cover für media-top/bottom Layouts
+   Mobile: natürliches Bild-Ratio (kein Crop)
+   Desktop (@m / 960px+): gewähltes Ratio mit object-fit:cover
+   ============================================================ */
+.cb-cover-ratio {
+    overflow: hidden;
+    position: relative;
+}
+
+.cb-cover-ratio img,
+.cb-cover-ratio video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+@media (min-width: 960px) {
+    .cb-cover-ratio {
+        aspect-ratio: var(--card-ratio, 16/9);
+    }
+    .cb-cover-ratio img,
+    .cb-cover-ratio video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+}
