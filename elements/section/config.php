@@ -119,5 +119,76 @@ return [
             'label' => 'Custom ID',
             'notice' => 'Eigene ID für Anker-Links (z.B. #kontakt)'
         ],
+
+        // ===== GRID-OPTIONEN (UIkit) =====
+        'grid_enabled' => [
+            'type' => 'checkbox',
+            'label' => 'Grid-Modus aktivieren',
+            'notice' => 'Elemente innerhalb dieser Section automatisch als Grid-Spalten anordnen (uk-grid + uk-child-width)'
+        ],
+
+        'grid_child_width' => [
+            'type' => 'choice',
+            'label' => 'Spaltenbreite (Desktop ≥960px)',
+            'choices' => [
+                '1-1'  => 'Volle Breite (1 Spalte)',
+                '1-2'  => '½ – 2 Spalten',
+                '1-3'  => '⅓ – 3 Spalten',
+                '1-4'  => '¼ – 4 Spalten',
+                '1-5'  => '⅕ – 5 Spalten',
+                '1-6'  => '⅙ – 6 Spalten',
+                '2-3'  => '⅔ – automatisch 1,5 Spalten',
+                'auto' => 'Auto (Breite durch Inhalt)',
+                'expand' => 'Gleichmäßig verteilt (expand)',
+            ],
+            'default' => '1-3',
+        ],
+
+        'grid_child_width_tablet' => [
+            'type' => 'choice',
+            'label' => 'Spaltenbreite (Tablet ≥640px)',
+            'choices' => [
+                '1-1' => 'Volle Breite',
+                '1-2' => '½ – 2 Spalten',
+                '1-3' => '⅓ – 3 Spalten',
+                '1-4' => '¼ – 4 Spalten',
+            ],
+            'default' => '1-2',
+        ],
+
+        'grid_child_width_mobile' => [
+            'type' => 'choice',
+            'label' => 'Spaltenbreite (Mobil)',
+            'choices' => [
+                '1-1' => 'Volle Breite (empfohlen)',
+                '1-2' => '½ – 2 Spalten',
+            ],
+            'default' => '1-1',
+        ],
+
+        'grid_gap' => [
+            'type' => 'choice',
+            'label' => 'Grid-Abstand',
+            'choices' => [
+                ''         => 'Standard (30px)',
+                'small'    => 'Klein (15px)',
+                'medium'   => 'Mittel (30px)',
+                'large'    => 'Groß (40px)',
+                'collapse' => 'Kein Abstand',
+            ],
+            'default' => '',
+        ],
+
+        'grid_match' => [
+            'type' => 'checkbox',
+            'label' => 'Match Height (uk-grid-match)',
+            'notice' => 'Alle Grid-Zellen auf gleiche Höhe bringen – ideal für Karten- und Box-Layouts'
+        ],
+
+        'grid_divider' => [
+            'type' => 'checkbox',
+            'label' => 'Trennlinien (uk-grid-divider)',
+            'notice' => 'Vertikale und horizontale Trennlinien zwischen den Grid-Zellen anzeigen'
+        ],
     ]
 ];

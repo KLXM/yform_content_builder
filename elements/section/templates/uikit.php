@@ -21,6 +21,15 @@ $textAlign = $elementData['text_align'] ?? '';
 $customClass = $elementData['custom_class'] ?? '';
 $customId = $elementData['custom_id'] ?? '';
 
+// Grid-Optionen
+$gridEnabled        = !empty($elementData['grid_enabled']);
+$gridChildWidth     = $elementData['grid_child_width'] ?? '1-3';
+$gridChildWidthTab  = $elementData['grid_child_width_tablet'] ?? '1-2';
+$gridChildWidthMob  = $elementData['grid_child_width_mobile'] ?? '1-1';
+$gridGap            = $elementData['grid_gap'] ?? '';
+$gridMatch          = !empty($elementData['grid_match']);
+$gridDivider        = !empty($elementData['grid_divider']);
+
 // Padding-Mapping für UIkit
 $paddingMap = [
     'none' => '',
@@ -90,6 +99,10 @@ if ($container === 'container-fluid') {
 // Wenn closeType gesetzt ist, nur öffnen oder schließen
 if (isset($closeType)) {
     if ($closeType === 'close') {
+        // Grid-Wrapper schließen wenn aktiviert
+        if ($gridEnabled) {
+            echo '        </div>' . "\n"; // uk-grid
+        }
         // Section schließen
         if ($container !== 'none') {
             echo '    </div>' . "\n"; // Container schließen
@@ -104,6 +117,31 @@ if (isset($closeType)) {
         if ($container !== 'none') {
             echo '    <div class="' . rex_escape($containerClass) . '">' . "\n";
         }
+
+        // Grid-Wrapper öffnen wenn aktiviert
+        if ($gridEnabled) {
+            $gridClasses = ['uk-grid'];
+            if ($gridGap) {
+                $gridClasses[] = 'uk-grid-' . $gridGap;
+            }
+            if ($gridMatch) {
+                $gridClasses[] = 'uk-grid-match';
+            }
+            if ($gridDivider) {
+                $gridClasses[] = 'uk-grid-divider';
+            }
+            // uk-child-width für mobile, tablet, desktop
+            if ($gridChildWidthMob && $gridChildWidthMob !== '1-1') {
+                $gridClasses[] = 'uk-child-width-' . $gridChildWidthMob;
+            } else {
+                $gridClasses[] = 'uk-child-width-1-1';
+            }
+            $gridClasses[] = 'uk-child-width-' . $gridChildWidthTab . '@s';
+            $gridClasses[] = 'uk-child-width-' . $gridChildWidth . '@m';
+
+            echo '        <div class="' . implode(' ', $gridClasses) . '" uk-grid>' . "\n";
+        }
+
         return;
     }
 }

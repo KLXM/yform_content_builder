@@ -6,9 +6,13 @@
  */
 class yform_content_builder_helper
 {
+    /** Daten der aktuell offenen Section (für Grid-Close) */
+    protected static array $activeSectionData = [];
+
     /**
      * Rendert Content Builder Slices im Frontend
      * Mit Auto-Close-Unterstützung für Section-Elemente
+     * Mit optionalem uk-grid / uk-child-width Grid-Layout pro Section
      *
      * @param string $jsonContent JSON-String mit Slices
      * @param string $framework Framework für Templates (bootstrap|uikit|plain)
@@ -24,6 +28,7 @@ class yform_content_builder_helper
         
         $output = '';
         $openSection = false;
+        self::$activeSectionData = [];
         $sectionCount = count(array_filter($slices, function($s) { return ($s['type'] ?? '') === 'section'; }));
         
         foreach ($slices as $index => $slice) {
@@ -44,30 +49,40 @@ class yform_content_builder_helper
             if ($isSection) {
                 // Vorherige Section schließen, wenn offen
                 if ($openSection) {
-                    $output .= self::renderSectionClose($framework);
+                    $output .= self::renderSectionClose($framework, self::$activeSectionData);
                 }
                 
-                // Neue Section öffnen
+                // Neue Section öffnen – Daten merken für Close und Grid-Wrapping
+                self::$activeSectionData = $slice['data'] ?? [];
                 $output .= self::renderSlice($slice, $framework, 'open');
                 $openSection = true;
                 
             } else {
-                // Normales Element
-                $output .= self::renderSlice($slice, $framework);
+                // Normales Element – in Grid-Item wrappen wenn aktive Section Grid hat
+                $gridEnabled = !empty(self::$activeSectionData['grid_enabled']);
+                $elementHtml = self::renderSlice($slice, $framework);
+                
+                if ($openSection && $gridEnabled && trim($elementHtml) !== '') {
+                    $output .= '<div>' . $elementHtml . '</div>' . "\n";
+                } else {
+                    $output .= $elementHtml;
+                }
                 
                 // Section schließen wenn:
                 // - Nächstes Element ist Section ODER
                 // - Dies ist das letzte Element und eine Section ist offen
                 if ($openSection && ($nextIsSection || $isLast)) {
-                    $output .= self::renderSectionClose($framework);
+                    $output .= self::renderSectionClose($framework, self::$activeSectionData);
                     $openSection = false;
+                    self::$activeSectionData = [];
                 }
             }
         }
         
         // Sicherheit: Offene Section am Ende schließen
         if ($openSection) {
-            $output .= self::renderSectionClose($framework);
+            $output .= self::renderSectionClose($framework, self::$activeSectionData);
+            self::$activeSectionData = [];
         }
         
         return $output;
@@ -77,9 +92,10 @@ class yform_content_builder_helper
      * Schließt eine offene Section
      *
      * @param string $framework Framework
+     * @param array  $elementData Daten der zu schließenden Section (für Grid-Wrapper)
      * @return string HTML-Ausgabe
      */
-    protected static function renderSectionClose(string $framework): string
+    protected static function renderSectionClose(string $framework, array $elementData = []): string
     {
         $addon = rex_addon::get('yform_content_builder');
         $elementPath = $addon->getPath('elements/section');
@@ -94,7 +110,6 @@ class yform_content_builder_helper
         }
         
         $closeType = 'close';
-        $elementData = [];
         
         ob_start();
         include $templateFile;

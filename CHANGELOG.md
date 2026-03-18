@@ -6,6 +6,40 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.4.0] – 2026-03-18
+
+### Section als echter Grid-Container (UIkit Page Builder)
+
+Das Section-Element kann nun als **Grid-Wrapper für alle nachfolgende Elemente** fungieren. Damit wird der Content Builder zu einem vollwertigen Page Builder: Statt eines starren Vollbild-Layouts kann jede Section ihre Kind-Elemente automatisch in ein responsives Spaltenlayout aufteilen.
+
+**Neue Felder in der Section:**
+
+| Feld | Funktion |
+|------|----------|
+| Grid-Modus aktivieren | Schaltet Grid für diese Section an |
+| Spaltenbreite (Desktop) | `uk-child-width-X-X@m` – 1 bis 6 Spalten oder Auto |
+| Spaltenbreite (Tablet) | `uk-child-width-X-X@s` |
+| Spaltenbreite (Mobil) | Standard: volle Breite |
+| Grid-Abstand | `uk-grid-small/-medium/-large` oder kein Abstand |
+| Match Height | `uk-grid-match` – alle Zellen gleich hoch |
+| Trennlinien | `uk-grid-divider` – Linien zwischen den Zellen |
+
+**Technisch:**
+- Die Render-Engine (`yform_content_builder_helper`) erkennt Grid-aktivierte Sections und wickelt jedes Kind-Element automatisch in ein `<div>` (Grid-Item)
+- Der Grid-Wrapper wird sauber auf- und zugeklappt ohne Änderungen an den einzelnen Elementen
+- Rückwärtskompatibel: Ohne aktivierten Grid-Modus verhält sich die Section identisch wie zuvor
+
+**Typischer Anwendungsfall:**
+```
+[Section: Grid 1/3, match-height]
+  [Feature A: Titel + Text]   → automatisch 1/3 Breite
+  [Feature B: Titel + Text]   → automatisch 1/3 Breite
+  [Feature C: Titel + Text]   → automatisch 1/3 Breite
+[/Section]
+```
+
+---
+
 ## [1.3.0] – 2026-03-18
 
 ### Neu: 4 einfache Layout-Elemente
