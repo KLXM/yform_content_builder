@@ -24,6 +24,7 @@ $imageWidth    = $elementData['image_width'] ?? '1-2';
 $verticalAlign = $elementData['vertical_align'] ?? 'middle';
 $imageRounded  = !empty($elementData['image_rounded']);
 $imageShadow   = $elementData['image_shadow'] ?? '';
+$imageStyle    = $elementData['image_style'] ?? '';
 
 // --- Link ---
 $linkType     = $elementData['link_type'] ?? '';
@@ -135,12 +136,19 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
 
         <?php
         // Bild-Element (als eigenes Fragment)
-        $mediaBlock = static function () use ($imageUrl, $srcset, $imageAlt, $heading, $imgClasses, $image): void {
+        $mediaBlock = static function () use ($imageUrl, $srcset, $imageAlt, $heading, $imgClasses, $image, $imageStyle): void {
             if (empty($image) || empty($imageUrl)) {
                 return;
             }
+
+            $wrapClass = 'uk-margin-remove';
+            if ($imageStyle === 'stacked') {
+                $wrapClass .= ' cb-image-stack';
+            } elseif ($imageStyle === 'overlap') {
+                $wrapClass .= ' cb-image-overlap';
+            }
             ?>
-            <figure class="uk-margin-remove">
+            <figure class="<?= $wrapClass ?>">
                 <img
                     src="<?= rex_escape($imageUrl) ?>"
                     <?= $srcset ? 'srcset="' . rex_escape($srcset) . '"' : '' ?>
@@ -206,4 +214,68 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
 
 <?php if ($hasSection): ?>
 </section>
+<?php endif; ?>
+
+<?php if ($imageStyle === 'stacked' || $imageStyle === 'overlap'): ?>
+<style>
+/* --- Bildstapel / Overlap Effekte --- */
+.cb-image-stack {
+    position: relative;
+    padding: 24px 24px 0 0;
+    overflow: visible;
+}
+.cb-image-stack img {
+    position: relative;
+    z-index: 2;
+    display: block;
+}
+.cb-image-stack::before {
+    content: '';
+    position: absolute;
+    inset: auto 0 -16px -16px;
+    width: 75%;
+    height: 75%;
+    background: var(--uk-color-primary, #1e87f0);
+    opacity: 0.12;
+    border-radius: 4px;
+    z-index: 1;
+}
+.cb-image-stack::after {
+    content: '';
+    position: absolute;
+    inset: 0 -16px -16px auto;
+    width: 60%;
+    height: 60%;
+    background: var(--uk-color-primary, #1e87f0);
+    opacity: 0.06;
+    border-radius: 4px;
+    z-index: 0;
+}
+
+.cb-image-overlap {
+    overflow: visible;
+    position: relative;
+    z-index: 2;
+}
+@media (min-width: 960px) {
+    .cb-image-overlap {
+        margin-inline-end: -60px;
+    }
+    .cb-image-overlap img {
+        filter: drop-shadow(0 8px 24px rgba(0,0,0,.18));
+    }
+}
+
+/* Dark Mode kompatibel */
+body.rex-theme-dark .cb-image-stack::before,
+body.rex-theme-dark .cb-image-stack::after {
+    opacity: 0.08;
+}
+@media (prefers-color-scheme: dark) {
+    body.rex-has-theme:not(.rex-theme-light) .cb-image-stack::before,
+    body.rex-has-theme:not(.rex-theme-light) .cb-image-stack::after {
+        opacity: 0.08;
+    }
+}
+</style>
 <?php endif; ?>

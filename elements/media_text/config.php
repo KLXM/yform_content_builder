@@ -26,7 +26,7 @@ return [
         'design_tab' => [
             'label' => 'Design',
             'icon' => 'fa-sliders',
-            'fields' => ['media_position', 'image_width', 'vertical_align', 'image_rounded', 'image_shadow'],
+            'fields' => ['media_position', 'image_width', 'vertical_align', 'image_rounded', 'image_shadow', 'image_style'],
         ],
         'link_tab' => [
             'label' => 'Link',
@@ -139,6 +139,17 @@ return [
                     'xlarge' => 'Extra Groß',
                 ],
                 'default' => '',
+            ],
+            'image_style' => [
+                'type' => 'choice',
+                'label' => 'Bild-Effekt',
+                'choices' => [
+                    ''         => 'Standard (kein Effekt)',
+                    'stacked'  => 'Bildstapel (gestapelte Dekoration)',
+                    'overlap'  => 'Overlap (Bild überlappt Textbereich)',
+                ],
+                'default' => '',
+                'notice' => '"Bildstapel" erzeugt einen dekorativen Tiefeneffekt hinter dem Bild. "Overlap" lässt das Bild in den Textbereich hineinragen.',
             ],
             'link_type' => [
                 'type' => 'choice',

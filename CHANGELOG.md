@@ -6,6 +6,20 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.6.0] – 2026-03-18
+
+### Neue Elemente & Bildeffekte
+
+**Neues Element: Timeline**
+Vertikale Zeitlinie für Meilensteine, Prozesse oder Ereignisse. Jeder Eintrag hat Datum, Titel, Beschreibung, optionalen UIkit-Icon und Badge. Drei Stile: Standard (Punkt + Linie), Karten und Alternierend (links/rechts wechselnd). Farbe des Punktes und Linienstil konfigurierbar. Templates für UIkit, Bootstrap und Plain.
+
+**Bild & Text – Bildstapel & Overlap**
+Das `media_text`-Element erhält den neuen Parameter **Bild-Effekt** im Design-Tab:
+- **Bildstapel**: Dekorative CSS-Pseudo-Elemente erzeugen einen gestapelten Tiefeneffekt hinter dem Hauptbild (kein zweites Bild notwendig).
+- **Overlap**: Das Bild-Spalte ragt auf Desktop-Screens mit `margin-inline-end: -60px` in den Textbereich hinein – für einen modernen, aufmerksamkeitsstarken Look.
+
+---
+
 ## [1.5.0] – 2026-03-18
 
 ### Hero Banner Parallax
