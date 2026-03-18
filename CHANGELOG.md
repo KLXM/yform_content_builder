@@ -6,6 +6,24 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.5.0] – 2026-03-18
+
+### Hero Banner Parallax
+
+Das Hero Banner Element unterstützt jetzt optionale Parallax-Effekte für Hintergrund und Textcontent.
+
+**Neue Felder im Design-Tab des Hero Banners:**
+
+- **Parallax-Hintergrund** (`parallax_bg`): Checkbox – aktiviert `uk-parallax bgy` auf dem Cover-Bild. Das Hintergrundbild scrollt langsamer als die Seite (klassischer Parallax-Effekt). Nur verfügbar bei Bild-Hintergrund, nicht bei Video.
+- **Parallax-Stärke (Hintergrund)** (`parallax_bg_velocity`): Wahl zwischen Dezent (150), Mittel (300) und Intensiv (500).
+- **Parallax-Text** (`parallax_content`): Checkbox – der Content-Block (Überschrift, Text, Buttons) hebt sich beim Scrollen leicht nach oben ab (`uk-parallax y: -60`).
+
+**Technische Umsetzung:**
+- Hintergrund: `uk-parallax="bgy: -{velocity}"` direkt auf dem `<img uk-cover>`-Tag – UIkit 3 verschiebt die absolut positionierte Cover-Image auf der y-Achse.
+- Text: `uk-parallax="y: -60; easing: 1"` auf dem Content-Container.
+
+---
+
 ## [1.4.0] – 2026-03-18
 
 ### Section als echter Grid-Container (UIkit Page Builder)

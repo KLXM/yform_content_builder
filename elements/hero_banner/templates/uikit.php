@@ -26,11 +26,14 @@ $imageAlt = $elementData['image_alt'] ?? '';
 $video    = $elementData['video'] ?? '';
 
 // --- Design ---
-$height       = $elementData['height'] ?? 'large';
-$contentAlign = $elementData['content_align'] ?? 'left';
-$contentVAlign = $elementData['content_valign'] ?? 'middle';
-$overlay      = $elementData['overlay'] ?? 'dark';
-$textColor    = $elementData['text_color'] ?? 'light';
+$height          = $elementData['height'] ?? 'large';
+$contentAlign    = $elementData['content_align'] ?? 'left';
+$contentVAlign   = $elementData['content_valign'] ?? 'middle';
+$overlay         = $elementData['overlay'] ?? 'dark';
+$textColor       = $elementData['text_color'] ?? 'light';
+$parallaxBg      = !empty($elementData['parallax_bg']);
+$parallaxVelocity = (int) ($elementData['parallax_bg_velocity'] ?? 300);
+$parallaxContent = !empty($elementData['parallax_content']);
 
 // --- Sektion ---
 $sectionBg    = $elementData['section_bg'] ?? '';
@@ -90,6 +93,19 @@ if ($image && !$video) {
     $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $image);
 }
 
+// Parallax-Attribute
+$parallaxBgAttr = '';
+if ($parallaxBg && $image && !$video) {
+    // bgy: negativ = Bild scrollt langsamer nach oben → klassischer Parallax-Effekt
+    $parallaxBgAttr = ' uk-parallax="bgy: -' . $parallaxVelocity . '"';
+}
+
+$parallaxContentAttr = '';
+if ($parallaxContent) {
+    // y: negativ = Content hebt sich beim Scrollen leicht ab
+    $parallaxContentAttr = ' uk-parallax="y: -60; easing: 1"';
+}
+
 ?>
 
 <div class="uk-cover-container <?= $heightClass ?><?= $lightClass ?>">
@@ -101,7 +117,7 @@ if ($image && !$video) {
     <?php elseif ($image): ?>
         <img src="<?= rex_escape($bgImageUrl) ?>"
              alt="<?= rex_escape($imageAlt ?: $heading) ?>"
-             uk-cover loading="eager">
+             uk-cover loading="eager"<?= $parallaxBgAttr ?>>
     <?php endif; ?>
 
     <?php if ($overlayStyle): ?>
@@ -109,7 +125,7 @@ if ($image && !$video) {
     <?php endif; ?>
 
     <div class="uk-position-cover uk-flex <?= $vAlignClass ?>">
-        <div class="<?= rex_escape($container ?: 'uk-container') ?> uk-width-1-1<?= $hAlignClass ?>">
+        <div class="<?= rex_escape($container ?: 'uk-container') ?> uk-width-1-1<?= $hAlignClass ?>"<?= $parallaxContentAttr ?>>
 
             <?php if ($badge): ?>
                 <span class="uk-badge uk-margin-small-bottom"><?= rex_escape($badge) ?></span>

@@ -28,7 +28,8 @@ return [
         'design_tab' => [
             'label' => 'Design',
             'icon' => 'fa-sliders',
-            'fields' => ['height', 'content_align', 'content_valign', 'overlay', 'text_color'],
+            'fields' => ['height', 'content_align', 'content_valign', 'overlay', 'text_color',
+                'parallax_bg', 'parallax_bg_velocity', 'parallax_content'],
         ],
         'section_tab' => [
             'label' => 'Sektion',
@@ -184,6 +185,29 @@ return [
                     '' => 'Standard',
                 ],
                 'default' => 'light',
+            ],
+
+            // ===== PARALLAX =====
+            'parallax_bg' => [
+                'type' => 'checkbox',
+                'label' => 'Parallax-Hintergrund',
+                'notice' => 'Hintergrundbild scrollt langsamer als die Seite (uk-parallax bgy) – funktioniert nicht mit Video',
+            ],
+            'parallax_bg_velocity' => [
+                'type' => 'choice',
+                'label' => 'Parallax-Stärke (Hintergrund)',
+                'choices' => [
+                    '150' => 'Dezent',
+                    '300' => 'Mittel',
+                    '500' => 'Intensiv',
+                ],
+                'default' => '300',
+                'notice' => 'Blendet ein, wenn Parallax-Hintergrund aktiv ist',
+            ],
+            'parallax_content' => [
+                'type' => 'checkbox',
+                'label' => 'Parallax-Text',
+                'notice' => 'Text und Buttons schweben beim Scrollen leicht nach oben (uk-parallax y)',
             ],
         ],
         $config::getSectionFields()
