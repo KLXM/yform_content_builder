@@ -325,25 +325,20 @@
 }
 
 /* ============================================================
-   Zwei-Container Sichtbarkeit für horizontale Cover-Layouts
-   cb-mobile-only  → sichtbar auf Mobile/Tablet, versteckt auf Desktop
-   cb-desktop-only → versteckt auf Mobile/Tablet, sichtbar auf Desktop
-   Löst Resize-Bug: Mobile zeigt natürliches Bild, Desktop zeigt Cover
+   Responsive Cover für horizontale Card-Layouts (UIkit)
+   Mobile: aspect-ratio aus echtem Bild-Ratio (CSS Custom Property)
+   Desktop (@m / 960px+): volle Spalten-Höhe via uk-grid-match
    ============================================================ */
 
-@media (min-width: 960px) {
-    .cb-mobile-only {
-        display: none !important;
-    }
+/* Mobile: Bild-Container bekommt Höhe via echtem Bild-Ratio */
+.cb-cover-responsive {
+    aspect-ratio: var(--img-ratio, 16/9);
 }
 
-.cb-desktop-only {
-    display: none !important;
-}
-
+/* Desktop: aspect-ratio entfernen, Höhe kommt vom Grid */
 @media (min-width: 960px) {
-    .cb-desktop-only {
-        display: block !important;
+    .cb-cover-responsive {
+        aspect-ratio: auto;
     }
 }
 
