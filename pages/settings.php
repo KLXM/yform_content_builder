@@ -10,6 +10,7 @@ $addon = rex_addon::get('yform_content_builder');
 if (rex_post('save', 'bool')) {
     $addon->setConfig('theme', rex_post('theme', 'string', ''));
     $addon->setConfig('compact_mode', rex_post('compact_mode', 'bool', false));
+    $addon->setConfig('enable_online_toggle', rex_post('enable_online_toggle', 'bool', false));
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
     // Theme Builder Cache zurücksetzen
@@ -28,11 +29,12 @@ if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitT
 
 $currentTheme = $addon->getConfig('theme', '');
 $compactMode = $addon->getConfig('compact_mode', false);
+$enableOnlineToggle = $addon->getConfig('enable_online_toggle', false);
 
 // Formular bauen
 $content = '';
 $content .= '<fieldset>';
-$content .= '<legend>' . rex_i18n::msg('yform_content_builder_theme_settings') . '</legend>';
+$content .= '<legend>' . rex_i18n::msg('yform_content_builder_general_settings') . '</legend>';
 
 $formElements = [];
 
@@ -53,6 +55,13 @@ $n = [];
 $n['label'] = '<label for="compact_mode">' . rex_i18n::msg('yform_content_builder_compact_mode') . '</label>';
 $n['field'] = '<div class="checkbox"><label><input type="hidden" name="compact_mode" value="0"><input type="checkbox" id="compact_mode" name="compact_mode" value="1"' . ($compactMode ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_compact_mode_label') . '</label></div>';
 $n['note'] = rex_i18n::msg('yform_content_builder_compact_mode_notice');
+$formElements[] = $n;
+
+// Online/Offline-Toggle
+$n = [];
+$n['label'] = '<label for="enable_online_toggle">' . rex_i18n::msg('yform_content_builder_enable_online_toggle') . '</label>';
+$n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_online_toggle" value="0"><input type="checkbox" id="enable_online_toggle" name="enable_online_toggle" value="1"' . ($enableOnlineToggle ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_enable_online_toggle_label') . '</label></div>';
+$n['note'] = rex_i18n::msg('yform_content_builder_enable_online_toggle_notice');
 $formElements[] = $n;
 
 $fragment = new rex_fragment();

@@ -7,6 +7,7 @@ yform_content_builder_modules = Module
 yform_content_builder_modules_description = Generiere automatisch REDAXO-Module für Content Builder Elemente
 
 yform_content_builder_settings = Einstellungen
+yform_content_builder_general_settings = Allgemeine Einstellungen
 yform_content_builder_theme_settings = Theme Builder Integration
 yform_content_builder_theme = Theme
 yform_content_builder_theme_notice = Wähle ein Theme aus dem UIkit Theme Builder, das für die Farbauswahl im Backend verwendet werden soll.
@@ -18,10 +19,17 @@ yform_content_builder_compact_mode = Kompaktmodus
 yform_content_builder_compact_mode_label = Kompaktmodus aktivieren
 yform_content_builder_compact_mode_notice = Im Kompaktmodus werden Slices ohne Rahmen, Hintergrund und Abstand angezeigt. Die Toolbar bleibt sichtbar.
 
+yform_content_builder_enable_online_toggle = Online/Offline pro Abschnitt
+yform_content_builder_enable_online_toggle_label = Online/Offline-Schalter für einzelne Abschnitte aktivieren
+yform_content_builder_enable_online_toggle_notice = Wenn aktiv, erscheint in der Slice-Toolbar ein Augen-Button, mit dem einzelne Abschnitte offline geschaltet werden können. Offline-Abschnitte bleiben in den Daten erhalten, werden aber im Frontend (via yform_content_builder_helper) automatisch ausgeblendet. Gilt nur für die YForm-Variante – die Modulvariante nutzt die normalen REDAXO-Slice-Funktionen.
+
 yform_content_builder_element_add = Element hinzufügen
 yform_content_builder_element_edit = Bearbeiten
 yform_content_builder_element_delete = Löschen
 yform_content_builder_element_move = Verschieben
+yform_content_builder_element_set_offline = Abschnitt offline schalten
+yform_content_builder_element_set_online = Abschnitt online schalten
+yform_content_builder_element_offline_badge = Offline
 
 yform_content_builder_save = Speichern
 yform_content_builder_cancel = Abbrechen

@@ -76,6 +76,15 @@
                 return false;
             });
             
+            // Slice online/offline umschalten
+            $(document).on('click', '.btn-slice-toggle-online', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $slice = $(this).closest('.content-builder-slice');
+                self.toggleSliceOnline($slice);
+                return false;
+            });
+
             // Old Move Button (deprecated)
             $(document).on('click', '.btn-slice-move', function(e) {
                 e.stopPropagation();
@@ -1106,11 +1115,18 @@
             // Section-Element?
             var isSectionClass = (elementType === 'section') ? ' is-section' : '';
             
-            var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + index + '">' +
+            // Online/Offline-Toggle nur wenn aktiviert
+            var onlineToggleEnabled = $container.closest('.yform-content-builder').data('online-toggle') == 1;
+            var onlineBtnHtml = onlineToggleEnabled
+                ? '<button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="Offline/Online schalten"><i class="fa fa-eye"></i></button>'
+                : '';
+            
+            var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + index + '" data-slice-online="1">' +
                 '<div class="slice-toolbar">' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben"><i class="fa fa-arrow-up"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten"><i class="fa fa-arrow-down"></i></button>' +
+                    onlineBtnHtml +
                     '<button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen"><i class="fa fa-trash"></i></button>' +
                 '</div>' +
                 '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + elementLabel + ' - Klicken zum Bearbeiten</div></div>' +
@@ -1135,11 +1151,17 @@
             // Section-Element?
             var isSectionClass = (elementType === 'section') ? ' is-section' : '';
             
-            var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + position + '">' +
+            var onlineToggleEnabled2 = $container.closest('.yform-content-builder').data('online-toggle') == 1;
+            var onlineBtnHtml2 = onlineToggleEnabled2
+                ? '<button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="Offline/Online schalten"><i class="fa fa-eye"></i></button>'
+                : '';
+            
+            var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + position + '" data-slice-online="1">' +
                 '<div class="slice-toolbar">' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben"><i class="fa fa-arrow-up"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten"><i class="fa fa-arrow-down"></i></button>' +
+                    onlineBtnHtml2 +
                     '<button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen"><i class="fa fa-trash"></i></button>' +
                 '</div>' +
                 '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + elementLabel + ' - Klicken zum Bearbeiten</div></div>' +
@@ -1283,15 +1305,44 @@
                 
                 $container.find('.content-builder-slice').each(function() {
                     var $slice = $(this);
+                    var online = $slice.attr('data-slice-online');
+                    // Default: online (true) wenn Attribut nicht gesetzt
+                    var isOnline = (online === undefined || online === '1');
                     slices.push({
                         id: $slice.data('slice-id'),
                         type: $slice.data('slice-type'),
+                        online: isOnline,
                         data: ContentBuilder.getSliceData($slice)
                     });
                 });
                 
                 $container.find('.content-builder-data').val(JSON.stringify(slices));
             });
+        },
+
+        /**
+         * Umschalten des Online/Offline-Status einer Slice
+         */
+        toggleSliceOnline: function($slice) {
+            var currentlyOnline = $slice.attr('data-slice-online') !== '0';
+            var newOnline = !currentlyOnline;
+            
+            $slice.attr('data-slice-online', newOnline ? '1' : '0');
+            $slice.toggleClass('is-offline', !newOnline);
+            
+            // Icon im Toggle-Button tauschen
+            var $btn = $slice.find('> .slice-toolbar .btn-slice-toggle-online').first();
+            if ($btn.length === 0) {
+                $btn = $slice.children('.slice-toolbar').find('.btn-slice-toggle-online').first();
+            }
+            var $icon = $btn.find('i');
+            if (newOnline) {
+                $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            } else {
+                $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            }
+            
+            this.updateHiddenField();
         },
 
         addRepeaterItem: function($container) {

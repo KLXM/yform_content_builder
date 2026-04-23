@@ -24,6 +24,10 @@ if (!is_array($slices) || empty($slices)) {
 $framework = 'bootstrap'; // oder 'uikit', 'plain'
 
 foreach ($slices as $slice) {
+    // Offline geschaltete Abschnitte überspringen
+    if (is_array($slice) && array_key_exists('online', $slice) && $slice['online'] === false) {
+        continue;
+    }
     $sliceType = $slice['type'];
     $elementData = $slice['data'] ?? [];
     

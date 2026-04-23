@@ -23,6 +23,49 @@
     transition: all 0.2s ease;
 }
 
+/* Offline geschalteter Slice */
+.content-builder-slice.is-offline {
+    border-style: dashed;
+    border-color: #d9534f;
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(217, 83, 79, 0.05) 10px,
+        rgba(217, 83, 79, 0.05) 20px
+    );
+}
+
+/* Nur der gerenderte Inhalt wird "offline" dargestellt,
+   Toolbar und Edit-Formular bleiben voll bedienbar */
+.content-builder-slice.is-offline > .slice-rendered {
+    opacity: 0.55;
+    filter: grayscale(0.6);
+}
+
+.content-builder-slice.is-offline::before {
+    content: "OFFLINE";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+    background: #d9534f;
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    pointer-events: none;
+}
+
+.content-builder-slice.is-offline .btn-slice-toggle-online {
+    background-color: #d9534f;
+    color: #fff;
+    border-color: #d43f3a;
+}
+
 /* Section-Element: Visuell hervorgehoben */
 .content-builder-slice.is-section {
     border: 2px solid #3c8dbc;

@@ -8,13 +8,22 @@ yform_content_builder_element_add = Add element
 yform_content_builder_element_edit = Edit
 yform_content_builder_element_delete = Delete
 yform_content_builder_element_move = Move
+yform_content_builder_element_set_offline = Set section offline
+yform_content_builder_element_set_online = Set section online
+yform_content_builder_element_offline_badge = Offline
 
 yform_content_builder_save = Save
 yform_content_builder_cancel = Cancel
 
+yform_content_builder_general_settings = General Settings
+
 yform_content_builder_compact_mode = Compact Mode
 yform_content_builder_compact_mode_label = Enable compact mode
 yform_content_builder_compact_mode_notice = In compact mode, slices are displayed without borders, backgrounds, and spacing. The toolbar remains visible.
+
+yform_content_builder_enable_online_toggle = Online/Offline per section
+yform_content_builder_enable_online_toggle_label = Enable online/offline switch for individual sections
+yform_content_builder_enable_online_toggle_notice = When enabled, an eye button appears in the slice toolbar that allows individual sections to be set offline. Offline sections are preserved in the data but automatically hidden in the frontend (via yform_content_builder_helper). Applies only to the YForm variant – the module variant uses the standard REDAXO slice functions.
 
 yform_content_builder_empty = No elements yet. Add an element below.
 yform_content_builder_delete_confirm = Really delete element?

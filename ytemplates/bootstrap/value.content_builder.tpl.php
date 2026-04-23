@@ -22,10 +22,17 @@ $addon = rex_addon::get('yform_content_builder');
 if ($addon->getConfig('compact_mode')) {
     $fieldClass .= ' compact-mode';
 }
+
+// Online/Offline-Toggle pro Slice optional (Addon-Config)
+$enableOnlineToggle = (bool) $addon->getConfig('enable_online_toggle', false);
+if ($enableOnlineToggle) {
+    $fieldClass .= ' has-online-toggle';
+}
 ?>
 
 <div class="form-group yform-element <?= $fieldClass ?>" 
      data-framework="<?= $framework ?>"
+     data-online-toggle="<?= $enableOnlineToggle ? '1' : '0' ?>"
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     
     <?php if ($label): ?>
@@ -43,6 +50,8 @@ if ($addon->getConfig('compact_mode')) {
                 $sliceId = $slice['id'] ?? 'slice_' . uniqid();
                 $sliceType = $slice['type'];
                 $elementData = $slice['data'] ?? [];
+                // Online/Offline-Status – Standard: online (true)
+                $sliceOnline = !isset($slice['online']) || $slice['online'] !== false;
                 
                 // Section-Element?
                 $isSection = ($sliceType === 'section');
@@ -56,10 +65,11 @@ if ($addon->getConfig('compact_mode')) {
                 }
                 ?>
                 
-                <div class="content-builder-slice <?= $isSection ? 'is-section' : '' ?>" 
+                <div class="content-builder-slice <?= $isSection ? 'is-section' : '' ?> <?= $sliceOnline ? '' : 'is-offline' ?>" 
                      data-slice-id="<?= rex_escape($sliceId) ?>"
                      data-slice-type="<?= rex_escape($sliceType) ?>"
                      data-slice-index="<?= $index ?>"
+                     data-slice-online="<?= $sliceOnline ? '1' : '0' ?>"
                      data-slice-data='<?= rex_escape(json_encode($elementData, JSON_UNESCAPED_UNICODE)) ?>'>
                     
                     <div class="slice-toolbar">
@@ -90,6 +100,11 @@ if ($addon->getConfig('compact_mode')) {
                         <button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten verschieben">
                             <i class="fa fa-arrow-down"></i>
                         </button>
+                        <?php if ($enableOnlineToggle): ?>
+                        <button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="<?= $sliceOnline ? rex_i18n::msg('yform_content_builder_element_set_offline') : rex_i18n::msg('yform_content_builder_element_set_online') ?>">
+                            <i class="fa <?= $sliceOnline ? 'fa-eye' : 'fa-eye-slash' ?>"></i>
+                        </button>
+                        <?php endif; ?>
                         <button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="<?= rex_i18n::msg('yform_content_builder_element_delete') ?>">
                             <i class="fa fa-trash"></i>
                         </button>

@@ -26,6 +26,15 @@ class yform_content_builder_helper
             return '';
         }
         
+        // Offline geschaltete Slices herausfiltern (Standard: online)
+        $slices = array_values(array_filter($slices, static function ($slice) {
+            return !is_array($slice) || !array_key_exists('online', $slice) || $slice['online'] !== false;
+        }));
+        
+        if (empty($slices)) {
+            return '';
+        }
+        
         $output = '';
         $openSection = false;
         self::$activeSectionData = [];
@@ -192,6 +201,10 @@ class yform_content_builder_helper
         }
         
         foreach ($slices as $slice) {
+            // Offline geschaltete Slices überspringen
+            if (is_array($slice) && array_key_exists('online', $slice) && $slice['online'] === false) {
+                continue;
+            }
             $data = $slice['data'] ?? [];
             
             // Durchsuche alle Felder nach Bildern
@@ -246,6 +259,10 @@ class yform_content_builder_helper
         }
         
         foreach ($slices as $slice) {
+            // Offline geschaltete Slices überspringen
+            if (is_array($slice) && array_key_exists('online', $slice) && $slice['online'] === false) {
+                continue;
+            }
             $data = $slice['data'] ?? [];
             
             foreach ($data as $key => $value) {

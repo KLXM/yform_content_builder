@@ -13,6 +13,7 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 ### 🚀 **Workflow & UX**
 - **Click-to-Edit**: Intuitives Bearbeiten per Edit-Button  
 - **⬆️⬇️ Pfeil-Sortierung**: Zuverlässiges Verschieben von Elementen nach oben/unten
+- **Online/Offline pro Slice** *(YForm-Variante, optional)*: In den Einstellungen aktivierbar – einzelne Abschnitte lassen sich per Augen-Button deaktivieren, ohne sie zu löschen; offline geschaltete Slices werden im Frontend automatisch ausgeblendet
 - **Modal-Gruppierung**: Übersichtliche Formulare durch Settings-Modals
 - **Progressive AJAX Forms**: Optionales Enhancement mit vollständigem Non-JS-Fallback
 - **Responsive Backend**: Touch-optimierte Controls für mobile Nutzung

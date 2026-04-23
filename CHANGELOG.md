@@ -6,6 +6,34 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.8.0] – 2026-04-23
+
+### Online/Offline-Schaltung für Abschnitte (YForm-Variante, optional)
+
+Einzelne Slices im YForm Content Builder können jetzt optional offline geschaltet werden, ohne sie zu löschen. Dies gilt **ausschließlich für die YForm-Variante** – die Modulvariante nutzt weiterhin die normalen REDAXO-Slice-Funktionen für Online/Offline.
+
+**Konfigurierbar in den Einstellungen**
+- Neue Option „Online/Offline pro Abschnitt" unter *Einstellungen* (Addon-Config `enable_online_toggle`)
+- Standardmäßig **deaktiviert** – bestehende Installationen verhalten sich unverändert
+- Nur wenn aktiv, erscheint der Augen-Button in der Slice-Toolbar
+
+**Neu im Backend (bei aktivierter Option)**
+- Augen-Button (`fa-eye` / `fa-eye-slash`) in der Slice-Toolbar zum Umschalten
+- Offline geschaltete Slices werden visuell deutlich markiert: roter gestrichelter Rahmen, diagonale Streifen, reduzierte Opacity, Graustufen-Filter im Rendered-Bereich und „OFFLINE"-Badge oben rechts
+- Dark-Mode-Support
+
+**Frontend-Verhalten**
+- `yform_content_builder_helper::render()` filtert offline geschaltete Slices automatisch aus der Ausgabe
+- Auch `extractImages()` und `extractFirstText()` (z.B. für OG-Tags / Meta-Description) überspringen offline-Slices
+- Das Beispiel in `examples/frontend_output.php` wurde entsprechend angepasst
+
+**Datenformat**
+- Im JSON erhält jeder Slice ein optionales Feld `online: true|false`
+- Fehlt das Feld (Bestandsdaten), gilt der Slice als online – vollständig abwärtskompatibel
+- Daten bleiben auch nach Deaktivierung der Option erhalten
+
+---
+
 ## [1.7.0] – 2026-03-18
 
 ### Kontaktformular: Progressive AJAX + Security-Hardening
