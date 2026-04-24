@@ -301,7 +301,9 @@
     margin-bottom: 15px;
 }
 
-.slice-edit-form .form-group:last-child {
+/* Nur direktes Kind: separiert die Save/Cancel-Buttonleiste am Ende des Formulars.
+   Nicht auf form-groups in Spalten/Repeatern anwenden (sonst Strich über Feldern). */
+.slice-edit-form > .form-group:last-child {
     margin-bottom: 0;
     margin-top: 20px;
     padding-top: 15px;
@@ -429,7 +431,8 @@
 
 .repeater-item {
     position: relative;
-    padding: 15px;
+    /* Rechts genügend Platz für Move-/Delete-Buttons (oben rechts, absolute positioniert) */
+    padding: 15px 80px 15px 15px;
     margin-bottom: 10px;
     border: 1px solid #e5e5e5;
     border-radius: 3px;
@@ -489,8 +492,8 @@
     transition: all 0.15s ease;
 }
 
-/* Slice Form Button Styling */
-.slice-form .form-group:last-child {
+/* Slice Form Button Styling – nur direkte Kind-form-group (Save/Cancel-Leiste). */
+.slice-form > .form-group:last-child {
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #eee;

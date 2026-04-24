@@ -109,7 +109,8 @@ return [
                     'notice' => 'UIkit-Icon: home, user, star, etc. | Font Awesome: fa-home',
                 ],
                 'content' => [
-                    'type' => 'cke5',
+                    'type' => 'tinymce',
+                    'profile' => 'default',
                     'label' => 'Inhalt',
                 ],
                 'image' => [

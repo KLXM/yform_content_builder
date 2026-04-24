@@ -112,7 +112,8 @@ return [
                 
                 // Text-Inhalt
                 'text' => [
-                    'type' => 'cke5',
+                    'type' => 'tinymce',
+                    'profile' => 'light',
                     'label' => 'Text 1'
                 ],
                 

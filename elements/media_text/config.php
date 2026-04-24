@@ -69,7 +69,8 @@ return [
                 'notice' => 'Wird als Einleitung unter der Überschrift angezeigt',
             ],
             'text' => [
-                'type' => 'cke5',
+                'type' => 'tinymce',
+                'profile' => 'default',
                 'label' => 'Text',
             ],
             'image' => [

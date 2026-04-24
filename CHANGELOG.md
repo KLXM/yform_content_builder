@@ -6,7 +6,32 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
-## [1.8.0] – 2026-04-23
+## [1.9.0] – 2026-04-24
+
+### Umstellung der WYSIWYG-Felder von CKEditor 5 auf TinyMCE
+
+Alle im Addon ausgelieferten Element-Configs, die bisher den Feldtyp `cke5` verwendet haben, nutzen ab dieser Version den Feldtyp `tinymce`. Das Feld `TinyMceField` war bereits in der `ContentBuilderFieldRegistry` registriert und einsatzbereit – es fehlte nur die Umstellung der mitgelieferten Elemente.
+
+**Betroffene Elemente und Profile**
+
+| Element        | Feld      | Profil    |
+| -------------- | --------- | --------- |
+| `accordion`    | `content` | `default` |
+| `media_text`   | `text`    | `default` |
+| `cards`        | `text`    | `default` |
+| `moving_tiles` | `text`    | `light`   |
+
+Haupt-Inhaltsbereiche bekommen das umfangreiche `default`-Profil, kompakte Teaser-Texte in Kacheln das schlankere `light`-Profil.
+
+**Migration / Kompatibilität**
+
+- Bestehende Inhalte bleiben unverändert – gespeichert wird weiterhin HTML im selben Feld.
+- Eigene Element-Configs mit `'type' => 'cke5'` funktionieren unverändert weiter (der `Cke5Field`-Typ ist nach wie vor registriert). Ein Umstellen auf TinyMCE ist optional und kann Element-weise erfolgen.
+- Beim Umstellen reicht es, `'type' => 'cke5'` durch `'type' => 'tinymce'` zu ersetzen und bei Bedarf `'profile' => 'default'` bzw. `'profile' => 'light'` zu ergänzen.
+
+---
+
+
 
 ### Online/Offline-Schaltung für Abschnitte (YForm-Variante, optional)
 

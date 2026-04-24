@@ -532,7 +532,8 @@ return [
                     'col' => 6,
                 ],
                 'text' => [
-                    'type' => 'cke5',
+                    'type' => 'tinymce',
+                    'profile' => 'default',
                     'label' => 'Text'
                 ],
                 
