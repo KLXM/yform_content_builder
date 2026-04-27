@@ -99,3 +99,8 @@ if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
 } else {
     echo rex_view::warning(rex_i18n::msg('yform_content_builder_theme_builder_missing'));
 }
+
+// =============================================================================
+// YForm-Listen-Profile (für yform_list Element)
+// =============================================================================
+require __DIR__ . '/settings_yform_list_profiles.php';

@@ -6,6 +6,41 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.10.0] – 2026-04-27
+
+### Zwei neue No-Code-Listen-Elemente
+
+Mit dieser Version kommen zwei neue Daten-Elemente hinzu, mit denen Redakteure dynamische Listen direkt im Content Builder zusammenstellen – ganz ohne eigenes Modul oder PHP-Code.
+
+#### `yform_list` – Listen aus YForm-Tabellen
+
+Server-seitig gerenderte Auflistung aus beliebigen YForm-Tabellen (z. B. News, Produkte, Mitarbeiter, Veranstaltungen).
+
+- **Profile in den Addon-Einstellungen**: Tabelle, anzuzeigende Spalten, Sortierung, Filter (z. B. `status=1`) und URL-Schema werden zentral als Profil hinterlegt.
+- **Im Element wählt der Redakteur nur**: Profil, Layout (Cards / Liste / Kompakt), Anzahl, optional Headline & Beschreibung.
+- **Layouts**: Cards mit Bild oben, Liste mit Bild + Anriss, Kompakt nur mit Titel.
+- **Frameworks**: Templates für UIkit3, Bootstrap und Plain HTML.
+
+#### `forcal_list` – Termine aus dem forcal-Kalender
+
+Auflistung kommender Termine aus dem [forcal](https://github.com/FriendsOfREDAXO/forcal)-Addon.
+
+- **Zwei Modi**:
+  - *Nach Kategorie(n)* – kommende Termine, Mehrfachauswahl möglich.
+  - *Wiederkehrender Termin* – die nächsten X Wiederholungen eines Serientermins.
+- **Block-Listen-Gruppierung** (optional): keine, nach Tag, Monat, Jahr oder verschachtelt nach Jahr/Monat.
+- **Konfigurierbare Headlines**: Tag (`h1`–`h6`) und UIkit-Style (`uk-heading-line`, `uk-heading-medium` …) sowohl für die Haupt-Überschrift als auch für die Gruppen-Überschriften.
+- **Sektion**: Hintergrundfarbe, Hintergrundbild oder -video (mp4/webm), `uk-light` für helle Schrift auf dunklem Grund.
+- **Bildausgabe optional**: Neue Checkbox „Bild anzeigen". Bild wird automatisch aus `image` / `entries_image` / `lang_image_<clang>` ermittelt; eigener Feldname konfigurierbar. Bilder laufen über den Media Manager Typ `card`.
+- **Verfügbarkeit**: Das Element wird in der Element-Liste **nur angezeigt, wenn das forcal-Addon installiert und aktiviert ist**. Ohne forcal taucht es gar nicht erst auf – kein Leerlauf für Redakteure.
+- **Hinweis zum URL-Schema**: Das Pattern für die Detailseite (`url_pattern`) ist aktuell ein technischer Platzhalter-String. Hier wird in einer der nächsten Versionen ein redakteursfreundlicherer Picker folgen.
+
+### Loader-Änderung
+
+`getAllElementsForDefinition()` überspringt jetzt Element-Configs, die kein Array zurückgeben. Damit können sich Elemente per `return null;` selbst deaktivieren, wenn ihre Voraussetzungen (z. B. ein Drittaddon) nicht erfüllt sind. `forcal_list` nutzt diesen Mechanismus.
+
+---
+
 ## [1.9.0] – 2026-04-24
 
 ### Umstellung der WYSIWYG-Felder von CKEditor 5 auf TinyMCE

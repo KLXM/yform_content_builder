@@ -14,6 +14,16 @@ require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder
 // Modul-Helper-Klasse laden (für Verwendung in normalen REDAXO Modulen)
 require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_module.php');
 
+// YForm-Listen-Profile + Renderer (für yform_list Element)
+require_once rex_path::addon('yform_content_builder', 'lib/YformListProfiles.php');
+require_once rex_path::addon('yform_content_builder', 'lib/YformListRenderer.php');
+require_once rex_path::addon('yform_content_builder', 'lib/rex_api_yform_list_columns.php');
+
+// Forcal-Termine-Renderer (für forcal_list Element) – nur wenn forcal-Addon vorhanden
+if (rex_addon::get('forcal')->isAvailable()) {
+    require_once rex_path::addon('yform_content_builder', 'lib/ForcalListRenderer.php');
+}
+
 // Field-Klassen laden (Plugin-System für Feldtypen)
 foreach (glob(rex_path::addon('yform_content_builder', 'lib/fields/*.php')) as $fieldFile) {
     require_once $fieldFile;
@@ -43,11 +53,20 @@ if (rex::isBackend()) {
     rex_view::addCssFile(rex_addon::get('yform_content_builder')->getAssetsUrl('cards.css'));
     rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('content-builder.js'));
     rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('media-browser.js'));
-    
+
     // YForm Manager Assets laden (für YFormPickerField)
     if (rex_addon::get('yform')->isAvailable()) {
         rex_view::addJsFile(rex_addon::get('yform')->getAssetsUrl('widget.js'));
         rex_view::addJsFile(rex_addon::get('yform')->getAssetsUrl('manager.js'));
+    }
+
+    // YForm-Listen-Profile: AJAX-Spaltenlader nur auf der Settings-Subseite laden.
+    if ('yform_content_builder/settings' === rex_be_controller::getCurrentPage()) {
+        $ycbAddon = rex_addon::get('yform_content_builder');
+        rex_view::addJsFile($ycbAddon->getAssetsUrl('yform_list_profiles.js'));
+        rex_view::setJsProperty('YFL_API_URL', rex_url::backendController([
+            'rex-api-call' => 'yform_list_columns',
+        ]));
     }
 }
 

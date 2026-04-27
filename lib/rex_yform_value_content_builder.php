@@ -610,6 +610,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 // Selectpicker ist standardmäßig aktiviert für einheitliches Styling
                 // Kann mit 'selectpicker' => false explizit deaktiviert werden
                 $useSelectpicker = $fieldConfig['selectpicker'] ?? true;
+                $isMultiple = !empty($fieldConfig['multiple']);
                 
                 // Falls choices als String übergeben wurde (legacy)
                 if (is_string($choices)) {
@@ -625,9 +626,24 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     $choices = $parsed;
                 }
                 
-                // Default verwenden wenn kein Wert gesetzt
-                if (empty($value) && !empty($default)) {
-                    $value = $default;
+                // Multi-select: Wert immer als Array verarbeiten
+                if ($isMultiple) {
+                    if (is_string($value) && '' !== $value) {
+                        // Legacy-Speicherung als kommagetrennte Liste tolerieren
+                        $decoded = json_decode($value, true);
+                        $value = is_array($decoded) ? $decoded : array_map('trim', explode(',', $value));
+                    }
+                    if (!is_array($value)) {
+                        $value = [];
+                    }
+                    if ([] === $value && !empty($default)) {
+                        $value = is_array($default) ? $default : [$default];
+                    }
+                } else {
+                    // Default verwenden wenn kein Wert gesetzt
+                    if (empty($value) && !empty($default)) {
+                        $value = $default;
+                    }
                 }
                 
                 // Farbdaten für Selectpicker mit Farbvorschau
@@ -639,10 +655,24 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 if ($useSelectpicker) {
                     $selectClass .= ' selectpicker';
                 }
-                
-                echo '<select class="' . $selectClass . '" name="' . rex_escape($fieldName) . '">';
+
+                $multiAttrs = '';
+                $nameAttr = rex_escape($fieldName);
+                if ($isMultiple) {
+                    $nameAttr .= '[]';
+                    $multiAttrs = ' multiple';
+                    if ($useSelectpicker) {
+                        $multiAttrs .= ' data-actions-box="true" data-live-search="true"';
+                    }
+                }
+
+                echo '<select class="' . $selectClass . '" name="' . $nameAttr . '"' . $multiAttrs . '>';
                 foreach ($choices as $choiceValue => $choiceLabel) {
-                    $selected = ($value == $choiceValue) ? ' selected' : '';
+                    if ($isMultiple) {
+                        $selected = in_array((string) $choiceValue, array_map('strval', (array) $value), true) ? ' selected' : '';
+                    } else {
+                        $selected = ($value == $choiceValue) ? ' selected' : '';
+                    }
                     
                     $dataContent = '';
                     
@@ -1001,6 +1031,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
                     if (is_dir($elementPath) && file_exists($configFile)) {
                         $config = include $configFile;
+                        if (!is_array($config)) {
+                            continue;
+                        }
                         $config['_source'] = 'custom';
                         $config['_path'] = $elementPath;
                         $elements[$dir] = $config;
@@ -1026,6 +1059,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 
                 if (is_dir($elementPath) && file_exists($configFile)) {
                     $config = include $configFile;
+                    if (!is_array($config)) {
+                        continue;
+                    }
                     $config['_source'] = 'demo';
                     $config['_path'] = $elementPath;
                     $elements[$dir] = $config;
@@ -1050,6 +1086,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
                     if (is_dir($elementPath) && file_exists($configFile)) {
                         $config = include $configFile;
+                        if (!is_array($config)) {
+                            continue;
+                        }
                         $config['_source'] = 'custom';
                         $config['_path'] = $elementPath;
                         $elements[$dir] = $config;

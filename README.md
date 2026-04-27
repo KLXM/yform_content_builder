@@ -189,6 +189,29 @@ SELECT code AS value, bezeichnung AS label FROM rex_laender ORDER BY bezeichnung
 | `compare` | `{{plz}} < {{99000}}` | PLZ-Bereich prüfen |
 | `regex` | `^[A-Z]{3}$` | Eigenes Muster |
 
+### YForm-Liste & Forcal-Termine (NEU in 1.10)
+
+Zwei No-Code-Listen-Elemente für dynamische Inhalte direkt aus dem Content Builder – ohne eigenes Modul oder PHP.
+
+#### YForm-Liste (`yform_list`)
+Server-seitig gerenderte Auflistung aus beliebigen YForm-Tabellen (News, Produkte, Mitarbeiter …).
+
+- **Profile** in den Addon-Einstellungen: Tabelle, Spalten, Sortierung, Filter und URL-Schema werden zentral hinterlegt.
+- **Im Element** wählt der Redakteur nur: Profil, Layout (Cards / Liste / Kompakt), Anzahl, optional Headline & Beschreibung.
+- **Templates** für UIkit, Bootstrap und Plain HTML.
+
+#### Forcal-Termine (`forcal_list`)
+Kommende Termine aus dem [forcal](https://github.com/FriendsOfREDAXO/forcal)-Kalender.
+
+- **Zwei Modi**: nach Kategorie(n) (Mehrfachauswahl) oder nächste X Wiederholungen eines Serientermins.
+- **Block-Listen-Gruppierung**: keine / Tag / Monat / Jahr / Jahr→Monat verschachtelt.
+- **Headlines konfigurierbar**: Tag (h1–h6) und UIkit-Style sowohl für Haupt- als auch Gruppen-Überschriften.
+- **Sektion**: Hintergrundfarbe, -bild oder -video (mp4/webm), `uk-light` für helle Schrift auf dunklem Grund.
+- **Bildausgabe optional**: Checkbox „Bild anzeigen", automatische Erkennung von `image` / `entries_image` / `lang_image_<clang>`, Media Manager Typ `card`.
+- **Smart Visibility**: Das Element erscheint **nur**, wenn das forcal-Addon installiert und aktiviert ist.
+
+> Element-Configs können sich seit 1.10 selbst deaktivieren, indem sie `return null;` zurückgeben – z. B. wenn ein benötigtes Drittaddon fehlt.
+
 ### Moving Tiles Element (NEU)
 Parallax Tiles mit alternierenden Layouts - inspiriert vom Juno Template:
 
@@ -269,6 +292,170 @@ echo ContentBuilderHelper::render($contentData, 'bootstrap');
 // Oder Tailwind nutzen (lädt templates/tailwind.php)
 echo ContentBuilderHelper::render($contentData, 'tailwind');
 ```
+
+## 📋 YForm-Liste (zentrale Profile)
+
+Mit dem Element **„YForm-Liste“** lassen sich Datensätze aus beliebigen YForm-Tabellen (News, Produkte, Events, …) als Karten-, Listen- oder Kompakt-Ausgabe in den Content Builder einbinden – ohne dass Redakteure Tabellennamen oder Spalten kennen müssen.
+
+### Konzept
+
+Tabelle, Spalten-Mapping, **Filter/Queries** (z. B. `status = 1`, Datums-Constraints), URL-Pattern und Sortierung werden **einmal zentral** als **Profil** in den Addon-Einstellungen hinterlegt. Im Element wählt der Redakteur dann nur:
+
+- das gewünschte Profil (z. B. „News", „Produkte")
+- Anzahl der Einträge
+- Layout / Design (Cards / Liste / Kompakt)
+- optional Headline & Beschreibung
+
+> Filter werden **ausschließlich auf Profil-Ebene** gesetzt – Redakteure können sie nicht überschreiben. So bleibt z. B. eine Bedingung wie „nur veröffentlichte" zuverlässig aktiv.
+
+### 1. Profile verwalten
+
+Backend → **YForm Content Builder → Einstellungen → YForm-Listen-Profile → Neues Profil anlegen**
+
+Pro Profil pflegst du:
+
+| Feld | Bedeutung |
+|------|-----------|
+| **Profil-ID** | technische Slug-ID (`news`, `products`, …) – nur `a-z0-9_` |
+| **Label** | Anzeigename in der Profil-Auswahl |
+| **YForm-Tabelle** | Tabelle aus dem YForm-Tablemanager |
+| **Titel-Spalte** | Pflicht – der Hauptkopf jedes Items |
+| **Anriss-Spalte** | optional – Teaser-/Beschreibungsspalte (HTML wird gestrippt + gekürzt) |
+| **Bild-Spalte** | optional – Mediapool-Datei oder absolute URL |
+| **Sortier-Spalte / Richtung** | z. B. `createdate DESC` oder `id DESC` |
+| **URL-Pattern** | Detail-Link mit Platzhaltern, z. B. `/news/?id={id}` oder `/article/{slug}` |
+| **Mediamanager-Typ** | optional, z. B. `card_16_9_w800` |
+| **Default-Layout / Default-Anzahl** | Vorbelegung im Element |
+| **Filter / WHERE-Bedingungen** | dauerhafter Query-Filter, z. B. `status = 1`, `publish_date <= NOW` (siehe Filter-Syntax) |
+
+> Tipp: Tabelle wählen → Spalten- und URL-Profil-Listen werden per AJAX automatisch befüllt.
+
+### 2. Element einfügen
+
+Im Content Builder das Element **„YForm-Liste"** hinzufügen und im Settings-Modal nur noch:
+
+- Profil wählen
+- ggf. Anzahl, Layout, Anriss-Länge wählen
+- optional Headline / Beschreibung
+
+### Filter-Syntax (Profil-Ebene)
+
+Pro Zeile eine Bedingung. Bedingungen werden mit `AND` verknüpft:
+
+```
+status = 1
+publish_date <= NOW
+expire_date >= TODAY
+category LIKE %news%
+```
+
+**Operatoren:** `=`, `!=`, `<`, `<=`, `>`, `>=`, `LIKE`
+
+**Datums-Platzhalter** (werden bei jeder Anfrage zur Laufzeit aufgelöst):
+
+| Platzhalter | Ersetzt durch |
+|-------------|---------------|
+| `NOW` | aktueller Zeitstempel `Y-m-d H:i:s` |
+| `TODAY` | heutiges Datum `Y-m-d` |
+| `TODAY+N` / `TODAY-N` | heutiges Datum ± N Tage |
+| `NOW+NH` / `NOW-NH` | jetzt ± N Stunden |
+| `NOW+NM` / `NOW-NM` | jetzt ± N Minuten |
+| `NOW+ND` / `NOW-ND` | jetzt ± N Tage (mit Zeit) |
+
+Werte werden technisch über `?`-Parameter gebunden – kein Risiko für SQL-Injection.
+
+### URL-Pattern
+
+Platzhalter werden aus jeder Zeile per Spaltenname ersetzt:
+
+```
+/news/?id={id}
+/article/{slug}
+/{category}/{slug}.html
+```
+
+Werte werden mit `rawurlencode()` URL-encoded eingebaut.
+
+### URL-Profil (Url-Addon)
+
+Wenn das **Url-Addon** installiert ist, erscheint im Profil-Editor zusätzlich ein Auswahlfeld **„URL-Profil (Url-Addon)“**. Dort lassen sich die zur gewählten Tabelle passenden Url-Addon-Profile direkt auswählen — die Detail-URL wird dann via
+
+```php
+rex_getUrl('', '', ['<namespace>' => $datasetId])
+```
+
+erzeugt. In dem Fall wird das URL-Pattern ignoriert. Liefert das Url-Addon keine URL (z. B. weil das Profil noch nicht generiert wurde), greift automatisch das Pattern als Fallback.
+
+### Virtual URLs (Alternative)
+
+Wenn das **virtual_urls-Addon** installiert ist, erscheint zusätzlich die Checkbox **„URLs über das `virtual_urls`-Addon erzeugen"**. Ist sie aktiv, wird die Detail-URL via
+
+```php
+FriendsOfRedaxo\VirtualUrl\VirtualUrlsHelper::getUrl($table, $datasetId)
+```
+
+erzeugt. Diese Strategie hat **Vorrang** vor dem Url-Addon-Profil und dem URL-Pattern.
+
+**Auflösungs-Reihenfolge im Frontend:**
+
+1. virtual_urls (wenn aktiviert)
+2. Url-Addon-Profil (wenn gesetzt)
+3. URL-Pattern (Fallback)
+
+### Sicherheit
+
+- **Whitelist**: Nur Tabellen mit existierendem Profil sind anwählbar.
+- **Spalten-Validierung**: Title/Teaser/Bild/Sort/Filter-Felder werden gegen die echten YForm-Spalten der Tabelle geprüft.
+- **Parameter-Binding**: Filter-Werte werden über `?`-Platzhalter gebunden, nie konkateniert.
+- **Identifier-Escaping**: Tabellen- und Spaltennamen über `rex_sql::escapeIdentifier()`.
+- Limit ist hart auf 1–200 begrenzt, Sortier-Richtung auf `ASC|DESC`.
+
+
+## 📅 Forcal-Termine
+
+Mit dem Element **„Forcal-Termine"** lassen sich kommende Veranstaltungen aus dem [`forcal`-Addon](https://github.com/FriendsOfREDAXO/forcal) im Content Builder ausgeben – als Cards, Liste oder Kompakt-Variante.
+
+> Voraussetzung: Das `forcal`-Addon muss installiert und aktiviert sein. Sonst wird das Element ausgegraut angezeigt.
+
+### Modi
+
+1. **Nach Kategorie(n)** – zeigt die nächsten X kommenden Termine aus einer (oder allen) Kategorie(n). Mehrere Kategorie-IDs kommagetrennt im Element angeben (z. B. `1,3,5`). Leer = alle Kategorien.
+2. **Wiederkehrender Termin** – wählt einen einzelnen Serien-Eintrag aus dem Picker und listet die nächsten X Wiederholungen.
+
+### Element-Felder (Redakteur)
+
+| Feld | Bedeutung |
+|------|-----------|
+| **Modus** | Kategorie-Liste oder Serientermin |
+| **Kategorie-ID(s)** | nur Modus „Kategorie": kommagetrennte IDs, leer = alle |
+| **Serientermin** | nur Modus „Wiederkehrend": Picker aus aktiven Repeating-Entries |
+| **Anzahl Termine** | 1–50 |
+| **Layout** | Cards / Liste / Kompakt |
+| **URL-Pattern** | optional, Platzhalter `{id}`, z. B. `/termine/?id={id}` |
+| **Headline / Beschreibung** | optional über der Liste |
+| **Termine verlinken** | nutzt URL-Pattern |
+
+### Datenquelle
+
+Es wird die offizielle `forCalEventsFactory`-Fluent-API genutzt:
+
+```php
+forCal\Factory\forCalEventsFactory::create()
+    ->from('now')
+    ->to('+24 months')
+    ->inCategories([1,3])
+    ->sortBy('start_date', 'asc')
+    ->get();
+```
+
+Wiederholungen werden via `getEntryById()` abgefragt und über `$entry->dates[]` ausgewertet – nur kommende Wiederholungen ab `now` werden berücksichtigt.
+
+### Layouts
+
+- **Cards** – Kacheln mit Datum, Titel, Teaser, Veranstaltungsort und Kategorie-Farbleiste oben
+- **Liste** – Datum + Titel + Teaser, Kategorie-Farbe als linker Rahmen
+- **Kompakt** – nur Datum + Titel als Liste
+
 
 ## 🎨 Frameworks & Templates
 
