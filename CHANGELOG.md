@@ -19,7 +19,19 @@ Server-seitig gerenderte Auflistung aus beliebigen YForm-Tabellen (z. B. News, P
 - **Profile in den Addon-Einstellungen**: Tabelle, anzuzeigende Spalten, Sortierung, Filter (z. B. `status=1`) und URL-Schema werden zentral als Profil hinterlegt.
 - **Im Element wählt der Redakteur nur**: Profil, Layout (Cards / Liste / Kompakt), Anzahl, optional Headline & Beschreibung.
 - **Layouts**: Cards mit Bild oben, Liste mit Bild + Anriss, Kompakt nur mit Titel.
+- **Kontakt-Karten** (Layout `contact`): Speziell für Mitarbeiter-/Ansprechpartner-Tabellen. Mappt Vorname, Nachname, Freitext, Funktion, Telefon, Mobil und E-Mail auf eine Avatar-Card mit `tel:` / `mailto:`-Links. Mediamanager-Typ `avatar` ist Default – das Cropping wird ausschliesslich über den MM-Typ gesteuert, nicht über Code.
+- **Kontakt kompakt** (Layout `contact_compact`): Schmale Card mit Avatar im Card-Header (UIkit `uk-card-header` + `uk-grid-small uk-flex-middle`), Name + Funktion, optional Telefon/Mobil/E-Mail im Body. Ideal für Sidebar oder dichte Kontakt-Übersichten.
 - **Frameworks**: Templates für UIkit3, Bootstrap und Plain HTML.
+
+#### `contact_picker` – Einzelne Kontakte pickern
+
+Neues Daten-Element zum gezielten Auswählen einzelner Kontakte aus den hinterlegten Profilen.
+
+- **Auswahl über Bootstrap-Selectpicker**: Multi-Select mit allen Einträgen aus allen Kontakt-Profilen (Format `[Profil-Label] Vorname Nachname`).
+- **Reihenfolge der Auswahl bleibt erhalten**.
+- **Layouts**: Kontakt kompakt, Kontakt-Karten (zentriert, ausführlich), Liste.
+- **Verfügbarkeit**: Erscheint nur, wenn mindestens ein Kontakt-Profil (Profil mit gesetztem Vorname-Mapping) existiert.
+- Nutzt denselben Renderer wie `yform_list` – Profil-Konfiguration (Tabelle, Felder, MM-Typ, URL-Schema) wird einmal zentral gepflegt.
 
 #### `forcal_list` – Termine aus dem forcal-Kalender
 

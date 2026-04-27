@@ -65,6 +65,8 @@ return [
                     'cards' => 'Kacheln (Cards)',
                     'list' => 'Liste mit Bild + Anriss',
                     'compact' => 'Kompakt (nur Titel)',
+                    'contact' => 'Kontakt-Karten (Avatar, Name, Funktion, Telefon, E-Mail)',
+                    'contact_compact' => 'Kontakt kompakt (Card-Header mit Avatar)',
                 ],
                 'default' => '',
             ],

@@ -197,8 +197,27 @@ Zwei No-Code-Listen-Elemente für dynamische Inhalte direkt aus dem Content Buil
 Server-seitig gerenderte Auflistung aus beliebigen YForm-Tabellen (News, Produkte, Mitarbeiter …).
 
 - **Profile** in den Addon-Einstellungen: Tabelle, Spalten, Sortierung, Filter und URL-Schema werden zentral hinterlegt.
-- **Im Element** wählt der Redakteur nur: Profil, Layout (Cards / Liste / Kompakt), Anzahl, optional Headline & Beschreibung.
+- **Im Element** wählt der Redakteur nur: Profil, Layout, Anzahl, optional Headline & Beschreibung.
+- **Layouts**: Cards, Liste, Kompakt, **Kontakt-Karten**, **Kontakt kompakt**.
 - **Templates** für UIkit, Bootstrap und Plain HTML.
+
+##### Kontakt-Layouts
+Speziell für Mitarbeiter-/Ansprechpartner-Tabellen wie `rex_kontakte`. Im Profil mappst du Vorname, Nachname, Funktion (Rolle), Freitext, Telefon, Mobil und E-Mail – das Element rendert dann automatisch:
+
+- `tel:` / `mailto:`-Links für Telefon, Mobil und E-Mail (UIkit-Icons `receiver`, `tablet`, `mail`).
+- **Kontakt-Karten** (`contact`): Großer Avatar zentriert, alle Daten untereinander.
+- **Kontakt kompakt** (`contact_compact`): Schmale Card mit Avatar im `uk-card-header`, Name + Funktion rechts, optional Kontaktdaten im Body. Ideal für Sidebar oder dichte Übersichten.
+- **Cropping** läuft ausschließlich über den Mediamanager-Typ – Default ist `avatar`. Width/Height werden bewusst **nicht** im Markup gesetzt; das volle Layout entscheidet allein der MM-Typ.
+
+#### Kontakt-Picker (`contact_picker`)
+Wenn nicht eine ganze Liste, sondern gezielt einzelne Kontakte ausgegeben werden sollen.
+
+- **Multi-Select** über alle Kontakt-Profile (Format `[Profil-Label] Vorname Nachname`).
+- **Reihenfolge** der Auswahl bleibt erhalten.
+- **Cross-Profile**: ein Element kann Kontakte aus mehreren Profilen mischen (z. B. „Ansprechpartner" + „Geschäftsleitung").
+- **Layouts**: Kontakt kompakt (Default), Kontakt-Karten, Liste – identisches Markup wie `yform_list`.
+- **Smart Visibility**: Element erscheint nur, wenn mindestens ein Kontakt-Profil (Profil mit Vorname-Mapping) existiert.
+- Nutzt denselben Renderer wie `yform_list` – keine doppelte Konfiguration.
 
 #### Forcal-Termine (`forcal_list`)
 Kommende Termine aus dem [forcal](https://github.com/FriendsOfREDAXO/forcal)-Kalender.

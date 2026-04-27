@@ -25,7 +25,7 @@ final class YformListProfiles
 {
     public const CONFIG_KEY = 'yform_list_profiles';
 
-    public const ALLOWED_LAYOUTS = ['cards', 'list', 'compact'];
+    public const ALLOWED_LAYOUTS = ['cards', 'list', 'compact', 'contact', 'contact_compact'];
     public const MAX_LIMIT = 200;
 
     /**
@@ -193,6 +193,79 @@ final class YformListProfiles
     }
 
     /**
+     * Liefert Profile, die als Kontakt-Profile konfiguriert sind
+     * (mind. firstname_field gesetzt – sinnvoll für den Picker).
+     *
+     * @return array<string,array<string,mixed>>
+     */
+    public static function getContactProfiles(): array
+    {
+        $out = [];
+        foreach (self::getAll() as $id => $p) {
+            if ('' !== trim((string) ($p['firstname_field'] ?? ''))) {
+                $out[$id] = $p;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Liefert Picker-Choices über alle Kontakt-Profile.
+     * Key:   "profileId:entryId"
+     * Label: "[Profil-Label] Vorname Nachname"
+     *
+     * @return array<string,string>
+     */
+    public static function getContactPickerChoices(int $maxPerProfile = 500): array
+    {
+        $out = [];
+        foreach (self::getContactProfiles() as $pid => $p) {
+            $tableName = (string) $p['table'];
+            if ('' === $tableName) {
+                continue;
+            }
+            $allowed = self::collectColumns($tableName);
+            $titleCol = in_array((string) $p['title_field'], $allowed, true)
+                ? (string) $p['title_field'] : '';
+            $firstCol = in_array((string) $p['firstname_field'], $allowed, true)
+                ? (string) $p['firstname_field'] : '';
+            try {
+                $sql = rex_sql::factory();
+                $cols = ['id'];
+                if ('' !== $firstCol) {
+                    $cols[] = $firstCol;
+                }
+                if ('' !== $titleCol) {
+                    $cols[] = $titleCol;
+                }
+                $colsSql = implode(', ', array_map([$sql, 'escapeIdentifier'], $cols));
+                $rows = $sql->getArray(
+                    'SELECT ' . $colsSql . ' FROM ' . $sql->escapeIdentifier($tableName)
+                    . ' ORDER BY ' . $sql->escapeIdentifier('' !== $titleCol ? $titleCol : 'id') . ' ASC'
+                    . ' LIMIT ' . $maxPerProfile,
+                );
+            } catch (Throwable) {
+                continue;
+            }
+            $label = trim((string) ($p['label'] ?? $pid));
+            foreach ($rows as $row) {
+                $eid = (int) ($row['id'] ?? 0);
+                if ($eid < 1) {
+                    continue;
+                }
+                $first = '' !== $firstCol ? (string) ($row[$firstCol] ?? '') : '';
+                $last = '' !== $titleCol ? (string) ($row[$titleCol] ?? '') : '';
+                $name = trim($first . ' ' . $last);
+                if ('' === $name) {
+                    $name = '#' . $eid;
+                }
+                $out[$pid . ':' . $eid] = '[' . $label . '] ' . $name;
+            }
+        }
+        return $out;
+    }
+
+    /**
      * @param array<string,mixed> $cfg
      * @return array<string,mixed>
      */
@@ -213,6 +286,12 @@ final class YformListProfiles
         if ($limit > self::MAX_LIMIT) {
             $limit = self::MAX_LIMIT;
         }
+        $mediaType = trim((string) ($cfg['media_type'] ?? ''));
+        // Kontakt-Layout: Default-MediaManager-Typ "avatar" (Cropping wird ueber den
+        // MM-Typ gesteuert, nicht im Code). Nur wenn der Redakteur nichts gesetzt hat.
+        if (str_starts_with($layout, 'contact') && '' === $mediaType) {
+            $mediaType = 'avatar';
+        }
         return [
             'id' => $id,
             'label' => trim((string) ($cfg['label'] ?? $id)),
@@ -228,7 +307,13 @@ final class YformListProfiles
             'default_limit' => $limit,
             'default_layout' => $layout,
             'filter_default' => trim((string) ($cfg['filter_default'] ?? '')),
-            'media_type' => trim((string) ($cfg['media_type'] ?? '')),
+            'media_type' => $mediaType,
+            // Kontakt-spezifische Feld-Mappings (nur fuer Layout=contact relevant).
+            'firstname_field' => trim((string) ($cfg['firstname_field'] ?? '')),
+            'freitext_field' => trim((string) ($cfg['freitext_field'] ?? '')),
+            'phone_field' => trim((string) ($cfg['phone_field'] ?? '')),
+            'mobile_field' => trim((string) ($cfg['mobile_field'] ?? '')),
+            'email_field' => trim((string) ($cfg['email_field'] ?? '')),
         ];
     }
 }

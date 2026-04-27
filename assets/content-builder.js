@@ -90,6 +90,41 @@
                 e.stopPropagation();
             });
 
+            // Enter in Slice-Form-Inputs: aktuelles Slice speichern statt
+            // das aeussere YForm zu submitten (das wuerde alle ungespeicherten
+            // Aenderungen verwerfen). Textareas und Buttons sind ausgenommen.
+            $(document).on('keydown', '.slice-edit-form input, .slice-edit-form select', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    // In type="search" o.ae. Suchfeldern (z.B. selectpicker live-search)
+                    // nicht speichern, sondern nur verhindern.
+                    var $t = $(e.target);
+                    if ($t.closest('.bootstrap-select').length || $t.is('[type="search"]')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var $slice = $t.closest('.content-builder-slice');
+                    if ($slice.length) {
+                        self.saveSlice($slice);
+                    }
+                    return false;
+                }
+            });
+
+            // Defensiv: falls das innere slice-form-Element direkt submittet wird,
+            // stattdessen das Slice speichern.
+            $(document).on('submit', '.slice-form', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $slice = $(this).closest('.content-builder-slice');
+                if ($slice.length) {
+                    self.saveSlice($slice);
+                }
+                return false;
+            });
+
             // Slice bearbeiten - Edit on Click
             $(document).on('click', '.btn-slice-edit', function(e) {
                 e.preventDefault();

@@ -35,6 +35,13 @@ final class YformListRenderer
         $imageCol = self::pickCol((string) $profile['image_field'], $allowedCols, '');
         $sortCol = self::pickCol((string) $profile['sort_field'], $allowedCols, 'id');
 
+        // Kontakt-Felder (nur fuer Layout=contact relevant, aber generisch verfuegbar).
+        $firstnameCol = self::pickCol((string) ($profile['firstname_field'] ?? ''), $allowedCols, '');
+        $freitextCol = self::pickCol((string) ($profile['freitext_field'] ?? ''), $allowedCols, '');
+        $phoneCol = self::pickCol((string) ($profile['phone_field'] ?? ''), $allowedCols, '');
+        $mobileCol = self::pickCol((string) ($profile['mobile_field'] ?? ''), $allowedCols, '');
+        $emailCol = self::pickCol((string) ($profile['email_field'] ?? ''), $allowedCols, '');
+
         // Element-Overrides
         $limit = isset($elementData['limit']) ? (int) $elementData['limit'] : (int) $profile['default_limit'];
         if ($limit < 1) {
@@ -75,6 +82,11 @@ final class YformListRenderer
         if ('' !== $imageCol) {
             $cols[] = $imageCol;
         }
+        foreach ([$firstnameCol, $freitextCol, $phoneCol, $mobileCol, $emailCol] as $extraCol) {
+            if ('' !== $extraCol && !in_array($extraCol, $cols, true)) {
+                $cols[] = $extraCol;
+            }
+        }
         // Felder aus URL-Pattern dazu nehmen (z.B. {slug})
         foreach (self::extractPlaceholders((string) $profile['url_pattern']) as $ph) {
             if ('id' === $ph) {
@@ -110,6 +122,15 @@ final class YformListRenderer
             $title = '' !== $titleCol ? (string) ($row[$titleCol] ?? '') : '';
             $teaser = '' !== $teaserCol ? (string) ($row[$teaserCol] ?? '') : '';
             $imageRaw = '' !== $imageCol ? (string) ($row[$imageCol] ?? '') : '';
+            $contact = [
+                'firstname' => '' !== $firstnameCol ? (string) ($row[$firstnameCol] ?? '') : '',
+                'lastname' => $title,
+                'role' => $teaser,
+                'freitext' => '' !== $freitextCol ? (string) ($row[$freitextCol] ?? '') : '',
+                'phone' => '' !== $phoneCol ? (string) ($row[$phoneCol] ?? '') : '',
+                'mobile' => '' !== $mobileCol ? (string) ($row[$mobileCol] ?? '') : '',
+                'email' => '' !== $emailCol ? (string) ($row[$emailCol] ?? '') : '',
+            ];
             $items[] = [
                 'id' => $id,
                 'title' => $title,
@@ -117,6 +138,7 @@ final class YformListRenderer
                 'image' => self::resolveImage($imageRaw),
                 'media_type' => (string) $profile['media_type'],
                 'href' => self::buildHref($profile, $row),
+                'contact' => $contact,
                 'raw' => $row,
             ];
         }
@@ -127,6 +149,147 @@ final class YformListRenderer
             'error' => null,
             'layout' => $layout,
             'limit' => $limit,
+        ];
+    }
+
+    /**
+     * Lädt eine vom Redakteur gepickte Liste konkreter Einträge.
+     * `picks` enthält Strings im Format "profileId:entryId" – Reihenfolge wird beibehalten.
+     *
+     * @param list<string> $picks
+     * @param array<string,mixed> $elementData
+     * @return array{profile: ?array<string,mixed>, items: list<array<string,mixed>>, error: ?string, layout: string, limit: int}
+     */
+    public static function fetchPicked(array $picks, array $elementData): array
+    {
+        // Layout vom Element bestimmen (Default: contact_compact – das ist der typische Picker-Use-Case).
+        $layout = (string) ($elementData['layout'] ?? 'contact_compact');
+        if (!in_array($layout, YformListProfiles::ALLOWED_LAYOUTS, true)) {
+            $layout = 'contact_compact';
+        }
+        $teaserLength = isset($elementData['teaser_length']) ? (int) $elementData['teaser_length'] : 160;
+        if ($teaserLength < 30) {
+            $teaserLength = 30;
+        }
+        if ($teaserLength > 800) {
+            $teaserLength = 800;
+        }
+
+        // Picks gruppieren: profileId => [entryIds...] – Original-Reihenfolge merken.
+        $byProfile = [];
+        $order = [];
+        foreach ($picks as $idx => $p) {
+            $parts = explode(':', $p, 2);
+            if (count($parts) !== 2) {
+                continue;
+            }
+            [$pid, $eidRaw] = $parts;
+            if ('' === $pid || !ctype_digit($eidRaw)) {
+                continue;
+            }
+            $eid = (int) $eidRaw;
+            $byProfile[$pid][] = $eid;
+            $order[$pid . ':' . $eid] = $idx;
+        }
+        if ([] === $byProfile) {
+            return self::err('Keine Einträge gewählt.');
+        }
+
+        $itemsUnordered = [];
+        $firstProfile = null;
+
+        foreach ($byProfile as $pid => $ids) {
+            $profile = YformListProfiles::get($pid);
+            if (null === $profile) {
+                continue;
+            }
+            $tableName = (string) $profile['table'];
+            if ('' === $tableName) {
+                continue;
+            }
+            if (null === $firstProfile) {
+                $firstProfile = $profile;
+            }
+
+            $allowedCols = YformListProfiles::collectColumns($tableName);
+            $titleCol = self::pickCol((string) $profile['title_field'], $allowedCols, 'name');
+            $teaserCol = self::pickCol((string) $profile['teaser_field'], $allowedCols, '');
+            $imageCol = self::pickCol((string) $profile['image_field'], $allowedCols, '');
+            $firstnameCol = self::pickCol((string) ($profile['firstname_field'] ?? ''), $allowedCols, '');
+            $freitextCol = self::pickCol((string) ($profile['freitext_field'] ?? ''), $allowedCols, '');
+            $phoneCol = self::pickCol((string) ($profile['phone_field'] ?? ''), $allowedCols, '');
+            $mobileCol = self::pickCol((string) ($profile['mobile_field'] ?? ''), $allowedCols, '');
+            $emailCol = self::pickCol((string) ($profile['email_field'] ?? ''), $allowedCols, '');
+
+            $cols = ['id'];
+            foreach ([$titleCol, $teaserCol, $imageCol, $firstnameCol, $freitextCol, $phoneCol, $mobileCol, $emailCol] as $c) {
+                if ('' !== $c && !in_array($c, $cols, true)) {
+                    $cols[] = $c;
+                }
+            }
+            // URL-Pattern-Felder
+            foreach (self::extractPlaceholders((string) $profile['url_pattern']) as $ph) {
+                if ('id' !== $ph && in_array($ph, $allowedCols, true) && !in_array($ph, $cols, true)) {
+                    $cols[] = $ph;
+                }
+            }
+
+            $sql = rex_sql::factory();
+            $colsSql = implode(', ', array_map([$sql, 'escapeIdentifier'], $cols));
+            $tableSql = $sql->escapeIdentifier($tableName);
+            // Sichere Integer-Liste – $ids stammen aus ctype_digit-geprüften Strings.
+            $idList = implode(',', array_map('intval', $ids));
+            $query = 'SELECT ' . $colsSql . ' FROM ' . $tableSql
+                . ' WHERE id IN (' . $idList . ')';
+
+            try {
+                $rows = $sql->getArray($query);
+            } catch (Throwable $e) {
+                rex_logger::logException($e);
+                continue;
+            }
+            foreach ($rows as $row) {
+                $id = (int) ($row['id'] ?? 0);
+                $title = '' !== $titleCol ? (string) ($row[$titleCol] ?? '') : '';
+                $teaser = '' !== $teaserCol ? (string) ($row[$teaserCol] ?? '') : '';
+                $imageRaw = '' !== $imageCol ? (string) ($row[$imageCol] ?? '') : '';
+                $itemsUnordered[$pid . ':' . $id] = [
+                    'id' => $id,
+                    'title' => $title,
+                    'teaser' => self::truncateText($teaser, $teaserLength),
+                    'image' => self::resolveImage($imageRaw),
+                    'media_type' => (string) $profile['media_type'],
+                    'href' => self::buildHref($profile, $row),
+                    'contact' => [
+                        'firstname' => '' !== $firstnameCol ? (string) ($row[$firstnameCol] ?? '') : '',
+                        'lastname' => $title,
+                        'role' => $teaser,
+                        'freitext' => '' !== $freitextCol ? (string) ($row[$freitextCol] ?? '') : '',
+                        'phone' => '' !== $phoneCol ? (string) ($row[$phoneCol] ?? '') : '',
+                        'mobile' => '' !== $mobileCol ? (string) ($row[$mobileCol] ?? '') : '',
+                        'email' => '' !== $emailCol ? (string) ($row[$emailCol] ?? '') : '',
+                    ],
+                    'raw' => $row,
+                ];
+            }
+        }
+
+        // In ursprünglicher Pick-Reihenfolge sortieren
+        $items = [];
+        $byOrder = $order;
+        asort($byOrder);
+        foreach (array_keys($byOrder) as $key) {
+            if (isset($itemsUnordered[$key])) {
+                $items[] = $itemsUnordered[$key];
+            }
+        }
+
+        return [
+            'profile' => $firstProfile,
+            'items' => $items,
+            'error' => null,
+            'layout' => $layout,
+            'limit' => count($items),
         ];
     }
 

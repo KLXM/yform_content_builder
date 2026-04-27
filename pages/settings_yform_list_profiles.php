@@ -57,6 +57,11 @@ if ('save' === $func) {
             'default_layout' => trim((string) rex_post('default_layout', 'string', 'cards')),
             'filter_default' => trim((string) rex_post('filter_default', 'string', '')),
             'media_type' => trim((string) rex_post('media_type', 'string', '')),
+            'firstname_field' => trim((string) rex_post('firstname_field', 'string', '')),
+            'freitext_field' => trim((string) rex_post('freitext_field', 'string', '')),
+            'phone_field' => trim((string) rex_post('phone_field', 'string', '')),
+            'mobile_field' => trim((string) rex_post('mobile_field', 'string', '')),
+            'email_field' => trim((string) rex_post('email_field', 'string', '')),
         ];
         // Bei Rename altes Profil entfernen
         if ('' !== $origId && $origId !== $rawId) {
@@ -149,6 +154,11 @@ if ('' !== $editId && isset($profiles[$editId])) {
         'default_layout' => 'cards',
         'filter_default' => '',
         'media_type' => '',
+        'firstname_field' => '',
+        'freitext_field' => '',
+        'phone_field' => '',
+        'mobile_field' => '',
+        'email_field' => '',
     ];
 }
 
@@ -202,7 +212,13 @@ foreach ($availableTables as $tableName => $label) {
 $tableSelect .= '</select>';
 
 $layoutOptions = '';
-foreach (['cards' => 'Kacheln (Cards)', 'list' => 'Liste mit Bild + Anriss', 'compact' => 'Kompakt (nur Titel)'] as $val => $lbl) {
+foreach ([
+    'cards' => 'Kacheln (Cards)',
+    'list' => 'Liste mit Bild + Anriss',
+    'compact' => 'Kompakt (nur Titel)',
+    'contact' => 'Kontakt-Karten (Avatar, Name, Funktion, Telefon, E-Mail)',
+    'contact_compact' => 'Kontakt kompakt (Card-Header mit Avatar – siehe UIkit "Card Header")',
+] as $val => $lbl) {
     $sel = ($val === (string) $editing['default_layout']) ? ' selected' : '';
     $layoutOptions .= '<option value="' . $val . '"' . $sel . '>' . $lbl . '</option>';
 }
@@ -260,6 +276,34 @@ if ([] !== $columns || '' !== (string) $editing['table'] || $showAddForm) {
     $fields[] = [
         'label' => '<label>Sortier-Spalte</label>',
         'field' => $selectField('sort_field', (string) $editing['sort_field'], $columns, false),
+    ];
+
+    // Kontakt-spezifische Feld-Mappings (relevant fuer Layout=contact).
+    $fields[] = [
+        'label' => '<hr><strong style="display:block;margin:8px 0;">Kontakt-Layout (optional)</strong>',
+        'field' => '<p class="help-block" style="margin:0 0 12px;">Diese Feld-Mappings werden ausschliesslich beim Layout <code>Kontakt-Karten</code> ausgewertet. Der Cropping/Bildtyp wird ueber den Mediamanager-Typ unten gesteuert (Empfehlung: <code>avatar</code>).</p>',
+    ];
+    $fields[] = [
+        'label' => '<label>Vorname-Spalte</label>',
+        'field' => $selectField('firstname_field', (string) ($editing['firstname_field'] ?? ''), $columns),
+        'note' => 'Optional. Die Titel-Spalte oben dient als Nachname.',
+    ];
+    $fields[] = [
+        'label' => '<label>Freitext-Spalte</label>',
+        'field' => $selectField('freitext_field', (string) ($editing['freitext_field'] ?? ''), $columns),
+        'note' => 'Optional. Wird unter dem Namen angezeigt (z.B. Titel/Suffix).',
+    ];
+    $fields[] = [
+        'label' => '<label>Telefon-Spalte</label>',
+        'field' => $selectField('phone_field', (string) ($editing['phone_field'] ?? ''), $columns),
+    ];
+    $fields[] = [
+        'label' => '<label>Mobil-Spalte</label>',
+        'field' => $selectField('mobile_field', (string) ($editing['mobile_field'] ?? ''), $columns),
+    ];
+    $fields[] = [
+        'label' => '<label>E-Mail-Spalte</label>',
+        'field' => $selectField('email_field', (string) ($editing['email_field'] ?? ''), $columns),
     ];
 }
 
@@ -326,8 +370,8 @@ $fields[] = [
 ];
 $fields[] = [
     'label' => '<label>Mediamanager-Typ (für Bilder)</label>',
-    'field' => '<input class="form-control" type="text" name="media_type" value="' . rex_escape((string) $editing['media_type']) . '" placeholder="z.B. card_16_9_w800">',
-    'note' => 'Optional. Wenn gesetzt, werden Bilder über <code>index.php?rex_media_type=…</code> ausgeliefert.',
+    'field' => '<input class="form-control" type="text" name="media_type" value="' . rex_escape((string) $editing['media_type']) . '" placeholder="z.B. card_16_9_w800 oder avatar">',
+    'note' => 'Optional. Für Layout <code>Kontakt-Karten</code> empfohlen: <code>avatar</code> (Cropping/Format wird ausschliesslich über den MM-Typ gesteuert).',
 ];
 $fields[] = [
     'label' => '<label>Default-Layout</label>',
