@@ -1,5 +1,14 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_escape;
+use rex_logger;
+use rex_media;
+use rex_media_manager;
+use rex_sql;
+use rex_url;
+
 /**
  * Server-seitiges Rendering der YForm-Listen-Element-Daten.
  *

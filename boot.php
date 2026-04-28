@@ -11,6 +11,18 @@ require_once rex_path::addon('yform_content_builder', 'lib/rex_yform_value_conte
 // Helper-Klasse laden
 require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_helper.php');
 
+// Config-Klasse laden
+require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_config.php');
+
+// Help-Modal-Helper laden
+require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_help_modal_helper.php');
+
+// SVG-Helper laden
+require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_svg.php');
+
+// Media Manager Helper laden
+require_once rex_path::addon('yform_content_builder', 'lib/yform_content_media_manager_helper.php');
+
 // Medien-ALT-Resolver laden (elementübergreifende ALT-Logik)
 require_once rex_path::addon('yform_content_builder', 'lib/YFormContentBuilderMediaAltResolver.php');
 
@@ -25,12 +37,24 @@ require_once rex_path::addon('yform_content_builder', 'lib/rex_api_yform_list_co
 // Forcal-Termine-Renderer (für forcal_list Element) – nur wenn forcal-Addon vorhanden
 if (rex_addon::get('forcal')->isAvailable()) {
     require_once rex_path::addon('yform_content_builder', 'lib/ForcalListRenderer.php');
+    class_alias(\KLXM\YFormContentBuilder\ForcalListRenderer::class, 'ForcalListRenderer');
 }
 
 // Field-Klassen laden (Plugin-System für Feldtypen)
 foreach (glob(rex_path::addon('yform_content_builder', 'lib/fields/*.php')) as $fieldFile) {
     require_once $fieldFile;
 }
+
+// Class aliases for backward compatibility (namespaced classes)
+class_alias(\KLXM\YFormContentBuilder\yform_content_builder_helper::class, 'yform_content_builder_helper');
+class_alias(\KLXM\YFormContentBuilder\YFormContentBuilderMediaAltResolver::class, 'YFormContentBuilderMediaAltResolver');
+class_alias(\KLXM\YFormContentBuilder\YformListProfiles::class, 'YformListProfiles');
+class_alias(\KLXM\YFormContentBuilder\YformListRenderer::class, 'YformListRenderer');
+class_alias(\KLXM\YFormContentBuilder\yform_content_builder_config::class, 'yform_content_builder_config');
+class_alias(\KLXM\YFormContentBuilder\yform_content_builder_module::class, 'yform_content_builder_module');
+class_alias(\KLXM\YFormContentBuilder\yform_content_builder_help_modal_helper::class, 'yform_content_builder_help_modal_helper');
+class_alias(\KLXM\YFormContentBuilder\YFormContentBuilderSvg::class, 'YFormContentBuilderSvg');
+class_alias(\KLXM\YFormContentBuilder\YFormContentMediaManagerHelper::class, 'YFormContentMediaManagerHelper');
 
 // Theme Builder Integration - Theme für Backend setzen
 if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {

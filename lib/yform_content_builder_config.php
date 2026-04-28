@@ -1,5 +1,9 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_addon;
+
 /**
  * YForm Content Builder - Zentrale Konfiguration
  * 

@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_extension;
 use rex_extension_point;
@@ -213,7 +213,7 @@ class ContentBuilderFieldRegistry
     /**
      * Holt Wert aus verschachteltem Array
      */
-    private static function getNestedValue(string $key, array $data)
+    private static function getNestedValue(string $key, array $data): mixed
     {
         if (strpos($key, '[') === false) {
             return $data[$key] ?? '';

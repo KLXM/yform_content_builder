@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 /**
  * Interface für Content Builder Feldtypen
@@ -25,7 +25,7 @@ interface ContentBuilderFieldInterface
      * @param mixed $value Aktueller Wert
      * @param array $sliceData Komplette Slice-Daten (für verschachtelte Felder)
      */
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void;
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void;
 
     /**
      * Gibt den Wert für die Ausgabe/Speicherung zurück
@@ -35,5 +35,5 @@ interface ContentBuilderFieldInterface
      * @param array $fieldConfig Feldkonfiguration
      * @return mixed Verarbeiteter Wert
      */
-    public function processValue($value, array $fieldConfig);
+    public function processValue(mixed $value, array $fieldConfig): mixed;
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex;
 use rex_escape;
@@ -103,7 +103,7 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     /**
      * Standard-Wertverarbeitung (keine Änderung)
      */
-    public function processValue($value, array $fieldConfig)
+    public function processValue(mixed $value, array $fieldConfig): mixed
     {
         return $value;
     }
@@ -138,7 +138,7 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     /**
      * Holt Wert aus verschachteltem Array (z.B. "items[0][title]")
      */
-    protected function getNestedValue(string $key, array $data)
+    protected function getNestedValue(string $key, array $data): mixed
     {
         if (strpos($key, '[') === false) {
             return $data[$key] ?? '';

@@ -1,5 +1,12 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_addon;
+use rex_sql;
+use rex_yform_manager_table;
+use Throwable;
+
 /**
  * YForm-Listen-Profile fuer das yform_content_builder-Addon.
  *

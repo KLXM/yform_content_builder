@@ -1,5 +1,10 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_addon;
+use rex_escape;
+
 /**
  * YForm Content Builder Helper
  * Einfache Frontend-Ausgabe von Slices
@@ -169,7 +174,7 @@ class yform_content_builder_helper
      * @param string $framework Framework
      * @return string HTML-Ausgabe
      */
-    public static function output($dataset, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
+    public static function output(mixed $dataset, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
     {
         if (is_string($dataset)) {
             // Direkter JSON-String

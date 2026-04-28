@@ -1,5 +1,7 @@
 <?php
 
+use KLXM\YFormContentBuilder\YformListProfiles;
+
 /**
  * API: Spalten einer YForm-Tabelle für die Profil-Konfiguration laden.
  *

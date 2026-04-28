@@ -1,6 +1,6 @@
 <?php
 
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
 use rex;
 use rex_addon;
 use rex_api_function;

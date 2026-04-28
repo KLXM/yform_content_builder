@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 use rex_formatter;
@@ -20,7 +20,7 @@ class YFormPickerField extends ContentBuilderFieldAbstract
         return 'yformpicker';
     }
 
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void
     {
         if (!$this->hasPermission($fieldConfig)) {
             return;

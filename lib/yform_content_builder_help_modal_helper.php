@@ -1,5 +1,12 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_escape;
+use rex_file;
+use rex_i18n;
+use rex_markdown;
+
 /**
  * Gemeinsame Helper-Funktionen fuer Hilfe-Modal (help*.md) im Content Builder.
  */

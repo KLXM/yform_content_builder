@@ -1,5 +1,10 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_addon;
+use rex_escape;
+
 /**
  * SVG Layout Preview Generator
  * Generiert programmatisch SVG-Vorschaubilder für Layout-Optionen.
