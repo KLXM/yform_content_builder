@@ -11,6 +11,8 @@ return [
     'label' => 'Timeline',
     'icon' => 'fa fa-stream',
     'description' => 'Vertikale Zeitlinie für Meilensteine, Prozesse oder Ereignisse.',
+    'version' => '1.13.0',
+    'category' => 'content',
     'field_groups' => [
         'content_tab' => [
             'label' => 'Inhalt',

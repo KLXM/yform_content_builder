@@ -34,6 +34,8 @@ return [
     'label' => 'Trennelement',
     'icon' => 'fa fa-minus',
     'description' => 'Trennelement oder Abstandselement mit verschiedenen Styles',
+    'version' => '1.13.0',
+    'category' => 'layout',
     'settings_modal' => [
         'label' => 'Section-Einstellungen',
         'icon' => 'fa-cog',

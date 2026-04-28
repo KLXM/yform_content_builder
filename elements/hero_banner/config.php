@@ -11,6 +11,8 @@ return [
     'label' => 'Hero Banner',
     'icon' => 'fa fa-picture-o',
     'description' => 'Großes Bild oder Video mit Überschrift, Text und Buttons – ideal als Seitenanfang.',
+    'version' => '1.13.0',
+    'category' => 'media',
 
     'field_groups' => [
         'content_tab' => [

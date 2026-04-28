@@ -9,6 +9,8 @@ return [
     'label' => 'Moving Tiles',
     'icon' => 'fa fa-th-large',
     'description' => 'Parallax Tiles mit alternierenden Layouts, Fade-Effekt und Video-Autoplay',
+    'version' => '1.13.0',
+    'category' => 'media',
     
     'settings_modal' => [
         'label' => 'Einstellungen',

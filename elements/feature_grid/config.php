@@ -11,6 +11,8 @@ return [
     'label' => 'Feature-Raster',
     'icon' => 'fa fa-th-large',
     'description' => 'Icons, Bilder oder Symbole mit Titel und Text – ideal für Vorteile, Leistungen und Features.',
+    'version' => '1.13.0',
+    'category' => 'content',
 
     'field_groups' => [
         'content_tab' => [

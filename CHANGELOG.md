@@ -6,6 +6,29 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.13.0] – 2026-04-28
+
+### Neu
+
+- Addon-Startseite erweitert: README kann als eigene Backend-Seite angezeigt werden (`Dokumentation`).
+- Auf der Übersichtsseite werden alle Elemente mit Metadaten dargestellt (Icon, Beschreibung, Kategorie, Version, Key).
+- In allen Element-`config.php` Dateien ist nun eine einheitliche top-level Versionsangabe enthalten (`'version' => '1.12.0'`).
+
+### Verbesserungen
+
+- Element-Menüs im Builder zeigen Beschreibungen jetzt als verzögertes Tooltip bei Hover (statt dauerhaft sichtbarer Zweitzeile).
+- Tooltip-Logik gilt für statische Dropdown-Einträge und dynamisch per JavaScript erzeugte Insert-Menüs.
+- Element-Übersicht auf der Hauptseite visuell überarbeitet und für BS3 robust per Inline-Styles umgesetzt.
+- Element-Übersicht nochmals verdichtet: statt luftiger Kartenansicht jetzt kompaktere, kategorisierte Listen-Panels mit schnellerer Scanbarkeit.
+- Kategorien in den Element-`config.php` Dateien vereinheitlicht und für alle mitgelieferten Elemente gesetzt.
+
+### Modul-Integration
+
+- `renderInput()` nutzt pro Instanz eindeutige IDs auf Basis von `slice_id` und `valueId`, wodurch mehrere Instanzen im selben Modul konfliktfrei funktionieren.
+- Modul-Generator um den Button **„Bestehende Module aktualisieren“** erweitert (regeneriert vorhandene `yfcb_*` Module mit aktuellem Input-/Output-Code).
+
+---
+
 ## [1.12.0] – 2026-04-28
 
 ### Bugfix: Mehrere `renderInput()`-Instanzen auf einer Seite

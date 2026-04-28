@@ -9,6 +9,8 @@ return [
     'label' => 'Countdown',
     'icon' => 'fa fa-hourglass-end',
     'description' => 'Countdown-Timer bis zu einem Zieldatum',
+    'version' => '1.13.0',
+    'category' => 'content',
     'field_groups' => [
         'content' => [
             'label' => 'Inhalt',

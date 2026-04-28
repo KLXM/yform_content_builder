@@ -80,9 +80,17 @@ if ($enableOnlineToggle) {
                             <ul class="dropdown-menu pull-right">
                                 <?php foreach ($available_elements as $elementType => $config): ?>
                                     <li>
+                                        <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
                                         <a href="#" class="btn-insert-slice" 
                                            data-element-type="<?= rex_escape($elementType) ?>"
                                            data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
+                                           <?php if ($elementDescription !== ''): ?>
+                                           data-toggle="tooltip"
+                                           data-placement="right"
+                                           data-container="body"
+                                           data-delay='{"show":700,"hide":120}'
+                                           title="<?= rex_escape($elementDescription) ?>"
+                                           <?php endif; ?>
                                            data-insert-after="<?= $index ?>">
                                             <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
                                             <?= rex_escape($config['label'] ?? $elementType) ?>
@@ -164,9 +172,17 @@ if ($enableOnlineToggle) {
             <ul class="dropdown-menu">
                 <?php foreach ($available_elements as $elementType => $config): ?>
                     <li>
+                        <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
                         <a href="#" class="btn-add-slice" 
                            data-element-type="<?= rex_escape($elementType) ?>"
-                           data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>">
+                           data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
+                           <?php if ($elementDescription !== ''): ?>
+                           data-toggle="tooltip"
+                           data-placement="right"
+                           data-container="body"
+                           data-delay='{"show":700,"hide":120}'
+                           title="<?= rex_escape($elementDescription) ?>"
+                           <?php endif; ?>>
                             <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
                             <?= rex_escape($config['label'] ?? $elementType) ?>
                         </a>

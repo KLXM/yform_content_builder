@@ -24,6 +24,7 @@ if ([] === $contactChoices) {
 return [
     'label' => 'Kontakt-Picker',
     'description' => 'Einzelne Kontakte aus YForm pickern (basiert auf den Kontakt-Profilen)',
+    'version' => '1.13.0',
     'icon' => 'fa-id-card',
     'category' => 'data',
 

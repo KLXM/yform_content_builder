@@ -23,6 +23,8 @@ return [
     'label' => 'Slideshow',
     'icon' => 'fa fa-images',
     'description' => 'Moderne Slideshow mit Bildern/Videos, Text-Overlays und Link-Optionen',
+    'version' => '1.13.0',
+    'category' => 'media',
     'settings_modal' => [
         'label' => 'Slideshow Einstellungen',
         'icon' => 'fa-cog',

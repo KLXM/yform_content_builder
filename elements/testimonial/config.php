@@ -11,6 +11,8 @@ return [
     'label' => 'Testimonials',
     'icon' => 'fa fa-quote-left',
     'description' => 'Zitate und Kundenstimmen – mit oder ohne Autorenfoto, einzeln oder als Raster.',
+    'version' => '1.13.0',
+    'category' => 'content',
 
     'field_groups' => [
         'content_tab' => [

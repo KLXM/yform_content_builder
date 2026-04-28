@@ -9,6 +9,8 @@ return [
     'label' => 'Tabelle',
     'icon' => 'fa fa-table',
     'description' => 'Responsive, barrierefreie Tabelle mit CSV Import',
+    'version' => '1.13.0',
+    'category' => 'data',
     'field_groups' => [
         'content' => [
             'label' => 'Inhalt',

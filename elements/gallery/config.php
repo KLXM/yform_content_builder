@@ -14,6 +14,7 @@ $elementSpecificFields = ['layout', 'aspect_ratio', 'lightbox'];
 return [
     'label' => 'Galerie',
     'description' => 'Medien-Galerie mit Grid/Masonry Layout',
+    'version' => '1.13.0',
     'icon' => 'fa-th',
     'category' => 'media',
     

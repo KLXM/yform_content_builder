@@ -165,6 +165,8 @@ return [
     'label' => 'Cards Grid Pro',
     'icon' => 'fa fa-th-large',
     'description' => 'Karten-Grid mit flexiblen Layouts und Media-Optionen',
+    'version' => '1.13.0',
+    'category' => 'content',
     
     // Settings Modal für Grid/Section-Einstellungen
     'settings_modal' => [

@@ -42,6 +42,7 @@ if ($hasThemeBuilder) {
 return [
     'label' => 'Downloads',
     'description' => 'Download-Liste oder Kacheln für Dateien',
+    'version' => '1.13.0',
     'icon' => 'fa-download',
     'category' => 'media',
     

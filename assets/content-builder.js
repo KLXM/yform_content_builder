@@ -28,9 +28,32 @@
                 this.fixTinyMCEInModals();
                 eventsInitialized = true;
             }
+            this.initElementMenuTooltips();
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+        },
+
+        initElementMenuTooltips: function() {
+            $(document)
+                .off('shown.bs.dropdown.yfcbTooltips')
+                .on('shown.bs.dropdown.yfcbTooltips', '.yform-content-builder .btn-group, .yform-content-builder .btn-group-insert', function() {
+                    var $menu = $(this).find('.dropdown-menu').first();
+                    if ($menu.length === 0 || typeof $.fn.tooltip !== 'function') {
+                        return;
+                    }
+
+                    // Tooltips nur fuer Eintraege mit Beschreibung aktivieren.
+                    $menu.find('[data-toggle="tooltip"]').tooltip({
+                        trigger: 'hover',
+                        placement: 'right',
+                        container: 'body',
+                        delay: {
+                            show: 700,
+                            hide: 120
+                        }
+                    });
+                });
         },
         
         /**
@@ -1295,19 +1318,29 @@
         
         createInsertButton: function(availableElements, insertAfter) {
             var dropdownItems = '';
+
+            function esc(value) {
+                return $('<div/>').text(value == null ? '' : String(value)).html();
+            }
             
             for (var elementType in availableElements) {
                 if (availableElements.hasOwnProperty(elementType)) {
                     var config = availableElements[elementType];
                     var label = config.label || elementType;
                     var icon = config.icon || 'fa-cube';
+                    var description = config.description || '';
+                    var tooltipAttributes = '';
+
+                    if (description !== '') {
+                        tooltipAttributes = ' data-toggle="tooltip" data-placement="right" data-container="body" data-delay="{&quot;show&quot;:700,&quot;hide&quot;:120}" title="' + esc(description) + '"';
+                    }
                     
                     dropdownItems += '<li>' +
                         '<a href="#" class="btn-insert-slice" ' +
-                        'data-element-type="' + elementType + '" ' +
-                        'data-element-label="' + label + '" ' +
-                        'data-insert-after="' + insertAfter + '">' +
-                        '<i class="fa ' + icon + '"></i> ' + label +
+                        'data-element-type="' + esc(elementType) + '" ' +
+                        'data-element-label="' + esc(label) + '" ' +
+                        'data-insert-after="' + insertAfter + '"' + tooltipAttributes + '>' +
+                        '<i class="fa ' + esc(icon) + '"></i> ' + esc(label) +
                         '</a>' +
                         '</li>';
                 }

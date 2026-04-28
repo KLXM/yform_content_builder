@@ -11,6 +11,8 @@ return [
     'label' => 'Bild & Text',
     'icon' => 'fa fa-columns',
     'description' => 'Bild und Text nebeneinander – Links oder Rechts, einfach und flexibel.',
+    'version' => '1.13.0',
+    'category' => 'media',
 
     'field_groups' => [
         'content_tab' => [

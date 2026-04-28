@@ -45,6 +45,7 @@ foreach ($catChoices as $key => $label) {
 return [
     'label' => 'Forcal-Termine',
     'description' => 'Kommende Termine aus dem forcal-Kalender (nach Kategorie oder Serientermin)',
+    'version' => '1.13.0',
     'icon' => 'fa-calendar',
     'category' => 'data',
 

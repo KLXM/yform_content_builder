@@ -36,6 +36,8 @@ return [
     'label' => 'Section / Container',
     'icon' => 'fa-object-group',
     'description' => 'Visueller Abschnitt mit Hintergrund (Auto-Close)',
+    'version' => '1.13.0',
+    'category' => 'layout',
     'auto_close' => true, // Markierung: Dieses Element ist ein Auto-Close Container
     
     'fields' => [

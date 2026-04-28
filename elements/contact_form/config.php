@@ -22,6 +22,8 @@ return [
     'label' => 'Kontaktformular',
     'icon' => 'fa fa-envelope',
     'description' => 'Flexibles Kontaktformular mit E-Mail-Versand',
+    'version' => '1.13.0',
+    'category' => 'form',
     
     // Tab-Gruppierung
     'field_groups' => [

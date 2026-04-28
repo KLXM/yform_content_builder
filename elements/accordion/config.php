@@ -11,6 +11,8 @@ return [
     'label' => 'Accordion / Tabs',
     'icon' => 'fa fa-list',
     'description' => 'Aufklappbare Inhaltsbereiche oder Tabs mit erweiterten Optionen',
+    'version' => '1.13.0',
+    'category' => 'content',
     'repeater' => true,
     'settings_modal' => [
         'label' => 'Layout-Einstellungen',

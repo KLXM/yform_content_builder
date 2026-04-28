@@ -45,6 +45,8 @@ return [
     'label' => 'Überschrift',
     'icon' => 'fa fa-header',
     'description' => 'Überschrift mit Styling-Optionen',
+    'version' => '1.13.0',
+    'category' => 'content',
     
     // Tab-Gruppierung
     'field_groups' => [

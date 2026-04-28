@@ -25,6 +25,7 @@ if (class_exists('YformListProfiles')) {
 return [
     'label' => 'YForm-Liste',
     'description' => 'Dynamische Liste aus einer YForm-Tabelle (Profile via Addon-Einstellungen)',
+    'version' => '1.13.0',
     'icon' => 'fa-list-alt',
     'category' => 'data',
 
