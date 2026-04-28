@@ -35,7 +35,7 @@ return [
         'email_tab' => [
             'label' => 'E-Mail',
             'icon' => 'fa-envelope',
-            'fields' => ['email_to', 'email_subject', 'email_from_field', 'success_message', 'error_message', 'spam_protection']
+            'fields' => ['email_to', 'email_subject', 'from_email', 'from_name', 'success_message', 'error_message', 'spam_protection']
         ],
         'design_tab' => [
             'label' => 'Design',
@@ -261,15 +261,17 @@ return [
                 'default' => 'Neue Kontaktanfrage',
                 'notice' => 'Platzhalter: {name}, {email}, {subject}'
             ],
-            'email_from_field' => [
-                'type' => 'choice',
-                'label' => 'Absender',
-                'selectpicker' => false,
-                'choices' => [
-                    'email' => 'E-Mail aus Formular',
-                    'system' => 'System E-Mail (PHPMailer)'
-                ],
-                'default' => 'email'
+            'from_email' => [
+                'type' => 'text',
+                'label' => 'Absender E-Mail-Adresse',
+                'notice' => 'Leer = System-Standard aus PHPMailer-Konfiguration. Die E-Mail des Ausfüllenden wird nur als Reply-To gesetzt.',
+                'default' => ''
+            ],
+            'from_name' => [
+                'type' => 'text',
+                'label' => 'Absender Name',
+                'notice' => 'Leer = System-Standard aus PHPMailer-Konfiguration.',
+                'default' => ''
             ],
             'success_message' => [
                 'type' => 'textarea',

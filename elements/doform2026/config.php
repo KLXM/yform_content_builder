@@ -33,7 +33,7 @@ return [
         'step_mail' => [
             'label' => 'Schritt 3: Versand',
             'icon' => 'fa-envelope',
-            'fields' => ['email_to', 'email_subject', 'email_from_field', 'success_message', 'error_message'],
+            'fields' => ['email_to', 'email_subject', 'from_email', 'from_name', 'success_message', 'error_message'],
         ],
         'step_security' => [
             'label' => 'Schritt 4: Sicherheit',
@@ -246,15 +246,17 @@ return [
             'default' => 'Neue Anfrage ueber DoForm2026',
             'notice' => 'Platzhalter: {name}, {email}, {subject}',
         ],
-        'email_from_field' => [
-            'type' => 'choice',
-            'label' => 'Absender',
-            'selectpicker' => false,
-            'choices' => [
-                'email' => 'E-Mail aus Formular',
-                'system' => 'System E-Mail',
-            ],
-            'default' => 'email',
+        'from_email' => [
+            'type' => 'text',
+            'label' => 'Absender E-Mail-Adresse',
+            'notice' => 'Leer = System-Standard aus PHPMailer-Konfiguration. Die E-Mail des Ausfüllenden wird nur als Reply-To gesetzt.',
+            'default' => ''
+        ],
+        'from_name' => [
+            'type' => 'text',
+            'label' => 'Absender Name',
+            'notice' => 'Leer = System-Standard aus PHPMailer-Konfiguration.',
+            'default' => ''
         ],
         'success_message' => [
             'type' => 'textarea',

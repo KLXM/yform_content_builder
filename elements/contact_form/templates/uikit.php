@@ -12,7 +12,6 @@ $formId = 'contact_form_' . uniqid();
 // Einstellungen
 $emailTo = $elementData['email_to'] ?? '';
 $emailSubject = $elementData['email_subject'] ?? 'Neue Kontaktanfrage';
-$emailFromField = $elementData['email_from_field'] ?? 'email';
 $successMessage = $elementData['success_message'] ?? 'Vielen Dank für Ihre Nachricht.';
 $errorMessage = $elementData['error_message'] ?? 'Es ist ein Fehler aufgetreten.';
 $spamProtection = $elementData['spam_protection'] ?? 'both';
@@ -604,29 +603,37 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
             // E-Mail Body erstellen
             $body = buildMailTableBody($fields, $formData, false);
             
-            // Absender E-Mail ermitteln
-            $senderEmail = '';
-            $senderName = '';
+            // E-Mail des Ausfüllenden für Reply-To ermitteln (nie als Absender verwenden)
+            $replyToEmail = '';
+            $replyToName = '';
             foreach ($fields as $field) {
                 $fieldType = $field['field_type'] ?? 'text';
                 $fieldName = $field['field_name'] ?? '';
                 
                 if ($fieldType === 'email' && !empty($formData[$fieldName])) {
-                    $senderEmail = $formData[$fieldName];
+                    $replyToEmail = $formData[$fieldName];
                 }
                 if ($fieldName === 'name' || str_contains($fieldName, 'name')) {
-                    $senderName = $formData[$fieldName] ?? '';
+                    $replyToName = $formData[$fieldName] ?? '';
                 }
             }
             
             // Betreff mit Platzhaltern
             $subject = $emailSubject;
-            $subject = str_replace('{name}', $senderName, $subject);
-            $subject = str_replace('{email}', $senderEmail, $subject);
+            $subject = str_replace('{name}', $replyToName, $subject);
+            $subject = str_replace('{email}', $replyToEmail, $subject);
             $subject = str_replace('{subject}', $formData['subject'] ?? $formData['betreff'] ?? '', $subject);
             
             // PHPMailer verwenden
             $mail = new rex_mailer();
+            
+            // Absender setzen falls konfiguriert (sonst PHPMailer-Systemstandard)
+            $configFromEmail = trim((string) ($elementData['from_email'] ?? ''));
+            $configFromName = trim((string) ($elementData['from_name'] ?? ''));
+            if ($configFromEmail !== '' && filter_var($configFromEmail, FILTER_VALIDATE_EMAIL)) {
+                $mail->setFrom($configFromEmail, $configFromName);
+            }
+            
             $emailRecipients = preg_split('/\s*[,;]\s*/', (string) $emailTo, -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $validRecipients = [];
             foreach ($emailRecipients as $recipient) {
@@ -651,15 +658,15 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
                 $mail->addAttachment($attachment['tmp_name'], $attachment['name']);
             }
             
-            // Reply-To setzen, wenn eine Absender-Mail aus den Feldern ermittelt wurde
-            if (!empty($senderEmail)) {
-                $mail->addReplyTo($senderEmail, $senderName);
+            // Reply-To: E-Mail des Ausfüllenden (nie als Absender)
+            if (!empty($replyToEmail)) {
+                $mail->addReplyTo($replyToEmail, $replyToName);
             }
             
             $mail->send();
             
-            // Bestätigungs-E-Mail an Absender
-            if ($sendCopy && !empty($senderEmail)) {
+            // Bestätigungs-E-Mail an Ausfüllenden
+            if ($sendCopy && !empty($replyToEmail)) {
                 $copyIntro = $elementData['copy_intro'] ?? "Vielen Dank für Ihre Nachricht!\n\nWir haben Ihre Anfrage erhalten und werden uns schnellstmöglich bei Ihnen melden.\n\nNachfolgend eine Kopie Ihrer Anfrage:";
                 $copyFooter = $elementData['copy_footer'] ?? "Mit freundlichen Grüßen\nIhr Team";
                 $copyTable = buildMailTableBody($fields, $formData, $copyMaskIban);
@@ -674,7 +681,11 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
                 $copyBody .= '</div>';
                 
                 $copyMail = new rex_mailer();
-                $copyMail->addAddress($senderEmail);
+                // Absender der Bestätigungsmail ebenfalls aus Konfiguration
+                if ($configFromEmail !== '' && filter_var($configFromEmail, FILTER_VALIDATE_EMAIL)) {
+                    $copyMail->setFrom($configFromEmail, $configFromName);
+                }
+                $copyMail->addAddress($replyToEmail);
                 $copyMail->Subject = $copySubject;
                 $copyMail->Body = $copyBody;
                 $copyMail->isHTML(true);
