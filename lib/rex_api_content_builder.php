@@ -95,7 +95,7 @@ class rex_api_content_builder extends rex_api_function
         $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementPath . '/');
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
-            echo '<div class="clearfix" style="margin-bottom: 15px; text-align: right;">';
+            echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
 
             if ($hasSettingsModal) {
                 $this->renderSettingsModalButton($config, $sliceData, true);

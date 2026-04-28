@@ -28,21 +28,22 @@ if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
     $themeChoices = array_merge($themeChoices, $availableThemes);
 }
 
-// Standard Card-Style Optionen (für choice Fallback)
+// Standard Card-Style Optionen (stabile uk-card-* Keys)
 $cardStyleChoices = [
-    'default' => 'Default (mit Rahmen)',
-    'primary' => 'Primary',
-    'secondary' => 'Secondary',
-    'muted' => 'Muted (Grau)',
-    'hover' => 'Hover Effect',
-    'transparent' => 'Transparent'
+    'uk-card-default' => 'Standard (mit Rahmen)',
+    'uk-card-primary' => 'Primary',
+    'uk-card-secondary' => 'Secondary',
+    'uk-background-muted' => 'Muted (Grau)',
+    'uk-card-hover' => 'Hover Effect',
+    'uk-card-transparent' => 'Transparent'
 ];
 
 // Card-Style Farben für color_swatches
 $cardStyleColors = [
     'uk-card-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
     'uk-card-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
-    'uk-card-secondary' => ['color' => '#222222', 'label' => 'Secondary']
+    'uk-card-secondary' => ['color' => '#222222', 'label' => 'Secondary'],
+    'uk-background-muted' => ['color' => '#f8f8f8', 'label' => 'Muted (Grau)']
 ];
 
 // Standard Background-Optionen
@@ -68,11 +69,13 @@ if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
     // Card-Style Optionen aus Theme (bereits im richtigen Format für color_swatches)
     $themeCardStyles = \UikitThemeBuilder\DomainContext::getCardStyleOptions();
     if (!empty($themeCardStyles)) {
-        $cardStyleColors = $themeCardStyles;
-        // Auch choice-Format für Fallback
-        $cardStyleChoices = [];
+        $cardStyleColors = array_merge($cardStyleColors, $themeCardStyles);
+
+        // Theme-Styles ergänzen, aber bestehende Kern-Labels nicht überschreiben
         foreach ($themeCardStyles as $class => $data) {
-            $cardStyleChoices[$class] = $data['label'] ?? ucfirst(str_replace(['uk-card-', 'uk-background-'], '', $class));
+            if (!isset($cardStyleChoices[$class])) {
+                $cardStyleChoices[$class] = $data['label'] ?? ucfirst(str_replace(['uk-card-', 'uk-background-'], '', $class));
+            }
         }
     }
     
@@ -172,7 +175,7 @@ return [
     'settings_modal' => [
         'label' => 'Allgemeine Block-Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
+        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_background', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
     ],
     
     'fields' => [
@@ -239,6 +242,14 @@ return [
             'choice_colors' => $cardStyleColors,
             'selectpicker' => true,
             'default' => 'uk-card-default'
+        ],
+        'card_background' => [
+            'type' => 'choice',
+            'label' => 'Übergeordneter Hintergrund',
+            'choices' => $backgroundChoices,
+            'choice_colors' => $backgroundColors,
+            'selectpicker' => true,
+            'default' => ''
         ],
         'card_size' => [
             'type' => 'choice',

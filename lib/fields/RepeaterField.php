@@ -262,7 +262,7 @@ class RepeaterField extends ContentBuilderFieldAbstract
         echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
         echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
         echo '</div>';
-        echo '<div class="modal-body">';
+        echo '<div class="modal-body" style="text-align: left;">';
 
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
             foreach ($modalConfig['fields'] as $subFieldName) {
@@ -317,7 +317,7 @@ class RepeaterField extends ContentBuilderFieldAbstract
         echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
         echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
         echo '</div>';
-        echo '<div class="modal-body">';
+        echo '<div class="modal-body" style="text-align: left;">';
 
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
             $modalFieldMap = [];
@@ -369,7 +369,7 @@ class RepeaterField extends ContentBuilderFieldAbstract
         echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
         echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
         echo '</div>';
-        echo '<div class="modal-body">';
+        echo '<div class="modal-body" style="text-align: left;">';
 
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
             $modalFieldMap = [];

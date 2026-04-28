@@ -861,6 +861,17 @@
                 var $field = $(this);
                 var name = $field.attr('name');
                 var value = $field.val();
+
+                // Versteckte Repeater-Template-Felder niemals speichern,
+                // da diese mit Index [0] echte Item-Werte überschreiben können.
+                if ($field.closest('.repeater-item-template').length > 0) {
+                    return;
+                }
+
+                var $modal = $field.closest('.modal');
+                if ($modal.length > 0 && String($modal.attr('id') || '').indexOf('repeater_item_template_') === 0) {
+                    return;
+                }
                 
                 // Radio-Buttons: Nur gecheckte übernehmen
                 if ($field.is(':radio')) {

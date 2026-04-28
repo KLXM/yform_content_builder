@@ -620,7 +620,7 @@ class yform_content_builder_module
         $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementDir);
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
-            echo '<div class="clearfix" style="margin-bottom: 15px; text-align: right;">';
+            echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
 
             if ($hasSettingsModal) {
                 $this->renderSettingsModalButton($config, $sliceData, true);
@@ -737,7 +737,7 @@ class yform_content_builder_module
         echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
         echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
         echo '</div>';
-        echo '<div class="modal-body">';
+        echo '<div class="modal-body" style="text-align: left;">';
         
         // Felder im Modal rendern
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {

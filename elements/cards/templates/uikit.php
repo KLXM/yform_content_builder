@@ -12,6 +12,7 @@ $columnsMobile = $elementData['columns_mobile'] ?? '1';
 $gap = $elementData['gap'] ?? 'medium';
 $matchHeight = !empty($elementData['match_height']);
 $cardStyle = $elementData['card_style'] ?? 'default';
+$cardBackground = $elementData['card_background'] ?? '';
 $cardSize = $elementData['card_size'] ?? 'default';
 $cardShadow = $elementData['card_shadow'] ?? '';
 
@@ -50,8 +51,19 @@ $isImage = function($filename) {
 // Card-Style zu UIkit-Klasse konvertieren
 $getCardStyleClass = function($style) {
     if (empty($style)) return 'uk-card-default';
-    if (strpos($style, 'uk-card-') === 0) return $style;
+
+    // Legacy-Werte auf gültige UIkit-Klasse mappen
+    if ($style === 'muted' || $style === 'uk-card-muted') return 'uk-background-muted';
+
+    if (strpos($style, 'uk-card-') === 0 || strpos($style, 'uk-background-') === 0) return $style;
     return 'uk-card-' . $style;
+};
+
+// Optionalen globalen Karten-Hintergrund normalisieren
+$getCardBackgroundClass = function($background) {
+    if (empty($background)) return '';
+    if (strpos($background, 'uk-background-') === 0) return $background;
+    return '';
 };
 
 // Schatten-Klasse ermitteln
@@ -95,6 +107,7 @@ $cardSizeMap = [
     'large' => 'uk-card-large'
 ];
 $cardSizeClass = $cardSizeMap[$cardSize] ?? '';
+$globalCardBackgroundClass = $getCardBackgroundClass($cardBackground);
 
 // Sektion-Klassen
 $sectionClasses = ['uk-section'];
@@ -282,7 +295,15 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         }
         
         // Card-Klassen berechnen
-        $itemCardStyleClass = $itemCardStyle ? $getCardStyleClass($itemCardStyle) : $getCardStyleClass($cardStyle);
+        $hasItemCardStyleOverride = trim((string) $itemCardStyle) !== '';
+        $itemCardStyleClass = $hasItemCardStyleOverride ? $getCardStyleClass($itemCardStyle) : $getCardStyleClass($cardStyle);
+
+        // Globaler Hintergrund greift als Default-Basis,
+        // solange keine individuelle Kartenfarbe gesetzt ist.
+        if (!$hasItemCardStyleOverride && $globalCardBackgroundClass !== '' && $itemCardStyleClass === 'uk-card-default') {
+            $itemCardStyleClass = $globalCardBackgroundClass;
+        }
+
         $itemShadowClass = $itemCardShadow ? $getShadowClass($itemCardShadow) : $getShadowClass($cardShadow);
         
         // Bei transparent: Schatten und Padding entfernen

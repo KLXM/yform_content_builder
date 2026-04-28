@@ -109,7 +109,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementPath . '/');
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
-            echo '<div class="clearfix" style="margin-bottom: 15px; text-align: right;">';
+            echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
 
             if ($hasSettingsModal) {
                 $this->renderSettingsModalButton($config, $sliceData, true);
@@ -230,7 +230,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
         echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
         echo '</div>';
-        echo '<div class="modal-body">';
+        echo '<div class="modal-body" style="text-align: left;">';
         
         // Felder im Modal rendern
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
@@ -276,7 +276,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
         echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
         echo '</div>';
-        echo '<div class="modal-body">';
+        echo '<div class="modal-body" style="text-align: left;">';
         
         // Modal-Felder rendern
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
@@ -322,7 +322,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>';
         echo '<h4 class="modal-title"><i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label) . '</h4>';
         echo '</div>';
-        echo '<div class="modal-body">';
+        echo '<div class="modal-body" style="text-align: left;">';
         
         // Modal-Felder rendern
         if (isset($modalConfig['fields']) && is_array($modalConfig['fields'])) {
