@@ -64,9 +64,10 @@ return [
             'default' => 'h2',
         ],
         'form_intro' => [
-            'type' => 'textarea',
+            'type' => 'tinymce',
             'label' => 'Einleitungstext',
             'notice' => 'Optionaler Text vor dem Formular.',
+            'profile' => 'default',
         ],
         'fields' => [
             'type' => 'repeater',
