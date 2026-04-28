@@ -48,6 +48,35 @@ Slice-based Content Builder für REDAXO YForm - Erstelle flexible, wiederverwend
 - **Framework Templates**: Automatische Template-Auswahl (Bootstrap/UIkit/Plain)
 - **Production Ready**: Vollständig getestet mit echten Use Cases
 
+## 🔌 Modul-Integration (empfohlen)
+
+Für normale REDAXO-Module wird die slot-basierte API empfohlen:
+
+```php
+<?php
+// Ein Element pro Modul
+echo yform_content_builder_module::createByValueId('cards', 1, 'uikit')->renderInput();
+?>
+```
+
+Mehrere Elemente im selben Modul sind möglich – jede Instanz erhält automatisch eine eindeutige ID (basierend auf Slice-ID + Value-Slot):
+
+```php
+<?php
+// Zwei unabhängige Elemente im selben Modul
+echo yform_content_builder_module::createByValueId('cards', 1, 'uikit')->renderInput();
+echo yform_content_builder_module::createByValueId('text', 2, 'uikit')->renderInput();
+?>
+```
+
+Bestehende Module mit der älteren Schreibweise bleiben kompatibel:
+
+```php
+<?php
+echo yform_content_builder_module::create('cards', 'REX_VALUE[2]', 'uikit')->renderOutput();
+?>
+```
+
 ## 🚀 Highlights
 
 ### Visuelle Feldtypen

@@ -119,7 +119,7 @@ Du möchtest dieses Element nun in einem REDAXO-Modul verwenden, damit Redakteur
 <?php
 // Wir rufen unser Element 'team_member' auf.
 // 'bootstrap' sorgt dafür, dass es im Backend hübsch aussieht.
-echo yform_content_builder_module::create('team_member', 'REX_VALUE[1]', 'bootstrap')->renderInput();
+echo yform_content_builder_module::createByValueId('team_member', 1, 'bootstrap')->renderInput();
 ?>
 ```
 
@@ -128,9 +128,11 @@ echo yform_content_builder_module::create('team_member', 'REX_VALUE[1]', 'bootst
 <?php
 // Hier geben wir das Element aus.
 // Du kannst hier auch 'uikit' oder 'tailwind' angeben, wenn du dafür Templates angelegt hast.
-echo yform_content_builder_module::create('team_member', 'REX_VALUE[1]', 'bootstrap')->renderOutput();
+echo yform_content_builder_module::createByValueId('team_member', 1, 'bootstrap')->renderOutput();
 ?>
 ```
+
+Die alte Schreibweise mit `create('team_member', 'REX_VALUE[1]', 'bootstrap')` funktioniert weiterhin.
 
 3. Speichere das Modul und füge es in einem Artikel (Slice) hinzu. Du solltest nun dein Formular sehen!
 

@@ -7,6 +7,7 @@ yform_content_builder_modules = Module
 yform_content_builder_modules_description = Generiere automatisch REDAXO-Module für Content Builder Elemente
 
 yform_content_builder_settings = Einstellungen
+yform_content_builder_docs = Dokumentation
 yform_content_builder_general_settings = Allgemeine Einstellungen
 yform_content_builder_theme_settings = Theme Builder Integration
 yform_content_builder_theme = Theme

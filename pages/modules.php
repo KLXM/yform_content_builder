@@ -8,7 +8,7 @@
 $addon = rex_addon::get('yform_content_builder');
 
 // Helper: Generiert Modul-Code für ein Element
-function generateModuleCode($elementKey, $framework) {
+function generateModuleCode($elementKey, $framework, $valueId = 1) {
     $config = [];
     $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
     
@@ -25,17 +25,89 @@ function generateModuleCode($elementKey, $framework) {
  * Element: {$elementKey}
  */
 
-echo yform_content_builder_module::create('{$elementKey}', 'REX_VALUE[1]', '{$framework}')->renderInput();
+    echo yform_content_builder_module::createByValueId('{$elementKey}', {$valueId}, '{$framework}')->renderInput();
 ?>
 PHP;
     
     return $code;
 }
 
+// Bestehende Module aktualisieren (alle yfcb_* Module neu generieren)
+if (rex_post('update_all_modules', 'bool')) {
+    $framework = rex_post('framework', 'string', 'uikit');
+    $valueId = rex_post('value_id', 'int', 1);
+    if ($valueId < 1 || $valueId > 20) {
+        $valueId = 1;
+    }
+
+    $updatedModules = [];
+    $skippedModules = [];
+
+    try {
+        $sql = rex_sql::factory();
+        $sql->setQuery(
+            'SELECT id, `key`, `name` FROM ' . rex::getTable('module') . ' WHERE `key` LIKE :prefix',
+            [':prefix' => 'yfcb_%']
+        );
+
+        while ($sql->hasNext()) {
+            $moduleKey = (string) $sql->getValue('key');
+            $moduleName = (string) $sql->getValue('name');
+            // Elementname aus Key ableiten: yfcb_cards → cards
+            $elementKey = substr($moduleKey, 5);
+            $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
+
+            if (!file_exists($configPath)) {
+                $skippedModules[] = $moduleName . ' (Config nicht gefunden)';
+                $sql->next();
+                continue;
+            }
+
+            $inputCode = generateModuleCode($elementKey, $framework, $valueId);
+            $outputCode = <<<PHP
+<?php
+echo yform_content_builder_module::createByValueId('{$elementKey}', {$valueId}, '{$framework}')->renderOutput();
+?>
+PHP;
+
+            $updateSql = rex_sql::factory();
+            $updateSql->setQuery(
+                'UPDATE ' . rex::getTable('module') . ' SET `input` = :input, `output` = :output WHERE `key` = :key',
+                [':input' => $inputCode, ':output' => $outputCode, ':key' => $moduleKey]
+            );
+            $updatedModules[] = $moduleName;
+            $sql->next();
+        }
+    } catch (Exception $e) {
+        echo rex_view::error('Fehler beim Aktualisieren: ' . $e->getMessage());
+    }
+
+    if (!empty($updatedModules)) {
+        $message = '<ul>';
+        foreach ($updatedModules as $name) {
+            $message .= '<li>' . rex_escape($name) . '</li>';
+        }
+        $message .= '</ul>';
+        echo rex_view::success('Module aktualisiert: ' . $message);
+    }
+    if (!empty($skippedModules)) {
+        $message = '<ul>';
+        foreach ($skippedModules as $name) {
+            $message .= '<li>' . rex_escape($name) . '</li>';
+        }
+        $message .= '</ul>';
+        echo rex_view::warning('Übersprungen (Element-Config fehlt): ' . $message);
+    }
+}
+
 // Module erstellen
 if (rex_post('create_modules', 'bool')) {
     $selectedElements = rex_post('elements', 'array', []);
     $framework = rex_post('framework', 'string', 'uikit');
+    $valueId = rex_post('value_id', 'int', 1);
+    if ($valueId < 1 || $valueId > 20) {
+        $valueId = 1;
+    }
     
     if (!empty($selectedElements)) {
         $createdModules = [];
@@ -53,11 +125,11 @@ if (rex_post('create_modules', 'bool')) {
             $moduleKey = 'yfcb_' . $elementKey;
             
             // Modul-Code generieren
-            $inputCode = generateModuleCode($elementKey, $framework);
+            $inputCode = generateModuleCode($elementKey, $framework, $valueId);
             
             $outputCode = <<<PHP
 <?php
-echo yform_content_builder_module::create('{$elementKey}', 'REX_VALUE[1]', '{$framework}')->renderOutput();
+echo yform_content_builder_module::createByValueId('{$elementKey}', {$valueId}, '{$framework}')->renderOutput();
 ?>
 PHP;
             
@@ -151,6 +223,18 @@ $content .= '</select>';
 $content .= '<small class="help-block">Wähle das Framework, das du in deinen Modulen verwenden möchtest.</small>';
 $content .= '</div>';
 
+// REX_VALUE Slot Auswahl
+$content .= '<div class="form-group">';
+$content .= '<label for="value_id"><strong>REX_VALUE Slot</strong></label>';
+$content .= '<select class="form-control" id="value_id" name="value_id">';
+for ($i = 1; $i <= 20; ++$i) {
+    $selected = (1 === $i) ? ' selected="selected"' : '';
+    $content .= '<option value="' . $i . '"' . $selected . '>REX_VALUE[' . $i . ']</option>';
+}
+$content .= '</select>';
+$content .= '<small class="help-block">Legt fest, in welchem VALUE-Feld das Modul seine JSON-Daten speichert und lädt.</small>';
+$content .= '</div>';
+
 // Elemente auswählen
 $content .= '<div class="form-group">';
 $content .= '<label><strong>Elemente auswählen</strong></label>';
@@ -186,6 +270,11 @@ $content .= '<div class="form-group">';
 $content .= '<button type="submit" name="create_modules" value="1" class="btn btn-primary">';
 $content .= '<i class="fa fa-plus"></i> Module erstellen';
 $content .= '</button>';
+$content .= ' ';
+$content .= '<button type="submit" name="update_all_modules" value="1" class="btn btn-default">';
+$content .= '<i class="fa fa-refresh"></i> Bestehende Module aktualisieren';
+$content .= '</button>';
+$content .= '<p class="help-block">Aktualisiert alle vorhandenen <code>yfcb_*</code>-Module mit dem aktuellen Code (Framework + VALUE-Slot werden neu gesetzt).</p>';
 $content .= '</div>';
 
 $content .= '</form>';

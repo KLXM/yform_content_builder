@@ -2,6 +2,7 @@ yform_content_builder_title = YForm Content Builder
 yform_content_builder_description = Slice-based Content Builder for YForm
 
 yform_content_builder_modules = Modules
+yform_content_builder_docs = Documentation
 yform_content_builder_modules_description = Auto-generate REDAXO modules for Content Builder elements
 
 yform_content_builder_element_add = Add element

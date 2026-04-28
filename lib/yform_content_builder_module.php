@@ -17,6 +17,7 @@ class yform_content_builder_module
     protected $data;
     protected $rawValue;
     protected $framework = 'bootstrap';
+    protected $valueId = 1;
     
     /**
      * Element erstellen
@@ -26,12 +27,23 @@ class yform_content_builder_module
      * @param string $framework CSS Framework für Output (bootstrap, uikit, plain)
      * @return self
      */
-    public static function create($type, $rawValue = null, $framework = 'bootstrap')
+    public static function create($type, $rawValue = null, $framework = 'bootstrap', $valueId = null)
     {
         $instance = new self();
         $instance->elementType = $type;
         $instance->rawValue = $rawValue;
         $instance->framework = $framework;
+        if (is_int($valueId) && $valueId > 0) {
+            $instance->valueId = $valueId;
+        } else {
+            $instance->valueId = $instance->detectValueIdFromRawValue($rawValue);
+        }
+
+        // Wenn kein Raw-Value übergeben wurde, den Slot-Wert aus dem aktuellen Slice laden.
+        if ($rawValue === null || $rawValue === '') {
+            $rawValue = self::loadRawValueFromCurrentSlice($instance->valueId);
+            $instance->rawValue = $rawValue;
+        }
         
         // Daten normalisieren
         if (is_string($rawValue)) {
@@ -45,6 +57,177 @@ class yform_content_builder_module
         }
         
         return $instance;
+    }
+
+    /**
+     * Element über einen Value-Slot erstellen (verständlichere API).
+     *
+     * Beispiel:
+     * echo yform_content_builder_module::createByValueId('cards', 2, 'uikit')->renderInput();
+     *
+     * @param string $type Element-Typ
+     * @param int    $valueId REX_VALUE Slot (1-20)
+     * @param string $framework CSS Framework
+     * @return self
+     */
+    public static function createByValueId($type, $valueId = 1, $framework = 'bootstrap')
+    {
+        $normalizedValueId = (int) $valueId;
+        if ($normalizedValueId <= 0) {
+            $normalizedValueId = 1;
+        }
+
+        return self::create($type, null, $framework, $normalizedValueId);
+    }
+
+    /**
+     * Lädt den rohen Value-Inhalt eines Slots aus dem aktuellen Slice.
+     *
+     * @param int $valueId
+     * @return string
+     */
+    protected static function loadRawValueFromCurrentSlice($valueId)
+    {
+        $slot = (int) $valueId;
+        if ($slot < 1 || $slot > 20) {
+            $slot = 1;
+        }
+
+        $sliceId = rex_request('slice_id', 'int', 0);
+        if ($sliceId <= 0) {
+            return '';
+        }
+
+        try {
+            $field = 'value' . $slot;
+            $sql = rex_sql::factory();
+            $sql->setQuery(
+                'SELECT ' . $field . ' FROM ' . rex::getTable('article_slice') . ' WHERE id = :id',
+                [':id' => $sliceId]
+            );
+
+            if ($sql->getRows() !== 1) {
+                return '';
+            }
+
+            return (string) $sql->getValue($field);
+        } catch (Throwable $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Ermittelt die REX_VALUE-ID aus dem übergebenen Raw-Value-String.
+     * Unterstützt REX_VALUE[1] und REX_VALUE[id=1 ...] Schreibweisen.
+     *
+     * @param mixed $rawValue
+     * @return int
+     */
+    protected function detectValueIdFromRawValue($rawValue)
+    {
+        if (!is_string($rawValue) || $rawValue === '') {
+            return 1;
+        }
+
+        if (preg_match('/REX_VALUE\[(?:id=)?([0-9]+)/', $rawValue, $matches) === 1) {
+            $valueId = (int) $matches[1];
+            return $valueId > 0 ? $valueId : 1;
+        }
+
+        // Fallback für bereits ersetzte REX_VALUE-Strings:
+        // versuche den passenden value-Slot über den aktuellen Slice-Wert zu erkennen.
+        $detectedBySlice = $this->detectValueIdByCurrentSlice($rawValue);
+        if ($detectedBySlice !== null) {
+            return $detectedBySlice;
+        }
+
+        return 1;
+    }
+
+    /**
+     * Versucht die Value-ID über einen Match mit den value1..value20 Daten
+     * des aktuellen Slices zu erkennen.
+     *
+     * @param string $rawValue
+     * @return int|null
+     */
+    protected function detectValueIdByCurrentSlice($rawValue)
+    {
+        $sliceId = rex_request('slice_id', 'int', 0);
+        if ($sliceId <= 0) {
+            return null;
+        }
+
+        try {
+            $fields = [];
+            for ($i = 1; $i <= 20; ++$i) {
+                $fields[] = 'value' . $i;
+            }
+
+            $sql = rex_sql::factory();
+            $sql->setQuery(
+                'SELECT ' . implode(', ', $fields) . ' FROM ' . rex::getTable('article_slice') . ' WHERE id = :id',
+                [':id' => $sliceId]
+            );
+
+            if ($sql->getRows() !== 1) {
+                return null;
+            }
+
+            $needle = $this->normalizeValueForCompare($rawValue);
+            if ($needle === '') {
+                return null;
+            }
+
+            $matches = [];
+            for ($i = 1; $i <= 20; ++$i) {
+                $slotValue = (string) $sql->getValue('value' . $i);
+                if ($slotValue === '') {
+                    continue;
+                }
+
+                if ($this->normalizeValueForCompare($slotValue) === $needle) {
+                    $matches[] = $i;
+                }
+            }
+
+            return count($matches) === 1 ? $matches[0] : null;
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Normalisiert gespeicherte Werte für robuste Vergleichbarkeit.
+     *
+     * @param string $value
+     * @return string
+     */
+    protected function normalizeValueForCompare($value)
+    {
+        return trim((string) html_entity_decode((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
+    /**
+     * Liefert den Namen des passenden REX_INPUT_VALUE Feldes.
+     *
+     * @return string
+     */
+    protected function getInputValueFieldName()
+    {
+        return 'REX_INPUT_VALUE[' . $this->valueId . ']';
+    }
+
+    /**
+     * Erzeugt eine eindeutige Instanz-ID aus sliceId + valueId.
+     * Verhindert Kollisionen bei mehreren Instanzen auf derselben Seite.
+     *
+     * @return string
+     */
+    protected function getInstanceId()
+    {
+        $sliceId = rex_request('slice_id', 'int', 0);
+        return 's' . $sliceId . '_v' . $this->valueId;
     }
     
     /**
@@ -60,15 +243,19 @@ class yform_content_builder_module
             return '<div class="alert alert-danger">Element-Config für "' . rex_escape($this->elementType) . '" nicht gefunden.</div>';
         }
         
+        $instanceId = $this->getInstanceId();
+        $storageId = 'yform_cb_data_storage_' . $instanceId;
+        $formId = 'yform_cb_form_' . $instanceId;
+
         ob_start();
         
         echo '<div class="form-group yform-content-builder-module-input" data-element-type="' . rex_escape($this->elementType) . '">';
         
         // Hidden Field für JSON-Daten (wird von JavaScript gefüllt)
-        echo '<input type="hidden" name="REX_INPUT_VALUE[1]" id="yform_cb_data_storage" value="' . rex_escape(json_encode($this->data)) . '" />';
+        echo '<input type="hidden" name="' . rex_escape($this->getInputValueFieldName()) . '" id="' . rex_escape($storageId) . '" value="' . rex_escape(json_encode($this->data)) . '" />';
         
         // Formular mit YForm Content Builder Render-Methoden
-        echo '<div class="slice-form-container" id="yform_cb_form">';
+        echo '<div class="slice-form-container" id="' . rex_escape($formId) . '">';
         $this->renderFormFields($config, $this->data);
         echo '</div>';
         
@@ -79,7 +266,7 @@ class yform_content_builder_module
         <script nonce="<?= rex_response::getNonce() ?>">
         $(function() {
             // Selectpicker mit sanitize:false neu initialisieren, damit SVG-Icons angezeigt werden
-            $('#yform_cb_form .selectpicker').each(function() {
+            $('#<?= rex_escape($formId) ?> .selectpicker').each(function() {
                 var $select = $(this);
                 // Wenn bereits initialisiert, zerstören
                 if ($select.data('selectpicker')) {
@@ -98,8 +285,8 @@ class yform_content_builder_module
         ?>
         <script nonce="<?= rex_response::getNonce() ?>">
         (function() {
-            var storage = document.getElementById('yform_cb_data_storage');
-            var form = document.getElementById('yform_cb_form');
+            var storage = document.getElementById('<?= rex_escape($storageId) ?>');
+            var form = document.getElementById('<?= rex_escape($formId) ?>');
             
             if (!storage || !form) {
                 console.warn('YForm Content Builder: Storage or form not found');

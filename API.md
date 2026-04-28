@@ -123,14 +123,26 @@ echo $contentBuilder->renderOutput();
 
 Verwende einzelne Content Builder Elemente direkt in Modulen.
 
+Empfohlen ist die Slot-basierte Schreibweise mit `createByValueId(...)`.
+
 **INPUT:**
 ```php
 <?php
-echo yform_content_builder_module::create('gallery', 'REX_VALUE[1]', 'bootstrap')->renderInput();
+echo yform_content_builder_module::createByValueId('gallery', 1, 'bootstrap')->renderInput();
 ?>
 ```
 
 **OUTPUT:**
+```php
+<?php
+echo yform_content_builder_module::createByValueId('gallery', 1, 'uikit')->renderOutput();
+?>
+```
+
+**Abwärtskompatibilität:**
+
+Die alte Schreibweise bleibt gültig:
+
 ```php
 <?php
 echo yform_content_builder_module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();

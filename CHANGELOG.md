@@ -6,6 +6,43 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.12.0] – 2026-04-28
+
+### Bugfix: Mehrere `renderInput()`-Instanzen auf einer Seite
+
+- `renderInput()` verwendete hardcodierte IDs (`yform_cb_data_storage`, `yform_cb_form`), was bei zwei oder mehr Aufrufen auf derselben Seite zu Kollisionen führte.
+- Neue Methode `getInstanceId()` erzeugt eine eindeutige ID aus `s{sliceId}_v{valueId}`.
+- Alle HTML-IDs und JavaScript-Selektoren nutzen nun diese eindeutigen IDs.
+- Zwei Aufrufe wie `createByValueId('cards', 1)` und `createByValueId('text', 2)` in einem Modul funktionieren jetzt korrekt nebeneinander.
+
+### Modul-Generator: Button „Bestehende Module aktualisieren"
+
+- Neuer Button **„Bestehende Module aktualisieren"** auf der Modul-Generator-Seite.
+- Findet alle vorhandenen `yfcb_*`-Module und schreibt deren `input`/`output`-Code neu.
+- Nützlich nach Framework- oder API-Updates, um alle Module auf den aktuellen Stand zu bringen.
+- Framework und VALUE-Slot werden aus dem Formular übernommen.
+
+---
+
+## [1.11.0] – 2026-04-28
+
+### Modul-API für Value-Slots vereinfacht
+
+- Neue, verständlichere Modul-Factory: `yform_content_builder_module::createByValueId($type, $valueId, $framework)`
+- Dadurch muss in Modulen kein `REX_VALUE[...]`-String mehr manuell übergeben werden, wenn nur ein fester Slot genutzt wird.
+
+### Modul-Generator aktualisiert
+
+- Der Modul-Generator erzeugt neue Module jetzt mit `createByValueId(...)`.
+- Der gewählte Value-Slot (1–20) wird weiterhin berücksichtigt und eindeutig für Laden/Speichern genutzt.
+
+### Rückwärtskompatibilität
+
+- Bestehende Module mit alter Schreibweise `create($type, 'REX_VALUE[...]', $framework)` funktionieren unverändert weiter.
+- Bestehende Module auf `REX_VALUE[1]` bleiben vollständig kompatibel.
+
+---
+
 ## [1.10.0] – 2026-04-27
 
 ### Zwei neue No-Code-Listen-Elemente

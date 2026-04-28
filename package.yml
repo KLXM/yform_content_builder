@@ -1,5 +1,5 @@
 package: yform_content_builder
-version: '1.10.0'
+version: '1.12.0'
 author: 'KLXM Crossmedia / Thomas Skerbis'
 supportpage: 'https://klxm.de'
 
@@ -24,3 +24,6 @@ page:
         settings:
             title: 'translate:yform_content_builder_settings'
             icon: rex-icon fa-cog
+        docs:
+            title: 'translate:yform_content_builder_docs'
+            icon: rex-icon fa-book
