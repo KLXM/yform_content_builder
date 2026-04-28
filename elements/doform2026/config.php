@@ -23,12 +23,12 @@ return [
         'step_start' => [
             'label' => 'Schritt 1: Start',
             'icon' => 'fa-play-circle',
-            'fields' => ['form_headline', 'form_headline_tag', 'form_intro'],
+            'fields' => ['form_headline', 'form_headline_tag', 'form_intro', 'submit_text'],
         ],
         'step_fields' => [
             'label' => 'Schritt 2: Felder',
             'icon' => 'fa-list-alt',
-            'fields' => ['fields', 'submit_text'],
+            'fields' => ['fields'],
         ],
         'step_mail' => [
             'label' => 'Schritt 3: Versand',
