@@ -175,7 +175,7 @@ return [
     'settings_modal' => [
         'label' => 'Allgemeine Block-Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_background', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
+        'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
     ],
     
     'fields' => [
@@ -243,15 +243,7 @@ return [
             'selectpicker' => true,
             'default' => 'uk-card-default'
         ],
-        'card_background' => [
-            'type' => 'choice',
-            'label' => 'Hintergrundfarbe (Fallback)',
-            'choices' => $backgroundChoices,
-            'choice_colors' => $backgroundColors,
-            'selectpicker' => true,
-            'notice' => 'Wird als Hintergrund genutzt, wenn die Karte auf "Standard" steht und kein individuelles Override gesetzt ist.',
-            'default' => ''
-        ],
+
         'card_size' => [
             'type' => 'choice',
             'label' => 'Card Padding',

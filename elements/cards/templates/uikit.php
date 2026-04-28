@@ -12,7 +12,7 @@ $columnsMobile = $elementData['columns_mobile'] ?? '1';
 $gap = $elementData['gap'] ?? 'medium';
 $matchHeight = !empty($elementData['match_height']);
 $cardStyle = $elementData['card_style'] ?? 'default';
-$cardBackground = $elementData['card_background'] ?? '';
+
 $cardSize = $elementData['card_size'] ?? 'default';
 $cardShadow = $elementData['card_shadow'] ?? '';
 
@@ -59,13 +59,6 @@ $getCardStyleClass = function($style) {
     return 'uk-card-' . $style;
 };
 
-// Optionalen globalen Karten-Hintergrund normalisieren
-$getCardBackgroundClass = function($background) {
-    if (empty($background)) return '';
-    if (strpos($background, 'uk-background-') === 0) return $background;
-    return '';
-};
-
 // Schatten-Klasse ermitteln
 $getShadowClass = function($shadow) {
     if (empty($shadow)) return 'uk-box-shadow-medium';
@@ -107,8 +100,6 @@ $cardSizeMap = [
     'large' => 'uk-card-large'
 ];
 $cardSizeClass = $cardSizeMap[$cardSize] ?? '';
-$globalCardBackgroundClass = $getCardBackgroundClass($cardBackground);
-
 // Sektion-Klassen
 $sectionClasses = ['uk-section'];
 if ($sectionBg) {
@@ -297,12 +288,6 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
         // Card-Klassen berechnen
         $hasItemCardStyleOverride = trim((string) $itemCardStyle) !== '';
         $itemCardStyleClass = $hasItemCardStyleOverride ? $getCardStyleClass($itemCardStyle) : $getCardStyleClass($cardStyle);
-
-        // Globaler Hintergrund greift als Default-Basis,
-        // solange keine individuelle Kartenfarbe gesetzt ist.
-        if (!$hasItemCardStyleOverride && $globalCardBackgroundClass !== '' && $itemCardStyleClass === 'uk-card-default') {
-            $itemCardStyleClass = $globalCardBackgroundClass;
-        }
 
         $itemShadowClass = $itemCardShadow ? $getShadowClass($itemCardShadow) : $getShadowClass($cardShadow);
         
