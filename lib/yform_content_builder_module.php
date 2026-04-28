@@ -608,7 +608,7 @@ class yform_content_builder_module
      * 
      * @return array|null
      */
-    protected function loadConfig(): mixed
+    protected function loadConfig(): array|null
     {
         $configFile = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/config.php');
         
