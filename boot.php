@@ -11,6 +11,9 @@ require_once rex_path::addon('yform_content_builder', 'lib/rex_yform_value_conte
 // Helper-Klasse laden
 require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_helper.php');
 
+// Medien-ALT-Resolver laden (elementübergreifende ALT-Logik)
+require_once rex_path::addon('yform_content_builder', 'lib/YFormContentBuilderMediaAltResolver.php');
+
 // Modul-Helper-Klasse laden (für Verwendung in normalen REDAXO Modulen)
 require_once rex_path::addon('yform_content_builder', 'lib/yform_content_builder_module.php');
 

@@ -43,6 +43,7 @@ $cardClass = match ($style) {
             }
 
             $avatarUrl = $authorImage ? rex_media_manager::getUrl('card_1_1_w400', $authorImage) : '';
+            $avatarAlt = YFormContentBuilderMediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
             ?>
             <div class="<?= $colClass ?>">
                 <div class="<?= $cardClass ?> h-100">
@@ -60,7 +61,7 @@ $cardClass = match ($style) {
 
                     <div class="d-flex align-items-center mt-auto">
                         <?php if ($avatarUrl): ?>
-                            <img src="<?= rex_escape($avatarUrl) ?>" alt="<?= rex_escape($authorName) ?>"
+                            <img src="<?= rex_escape($avatarUrl) ?>" alt="<?= rex_escape($avatarAlt) ?>"
                                  class="rounded-circle me-3" width="48" height="48"
                                  style="object-fit:cover;" loading="lazy">
                         <?php endif; ?>

@@ -19,12 +19,16 @@ $spamProtection = $elementData['spam_protection'] ?? 'both';
 $submitText = $elementData['submit_text'] ?? 'Nachricht senden';
 $submitStyle = $elementData['submit_style'] ?? 'primary';
 $layout = $elementData['layout'] ?? 'default';
+$multistepEnabled = !empty($elementData['multistep_enabled']);
+$multistepPrevLabel = (string) ($elementData['multistep_prev_label'] ?? 'Zurück');
+$multistepNextLabel = (string) ($elementData['multistep_next_label'] ?? 'Weiter');
 $privacyCheckbox = !empty($elementData['privacy_checkbox']);
 $privacyText = $elementData['privacy_text'] ?? '';
 $privacyLink = $elementData['privacy_link'] ?? '';
 $ajaxEnhancement = !empty($elementData['ajax_enhancement']);
 $sendCopy = !empty($elementData['send_copy']);
 $copySubject = $elementData['copy_subject'] ?? 'Ihre Anfrage';
+$copyMaskIban = !empty($elementData['copy_mask_iban']);
 
 // Formular-Überschrift
 $formHeadline = $elementData['form_headline'] ?? '';
@@ -33,6 +37,13 @@ $formIntro = $elementData['form_intro'] ?? '';
 
 // Formular-Felder
 $fields = $elementData['fields'] ?? [];
+$hasFileField = false;
+foreach ($fields as $field) {
+    if (($field['field_type'] ?? '') === 'file') {
+        $hasFileField = true;
+        break;
+    }
+}
 $formInstanceKey = substr(sha1((string) json_encode([$emailTo, $formHeadline, $fields], JSON_UNESCAPED_UNICODE)), 0, 16);
 $csrfToken = rex_csrf_token::factory('cb_contact_form_' . $formInstanceKey);
 
@@ -144,6 +155,9 @@ if (!function_exists('validateField')) {
         
         // Vorgefertigte Regex-Muster
         $patterns = [
+            'customer_number' => '/^[A-Z]{1,5}[\-\/]?[0-9]{3,12}$/',
+            'meter_reading' => '/^[0-9]{1,8}([\.,][0-9]{1,3})?$/',
+            'meter_reading_int' => '/^[0-9]{1,8}$/',
             'iban' => '/^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$/',
             'bic' => '/^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/',
             'plz_de' => '/^[0-9]{5}$/',
@@ -160,6 +174,9 @@ if (!function_exists('validateField')) {
         ];
         
         $errorMessages = [
+            'customer_number' => 'Ungültige Kundennummer (z.B. KD-123456)',
+            'meter_reading' => 'Ungültiger Zählerstand (z.B. 12345,67)',
+            'meter_reading_int' => 'Ungültiger Zählerstand (nur ganze Zahlen)',
             'iban' => 'Ungültige IBAN (Format: DE89370400440532013000)',
             'bic' => 'Ungültiger BIC/SWIFT-Code',
             'plz_de' => 'Ungültige deutsche Postleitzahl (5 Ziffern)',
@@ -183,6 +200,14 @@ if (!function_exists('validateField')) {
         // BIC: Großschreibung
         if ($type === 'bic') {
             $value = strtoupper($value);
+        }
+
+        if ($type === 'customer_number') {
+            $value = strtoupper((string) preg_replace('/\s+/', '', $value));
+        }
+
+        if ($type === 'meter_reading' || $type === 'meter_reading_int') {
+            $value = str_replace(' ', '', str_replace(',', '.', $value));
         }
         
         // Pattern-basierte Validierung
@@ -274,6 +299,105 @@ if (!function_exists('validateField')) {
     }
 }
 
+if (!function_exists('normalizeInputValue')) {
+    function normalizeInputValue(string $value, string $mode): string
+    {
+        if ($mode === '') {
+            return $value;
+        }
+
+        return match ($mode) {
+            'trim' => trim($value),
+            'uppercase' => mb_strtoupper(trim($value)),
+            'lowercase' => mb_strtolower(trim($value)),
+            'no_spaces' => str_replace(' ', '', trim($value)),
+            'digits_only' => preg_replace('/\D+/', '', $value) ?? '',
+            'alnum_upper' => mb_strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $value) ?? ''),
+            'meter_reading' => str_replace(',', '.', str_replace(' ', '', trim($value))),
+            default => $value,
+        };
+    }
+}
+
+if (!function_exists('maskIbanValue')) {
+    function maskIbanValue(string $value): string
+    {
+        $normalized = strtoupper(preg_replace('/\s+/', '', $value) ?? '');
+        if ($normalized === '') {
+            return '';
+        }
+
+        $length = mb_strlen($normalized);
+        if ($length <= 8) {
+            return str_repeat('*', $length);
+        }
+
+        $visibleStart = mb_substr($normalized, 0, 4);
+        $visibleEnd = mb_substr($normalized, -4);
+        $masked = $visibleStart . str_repeat('*', $length - 8) . $visibleEnd;
+
+        return trim(chunk_split($masked, 4, ' '));
+    }
+}
+
+if (!function_exists('isIbanLikeField')) {
+    function isIbanLikeField(array $field): bool
+    {
+        $validationType = (string) ($field['field_validation_type'] ?? '');
+        if ($validationType === 'iban') {
+            return true;
+        }
+
+        $fieldName = mb_strtolower((string) ($field['field_name'] ?? ''));
+        $fieldLabel = mb_strtolower((string) ($field['field_label'] ?? ''));
+
+        return str_contains($fieldName, 'iban') || str_contains($fieldLabel, 'iban');
+    }
+}
+
+if (!function_exists('buildMailTableBody')) {
+    function buildMailTableBody(array $fields, array $formData, bool $maskIbanValues = false): string
+    {
+        $body = '<table style="width: 100%; border-collapse: collapse;">';
+        foreach ($fields as $field) {
+            $fieldName = $field['field_name'] ?? '';
+            $fieldLabel = $field['field_label'] ?? $fieldName;
+            $fieldType = $field['field_type'] ?? 'text';
+
+            if (empty($fieldName) || in_array($fieldType, ['headline', 'hidden', 'fieldset', 'fieldset_end', 'divider'])) {
+                continue;
+            }
+
+            $value = (string) ($formData[$fieldName] ?? '');
+
+            if (in_array($fieldType, ['select', 'radio']) && $value !== '') {
+                $options = parseFieldOptions($field);
+                $value = (string) ($options[$value] ?? $value);
+            }
+
+            if ($fieldType === 'checkbox') {
+                $value = $value !== '' ? 'Ja' : 'Nein';
+            }
+
+            if ($fieldType === 'file') {
+                $value = $value !== '' ? $value : 'Keine Datei hochgeladen';
+            }
+
+            if ($maskIbanValues && $value !== '' && isIbanLikeField($field)) {
+                $value = maskIbanValue($value);
+            }
+
+            $body .= '<tr>';
+            $body .= '<td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold; width: 30%;">' . rex_escape((string) $fieldLabel) . '</td>';
+            $body .= '<td style="padding: 8px; border-bottom: 1px solid #ddd;">' . nl2br(rex_escape($value)) . '</td>';
+            $body .= '</tr>';
+        }
+        $body .= '</table>';
+
+        return $body;
+    }
+}
+
 // Formular verarbeiten (nur im Frontend)
 $formSubmitted = false;
 $formSuccess = false;
@@ -304,20 +428,79 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
     }
     
     // Felder validieren
+    $mailAttachments = [];
     foreach ($fields as $field) {
         $fieldName = $field['field_name'] ?? '';
         $fieldType = $field['field_type'] ?? 'text';
         $fieldRequired = !empty($field['field_required']);
         $fieldLabel = $field['field_label'] ?? $fieldName;
         $fieldValidationType = $field['field_validation_type'] ?? '';
+        $fieldInputMode = $field['field_input_mode'] ?? '';
         $fieldValidationParam = $field['field_validation_param'] ?? '';
         $fieldErrorMsg = $field['field_error_message'] ?? '';
+
+        if ($fieldType === 'customer_number') {
+            if ($fieldValidationType === '') {
+                $fieldValidationType = 'customer_number';
+            }
+            if ($fieldInputMode === '') {
+                $fieldInputMode = 'alnum_upper';
+            }
+            $fieldType = 'text';
+        }
+
+        if ($fieldType === 'meter_reading') {
+            if ($fieldValidationType === '') {
+                $fieldValidationType = 'meter_reading';
+            }
+            if ($fieldInputMode === '') {
+                $fieldInputMode = 'meter_reading';
+            }
+            $fieldType = 'text';
+        }
         
         if (empty($fieldName) || in_array($fieldType, ['headline', 'fieldset', 'fieldset_end', 'divider'])) {
             continue;
         }
         
-        $value = $_POST[$formId . '_' . $fieldName] ?? '';
+        $value = (string) ($_POST[$formId . '_' . $fieldName] ?? '');
+
+        if ($fieldType === 'file') {
+            $fileKey = $formId . '_' . $fieldName;
+            $fileInfo = $_FILES[$fileKey] ?? null;
+            $uploadError = is_array($fileInfo) ? (int) ($fileInfo['error'] ?? UPLOAD_ERR_NO_FILE) : UPLOAD_ERR_NO_FILE;
+
+            if ($fieldRequired && $uploadError === UPLOAD_ERR_NO_FILE) {
+                $formErrors[$fieldName] = $fieldErrorMsg ?: 'Bitte laden Sie eine Datei für "' . $fieldLabel . '" hoch.';
+                continue;
+            }
+
+            if ($uploadError !== UPLOAD_ERR_OK) {
+                if ($uploadError !== UPLOAD_ERR_NO_FILE) {
+                    $formErrors[$fieldName] = $fieldErrorMsg ?: 'Datei-Upload fehlgeschlagen.';
+                }
+                $formData[$fieldName] = '';
+                continue;
+            }
+
+            $tmpName = (string) ($fileInfo['tmp_name'] ?? '');
+            $originalName = (string) ($fileInfo['name'] ?? '');
+
+            if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+                $formErrors[$fieldName] = $fieldErrorMsg ?: 'Ungültiger Datei-Upload.';
+                continue;
+            }
+
+            $safeName = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($originalName)) ?: 'upload.bin';
+            $formData[$fieldName] = $safeName;
+            $mailAttachments[] = [
+                'tmp_name' => $tmpName,
+                'name' => $safeName,
+            ];
+            continue;
+        }
+
+        $value = normalizeInputValue($value, (string) $fieldInputMode);
         $formData[$fieldName] = $value;
         
         // Pflichtfeld
@@ -350,34 +533,7 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
     if (empty($formErrors)) {
         try {
             // E-Mail Body erstellen
-            $body = '<table style="width: 100%; border-collapse: collapse;">';
-            foreach ($fields as $field) {
-                $fieldName = $field['field_name'] ?? '';
-                $fieldLabel = $field['field_label'] ?? $fieldName;
-                $fieldType = $field['field_type'] ?? 'text';
-                
-                if (empty($fieldName) || in_array($fieldType, ['headline', 'hidden', 'fieldset', 'fieldset_end', 'divider'])) {
-                    continue;
-                }
-                
-                $value = $formData[$fieldName] ?? '';
-                
-                // Bei Select/Radio: Label statt Wert anzeigen
-                if (in_array($fieldType, ['select', 'radio']) && !empty($value)) {
-                    $options = parseFieldOptions($field);
-                    $value = $options[$value] ?? $value;
-                }
-                
-                if ($fieldType === 'checkbox') {
-                    $value = !empty($value) ? 'Ja' : 'Nein';
-                }
-                
-                $body .= '<tr>';
-                $body .= '<td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold; width: 30%;">' . rex_escape($fieldLabel) . '</td>';
-                $body .= '<td style="padding: 8px; border-bottom: 1px solid #ddd;">' . nl2br(rex_escape($value)) . '</td>';
-                $body .= '</tr>';
-            }
-            $body .= '</table>';
+            $body = buildMailTableBody($fields, $formData, false);
             
             // Absender E-Mail ermitteln
             $senderEmail = '';
@@ -421,6 +577,10 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
             $mail->Subject = $subject;
             $mail->Body = $body;
             $mail->isHTML(true);
+
+            foreach ($mailAttachments as $attachment) {
+                $mail->addAttachment($attachment['tmp_name'], $attachment['name']);
+            }
             
             // Reply-To setzen, wenn eine Absender-Mail aus den Feldern ermittelt wurde
             if (!empty($senderEmail)) {
@@ -433,12 +593,13 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
             if ($sendCopy && !empty($senderEmail)) {
                 $copyIntro = $elementData['copy_intro'] ?? "Vielen Dank für Ihre Nachricht!\n\nWir haben Ihre Anfrage erhalten und werden uns schnellstmöglich bei Ihnen melden.\n\nNachfolgend eine Kopie Ihrer Anfrage:";
                 $copyFooter = $elementData['copy_footer'] ?? "Mit freundlichen Grüßen\nIhr Team";
+                $copyTable = buildMailTableBody($fields, $formData, $copyMaskIban);
                 
                 $copyBody = '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">';
                 $copyBody .= '<div style="white-space: pre-line; margin-bottom: 20px;">' . rex_escape($copyIntro) . '</div>';
                 $copyBody .= '<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">';
                 $copyBody .= '<h3 style="margin-bottom: 15px;">Ihre Nachricht:</h3>';
-                $copyBody .= $body;
+                $copyBody .= $copyTable;
                 $copyBody .= '<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">';
                 $copyBody .= '<div style="white-space: pre-line; color: #666;">' . rex_escape($copyFooter) . '</div>';
                 $copyBody .= '</div>';
@@ -515,8 +676,15 @@ if ($hasSection): ?>
     }
     
     $formTag = $isBackend ? 'div' : 'form';
+    $formExtraAttrs = '';
+    if (!$isBackend && $hasFileField) {
+        $formExtraAttrs .= ' enctype="multipart/form-data"';
+    }
+    if ($multistepEnabled) {
+        $formExtraAttrs .= ' data-cb-multistep="1" data-cb-step-prev-label="' . rex_escape($multistepPrevLabel) . '" data-cb-step-next-label="' . rex_escape($multistepNextLabel) . '"';
+    }
     ?>
-    <<?= $formTag ?> id="<?= $formId ?>"<?= !$isBackend ? ' method="post"' : '' ?> class="<?= $formClass ?>" data-cb-contact-form="1">
+    <<?= $formTag ?> id="<?= $formId ?>"<?= !$isBackend ? ' method="post"' : '' ?><?= $formExtraAttrs ?> class="<?= $formClass ?>" data-cb-contact-form="1">
         
         <?php if ($isBackend): ?>
             <div class="uk-alert-primary" uk-alert>
@@ -549,6 +717,29 @@ if ($hasSection): ?>
                 $fieldDefault = $field['field_default'] ?? '';
                 $fieldWidth = $field['field_width'] ?? '1-1';
                 $fieldAttributes = $field['field_attributes'] ?? '';
+                $fieldPattern = trim((string) ($field['field_pattern'] ?? ''));
+                $fieldValidationType = (string) ($field['field_validation_type'] ?? '');
+                $fieldInputMode = (string) ($field['field_input_mode'] ?? '');
+
+                if ($fieldType === 'customer_number') {
+                    if ($fieldValidationType === '') {
+                        $fieldValidationType = 'customer_number';
+                    }
+                    if ($fieldInputMode === '') {
+                        $fieldInputMode = 'alnum_upper';
+                    }
+                    $fieldType = 'text';
+                }
+
+                if ($fieldType === 'meter_reading') {
+                    if ($fieldValidationType === '') {
+                        $fieldValidationType = 'meter_reading';
+                    }
+                    if ($fieldInputMode === '') {
+                        $fieldInputMode = 'meter_reading';
+                    }
+                    $fieldType = 'text';
+                }
                 
                 // Optionen für Select/Radio laden
                 $parsedOptions = parseFieldOptions($field);
@@ -563,6 +754,18 @@ if ($hasSection): ?>
                 
                 // Zusätzliche Attribute
                 $extraAttrs = $fieldAttributes ? ' ' . $fieldAttributes : '';
+
+                if ($fieldPattern !== '') {
+                    $extraAttrs .= ' pattern="' . rex_escape($fieldPattern) . '"';
+                }
+
+                if ($fieldValidationType === 'meter_reading' || $fieldValidationType === 'meter_reading_int' || $fieldInputMode === 'meter_reading') {
+                    $extraAttrs .= ' inputmode="decimal"';
+                }
+
+                if ($fieldValidationType === 'number' || $fieldInputMode === 'digits_only') {
+                    $extraAttrs .= ' inputmode="numeric"';
+                }
             ?>
                 
                 <?php if ($fieldType === 'fieldset'): ?>
@@ -618,6 +821,8 @@ if ($hasSection): ?>
                                 </div>
                             <?php elseif ($fieldType === 'checkbox'): ?>
                                 <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
+                            <?php elseif ($fieldType === 'file'): ?>
+                                <input class="uk-input <?= $errorClass ?>" type="file" id="<?= $inputName ?>" name="<?= $inputName ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                             <?php else: ?>
                                 <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldPlaceholder) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                             <?php endif; ?>
@@ -644,6 +849,9 @@ if ($hasSection): ?>
                             <?php foreach ($parsedOptions as $optValue => $optLabel): ?>
                                 <label class="uk-margin-small-right"><input class="uk-radio" type="radio" name="<?= $inputName ?>" value="<?= rex_escape($optValue) ?>"<?= (string)$inputValue === (string)$optValue ? ' checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($optLabel) ?></label>
                             <?php endforeach; ?>
+                        <?php elseif ($fieldType === 'file'): ?>
+                            <div class="uk-text-small uk-text-muted uk-margin-small-bottom"><?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></div>
+                            <input class="uk-input <?= $errorClass ?>" type="file" id="<?= $inputName ?>" name="<?= $inputName ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                         <?php else: ?>
                             <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldLabel . ($fieldRequired ? ' *' : '')) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                         <?php endif; ?>
@@ -677,6 +885,8 @@ if ($hasSection): ?>
                                 </div>
                             <?php elseif ($fieldType === 'checkbox'): ?>
                                 <label><input class="uk-checkbox" type="checkbox" name="<?= $inputName ?>" value="1" <?= !empty($inputValue) ? 'checked' : '' ?><?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>> <?= rex_escape($fieldLabel) ?><?php if ($fieldRequired): ?><span class="uk-text-danger">*</span><?php endif; ?></label>
+                            <?php elseif ($fieldType === 'file'): ?>
+                                <input class="uk-input <?= $errorClass ?>" type="file" id="<?= $inputName ?>" name="<?= $inputName ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                             <?php else: ?>
                                 <input class="uk-input <?= $errorClass ?>" type="<?= $fieldType ?>" id="<?= $inputName ?>" name="<?= $inputName ?>" value="<?= rex_escape($inputValue) ?>" placeholder="<?= rex_escape($fieldPlaceholder) ?>"<?= $extraAttrs ?> <?= !$isBackend && $fieldRequired ? 'required' : '' ?>>
                             <?php endif; ?>
@@ -729,7 +939,7 @@ if ($hasSection): ?>
 <?php endif; ?>
 
 <?php
-if (!$isBackend && $ajaxEnhancement && !defined('YFORM_CB_CONTACT_FORM_AJAX_JS_INCLUDED')) {
+if (!$isBackend && ($ajaxEnhancement || $multistepEnabled) && !defined('YFORM_CB_CONTACT_FORM_AJAX_JS_INCLUDED')) {
     define('YFORM_CB_CONTACT_FORM_AJAX_JS_INCLUDED', true);
     ?>
     <script src="<?= rex_escape(rex_url::addonAssets('yform_content_builder', 'contact_form/contact-form-ajax.js')) ?>"></script>

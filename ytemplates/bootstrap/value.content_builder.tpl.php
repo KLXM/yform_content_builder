@@ -28,6 +28,20 @@ $enableOnlineToggle = (bool) $addon->getConfig('enable_online_toggle', false);
 if ($enableOnlineToggle) {
     $fieldClass .= ' has-online-toggle';
 }
+
+$groupedAvailableElements = [];
+foreach ($available_elements as $elementType => $config) {
+    $category = trim((string) ($config['category'] ?? ''));
+    if ('' === $category) {
+        $category = 'sonstiges';
+    }
+
+    if (!isset($groupedAvailableElements[$category])) {
+        $groupedAvailableElements[$category] = [];
+    }
+
+    $groupedAvailableElements[$category][$elementType] = $config;
+}
 ?>
 
 <div class="form-group yform-element <?= $fieldClass ?>" 
@@ -78,24 +92,32 @@ if ($enableOnlineToggle) {
                                 <i class="fa fa-plus"></i>
                             </button>
                             <ul class="dropdown-menu pull-right">
-                                <?php foreach ($available_elements as $elementType => $config): ?>
-                                    <li>
-                                        <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
-                                        <a href="#" class="btn-insert-slice" 
-                                           data-element-type="<?= rex_escape($elementType) ?>"
-                                           data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
-                                           <?php if ($elementDescription !== ''): ?>
-                                           data-toggle="tooltip"
-                                           data-placement="right"
-                                           data-container="body"
-                                           data-delay='{"show":700,"hide":120}'
-                                           title="<?= rex_escape($elementDescription) ?>"
-                                           <?php endif; ?>
-                                           data-insert-after="<?= $index ?>">
-                                            <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
-                                            <?= rex_escape($config['label'] ?? $elementType) ?>
-                                        </a>
-                                    </li>
+                                <?php $categoryIndex = 0; ?>
+                                <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
+                                    <?php if ($categoryIndex > 0): ?>
+                                        <li role="separator" class="divider"></li>
+                                    <?php endif; ?>
+                                    <li class="dropdown-header"><?= rex_escape(ucfirst(str_replace('_', ' ', (string) $category))) ?></li>
+                                    <?php foreach ($elementsInCategory as $elementType => $config): ?>
+                                        <li>
+                                            <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
+                                            <a href="#" class="btn-insert-slice" 
+                                               data-element-type="<?= rex_escape($elementType) ?>"
+                                               data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
+                                               <?php if ($elementDescription !== ''): ?>
+                                               data-toggle="tooltip"
+                                               data-placement="right"
+                                               data-container="body"
+                                               data-delay='{"show":700,"hide":120}'
+                                               title="<?= rex_escape($elementDescription) ?>"
+                                               <?php endif; ?>
+                                               data-insert-after="<?= $index ?>">
+                                                <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
+                                                <?= rex_escape($config['label'] ?? $elementType) ?>
+                                            </a>
+                                        </li>
+                                    <?php endforeach; ?>
+                                    <?php ++$categoryIndex; ?>
                                 <?php endforeach; ?>
                             </ul>
                         </div>
@@ -170,23 +192,31 @@ if ($enableOnlineToggle) {
                 <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <?php foreach ($available_elements as $elementType => $config): ?>
-                    <li>
-                        <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
-                        <a href="#" class="btn-add-slice" 
-                           data-element-type="<?= rex_escape($elementType) ?>"
-                           data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
-                           <?php if ($elementDescription !== ''): ?>
-                           data-toggle="tooltip"
-                           data-placement="right"
-                           data-container="body"
-                           data-delay='{"show":700,"hide":120}'
-                           title="<?= rex_escape($elementDescription) ?>"
-                           <?php endif; ?>>
-                            <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
-                            <?= rex_escape($config['label'] ?? $elementType) ?>
-                        </a>
-                    </li>
+                <?php $categoryIndex = 0; ?>
+                <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
+                    <?php if ($categoryIndex > 0): ?>
+                        <li role="separator" class="divider"></li>
+                    <?php endif; ?>
+                    <li class="dropdown-header"><?= rex_escape(ucfirst(str_replace('_', ' ', (string) $category))) ?></li>
+                    <?php foreach ($elementsInCategory as $elementType => $config): ?>
+                        <li>
+                            <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
+                            <a href="#" class="btn-add-slice" 
+                               data-element-type="<?= rex_escape($elementType) ?>"
+                               data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
+                               <?php if ($elementDescription !== ''): ?>
+                               data-toggle="tooltip"
+                               data-placement="right"
+                               data-container="body"
+                               data-delay='{"show":700,"hide":120}'
+                               title="<?= rex_escape($elementDescription) ?>"
+                               <?php endif; ?>>
+                                <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
+                                <?= rex_escape($config['label'] ?? $elementType) ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                    <?php ++$categoryIndex; ?>
                 <?php endforeach; ?>
             </ul>
         </div>

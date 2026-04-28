@@ -90,6 +90,8 @@ if ($image) {
     }
 }
 
+$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
+
 // Srcset für responsive Bilder
 $srcset = '';
 if ($image) {
@@ -153,7 +155,7 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
                     src="<?= rex_escape($imageUrl) ?>"
                     <?= $srcset ? 'srcset="' . rex_escape($srcset) . '"' : '' ?>
                     sizes="(min-width: 960px) 50vw, 100vw"
-                    alt="<?= rex_escape($imageAlt ?: $heading) ?>"
+                    alt="<?= rex_escape($resolvedImageAlt) ?>"
                     class="<?= implode(' ', $imgClasses) ?>"
                     loading="lazy"
                 >

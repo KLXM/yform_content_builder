@@ -287,14 +287,36 @@ class yform_content_builder_module
         (function() {
             var storage = document.getElementById('<?= rex_escape($storageId) ?>');
             var form = document.getElementById('<?= rex_escape($formId) ?>');
+            var moduleRoot = form ? form.closest('.yform-content-builder-module-input') : null;
             
             if (!storage || !form) {
                 console.warn('YForm Content Builder: Storage or form not found');
                 return;
             }
+
+            function syncTinyMceTextareas() {
+                if (typeof tinymce === 'undefined') {
+                    return;
+                }
+
+                form.querySelectorAll('textarea.tiny-editor').forEach(function(textarea) {
+                    if (!textarea.id) {
+                        return;
+                    }
+
+                    var editor = tinymce.get(textarea.id);
+                    if (editor) {
+                        textarea.value = editor.getContent();
+                    }
+                });
+            }
+
             
             // Funktion zum Sammeln aller Formulardaten
             function collectFormData() {
+                // TinyMCE-Inhalte in Textareas synchronisieren
+                syncTinyMceTextareas();
+
                 // Erst CKEditor5-Inhalte in Textareas synchronisieren (REDAXO CKE5)
                 if (typeof ckeditors !== 'undefined') {
                     form.querySelectorAll('textarea.cke5-editor').forEach(function(textarea) {
@@ -308,11 +330,13 @@ class yform_content_builder_module
                 
                 var data = {};
                 
-                // Sammle Felder aus dem Hauptformular UND aus allen Modals
+                // Sammle Felder aus dem Hauptformular
                 var allFields = form.querySelectorAll('input[name], textarea[name], select[name]');
                 
-                // Auch Felder in Bootstrap Modals sammeln (die sind außerhalb des Forms)
-                var modalFields = document.querySelectorAll('.modal input[name], .modal textarea[name], .modal select[name]');
+                // Modal-Felder nur innerhalb dieser Builder-Instanz sammeln
+                var modalFields = moduleRoot
+                    ? moduleRoot.querySelectorAll('.modal input[name], .modal textarea[name], .modal select[name]')
+                    : [];
                 
                 // Beide NodeLists kombinieren
                 var combinedFields = Array.from(allFields).concat(Array.from(modalFields));
@@ -437,10 +461,12 @@ class yform_content_builder_module
                 collectFormData();
             });
             
-            // Auch auf Änderungen in Modals reagieren
-            $(document).on('change input', '.modal input, .modal textarea, .modal select', function() {
-                collectFormData();
-            });
+            // Auch auf Änderungen in Modals reagieren (nur diese Instanz)
+            if (moduleRoot) {
+                $(moduleRoot).on('change input', '.modal input, .modal textarea, .modal select', function() {
+                    collectFormData();
+                });
+            }
             
             // CKEditor5 Change Events abfangen (REDAXO CKE5)
             // REDAXO CKE5 verwendet ClassicEditor und speichert Instanzen in window.ckeditors
@@ -470,7 +496,7 @@ class yform_content_builder_module
                     }
                 });
             }
-            
+
             // Initial sammeln
             collectFormData();
             
@@ -480,6 +506,14 @@ class yform_content_builder_module
                 
                 // Nach Repeater-Änderungen auch Daten sammeln
                 form.addEventListener('repeater:changed', collectFormData);
+                
+                // Nach Repeater-Änderungen auch TinyMCE neu initialisieren
+                // (Neue Textareas in neuen Repeater-Items)
+                form.addEventListener('repeater:changed', function() {
+                    setTimeout(function() {
+                        $(document).trigger('rex:ready', [$(moduleRoot)]);
+                    }, 100);
+                });
             }
         })();
         </script>

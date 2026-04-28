@@ -61,6 +61,7 @@ if ($imageShadow) {
 }
 
 $imageUrl = $image ? ($imageRatio ? rex_media_manager::getUrl('card_' . $imageRatio . '_w1200', $image) : rex_url::media($image)) : '';
+$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
 
 $btnClass = match ($linkStyle) {
     'uk-button-primary'   => 'btn btn-primary',
@@ -75,7 +76,7 @@ $btnClass = match ($linkStyle) {
 
         <?php if ($mediaPosition === 'left' && $image && $imageUrl): ?>
             <div class="<?= $cols['img'] ?>">
-                <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($imageAlt ?: $heading) ?>"
+                <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($resolvedImageAlt) ?>"
                      class="<?= implode(' ', $imgClasses) ?>" loading="lazy">
             </div>
         <?php endif; ?>
@@ -104,7 +105,7 @@ $btnClass = match ($linkStyle) {
 
         <?php if ($mediaPosition === 'right' && $image && $imageUrl): ?>
             <div class="<?= $cols['img'] ?>">
-                <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($imageAlt ?: $heading) ?>"
+                <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($resolvedImageAlt) ?>"
                      class="<?= implode(' ', $imgClasses) ?>" loading="lazy">
             </div>
         <?php endif; ?>

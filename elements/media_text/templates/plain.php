@@ -32,12 +32,13 @@ if ($linkType === 'external' && $linkUrl) {
 }
 
 $imageUrl = $image ? ($imageRatio ? rex_media_manager::getUrl('card_' . $imageRatio . '_w1200', $image) : rex_url::media($image)) : '';
+$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
 
 ?>
 <div class="cb-media-text cb-media-text--<?= rex_escape($mediaPosition) ?>">
     <?php if ($mediaPosition === 'left' && $image && $imageUrl): ?>
         <div class="cb-media-text__image">
-            <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($imageAlt ?: $heading) ?>" loading="lazy">
+            <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($resolvedImageAlt) ?>" loading="lazy">
         </div>
     <?php endif; ?>
 
@@ -61,7 +62,7 @@ $imageUrl = $image ? ($imageRatio ? rex_media_manager::getUrl('card_' . $imageRa
 
     <?php if ($mediaPosition === 'right' && $image && $imageUrl): ?>
         <div class="cb-media-text__image">
-            <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($imageAlt ?: $heading) ?>" loading="lazy">
+            <img src="<?= rex_escape($imageUrl) ?>" alt="<?= rex_escape($resolvedImageAlt) ?>" loading="lazy">
         </div>
     <?php endif; ?>
 </div>

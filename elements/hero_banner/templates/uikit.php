@@ -93,6 +93,8 @@ if ($image && !$video) {
     $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $image);
 }
 
+$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
+
 // Parallax-Attribute
 $parallaxBgAttr = '';
 if ($parallaxBg && $image && !$video) {
@@ -116,7 +118,7 @@ if ($parallaxContent) {
                aria-hidden="true"></video>
     <?php elseif ($image): ?>
         <img src="<?= rex_escape($bgImageUrl) ?>"
-             alt="<?= rex_escape($imageAlt ?: $heading) ?>"
+             alt="<?= rex_escape($resolvedImageAlt) ?>"
              uk-cover loading="eager"<?= $parallaxBgAttr ?>>
     <?php endif; ?>
 

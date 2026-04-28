@@ -79,13 +79,7 @@ if (!function_exists('movingTilesIsVideo')) {
             $itemTileLight = ' uk-light';
         }
         
-        // Alt-Text aus Medienpool wenn leer (nur med_alt)
-        if (empty($imageAlt) && !empty($media)) {
-            $mediaObj = rex_media::get($media);
-            if ($mediaObj) {
-                $imageAlt = $mediaObj->getValue('med_alt') ?: '';
-            }
-        }
+        $imageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $media, (string) $imageAlt, '');
         
         // Position berechnen: first_position bestimmt wo Element 1 startet
         $isFirstLeft = ($firstPosition === 'left');

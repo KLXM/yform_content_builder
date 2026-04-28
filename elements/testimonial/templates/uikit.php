@@ -75,8 +75,10 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
             }
 
             $avatarUrl = '';
+            $avatarAlt = '';
             if ($authorImage) {
                 $avatarUrl = rex_media_manager::getUrl('card_1_1_w400', $authorImage);
+                $avatarAlt = YFormContentBuilderMediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
             }
             ?>
             <div class="<?= $itemWidthClass ?>">
@@ -105,7 +107,7 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
                         <?php if ($avatarUrl): ?>
                             <div class="uk-margin-small-right" style="flex-shrink:0;">
                                 <img src="<?= rex_escape($avatarUrl) ?>"
-                                     alt="<?= rex_escape($authorName) ?>"
+                                      alt="<?= rex_escape($avatarAlt) ?>"
                                      class="uk-border-circle"
                                      style="width:48px; height:48px; object-fit:cover;"
                                      loading="lazy">

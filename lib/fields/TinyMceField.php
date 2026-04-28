@@ -9,9 +9,28 @@ use rex_escape;
  */
 class TinyMceField extends ContentBuilderFieldAbstract
 {
+    private static bool $assetsBootstrapped = false;
+
     public static function getType(): string
     {
         return 'tinymce';
+    }
+
+    private static function ensureAssetsBootstrapped(): void
+    {
+        if (self::$assetsBootstrapped) {
+            return;
+        }
+
+        self::$assetsBootstrapped = true;
+
+        if (!\rex_addon::get('tinymce')->isAvailable()) {
+            return;
+        }
+
+        if (class_exists(\FriendsOfRedaxo\TinyMce\Provider\Assets::class)) {
+            \FriendsOfRedaxo\TinyMce\Provider\Assets::provideBaseAssets();
+        }
     }
 
     public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
@@ -20,6 +39,8 @@ class TinyMceField extends ContentBuilderFieldAbstract
         if (!$this->hasPermission($fieldConfig)) {
             return;
         }
+
+        self::ensureAssetsBootstrapped();
 
         $label = $fieldConfig['label'] ?? $fieldName;
         $profile = $fieldConfig['profile'] ?? 'default';

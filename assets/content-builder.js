@@ -660,66 +660,22 @@
                 // Formular erstmal laden
                 this.loadSliceForm($slice);
             } else {
-                // Formular ist bereits geladen - TinyMCE neu initialisieren/refreshen
+                // Formular ist bereits geladen - TinyMCE neu initialisieren
                 $editForm.show();
                 
-                // TinyMCE Editoren refreshen (da sie vorher versteckt waren)
+                // WICHTIG: Auf jeden Fall tiny_init() aufrufen!
+                // Das ist notwendig, wenn das Formular vorher geschlossen wurde und
+                // TinyMCE-Instanzen zerstört wurden. tiny_init() prüft selbst,
+                // welche Textareas schon initialisiert sind.
                 setTimeout(function() {
-                    $editForm.find('textarea.tiny-editor').each(function() {
-                        var $ta = $(this);
-                        var id = $ta.attr('id');
-                        
-                        if (id && typeof tinymce !== 'undefined') {
-                            var editor = tinymce.get(id);
-                            
-                            if (editor) {
-                                // Editor existiert - Layout neu berechnen
-                                try {
-                                    if (typeof editor.dispatch === 'function') {
-                                        editor.dispatch('ResizeEditor');
-                                        editor.dispatch('ResizeContent');
-                                    }
-                                    // Container sichtbar machen falls versteckt
-                                    var $container = $ta.siblings('.tox-tinymce');
-                                    if ($container.length && !$container.is(':visible')) {
-                                        $container.show();
-                                    }
-                                } catch(e) {}
-                            }
+                    if (typeof tiny_init === 'function') {
+                        try {
+                            tiny_init($editForm);
+                        } catch(e) {
+                            console.error('tiny_init failed:', e);
                         }
-                    });
-                    
-                    // Check for uninitialized textareas (e.g., newly added repeater items)
-                    var $uninitializedTextareas = $editForm.find('textarea.tiny-editor').filter(function() {
-                        return !$(this).hasClass('mce-initialized');
-                    });
-                    
-                    if ($uninitializedTextareas.length > 0) {
-                        // Re-init for uninitialized textareas
-                        $editForm.find('.repeater-item:not(.repeater-item-template)').each(function() {
-                            var $item = $(this);
-                            var $itemUninit = $item.find('textarea.tiny-editor').filter(function() {
-                                return !$(this).hasClass('mce-initialized');
-                            });
-                            
-                            if ($itemUninit.length > 0) {
-                                tiny_init($item);
-                            }
-                        });
-                        
-                        // Second pass: Force visibility for ALL TinyMCE containers
-                        setTimeout(function() {
-                            $editForm.find('textarea.tiny-editor').each(function() {
-                                var $ta = $(this);
-                                var $editorContainer = $ta.siblings('.tox-tinymce');
-                                
-                                if ($editorContainer.length > 0 && !$editorContainer.is(':visible')) {
-                                    $editorContainer.show();
-                                }
-                            });
-                        }, 300);
                     }
-                }, 100);
+                }, 50);
             }
             
             $editForm.show();
@@ -1322,10 +1278,53 @@
             function esc(value) {
                 return $('<div/>').text(value == null ? '' : String(value)).html();
             }
+
+            function formatCategory(category) {
+                var normalized = String(category == null ? '' : category).trim();
+                if (normalized === '') {
+                    normalized = 'sonstiges';
+                }
+
+                return normalized
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, function(ch) {
+                        return ch.toUpperCase();
+                    });
+            }
+
+            var groupedElements = {};
+            var categoryOrder = [];
             
             for (var elementType in availableElements) {
                 if (availableElements.hasOwnProperty(elementType)) {
                     var config = availableElements[elementType];
+                    var category = (config && config.category) ? String(config.category) : '';
+                    if (category.trim() === '') {
+                        category = 'sonstiges';
+                    }
+
+                    if (!groupedElements[category]) {
+                        groupedElements[category] = [];
+                        categoryOrder.push(category);
+                    }
+
+                    groupedElements[category].push({
+                        elementType: elementType,
+                        config: config
+                    });
+                }
+            }
+
+            categoryOrder.forEach(function(category, categoryIndex) {
+                if (categoryIndex > 0) {
+                    dropdownItems += '<li role="separator" class="divider"></li>';
+                }
+
+                dropdownItems += '<li class="dropdown-header">' + esc(formatCategory(category)) + '</li>';
+
+                groupedElements[category].forEach(function(entry) {
+                    var elementType = entry.elementType;
+                    var config = entry.config || {};
                     var label = config.label || elementType;
                     var icon = config.icon || 'fa-cube';
                     var description = config.description || '';
@@ -1343,8 +1342,8 @@
                         '<i class="fa ' + esc(icon) + '"></i> ' + esc(label) +
                         '</a>' +
                         '</li>';
-                }
-            }
+                });
+            });
             
             var html = '<div class="btn-group btn-group-insert">' +
                 '<button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="Element einfügen">' +

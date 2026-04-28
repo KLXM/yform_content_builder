@@ -27,6 +27,7 @@ if (empty($items)) {
         }
 
         $avatarUrl = $authorImage ? rex_media_manager::getUrl('card_1_1_w400', $authorImage) : '';
+        $avatarAlt = YFormContentBuilderMediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
         ?>
         <div class="cb-testimonials__item">
             <?php if ($rating): ?>
@@ -39,7 +40,7 @@ if (empty($items)) {
             </blockquote>
             <div class="cb-testimonials__author">
                 <?php if ($avatarUrl): ?>
-                    <img src="<?= rex_escape($avatarUrl) ?>" alt="<?= rex_escape($authorName) ?>"
+                    <img src="<?= rex_escape($avatarUrl) ?>" alt="<?= rex_escape($avatarAlt) ?>"
                          class="cb-testimonials__avatar" loading="lazy">
                 <?php endif; ?>
                 <div>

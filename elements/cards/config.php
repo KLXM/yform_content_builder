@@ -162,7 +162,7 @@ if (class_exists('YFormContentBuilderSvg')) {
 }
 
 return [
-    'label' => 'Cards Grid Pro',
+    'label' => 'Layout-Baukasten',
     'icon' => 'fa fa-th-large',
     'description' => 'Karten-Grid mit flexiblen Layouts und Media-Optionen',
     'version' => '1.13.0',

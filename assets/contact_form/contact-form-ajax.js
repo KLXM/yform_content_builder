@@ -1,6 +1,113 @@
 (function () {
     'use strict';
 
+    function nearestBlock(element) {
+        if (!element || typeof element.closest !== 'function') {
+            return null;
+        }
+
+        return element.closest('.uk-width-1-1') || element.closest('.uk-margin-top') || element.parentElement;
+    }
+
+    function validateStep(step) {
+        var inputs = step.querySelectorAll('input, select, textarea');
+        for (var i = 0; i < inputs.length; i++) {
+            var field = inputs[i];
+            if (typeof field.checkValidity === 'function' && !field.checkValidity()) {
+                if (typeof field.reportValidity === 'function') {
+                    field.reportValidity();
+                }
+                if (typeof field.focus === 'function') {
+                    field.focus();
+                }
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function initMultistepForms(root) {
+        var forms = (root || document).querySelectorAll('form[data-cb-contact-form="1"][data-cb-multistep="1"]');
+        forms.forEach(function (form) {
+            if (form.getAttribute('data-cb-multistep-init') === '1') {
+                return;
+            }
+
+            var steps = Array.prototype.slice.call(form.querySelectorAll('fieldset.uk-fieldset'));
+            if (steps.length < 2) {
+                return;
+            }
+
+            form.setAttribute('data-cb-multistep-init', '1');
+            var prevLabel = form.getAttribute('data-cb-step-prev-label') || 'Zurück';
+            var nextLabel = form.getAttribute('data-cb-step-next-label') || 'Weiter';
+            var submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+            var currentStep = 0;
+
+            function toggleSubmitVisibility(show) {
+                submitButtons.forEach(function (button) {
+                    var block = nearestBlock(button);
+                    if (!block) {
+                        return;
+                    }
+                    block.hidden = !show;
+                });
+            }
+
+            function showStep(stepIndex) {
+                steps.forEach(function (step, index) {
+                    var isActive = index === stepIndex;
+                    step.hidden = !isActive;
+                    step.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+
+                    var nav = step.nextElementSibling;
+                    if (nav && nav.classList.contains('cb-contact-step-nav')) {
+                        nav.hidden = !isActive;
+                    }
+                });
+
+                currentStep = stepIndex;
+                toggleSubmitVisibility(stepIndex === steps.length - 1);
+            }
+
+            steps.forEach(function (step, index) {
+                var nav = document.createElement('div');
+                nav.className = 'cb-contact-step-nav uk-margin-top uk-flex uk-flex-between';
+
+                var prevButton = document.createElement('button');
+                prevButton.type = 'button';
+                prevButton.className = 'uk-button uk-button-default';
+                prevButton.textContent = prevLabel;
+                prevButton.hidden = index === 0;
+                prevButton.addEventListener('click', function () {
+                    if (index > 0) {
+                        showStep(index - 1);
+                    }
+                });
+
+                var nextButton = document.createElement('button');
+                nextButton.type = 'button';
+                nextButton.className = 'uk-button uk-button-primary';
+                nextButton.textContent = nextLabel;
+                nextButton.hidden = index === steps.length - 1;
+                nextButton.addEventListener('click', function () {
+                    if (!validateStep(step)) {
+                        return;
+                    }
+                    if (index < steps.length - 1) {
+                        showStep(index + 1);
+                    }
+                });
+
+                nav.appendChild(prevButton);
+                nav.appendChild(nextButton);
+                step.insertAdjacentElement('afterend', nav);
+            });
+
+            showStep(0);
+        });
+    }
+
     function findTargetWrapper(htmlText, key) {
         var parser = new DOMParser();
         var doc = parser.parseFromString(htmlText, 'text/html');
@@ -80,6 +187,7 @@
                 }
 
                 wrapper.replaceWith(newWrapper);
+                initMultistepForms(newWrapper);
                 focusLiveMessage(newWrapper);
 
                 var firstInvalid = newWrapper.querySelector('.uk-form-danger, [aria-invalid="true"]');
@@ -101,4 +209,12 @@
                 setSubmitState(form, false);
             });
     });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            initMultistepForms(document);
+        });
+    } else {
+        initMultistepForms(document);
+    }
 })();

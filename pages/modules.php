@@ -187,6 +187,7 @@ PHP;
 // Alle verfügbaren Elemente laden
 $elementsDir = rex_path::addon('yform_content_builder', 'elements');
 $elements = [];
+$elementsByCategory = [];
 
 if (is_dir($elementsDir)) {
     $dirs = scandir($elementsDir);
@@ -196,7 +197,18 @@ if (is_dir($elementsDir)) {
         if (file_exists($configPath)) {
             $config = include $configPath;
             if (is_array($config) && isset($config['label'])) {
-                $elements[$dir] = $config['label'];
+                $label = (string) $config['label'];
+                $category = isset($config['category']) ? trim((string) $config['category']) : 'allgemein';
+                if ($category === '' || $category === '-') {
+                    $category = 'allgemein';
+                }
+
+                $elements[$dir] = $label;
+
+                if (!isset($elementsByCategory[$category])) {
+                    $elementsByCategory[$category] = [];
+                }
+                $elementsByCategory[$category][$dir] = $label;
             }
         }
     }
@@ -204,6 +216,25 @@ if (is_dir($elementsDir)) {
 
 // Sortiere Elemente
 asort($elements);
+
+// Sortiere Kategorien und Elemente in Kategorien
+if (!empty($elementsByCategory)) {
+    foreach ($elementsByCategory as $category => $categoryElements) {
+        asort($categoryElements);
+        $elementsByCategory[$category] = $categoryElements;
+    }
+
+    uksort($elementsByCategory, static function ($a, $b) {
+        if ($a === 'allgemein') {
+            return -1;
+        }
+        if ($b === 'allgemein') {
+            return 1;
+        }
+
+        return strcasecmp((string) $a, (string) $b);
+    });
+}
 
 // UI
 $fragment = new rex_fragment();
@@ -250,15 +281,22 @@ if (empty($elements)) {
     $content .= '<button type="button" class="btn btn-xs btn-default" onclick="document.querySelectorAll(\'.element-checkbox\').forEach(c => c.checked = false);">Alle abwählen</button>';
     $content .= '</div>';
     
-    foreach ($elements as $elementKey => $elementLabel) {
-        $moduleKey = 'yfcb_' . $elementKey;
-        $content .= '<div class="checkbox">';
-        $content .= '<label>';
-        $content .= '<input type="checkbox" class="element-checkbox" name="elements[]" value="' . rex_escape($elementKey) . '">';
-        $content .= ' <strong>' . rex_escape($elementLabel) . '</strong> ';
-        $content .= '<small style="color: #999;">(Key: ' . rex_escape($moduleKey) . ')</small>';
-        $content .= '</label>';
+    foreach ($elementsByCategory as $category => $categoryElements) {
+        $content .= '<div style="margin: 14px 0 6px;">';
+        $content .= '<strong style="text-transform: capitalize;">' . rex_escape($category) . '</strong> ';
+        $content .= '<span class="label label-default">' . count($categoryElements) . '</span>';
         $content .= '</div>';
+
+        foreach ($categoryElements as $elementKey => $elementLabel) {
+            $moduleKey = 'yfcb_' . $elementKey;
+            $content .= '<div class="checkbox" style="margin-left: 8px;">';
+            $content .= '<label>';
+            $content .= '<input type="checkbox" class="element-checkbox" name="elements[]" value="' . rex_escape($elementKey) . '">';
+            $content .= ' <strong>' . rex_escape($elementLabel) . '</strong> ';
+            $content .= '<small style="color: #999;">(Key: ' . rex_escape($moduleKey) . ')</small>';
+            $content .= '</label>';
+            $content .= '</div>';
+        }
     }
 }
 

@@ -40,12 +40,12 @@ return [
         'design_tab' => [
             'label' => 'Design',
             'icon' => 'fa-paint-brush',
-            'fields' => ['submit_style', 'layout', 'privacy_checkbox', 'privacy_text', 'privacy_link', 'ajax_enhancement']
+            'fields' => ['submit_style', 'layout', 'multistep_enabled', 'multistep_prev_label', 'multistep_next_label', 'privacy_checkbox', 'privacy_text', 'privacy_link', 'ajax_enhancement']
         ],
         'copy_tab' => [
             'label' => 'Bestätigung',
             'icon' => 'fa-reply',
-            'fields' => ['send_copy', 'copy_subject', 'copy_intro', 'copy_footer']
+            'fields' => ['send_copy', 'copy_subject', 'copy_intro', 'copy_footer', 'copy_mask_iban']
         ],
         'section_tab' => [
             'label' => 'Sektion',
@@ -94,8 +94,11 @@ return [
                         'selectpicker' => false,
                         'choices' => [
                             'text' => 'Textfeld',
+                            'customer_number' => 'Kundennummer',
+                            'meter_reading' => 'Zählerstand',
                             'email' => 'E-Mail',
                             'tel' => 'Telefon',
+                            'file' => 'Datei-Upload',
                             'textarea' => 'Textbereich',
                             'select' => 'Auswahl (Dropdown)',
                             'checkbox' => 'Checkbox',
@@ -173,6 +176,9 @@ return [
                         'selectpicker' => false,
                         'choices' => [
                             '' => 'Keine zusätzliche Validierung',
+                            'customer_number' => 'Kundennummer (z.B. KD-123456)',
+                            'meter_reading' => 'Zählerstand (z.B. 12345,67)',
+                            'meter_reading_int' => 'Zählerstand ganzzahlig',
                             'iban' => 'IBAN',
                             'bic' => 'BIC/SWIFT',
                             'plz_de' => 'Postleitzahl (Deutschland)',
@@ -193,6 +199,27 @@ return [
                         ],
                         'default' => ''
                     ],
+                    'field_input_mode' => [
+                        'type' => 'choice',
+                        'label' => 'Schreibweise erzwingen',
+                        'selectpicker' => false,
+                        'choices' => [
+                            '' => 'Keine automatische Anpassung',
+                            'trim' => 'Leerzeichen am Anfang/Ende entfernen',
+                            'uppercase' => 'In GROSSBUCHSTABEN umwandeln',
+                            'lowercase' => 'In kleinbuchstaben umwandeln',
+                            'no_spaces' => 'Alle Leerzeichen entfernen',
+                            'digits_only' => 'Nur Ziffern behalten',
+                            'alnum_upper' => 'Nur Buchstaben/Zahlen (GROSS)',
+                            'meter_reading' => 'Zählerstand normalisieren (Komma/Punkt)'
+                        ],
+                        'default' => ''
+                    ],
+                    'field_pattern' => [
+                        'type' => 'text',
+                        'label' => 'HTML Pattern (optional)',
+                        'notice' => 'Regex ohne /.../ für Browser-Validierung, z.B. [A-Z]{2}-[0-9]{6}'
+                    ],
                     'field_validation_param' => [
                         'type' => 'text',
                         'label' => 'Validierungs-Parameter',
@@ -211,7 +238,7 @@ return [
                 'item_modal' => [
                     'label' => 'Erweiterte Optionen',
                     'icon' => 'fa-sliders',
-                    'fields' => ['field_options_source', 'field_options', 'field_options_sql', 'field_default', 'field_validation_type', 'field_validation_param', 'field_error_message', 'field_attributes']
+                    'fields' => ['field_options_source', 'field_options', 'field_options_sql', 'field_default', 'field_validation_type', 'field_input_mode', 'field_pattern', 'field_validation_param', 'field_error_message', 'field_attributes']
                 ]
             ],
             'submit_text' => [
@@ -287,6 +314,21 @@ return [
                 ],
                 'default' => 'default'
             ],
+            'multistep_enabled' => [
+                'type' => 'checkbox',
+                'label' => 'Multi-Step aktivieren',
+                'notice' => 'Verwendet vorhandene Fieldsets als einzelne Schritte.'
+            ],
+            'multistep_prev_label' => [
+                'type' => 'text',
+                'label' => 'Button Zurück',
+                'default' => 'Zurück'
+            ],
+            'multistep_next_label' => [
+                'type' => 'text',
+                'label' => 'Button Weiter',
+                'default' => 'Weiter'
+            ],
             'privacy_checkbox' => [
                 'type' => 'checkbox',
                 'label' => 'Datenschutz-Checkbox anzeigen'
@@ -330,6 +372,12 @@ return [
                 'label' => 'Abschlusstext / Signatur',
                 'default' => "Mit freundlichen Grüßen\nIhr Team",
                 'notice' => 'Dieser Text erscheint am Ende der E-Mail'
+            ],
+            'copy_mask_iban' => [
+                'type' => 'checkbox',
+                'label' => 'IBAN in Bestätigungs-E-Mail anonymisieren',
+                'default' => true,
+                'notice' => 'Maskiert IBAN-Werte in der Kopie an den Absender.'
             ]
         ],
         

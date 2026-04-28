@@ -6,6 +6,27 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### Neu
+
+- **6 neue Starter-Elemente** hinzugefügt mit vollständiger Template-Unterstützung (UIkit, Bootstrap, Plain):
+  - **Starter-Text**: RichText-Element mit TinyMCE Editor
+  - **Starter-Ueberschrift**: bewusst reduziertes Headline-Element (nur Text + HTML-Tag)
+  - **Starter-Media-Split**: Media-Bild + Text-Inhalt nebeneinander
+  - **Starter-Gallery**: Repeater-basierte Galerieliste
+  - **Starter-Cards**: Repeater-basierte Kartenliste mit Bild, Title, Content
+  - **Starter-Callout**: Highlight-Box mit Titel, Text und optionalem Link
+- Modul-Installer-Seite mit Kategorien-Gruppierung für bessere Übersichtlichkeit
+- Alle neuen Elemente unterstützen Content Builder's Framework-Abstraktion (UIkit/Bootstrap/Plain)
+
+### Bugfix
+
+- **TinyMCE Re-Open Bug**: TinyMCE-Editoren werden jetzt beim erneuten Öffnen eines Elements korrekt initialisiert (nicht nur "refreshed")
+- Vereinfachte Initialisierungslogik in `editSlice()` durch Aufruf von `tiny_init()` statt komplexer `dispatch()`-Fallbacks
+
+---
+
 ## [1.13.0] – 2026-04-28
 
 ### Neu
