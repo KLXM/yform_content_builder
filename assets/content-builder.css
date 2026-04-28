@@ -1141,3 +1141,32 @@
 body.modal-open {
     overflow: visible !important;
 }
+
+/* Help-Modal: stabile Lesbarkeit in Modul- und YForm-Renderer */
+.ycb-help-modal-content {
+    display: block;
+    max-width: none;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    column-count: 1;
+    writing-mode: horizontal-tb;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.ycb-help-modal-content p,
+.ycb-help-modal-content li,
+.ycb-help-modal-content h1,
+.ycb-help-modal-content h2,
+.ycb-help-modal-content h3,
+.ycb-help-modal-content h4,
+.ycb-help-modal-content td,
+.ycb-help-modal-content th {
+    max-width: none;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-align: left;
+}

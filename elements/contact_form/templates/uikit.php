@@ -174,6 +174,7 @@ if (!function_exists('validateField')) {
         ];
         
         $errorMessages = [
+            'editor_rule' => 'Wert entspricht nicht der einfachen Regel',
             'customer_number' => 'Ungültige Kundennummer (z.B. KD-123456)',
             'meter_reading' => 'Ungültiger Zählerstand (z.B. 12345,67)',
             'meter_reading_int' => 'Ungültiger Zählerstand (nur ganze Zahlen)',
@@ -208,6 +209,10 @@ if (!function_exists('validateField')) {
 
         if ($type === 'meter_reading' || $type === 'meter_reading_int') {
             $value = str_replace(' ', '', str_replace(',', '.', $value));
+        }
+
+        if ($type === 'editor_rule') {
+            return validateEditorRulePattern($value, $param);
         }
         
         // Pattern-basierte Validierung
@@ -295,6 +300,70 @@ if (!function_exists('validateField')) {
             } ? true : 'Wert entspricht nicht den Vorgaben';
         }
         
+        return true;
+    }
+}
+
+if (!function_exists('validateEditorRulePattern')) {
+    function validateEditorRulePattern(string $value, string $rule)
+    {
+        $rule = trim($rule);
+        $value = trim($value);
+
+        if ($rule === '') {
+            return 'Bitte eine Regel angeben, z.B. KD-30000-99-AA';
+        }
+
+        $ruleParts = explode('-', $rule);
+        $valueParts = explode('-', $value);
+
+        if (count($ruleParts) !== count($valueParts)) {
+            return 'Wert passt nicht zum Format der Regel';
+        }
+
+        foreach ($ruleParts as $index => $rulePartRaw) {
+            $rulePart = trim($rulePartRaw);
+            $valuePart = trim($valueParts[$index] ?? '');
+
+            if ($rulePart === '') {
+                continue;
+            }
+
+            if (preg_match('/^A+$/', $rulePart) === 1) {
+                $len = strlen($rulePart);
+                if (preg_match('/^[A-Za-z]{' . $len . '}$/', $valuePart) !== 1) {
+                    return 'Segment ' . ($index + 1) . ': Erwartet ' . $len . ' Buchstaben';
+                }
+                continue;
+            }
+
+            if (preg_match('/^9+$/', $rulePart) === 1) {
+                $len = strlen($rulePart);
+                if (preg_match('/^[0-9]{' . $len . '}$/', $valuePart) !== 1) {
+                    return 'Segment ' . ($index + 1) . ': Erwartet ' . $len . ' Ziffern';
+                }
+                continue;
+            }
+
+            if (ctype_digit($rulePart)) {
+                $max = (int) $rulePart;
+                $len = strlen($rulePart);
+
+                if (preg_match('/^[0-9]{' . $len . '}$/', $valuePart) !== 1) {
+                    return 'Segment ' . ($index + 1) . ': Erwartet ' . $len . ' Ziffern bis maximal ' . $max;
+                }
+
+                if ((int) $valuePart > $max) {
+                    return 'Segment ' . ($index + 1) . ': Maximalwert ist ' . $max;
+                }
+                continue;
+            }
+
+            if ($rulePart !== $valuePart) {
+                return 'Segment ' . ($index + 1) . ': Erwartet "' . $rulePart . '"';
+            }
+        }
+
         return true;
     }
 }

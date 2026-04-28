@@ -176,6 +176,7 @@ return [
                         'selectpicker' => false,
                         'choices' => [
                             '' => 'Keine zusätzliche Validierung',
+                            'editor_rule' => 'Einfache Regel (z.B. KD-30000-99-AA)',
                             'customer_number' => 'Kundennummer (z.B. KD-123456)',
                             'meter_reading' => 'Zählerstand (z.B. 12345,67)',
                             'meter_reading_int' => 'Zählerstand ganzzahlig',
@@ -223,7 +224,7 @@ return [
                     'field_validation_param' => [
                         'type' => 'text',
                         'label' => 'Validierungs-Parameter',
-                        'notice' => 'Je nach Typ: Mindest-/Maximallänge, Regex-Muster, oder Vergleich wie {{feldname}} < {{99000}}'
+                        'notice' => 'Je nach Typ: Mindest-/Maximallänge, Vergleich wie {{feldname}} < {{99000}}, Regex oder bei "Einfache Regel" z.B. KD-30000-99-AA (A=1 Buchstabe, 9=1 Ziffer, Zahl=Maximalwert)'
                     ],
                     'field_error_message' => [
                         'type' => 'text',

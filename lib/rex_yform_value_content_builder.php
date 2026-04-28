@@ -104,10 +104,28 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         // YForm-Formular generieren
         echo '<form class="slice-form">';
-        
-        // Settings Modal Button (falls definiert)
-        if (isset($config['settings_modal']) && is_array($config['settings_modal'])) {
-            $this->renderSettingsModalButton($config, $sliceData);
+
+        $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
+        $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementPath . '/');
+
+        if ($hasSettingsModal || $helpModalConfig !== null) {
+            echo '<div class="clearfix" style="margin-bottom: 15px; text-align: right;">';
+
+            if ($hasSettingsModal) {
+                $this->renderSettingsModalButton($config, $sliceData, true);
+            }
+
+            if ($helpModalConfig !== null) {
+                $helpModalConfig['_modal_id'] = yform_content_builder_help_modal_helper::createModalId();
+                yform_content_builder_help_modal_helper::renderButton($helpModalConfig, true);
+            }
+
+            echo '</div>';
+
+            // Modal-HTML ausserhalb des text-align:right Wrappers rendern
+            if ($helpModalConfig !== null) {
+                yform_content_builder_help_modal_helper::renderModal($helpModalConfig);
+            }
         }
         
         // Prüfen ob Tabs definiert sind
@@ -183,18 +201,26 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '</div>';
     }
     
-    protected function renderSettingsModalButton(array $config, array $sliceData)
+    protected function renderSettingsModalButton(array $config, array $sliceData, bool $toolbarButton = false)
     {
         $modalId = 'settings_modal_' . uniqid();
         $modalConfig = $config['settings_modal'];
         $label = $modalConfig['label'] ?? 'Einstellungen';
         $icon = $modalConfig['icon'] ?? 'fa-cog';
-        
-        echo '<div class="form-group">';
-        echo '<button type="button" class="btn btn-default btn-block" data-toggle="modal" data-target="#' . $modalId . '">';
+
+        if ($toolbarButton) {
+            echo '<button type="button" class="btn btn-default" data-toggle="modal" data-target="#' . $modalId . '">';
+        } else {
+            echo '<div class="form-group">';
+            echo '<button type="button" class="btn btn-default btn-block" data-toggle="modal" data-target="#' . $modalId . '">';
+        }
+
         echo '<i class="fa ' . rex_escape($icon) . '"></i> ' . rex_escape($label);
         echo '</button>';
-        echo '</div>';
+
+        if (!$toolbarButton) {
+            echo '</div>';
+        }
         
         // Modal HTML
         echo '<div class="modal fade" id="' . $modalId . '" tabindex="-1" role="dialog">';
@@ -223,7 +249,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '</div>';
         echo '</div>';
     }
-    
+
+
     /**
      * Rendert ein generisches Modal für ein Feld im Repeater
      * Kann für verschiedene Modal-Typen verwendet werden (item_modal, media_modal, etc.)

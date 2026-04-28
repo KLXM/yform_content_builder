@@ -188,6 +188,7 @@ class ContentBuilderFieldRegistry
     private static function registerDefaultFields(): void
     {
         $defaultFields = [
+            new InfoField(),
             new TextField(),
             new TextareaField(),
             new CheckboxField(),

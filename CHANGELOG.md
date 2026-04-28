@@ -8,6 +8,10 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [Unreleased]
 
+---
+
+## [1.14.0] – 2026-04-28
+
 ### Neu
 
 - **6 neue Starter-Elemente** hinzugefügt mit vollständiger Template-Unterstützung (UIkit, Bootstrap, Plain):
@@ -19,6 +23,8 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
   - **Starter-Callout**: Highlight-Box mit Titel, Text und optionalem Link
 - Modul-Installer-Seite mit Kategorien-Gruppierung für bessere Übersichtlichkeit
 - Alle neuen Elemente unterstützen Content Builder's Framework-Abstraktion (UIkit/Bootstrap/Plain)
+- **Zentrales Hilfe-System für Elemente**: Help-Modal-Logik wurde in eine gemeinsame Klasse ausgelagert, sodass Modul-Renderer, YForm-Value-Renderer und API-Renderer denselben Codepfad nutzen.
+- **Neue Element-Hilfe fuer `cards`**: Das Karten-Element hat jetzt eine eigene redaktionelle Hilfe-Datei mit Erklaerungen zu Grid, Card-Layouts, Medieneinstellungen, Verlinkung und Animationen.
 
 ### Bugfix
 

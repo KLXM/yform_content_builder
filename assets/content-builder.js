@@ -712,7 +712,7 @@
                     $editForm.find('.selectpicker').selectpicker({
                         sanitize: false
                     });
-                    
+
                     // REX Linkmap-Buttons mit Event-Delegation initialisieren
                     $editForm.on('click', '.rex-linkmap-btn', function(e) {
                         e.preventDefault();
@@ -2312,7 +2312,7 @@
                 });
             });
         },
-        
+
         /**
          * Update Content Builder Media Preview
          */
