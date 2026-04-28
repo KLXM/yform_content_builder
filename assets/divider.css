@@ -1,0 +1,212 @@
+/* ============================================================
+   Content Builder - Divider Element Styles
+   ============================================================ */
+
+/* Base Container */
+.cb-divider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Spacing */
+.cb-divider-spacing-top-small { margin-top: 20px; }
+.cb-divider-spacing-top-medium { margin-top: 40px; }
+.cb-divider-spacing-top-large { margin-top: 60px; }
+.cb-divider-spacing-bottom-small { margin-bottom: 20px; }
+.cb-divider-spacing-bottom-medium { margin-bottom: 40px; }
+.cb-divider-spacing-bottom-large { margin-bottom: 60px; }
+
+/* Width Variations */
+.cb-divider-width-full { max-width: 100%; }
+.cb-divider-width-wide { max-width: 80%; }
+.cb-divider-width-medium { max-width: 60%; }
+.cb-divider-width-narrow { max-width: 40%; }
+
+/* Color Variations */
+.cb-divider-color-default .cb-divider-line,
+.cb-divider-color-default .cb-divider-icon,
+.cb-divider-color-default .cb-divider-text {
+    color: #ddd;
+    border-color: #ddd;
+}
+
+.cb-divider-color-primary .cb-divider-line,
+.cb-divider-color-primary .cb-divider-icon,
+.cb-divider-color-primary .cb-divider-text {
+    color: #337ab7;
+    border-color: #337ab7;
+}
+
+.cb-divider-color-success .cb-divider-line,
+.cb-divider-color-success .cb-divider-icon,
+.cb-divider-color-success .cb-divider-text {
+    color: #5cb85c;
+    border-color: #5cb85c;
+}
+
+.cb-divider-color-info .cb-divider-line,
+.cb-divider-color-info .cb-divider-icon,
+.cb-divider-color-info .cb-divider-text {
+    color: #5bc0de;
+    border-color: #5bc0de;
+}
+
+.cb-divider-color-warning .cb-divider-line,
+.cb-divider-color-warning .cb-divider-icon,
+.cb-divider-color-warning .cb-divider-text {
+    color: #f0ad4e;
+    border-color: #f0ad4e;
+}
+
+.cb-divider-color-danger .cb-divider-line,
+.cb-divider-color-danger .cb-divider-icon,
+.cb-divider-color-danger .cb-divider-text {
+    color: #d9534f;
+    border-color: #d9534f;
+}
+
+/* ============================================================
+   Line Styles
+   ============================================================ */
+
+.cb-divider-line {
+    flex: 1;
+    height: 0;
+    border: 0;
+    margin: 0;
+}
+
+/* Simple Line */
+.cb-divider-style-simple .cb-divider-line {
+    border-top: 1px solid currentColor;
+}
+
+/* Double Line */
+.cb-divider-style-double .cb-divider-line {
+    border-top: 3px double currentColor;
+}
+
+/* Dotted Line */
+.cb-divider-style-dotted .cb-divider-line {
+    border-top: 2px dotted currentColor;
+}
+
+/* Dashed Line */
+.cb-divider-style-dashed .cb-divider-line {
+    border-top: 2px dashed currentColor;
+}
+
+/* Thick Line */
+.cb-divider-style-thick .cb-divider-line {
+    border-top: 4px solid currentColor;
+}
+
+/* Gradient Line */
+.cb-divider-style-gradient .cb-divider-line {
+    border: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, currentColor, transparent);
+}
+
+/* ============================================================
+   Icon & Text Styles
+   ============================================================ */
+
+.cb-divider-icon,
+.cb-divider-text {
+    flex: 0 0 auto;
+    padding: 0 20px;
+    background: #fff;
+    font-size: 18px;
+    color: currentColor;
+}
+
+.cb-divider-icon {
+    line-height: 1;
+}
+
+.cb-divider-text {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 14px;
+}
+
+/* ============================================================
+   Scroll Animation
+   ============================================================ */
+
+.cb-divider-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.cb-divider-scroll-line {
+    width: 2px;
+    height: 60px;
+    background: currentColor;
+    position: relative;
+    overflow: hidden;
+}
+
+.cb-divider-scroll-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, currentColor);
+    animation: scrollDown 2s ease-in-out infinite;
+}
+
+.cb-divider-scroll-chevron {
+    font-size: 24px;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollDown {
+    0% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(10px);
+    }
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .cb-divider-icon,
+    .cb-divider-text {
+        padding: 0 15px;
+        font-size: 14px;
+    }
+    
+    .cb-divider-text {
+        font-size: 12px;
+    }
+}

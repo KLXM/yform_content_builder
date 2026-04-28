@@ -1,0 +1,519 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://redaxo.org/schemas/yform_content_builder_element.json",
+  "title": "YForm Content Builder Element Configuration",
+  "description": "Schema for validating YForm Content Builder element config.php files",
+  "type": "object",
+  "required": ["name", "title", "fields"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*[a-z0-9]$",
+      "description": "Unique element identifier (snake_case)",
+      "examples": ["hero_section", "text_image", "card_grid"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Human-readable element title",
+      "examples": ["Hero Section", "Text & Image", "Card Grid"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Element description for users"
+    },
+    "icon": {
+      "type": "string",
+      "pattern": "^(fa-[a-z0-9-]+|rex-icon [a-z0-9-]+)$",
+      "description": "Font Awesome or REDAXO icon class",
+      "examples": ["fa-images", "fa-text-height", "rex-icon rex-icon-module"]
+    },
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Form field definitions",
+      "items": {
+        "$ref": "#/definitions/field"
+      }
+    },
+    "options": {
+      "type": "object",
+      "description": "Element-wide options",
+      "properties": {
+        "tabs": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable tab grouping for fields"
+        },
+        "modal": {
+          "type": "boolean", 
+          "default": false,
+          "description": "Open element in modal dialog"
+        },
+        "repeater_view": {
+          "type": "string",
+          "enum": ["list", "grid"],
+          "default": "list",
+          "description": "Default view mode for repeater fields"
+        },
+        "grid_columns": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 6,
+          "default": 3,
+          "description": "Number of columns for grid view"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "field": {
+      "type": "object",
+      "required": ["type", "name"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "text", "textarea", "ckeditor5", "select", "checkbox", "radio",
+            "be_media", "be_media_enhanced", "be_link", "repeater",
+            "number", "email", "url", "date", "datetime", "time",
+            "hidden", "html", "fieldset"
+          ],
+          "description": "Field type identifier"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*[a-z0-9]$",
+          "description": "Field name (snake_case, must be unique within element)"
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable field label"
+        },
+        "description": {
+          "type": "string",
+          "description": "Field help text"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether field is required"
+        },
+        "default": {
+          "description": "Default field value"
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Input placeholder text"
+        },
+        "tab": {
+          "type": "string",
+          "description": "Tab group assignment"
+        },
+        "wrapper_class": {
+          "type": "string",
+          "description": "CSS classes for field wrapper"
+        },
+        "input_class": {
+          "type": "string", 
+          "description": "CSS classes for input element"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "text"}
+            }
+          },
+          "then": {
+            "properties": {
+              "attributes": {
+                "type": "object",
+                "properties": {
+                  "maxlength": {"type": "integer", "minimum": 1},
+                  "minlength": {"type": "integer", "minimum": 0},
+                  "pattern": {"type": "string"},
+                  "type": {"type": "string", "enum": ["text", "email", "url", "tel", "password"]}
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "textarea"}
+            }
+          },
+          "then": {
+            "properties": {
+              "attributes": {
+                "type": "object",
+                "properties": {
+                  "rows": {"type": "integer", "minimum": 1, "maximum": 20},
+                  "cols": {"type": "integer", "minimum": 1, "maximum": 200},
+                  "maxlength": {"type": "integer", "minimum": 1}
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "select"}
+            }
+          },
+          "then": {
+            "properties": {
+              "options": {
+                "type": "object",
+                "description": "Select options as key-value pairs",
+                "patternProperties": {
+                  ".*": {"type": "string"}
+                }
+              },
+              "multiple": {
+                "type": "boolean",
+                "default": false,
+                "description": "Allow multiple selections"
+              }
+            },
+            "required": ["options"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "radio"}
+            }
+          },
+          "then": {
+            "properties": {
+              "options": {
+                "type": "object",
+                "description": "Radio options as key-value pairs",
+                "patternProperties": {
+                  ".*": {"type": "string"}
+                }
+              }
+            },
+            "required": ["options"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "ckeditor5"}
+            }
+          },
+          "then": {
+            "properties": {
+              "profile": {
+                "type": "string",
+                "default": "default",
+                "description": "CKEditor profile name"
+              },
+              "height": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 1000,
+                "description": "Editor height in pixels"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "be_media"}
+            }
+          },
+          "then": {
+            "properties": {
+              "types": {
+                "type": "string",
+                "description": "Allowed file extensions (comma-separated)",
+                "examples": ["jpg,jpeg,png,gif", "pdf,doc,docx"]
+              },
+              "preview": {
+                "type": "integer",
+                "enum": [0, 1],
+                "default": 1,
+                "description": "Show media preview"
+              },
+              "category": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Media category ID"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "be_media_enhanced"}
+            }
+          },
+          "then": {
+            "properties": {
+              "allowed_types": {
+                "type": "string",
+                "description": "Allowed file extensions (comma-separated)",
+                "examples": ["jpg,jpeg,png,gif,mp4,webm,mov"]
+              },
+              "aspect_ratio": {
+                "type": "string",
+                "enum": ["16:9", "4:3", "1:1", "21:9", "3:2"],
+                "default": "16:9",
+                "description": "Preview aspect ratio"
+              },
+              "video_autoplay": {
+                "type": "boolean",
+                "default": false,
+                "description": "Autoplay videos"
+              },
+              "video_controls": {
+                "type": "boolean",
+                "default": true,
+                "description": "Show video controls"
+              },
+              "video_muted": {
+                "type": "boolean",
+                "default": true,
+                "description": "Start videos muted"
+              },
+              "clickable_placeholder": {
+                "type": "boolean",
+                "default": true,
+                "description": "Make placeholder clickable"
+              },
+              "preview_size": {
+                "type": "string",
+                "enum": ["small", "medium", "large"],
+                "default": "medium",
+                "description": "Preview size"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "be_link"}
+            }
+          },
+          "then": {
+            "properties": {
+              "types": {
+                "type": "string",
+                "default": "intern,extern,media,mailto,tel",
+                "description": "Allowed link types (comma-separated)"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "repeater"}
+            }
+          },
+          "then": {
+            "properties": {
+              "fields": {
+                "type": "array",
+                "minItems": 1,
+                "description": "Repeater field definitions",
+                "items": {
+                  "$ref": "#/definitions/field"
+                }
+              },
+              "min_items": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Minimum number of items"
+              },
+              "max_items": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Maximum number of items"
+              },
+              "add_label": {
+                "type": "string",
+                "default": "Item hinzufügen",
+                "description": "Add button label"
+              },
+              "delete_label": {
+                "type": "string",
+                "default": "Löschen",
+                "description": "Delete button label"
+              },
+              "sortable": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enable sorting with move buttons"
+              },
+              "view_mode": {
+                "type": "string",
+                "enum": ["list", "grid"],
+                "default": "list",
+                "description": "Display mode for repeater items"
+              },
+              "grid_columns": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 6,
+                "default": 3,
+                "description": "Number of columns for grid view"
+              },
+              "modal": {
+                "type": "boolean",
+                "default": false,
+                "description": "Edit items in modal"
+              },
+              "bulk_actions": {
+                "type": "object",
+                "description": "Available bulk actions",
+                "properties": {
+                  "duplicate": {"type": "string"},
+                  "delete_all": {"type": "string"}
+                }
+              }
+            },
+            "required": ["fields"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {"const": "number"}
+            }
+          },
+          "then": {
+            "properties": {
+              "attributes": {
+                "type": "object",
+                "properties": {
+                  "min": {"type": "number"},
+                  "max": {"type": "number"},
+                  "step": {"type": "number"}
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "name": "hero_section",
+      "title": "Hero Section",
+      "description": "Large hero section with background image and text overlay",
+      "icon": "fa-image",
+      "fields": [
+        {
+          "type": "be_media_enhanced",
+          "name": "background_image",
+          "label": "Background Image",
+          "aspect_ratio": "16:9",
+          "allowed_types": "jpg,jpeg,png,webp",
+          "required": true,
+          "tab": "content"
+        },
+        {
+          "type": "text",
+          "name": "headline",
+          "label": "Headline",
+          "required": true,
+          "tab": "content"
+        },
+        {
+          "type": "textarea",
+          "name": "subheadline", 
+          "label": "Subheadline",
+          "tab": "content"
+        },
+        {
+          "type": "be_link",
+          "name": "cta_link",
+          "label": "Call-to-Action Link",
+          "tab": "settings"
+        },
+        {
+          "type": "select",
+          "name": "text_alignment",
+          "label": "Text Alignment",
+          "options": {
+            "left": "Left",
+            "center": "Center", 
+            "right": "Right"
+          },
+          "default": "center",
+          "tab": "settings"
+        }
+      ],
+      "options": {
+        "tabs": true,
+        "modal": false
+      }
+    },
+    {
+      "name": "gallery",
+      "title": "Gallery",
+      "description": "Responsive image gallery with grid or masonry layout",
+      "icon": "fa-images",
+      "fields": [
+        {
+          "type": "select",
+          "name": "view_mode",
+          "label": "Layout",
+          "options": {
+            "grid": "Grid Layout",
+            "masonry": "Masonry Layout"
+          },
+          "default": "grid",
+          "tab": "settings"
+        },
+        {
+          "type": "repeater",
+          "name": "images",
+          "label": "Gallery Images",
+          "fields": [
+            {
+              "type": "be_media_enhanced",
+              "name": "image",
+              "label": "Image",
+              "aspect_ratio": "16:9",
+              "allowed_types": "jpg,jpeg,png,gif,mp4,webm",
+              "required": true
+            },
+            {
+              "type": "text",
+              "name": "caption",
+              "label": "Caption"
+            }
+          ],
+          "min_items": 1,
+          "view_mode": "grid",
+          "grid_columns": 4,
+          "modal": true,
+          "sortable": true,
+          "tab": "content"
+        }
+      ],
+      "options": {
+        "tabs": true,
+        "repeater_view": "grid",
+        "grid_columns": 4
+      }
+    }
+  ]
+}
