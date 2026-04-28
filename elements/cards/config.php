@@ -245,10 +245,11 @@ return [
         ],
         'card_background' => [
             'type' => 'choice',
-            'label' => 'Übergeordneter Hintergrund',
+            'label' => 'Hintergrundfarbe (Fallback)',
             'choices' => $backgroundChoices,
             'choice_colors' => $backgroundColors,
             'selectpicker' => true,
+            'notice' => 'Wird als Hintergrund genutzt, wenn die Karte auf "Standard" steht und kein individuelles Override gesetzt ist.',
             'default' => ''
         ],
         'card_size' => [
