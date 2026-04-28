@@ -153,7 +153,7 @@ echo yform_content_builder_module::create('gallery', 'REX_VALUE[1]', 'uikit')->r
 
 ## Feldtypen-System
 
-Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eigene Klasse im Namespace `FriendsOfREDAXO\YFormContentBuilder\Fields`.
+Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eigene Klasse im Namespace `KLXM\YFormContentBuilder\Fields`.
 
 ### Architektur
 
@@ -736,7 +736,7 @@ Jeder Feldtyp muss das `ContentBuilderFieldInterface` implementieren:
 
 ```php
 <?php
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 interface ContentBuilderFieldInterface
 {
@@ -775,7 +775,7 @@ Die `ContentBuilderFieldAbstract` Klasse bietet hilfreiche Methoden:
 
 ```php
 <?php
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
@@ -818,7 +818,7 @@ class EmailField extends ContentBuilderFieldAbstract
 
 ```php
 <?php
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
@@ -903,7 +903,7 @@ class IconPickerField extends ContentBuilderFieldAbstract
 
 ```php
 // In boot.php deines Addons
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
 
 if (rex_addon::get('yform_content_builder')->isAvailable()) {
     ContentBuilderFieldRegistry::register(new EmailField());
@@ -934,7 +934,7 @@ rex_extension::register('YFORM_CONTENT_BUILDER_FIELDS', function(rex_extension_p
 <?php
 namespace MyAddon\Fields;
 
-use FriendsOfREDAXO\YFormContentBuilder\Fields\BeMediaField;
+use KLXM\YFormContentBuilder\Fields\BeMediaField;
 
 /**
  * Erweitertes Media-Feld mit Drag & Drop
@@ -1029,7 +1029,7 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function():
 ### ContentBuilderFieldRegistry
 
 ```php
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
 
 // Feld registrieren
 ContentBuilderFieldRegistry::register(new MyField());
@@ -1068,7 +1068,7 @@ $config = yform_content_builder_helper::getElementConfig('text_image');
 ### Frontend-Rendering
 
 ```php
-use KLXM\YformContentBuilder\Helper as ContentBuilderHelper;
+use KLXM\YFormContentBuilder\yform_content_builder_helper as ContentBuilderHelper;
 
 // Aus YForm-Daten
 $page = rex_yform_manager_dataset::get(1, 'rex_pages');

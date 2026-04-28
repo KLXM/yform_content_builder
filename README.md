@@ -328,7 +328,7 @@ Mit dem Multiselect-Feld "Erlaubte Elemente" kannst du steuern, welche Content-E
 ### Frontend-Ausgabe
 
 ```php
-use KLXM\YformContentBuilder\Helper as ContentBuilderHelper;
+use KLXM\YFormContentBuilder\yform_content_builder_helper as ContentBuilderHelper;
 
 // Daten aus YForm-Tabelle holen
 $page = rex_yform_manager_dataset::get(1, 'rex_my_pages');
@@ -714,7 +714,7 @@ Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eig
 
 ```php
 <?php
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 class MyCustomField extends ContentBuilderFieldAbstract
 {
@@ -742,7 +742,7 @@ class MyCustomField extends ContentBuilderFieldAbstract
 
 ```php
 // In boot.php deines Addons oder per Extension Point
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
 
 // Direkt registrieren
 ContentBuilderFieldRegistry::register(new MyCustomField());
@@ -796,7 +796,7 @@ Content wird als **JSON-Array** gespeichert:
 ## 🔧 API & Helper
 
 ```php
-use KLXM\YformContentBuilder\Helper as ContentBuilderHelper;
+use KLXM\YFormContentBuilder\yform_content_builder_helper as ContentBuilderHelper;
 
 // Content rendern
 $html = ContentBuilderHelper::render($jsonData, 'bootstrap');

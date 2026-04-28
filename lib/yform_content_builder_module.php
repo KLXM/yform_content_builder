@@ -266,7 +266,7 @@ class yform_content_builder_module
      * 
      * @return string HTML des Input-Formulars
      */
-    public function renderInput()
+    public function renderInput(): string
     {
         // Config laden
         $config = $this->loadConfig();
@@ -565,7 +565,7 @@ class yform_content_builder_module
      * 
      * @return string HTML des Elements
      */
-    public function renderOutput()
+    public function renderOutput(): string
     {
         // Config laden
         $config = $this->loadConfig();
@@ -608,7 +608,7 @@ class yform_content_builder_module
      * 
      * @return array|null
      */
-    protected function loadConfig()
+    protected function loadConfig(): mixed
     {
         $configFile = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/config.php');
         
@@ -622,7 +622,7 @@ class yform_content_builder_module
     /**
      * Formular-Felder rendern - nutzt YForm Content Builder renderFormField
      */
-    protected function renderFormFields(array $config, array $sliceData)
+    protected function renderFormFields(array $config, array $sliceData): void
     {
         $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
         $elementDir = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/');
@@ -770,7 +770,7 @@ class yform_content_builder_module
     /**
      * Formular mit Tabs rendern
      */
-    protected function renderFormWithTabs(array $config, array $sliceData)
+    protected function renderFormWithTabs(array $config, array $sliceData): void
     {
         $tabId = 'tab_' . uniqid();
         

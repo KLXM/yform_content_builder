@@ -1,13 +1,6 @@
 <?php
 
 use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
-use rex;
-use rex_addon;
-use rex_api_function;
-use rex_api_result;
-use rex_media_category;
-use rex_request;
-use rex_response;
 
 /**
  * API Handler für YForm Content Builder
