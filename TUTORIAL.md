@@ -117,18 +117,22 @@ Du möchtest dieses Element nun in einem REDAXO-Modul verwenden, damit Redakteur
 **Eingabe (Input):**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Wir rufen unser Element 'team_member' auf.
 // 'bootstrap' sorgt dafür, dass es im Backend hübsch aussieht.
-echo yform_content_builder_module::createByValueId('team_member', 1, 'bootstrap')->renderInput();
+echo Module::createByValueId('team_member', 1, 'bootstrap')->renderInput();
 ?>
 ```
 
 **Ausgabe (Output):**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Hier geben wir das Element aus.
 // Du kannst hier auch 'uikit' oder 'tailwind' angeben, wenn du dafür Templates angelegt hast.
-echo yform_content_builder_module::createByValueId('team_member', 1, 'bootstrap')->renderOutput();
+echo Module::createByValueId('team_member', 1, 'bootstrap')->renderOutput();
 ?>
 ```
 
@@ -151,7 +155,7 @@ Du kannst das Element auch in einer YForm-Tabelle (z.B. für News oder Produkte)
 **Frontend Ausgabe (PHP):**
 ```php
 <?php
-use KLXM\YformContentBuilder\Helper;
+use KLXM\YFormContentBuilder\Helper;
 
 // Angenommen, wir sind auf einer Detailseite und haben den Datensatz
 $data = $dataset->getValue('mein_content_feld');

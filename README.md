@@ -54,6 +54,8 @@ Für normale REDAXO-Module wird die slot-basierte API empfohlen:
 
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Ein Element pro Modul
 echo Module::createByValueId('cards', 1, 'uikit')->renderInput();
 ?>
@@ -63,6 +65,8 @@ Mehrere Elemente im selben Modul sind möglich – jede Instanz erhält automati
 
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Zwei unabhängige Elemente im selben Modul
 echo Module::createByValueId('cards', 1, 'uikit')->renderInput();
 echo Module::createByValueId('text', 2, 'uikit')->renderInput();
@@ -73,6 +77,8 @@ Bestehende Module mit der älteren Schreibweise bleiben kompatibel:
 
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 echo Module::create('cards', 'REX_VALUE[2]', 'uikit')->renderOutput();
 ?>
 ```
@@ -808,7 +814,7 @@ $elements = Helper::getAvailableElements();
 $config = Helper::getElementConfig('text_image');
 ```
 
-> **Hinweis:** Die alten Klassennamen (z.B. `yform_content_builder_module`, `yform_content_builder_helper`) funktionieren weiterhin für Abwärtskompatibilität. Es wird empfohlen, neue Projekte mit den vereinfachten Namen wie `Module` und `Helper` zu schreiben.
+> **Hinweis:** Die alten Klassennamen (z.B. `yform_content_builder_module`, `yform_content_builder_helper`) stehen weiterhin als `class_alias` zur Verfügung. Neuer Code sollte immer `use KLXM\YFormContentBuilder\Module;` bzw. `use KLXM\YFormContentBuilder\Helper;` verwenden.
 
 ## � Permission System
 

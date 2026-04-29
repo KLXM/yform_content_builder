@@ -86,6 +86,8 @@ Verwende den kompletten Content Builder mit mehreren Elementen und Drag & Drop.
 **INPUT:**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Wert aus Slice holen
 $currentValue = $this->getCurrentSlice()->getValue(1);
 
@@ -106,6 +108,8 @@ echo $contentBuilder->getEditor();
 **OUTPUT:**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Wert aus Slice holen
 $currentValue = $this->getCurrentSlice()->getValue(1);
 
@@ -128,6 +132,8 @@ Empfohlen ist die Slot-basierte Schreibweise mit `createByValueId(...)`.
 **INPUT:**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 echo Module::createByValueId('gallery', 1, 'bootstrap')->renderInput();
 ?>
 ```
@@ -135,6 +141,8 @@ echo Module::createByValueId('gallery', 1, 'bootstrap')->renderInput();
 **OUTPUT:**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 echo Module::createByValueId('gallery', 1, 'uikit')->renderOutput();
 ?>
 ```
@@ -145,6 +153,8 @@ Die alte Schreibweise bleibt gültig:
 
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 echo Module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
 ?>
 ```
@@ -1084,7 +1094,7 @@ echo Helper::render($content, 'uikit');
 echo Helper::render($content, 'plain');
 ```
 
-> **Hinweis zur Abwärtskompatibilität:** Die alten Klassennamen `yform_content_builder_helper`, `ContentBuilderFieldRegistry`, `ContentBuilderFieldAbstract` und `ContentBuilderFieldInterface` funktionieren weiterhin über PHP `class_alias()` Aliase und sind für bestehenden Code vollständig kompatibel. Es wird jedoch empfohlen, zukünftige Entwicklung mit den neuen kanonischen Klassennamen durchzuführen.
+> **Hinweis zur Abwärtskompatibilität:** Die alten Klassennamen `yform_content_builder_helper`, `ContentBuilderFieldRegistry`, `ContentBuilderFieldAbstract` und `ContentBuilderFieldInterface` stehen weiterhin über PHP `class_alias()` zur Verfügung. Neuer Code sollte immer die kanonischen Klassennamen mit `use KLXM\YFormContentBuilder\...` verwenden.
 
 ---
 

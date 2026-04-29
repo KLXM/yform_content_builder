@@ -10,6 +10,41 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [2.0.0] – 2026-04-29
+
+### Breaking Changes
+
+- **Namespace-Umstrukturierung**: API-Klassen liegen jetzt unter `KLXM\YFormContentBuilder\Api` (Unterordner `lib/Api/`).
+  - `KLXM\YFormContentBuilder\ContentBuilderApi` → `KLXM\YFormContentBuilder\Api\ContentBuilderApi`
+  - `KLXM\YFormContentBuilder\ListColumnsApi` → `KLXM\YFormContentBuilder\Api\ListColumnsApi`
+- **`boot.php` aufgeräumt**: Alle `require_once`-Aufrufe und die `glob`-Schleife für Feldklassen entfernt – der REDAXO-Autoloader übernimmt das vollständig.
+- **Class Aliases reduziert**: Nur noch Aliase für Klassen, die in externen Addons oder dem Project-Addon verwendet werden können. Interne Aliase (`rex_api_content_builder`, `rex_api_yform_list_columns`, `yform_content_builder_help_modal_helper`) wurden entfernt.
+
+### Modul-Installer
+
+- Generierter Modul-Code (Input & Output) verwendet nun `use KLXM\YFormContentBuilder\Module;` statt des alten `yform_content_builder_module::`-Alias.
+- Gilt für neu erstellte und aktualisierte Module (Button „Bestehende Module aktualisieren").
+
+### Dokumentation
+
+- Alle Code-Beispiele in `README.md`, `API.md` und `TUTORIAL.md` verwenden jetzt durchgängig `use KLXM\YFormContentBuilder\Module;` bzw. `use KLXM\YFormContentBuilder\Helper;`.
+- Tippfehler im Namespace (`KLXM\YformContentBuilder` → `KLXM\YFormContentBuilder`) in `TUTORIAL.md` korrigiert.
+- Hinweise auf alte Klassennamen aktualisiert: klare Empfehlung für `use`-Importe in neuem Code.
+
+### Migration
+
+Bestehende Module mit alter Schreibweise funktionieren weiterhin über die verbleibenden `class_alias`-Einträge:
+```php
+// Alt – weiterhin funktionsfähig (class_alias)
+yform_content_builder_module::createByValueId('cards', 1, 'uikit')
+
+// Neu – empfohlen
+use KLXM\YFormContentBuilder\Module;
+Module::createByValueId('cards', 1, 'uikit')
+```
+
+---
+
 ## [1.14.0] – 2026-04-28
 
 ### Neu
