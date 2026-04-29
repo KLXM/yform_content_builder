@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 use rex_formatter;
@@ -13,14 +13,14 @@ use rex_csrf_token;
 /**
  * YForm Datensatz-Picker Widget (Native YForm Integration)
  */
-class YFormPickerField extends ContentBuilderFieldAbstract
+class YFormPickerField extends FieldAbstract
 {
     public static function getType(): string
     {
         return 'yformpicker';
     }
 
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void
     {
         if (!$this->hasPermission($fieldConfig)) {
             return;

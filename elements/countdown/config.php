@@ -3,7 +3,7 @@
  * Countdown Element - Countdown Timer mit verschiedenen Modi
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
 return [
     'label' => 'Countdown',

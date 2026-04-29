@@ -43,7 +43,7 @@ $cardClass = match ($style) {
             }
 
             $avatarUrl = $authorImage ? rex_media_manager::getUrl('card_1_1_w400', $authorImage) : '';
-            $avatarAlt = YFormContentBuilderMediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
+            $avatarAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
             ?>
             <div class="<?= $colClass ?>">
                 <div class="<?= $cardClass ?> h-100">

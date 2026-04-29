@@ -15,12 +15,12 @@ return [
         'content' => [
             'label' => 'Inhalt',
             'icon' => 'fa-table',
-            'fields' => ['table_data', 'table_caption']
+            'fields' => ['table_data']
         ],
         'styling' => [
             'label' => 'Styling',
             'icon' => 'fa-paint-brush',
-            'fields' => ['table_style', 'table_size', 'table_hover', 'table_striped', 'table_divider', 'table_responsive']
+            'fields' => ['table_style', 'table_size', 'table_hover', 'table_responsive']
         ],
         'design' => [
             'label' => 'Design',
@@ -31,15 +31,16 @@ return [
     'fields' => array_merge(
         [
             'table_data' => [
-                'type' => 'textarea',
-                'label' => 'Tabelleninhalt (JSON)',
-                'notice' => 'JSON Format oder CSV importieren. Struktur: {"head": [["Spalte 1", "Spalte 2"]], "body": [["Zelle 1", "Zelle 2"]]}',
-                'attributes' => ['rows' => 12]
-            ],
-            'table_caption' => [
-                'type' => 'text',
-                'label' => 'Tabellenüberschrift',
-                'notice' => 'Optional: Beschreibung der Tabelle für Accessibility'
+                'type' => 'table_editor',
+                'label' => 'Tabelleneditor',
+                'notice' => 'Kopfzeile und Kopfspalte koennen direkt gesetzt werden. Caption verbessert die Accessibility.',
+                'min_cols' => 1,
+                'min_rows' => 1,
+                'header_row_policy' => 'user',
+                'header_col_policy' => 'user',
+                'enable_textarea' => true,
+                'enable_media' => false,
+                'enable_link' => false,
             ],
             'table_style' => [
                 'type' => 'choice',
@@ -65,14 +66,6 @@ return [
             'table_hover' => [
                 'type' => 'checkbox',
                 'label' => 'Hover-Effekt (Zeilen hervorheben)'
-            ],
-            'table_striped' => [
-                'type' => 'checkbox',
-                'label' => 'Zebra-Streifen'
-            ],
-            'table_divider' => [
-                'type' => 'checkbox',
-                'label' => 'Trennlinien zwischen Zeilen'
             ],
             'table_responsive' => [
                 'type' => 'choice',

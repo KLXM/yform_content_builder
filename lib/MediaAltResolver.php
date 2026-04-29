@@ -1,9 +1,15 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_exception;
+use rex_file;
+use rex_media;
+
 /**
  * Ermittelt sinnvolle ALT-Texte elementübergreifend aus Mediapool-Metadaten.
  */
-class YFormContentBuilderMediaAltResolver
+class MediaAltResolver
 {
     /**
      * @var array<string, array{alt: string, title: string}>

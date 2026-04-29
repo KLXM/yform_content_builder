@@ -1,12 +1,21 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_escape;
+use rex_logger;
+use rex_media;
+use rex_media_manager;
+use rex_sql;
+use rex_url;
+
 /**
  * Server-seitiges Rendering der YForm-Listen-Element-Daten.
  *
  * Die Templates (uikit.php / plain.php) bauen den HTML-Wrapper und
  * delegieren das eigentliche Datenladen + Item-Rendering an diese Klasse.
  */
-final class YformListRenderer
+final class ListRenderer
 {
     /**
      * Lädt die Datensätze gemäß Profil + Element-Overrides.
@@ -20,7 +29,7 @@ final class YformListRenderer
         if ('' === $profileId) {
             return self::err('Kein Profil gewählt.');
         }
-        $profile = YformListProfiles::get($profileId);
+        $profile = ListProfiles::get($profileId);
         if (null === $profile) {
             return self::err('Profil "' . $profileId . '" nicht gefunden.');
         }
@@ -29,7 +38,7 @@ final class YformListRenderer
             return self::err('Profil "' . $profileId . '" hat keine Tabelle.');
         }
 
-        $allowedCols = YformListProfiles::collectColumns($tableName);
+        $allowedCols = ListProfiles::collectColumns($tableName);
         $titleCol = self::pickCol((string) $profile['title_field'], $allowedCols, 'name');
         $teaserCol = self::pickCol((string) $profile['teaser_field'], $allowedCols, '');
         $imageCol = self::pickCol((string) $profile['image_field'], $allowedCols, '');
@@ -47,11 +56,11 @@ final class YformListRenderer
         if ($limit < 1) {
             $limit = 1;
         }
-        if ($limit > YformListProfiles::MAX_LIMIT) {
-            $limit = YformListProfiles::MAX_LIMIT;
+        if ($limit > ListProfiles::MAX_LIMIT) {
+            $limit = ListProfiles::MAX_LIMIT;
         }
         $layout = (string) ($elementData['layout'] ?? $profile['default_layout']);
-        if (!in_array($layout, YformListProfiles::ALLOWED_LAYOUTS, true)) {
+        if (!in_array($layout, ListProfiles::ALLOWED_LAYOUTS, true)) {
             $layout = 'cards';
         }
         $sortDir = strtoupper((string) $profile['sort_dir']);
@@ -164,7 +173,7 @@ final class YformListRenderer
     {
         // Layout vom Element bestimmen (Default: contact_compact – das ist der typische Picker-Use-Case).
         $layout = (string) ($elementData['layout'] ?? 'contact_compact');
-        if (!in_array($layout, YformListProfiles::ALLOWED_LAYOUTS, true)) {
+        if (!in_array($layout, ListProfiles::ALLOWED_LAYOUTS, true)) {
             $layout = 'contact_compact';
         }
         $teaserLength = isset($elementData['teaser_length']) ? (int) $elementData['teaser_length'] : 160;
@@ -199,7 +208,7 @@ final class YformListRenderer
         $firstProfile = null;
 
         foreach ($byProfile as $pid => $ids) {
-            $profile = YformListProfiles::get($pid);
+            $profile = ListProfiles::get($pid);
             if (null === $profile) {
                 continue;
             }
@@ -211,7 +220,7 @@ final class YformListRenderer
                 $firstProfile = $profile;
             }
 
-            $allowedCols = YformListProfiles::collectColumns($tableName);
+            $allowedCols = ListProfiles::collectColumns($tableName);
             $titleCol = self::pickCol((string) $profile['title_field'], $allowedCols, 'name');
             $teaserCol = self::pickCol((string) $profile['teaser_field'], $allowedCols, '');
             $imageCol = self::pickCol((string) $profile['image_field'], $allowedCols, '');
@@ -424,7 +433,7 @@ final class YformListRenderer
 
         // 1. virtual_urls Addon
         if (!empty($profile['use_virtual_urls']) && $id > 0 && '' !== $tableName
-            && YformListProfiles::hasVirtualUrls()
+            && ListProfiles::hasVirtualUrls()
         ) {
             try {
                 $vUrl = \FriendsOfRedaxo\VirtualUrl\VirtualUrlsHelper::getUrl($tableName, $id);

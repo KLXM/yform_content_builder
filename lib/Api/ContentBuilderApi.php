@@ -1,13 +1,20 @@
 <?php
 
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+namespace KLXM\YFormContentBuilder\Api;
+
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
+use KLXM\YFormContentBuilder\Helper;
+use KLXM\YFormContentBuilder\ModalHelper;
 use rex;
 use rex_addon;
 use rex_api_function;
 use rex_api_result;
+use rex_escape;
 use rex_media_category;
 use rex_request;
 use rex_response;
+use rex_sql;
+use rex_url;
 
 /**
  * API Handler für YForm Content Builder
@@ -21,7 +28,7 @@ use rex_response;
  * 
  * Aufruf: /redaxo/index.php?rex-api-call=content_builder&action=<action>
  */
-class rex_api_content_builder extends rex_api_function
+class ContentBuilderApi extends rex_api_function
 {
     protected $published = true;
 
@@ -74,6 +81,7 @@ class rex_api_content_builder extends rex_api_function
         $sliceData = rex_request::post('slice_data', 'array', []);
 
         $elementPath = $this->getElementPath($sliceType);
+        Helper::loadElementI18n($elementPath);
         $configFile = $elementPath . '/config.php';
 
         if (!file_exists($configFile)) {
@@ -92,7 +100,7 @@ class rex_api_content_builder extends rex_api_function
         echo '<form class="slice-form">';
 
         $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
-        $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementPath . '/');
+        $helpModalConfig = ModalHelper::buildConfigForElementDir($elementPath . '/');
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
             echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
@@ -102,14 +110,14 @@ class rex_api_content_builder extends rex_api_function
             }
 
             if ($helpModalConfig !== null) {
-                $helpModalConfig['_modal_id'] = yform_content_builder_help_modal_helper::createModalId();
-                yform_content_builder_help_modal_helper::renderButton($helpModalConfig, true);
+                $helpModalConfig['_modal_id'] = ModalHelper::createModalId();
+                ModalHelper::renderButton($helpModalConfig, true);
             }
 
             echo '</div>';
 
             if ($helpModalConfig !== null) {
-                yform_content_builder_help_modal_helper::renderModal($helpModalConfig);
+                ModalHelper::renderModal($helpModalConfig);
             }
         }
 
@@ -123,11 +131,11 @@ class rex_api_content_builder extends rex_api_function
                 $modalFields = $config['settings_modal']['fields'];
             }
 
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $config['fields'],
                 $modalFields,
                 function (string $fieldName, array $fieldConfig) use ($sliceData): void {
-                    ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                    FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
                 }
             );
         }
@@ -152,6 +160,7 @@ class rex_api_content_builder extends rex_api_function
         $framework = rex_request::post('framework', 'string', 'bootstrap');
 
         $elementPath = $this->getElementPath($sliceType);
+        Helper::loadElementI18n($elementPath);
 
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         if (!file_exists($templateFile)) {
@@ -188,7 +197,10 @@ class rex_api_content_builder extends rex_api_function
     }
 
     /**
-     * Rendert Tabs für das Formular
+     * Rendert Tabs für das Formular.
+     *
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $sliceData
      */
     protected function renderFormWithTabs(array $config, array $sliceData): void
     {
@@ -225,11 +237,11 @@ class rex_api_content_builder extends rex_api_function
                         $groupFieldMap[$fieldName] = $config['fields'][$fieldName];
                     }
                 }
-                ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                FieldRegistry::renderFieldRowsGroup(
                     $groupFieldMap,
                     [],
                     function (string $fieldName, array $fieldConfig) use ($sliceData): void {
-                        ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                        FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
                     }
                 );
             }
@@ -241,7 +253,10 @@ class rex_api_content_builder extends rex_api_function
     }
 
     /**
-     * Rendert den Settings-Modal Button
+     * Rendert den Settings-Modal Button.
+     *
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $sliceData
      */
     protected function renderSettingsModalButton(array $config, array $sliceData, bool $toolbarButton = false): void
     {
@@ -281,11 +296,11 @@ class rex_api_content_builder extends rex_api_function
                     $modalFieldMap[$fieldName] = $config['fields'][$fieldName];
                 }
             }
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $modalFieldMap,
                 [],
                 function (string $fieldName, array $fieldConfig) use ($sliceData): void {
-                    ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                    FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
                 }
             );
         }
@@ -319,7 +334,9 @@ class rex_api_content_builder extends rex_api_function
     }
 
     /**
-     * Fügt Unterkategorien rekursiv hinzu
+     * Fügt Unterkategorien rekursiv hinzu.
+     *
+     * @param array<int, array{id: int, name: string}> $categories
      */
     protected function addSubcategories(rex_media_category $parent, array &$categories, int $level = 1): void
     {
@@ -377,8 +394,8 @@ class rex_api_content_builder extends rex_api_function
             return;
         }
 
-        $isImage = yform_content_builder_helper::isImage($filename);
-        $isVideo = yform_content_builder_helper::isVideo($filename);
+        $isImage = Helper::isImage($filename);
+        $isVideo = Helper::isVideo($filename);
 
         $html = '';
         if ($isImage) {

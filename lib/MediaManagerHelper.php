@@ -1,10 +1,26 @@
 <?php
+
+namespace KLXM\YFormContentBuilder;
+
+use rex;
+use rex_addon;
+use rex_effect_abstract;
+use rex_exception;
+use rex_file;
+use rex_media_manager;
+use rex_sql;
+
 /**
  * REDAXO Media Manager Helper
  * Einfaches Handling von Media Manager Typen/Effekten in AddOns
  */
-class YFormContentMediaManagerHelper
+class MediaManagerHelper
 {
+    private static function isMediaManagerReady(): bool
+    {
+        return rex_addon::get('media_manager')->isAvailable() && class_exists('rex_media_manager');
+    }
+
     /**
      * Zeigt die verfügbaren Parameter eines Effekts an
      * @param string $effect Name des Effekts (z.B. 'resize', 'crop')
@@ -51,6 +67,16 @@ class YFormContentMediaManagerHelper
     public function listAvailableEffects(bool $dump = true): ?array
     {
         $effects = [];
+        if (!self::isMediaManagerReady()) {
+            if ($dump) {
+                dump($effects);
+
+                return null;
+            }
+
+            return $effects;
+        }
+
         foreach (rex_media_manager::getSupportedEffects() as $class => $effect) {
             $effects[] = str_replace('rex_effect_', '', $effect);
         }
@@ -127,7 +153,7 @@ class YFormContentMediaManagerHelper
      * @param array $params Effekt-Parameter
      * @param string $position 'append' oder 'prepend'
      */
-    public function addEffectToTypes($types, string $effect, array $params = [], string $position = 'append'): self
+    public function addEffectToTypes(array|string $types, string $effect, array $params = [], string $position = 'append'): self
     {
         // Wenn Pattern, dann passende Typen finden
         if (is_string($types) && str_ends_with($types, '*')) {
@@ -186,11 +212,16 @@ class YFormContentMediaManagerHelper
      */
     private function isEffectAvailable(string $effect): bool 
     {
+        if (!self::isMediaManagerReady()) {
+            return false;
+        }
+
         $effects = rex_media_manager::getSupportedEffects();
+
         return isset($effects['rex_effect_' . $effect]);
     }
 
-    private function getEffectName($effect): string 
+    private function getEffectName(mixed $effect): string 
     {
         if ($effect instanceof rex_effect_abstract) {
             $className = get_class($effect);
@@ -222,7 +253,7 @@ class YFormContentMediaManagerHelper
      */
     public function install(): void 
     {
-        if (!rex_addon::get('media_manager')->isAvailable()) {
+        if (!self::isMediaManagerReady()) {
             return;
         }
 
@@ -397,8 +428,9 @@ class YFormContentMediaManagerHelper
     ): bool {
         try {
             $this->exportToJson($typeNames, $file, $prettyPrint, $includeSystemTypes);
+
             return true;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
     }
@@ -408,7 +440,7 @@ class YFormContentMediaManagerHelper
      */
     public function uninstall(): void 
     {
-        if (!$this->removeOnUninstall || !rex_addon::get('media_manager')->isAvailable()) {
+        if (!$this->removeOnUninstall || !self::isMediaManagerReady()) {
             return;
         }
 

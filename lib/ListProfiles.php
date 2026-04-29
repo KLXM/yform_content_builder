@@ -1,5 +1,12 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_addon;
+use rex_sql;
+use rex_yform_manager_table;
+use Throwable;
+
 /**
  * YForm-Listen-Profile fuer das yform_content_builder-Addon.
  *
@@ -21,7 +28,7 @@
  *   default_layout  string   cards|list|compact
  *   filter_default  string   optionaler WHERE-Snippet (key=value pro Zeile, KEINE Roh-SQL)
  */
-final class YformListProfiles
+final class ListProfiles
 {
     public const CONFIG_KEY = 'yform_list_profiles';
 

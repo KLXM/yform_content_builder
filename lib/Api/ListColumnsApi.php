@@ -1,11 +1,20 @@
 <?php
 
+namespace KLXM\YFormContentBuilder\Api;
+
+use KLXM\YFormContentBuilder\ListProfiles;
+use rex;
+use rex_api_function;
+use rex_api_result;
+use rex_request;
+use rex_response;
+
 /**
  * API: Spalten einer YForm-Tabelle für die Profil-Konfiguration laden.
  *
  * Aufruf: /redaxo/index.php?rex-api-call=yform_list_columns&table=rex_news
  */
-class rex_api_yform_list_columns extends rex_api_function
+class ListColumnsApi extends rex_api_function
 {
     protected $published = false;
 
@@ -21,8 +30,8 @@ class rex_api_yform_list_columns extends rex_api_function
         rex_response::cleanOutputBuffers();
 
         $table = (string) rex_request('table', 'string', '');
-        $columns = '' !== $table ? YformListProfiles::collectColumns($table) : [];
-        $urlProfiles = YformListProfiles::collectUrlProfiles($table);
+        $columns = '' !== $table ? ListProfiles::collectColumns($table) : [];
+        $urlProfiles = ListProfiles::collectUrlProfiles($table);
 
         rex_response::sendJson([
             'table' => $table,

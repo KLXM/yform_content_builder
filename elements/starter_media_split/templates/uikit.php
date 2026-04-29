@@ -17,7 +17,7 @@ if ($headline === '' && trim(strip_tags($text)) === '' && $mediaFile === '') {
 $ext = strtolower((string) pathinfo($mediaFile, PATHINFO_EXTENSION));
 $isVideo = in_array($ext, ['mp4', 'webm', 'ogg'], true);
 
-$mediaLabel = YFormContentBuilderMediaAltResolver::resolve($mediaFile, $mediaAlt, $headline);
+$mediaLabel = \KLXM\YFormContentBuilder\MediaAltResolver::resolve($mediaFile, $mediaAlt, $headline);
 
 $sectionClasses = ['uk-section'];
 if ($sectionBg !== '') {

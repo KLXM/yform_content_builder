@@ -9,7 +9,7 @@
  * Layouts: Cards / Liste / Kompakt.
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
 // Element ausblenden, wenn forcal nicht installiert/aktiviert ist.
 $forcalAvailable = rex_addon::exists('forcal')

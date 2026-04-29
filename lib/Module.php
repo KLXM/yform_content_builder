@@ -1,6 +1,15 @@
 <?php
 
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+namespace KLXM\YFormContentBuilder;
+
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
+use rex;
+use rex_escape;
+use rex_path;
+use rex_request;
+use rex_response;
+use rex_sql;
+use Throwable;
 
 /**
  * YForm Content Builder für Module
@@ -8,16 +17,16 @@ use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
  * Nutzt das Field Plugin System für konsistentes Rendering
  * 
  * Verwendung:
- * Input:  echo yform_content_builder_module::create('gallery')->renderInput();
- * Output: echo yform_content_builder_module::create('gallery', 'REX_VALUE[id=1 output=html]')->renderOutput();
+ * Input:  echo Module::create('gallery')->renderInput();
+ * Output: echo Module::create('gallery', 'REX_VALUE[id=1 output=html]')->renderOutput();
  */
-class yform_content_builder_module
+class Module
 {
-    protected $elementType;
-    protected $data;
-    protected $rawValue;
-    protected $framework = 'bootstrap';
-    protected $valueId = 1;
+    protected string $elementType = '';
+    protected array $data = [];
+    protected mixed $rawValue = null;
+    protected string $framework = 'bootstrap';
+    protected int $valueId = 1;
     
     /**
      * Element erstellen
@@ -27,7 +36,7 @@ class yform_content_builder_module
      * @param string $framework CSS Framework für Output (bootstrap, uikit, plain)
      * @return self
      */
-    public static function create($type, $rawValue = null, $framework = 'bootstrap', $valueId = null)
+    public static function create(string $type, mixed $rawValue = null, string $framework = 'bootstrap', mixed $valueId = null): self
     {
         $instance = new self();
         $instance->elementType = $type;
@@ -63,14 +72,14 @@ class yform_content_builder_module
      * Element über einen Value-Slot erstellen (verständlichere API).
      *
      * Beispiel:
-     * echo yform_content_builder_module::createByValueId('cards', 2, 'uikit')->renderInput();
+     * echo Module::createByValueId('cards', 2, 'uikit')->renderInput();
      *
      * @param string $type Element-Typ
      * @param int    $valueId REX_VALUE Slot (1-20)
      * @param string $framework CSS Framework
      * @return self
      */
-    public static function createByValueId($type, $valueId = 1, $framework = 'bootstrap')
+    public static function createByValueId(string $type, int $valueId = 1, string $framework = 'bootstrap'): self
     {
         $normalizedValueId = (int) $valueId;
         if ($normalizedValueId <= 0) {
@@ -86,7 +95,7 @@ class yform_content_builder_module
      * @param int $valueId
      * @return string
      */
-    protected static function loadRawValueFromCurrentSlice($valueId)
+    protected static function loadRawValueFromCurrentSlice(int $valueId): string
     {
         $slot = (int) $valueId;
         if ($slot < 1 || $slot > 20) {
@@ -122,7 +131,7 @@ class yform_content_builder_module
      * @param int $slot
      * @return string
      */
-    protected static function loadRawValueFromModuleContext($slot)
+    protected static function loadRawValueFromModuleContext(int $slot): string
     {
         if (isset($GLOBALS['REX_VALUE']) && is_array($GLOBALS['REX_VALUE'])) {
             if (array_key_exists($slot, $GLOBALS['REX_VALUE'])) {
@@ -145,7 +154,7 @@ class yform_content_builder_module
      * @param mixed $rawValue
      * @return int
      */
-    protected function detectValueIdFromRawValue($rawValue)
+    protected function detectValueIdFromRawValue(mixed $rawValue): int
     {
         if (!is_string($rawValue) || $rawValue === '') {
             return 1;
@@ -173,7 +182,7 @@ class yform_content_builder_module
      * @param string $rawValue
      * @return int|null
      */
-    protected function detectValueIdByCurrentSlice($rawValue)
+    protected function detectValueIdByCurrentSlice(string $rawValue): ?int
     {
         $sliceId = rex_request('slice_id', 'int', 0);
         if ($sliceId <= 0) {
@@ -225,7 +234,7 @@ class yform_content_builder_module
      * @param string $value
      * @return string
      */
-    protected function normalizeValueForCompare($value)
+    protected function normalizeValueForCompare(string $value): string
     {
         return trim((string) html_entity_decode((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
     }
@@ -235,7 +244,7 @@ class yform_content_builder_module
      *
      * @return string
      */
-    protected function getInputValueFieldName()
+    protected function getInputValueFieldName(): string
     {
         return 'REX_INPUT_VALUE[' . $this->valueId . ']';
     }
@@ -246,7 +255,7 @@ class yform_content_builder_module
      *
      * @return string
      */
-    protected function getInstanceId()
+    protected function getInstanceId(): string
     {
         $sliceId = rex_request('slice_id', 'int', 0);
         return 's' . $sliceId . '_v' . $this->valueId;
@@ -257,7 +266,7 @@ class yform_content_builder_module
      * 
      * @return string HTML des Input-Formulars
      */
-    public function renderInput()
+    public function renderInput(): string
     {
         // Config laden
         $config = $this->loadConfig();
@@ -556,7 +565,7 @@ class yform_content_builder_module
      * 
      * @return string HTML des Elements
      */
-    public function renderOutput()
+    public function renderOutput(): string
     {
         // Config laden
         $config = $this->loadConfig();
@@ -584,6 +593,8 @@ class yform_content_builder_module
             return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Template nicht gefunden: ' . $elementFile . '</div>' : '';
         }
         
+        Helper::loadElementI18n($elementDir);
+
         // Element-Template einbinden
         ob_start();
         $data = $this->data; // Für Template verfügbar machen
@@ -599,25 +610,27 @@ class yform_content_builder_module
      * 
      * @return array|null
      */
-    protected function loadConfig()
+    protected function loadConfig(): array|null
     {
         $configFile = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/config.php');
         
         if (!file_exists($configFile)) {
             return null;
         }
-        
+
+        Helper::loadElementI18n(dirname($configFile));
+
         return include $configFile;
     }
     
     /**
      * Formular-Felder rendern - nutzt YForm Content Builder renderFormField
      */
-    protected function renderFormFields(array $config, array $sliceData)
+    protected function renderFormFields(array $config, array $sliceData): void
     {
         $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
         $elementDir = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/');
-        $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementDir);
+        $helpModalConfig = ModalHelper::buildConfigForElementDir($elementDir);
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
             echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
@@ -627,14 +640,14 @@ class yform_content_builder_module
             }
 
             if ($helpModalConfig !== null) {
-                $helpModalConfig['_modal_id'] = yform_content_builder_help_modal_helper::createModalId();
-                yform_content_builder_help_modal_helper::renderButton($helpModalConfig, true);
+                $helpModalConfig['_modal_id'] = ModalHelper::createModalId();
+                ModalHelper::renderButton($helpModalConfig, true);
             }
 
             echo '</div>';
 
             if ($helpModalConfig !== null) {
-                yform_content_builder_help_modal_helper::renderModal($helpModalConfig);
+                ModalHelper::renderModal($helpModalConfig);
             }
         }
         
@@ -649,7 +662,7 @@ class yform_content_builder_module
             }
             
             $self = $this;
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $config['fields'],
                 $modalFields,
                 function (string $fieldName, array $fieldConfig) use ($self, $sliceData): void {
@@ -660,9 +673,9 @@ class yform_content_builder_module
     }
     
     /**
-     * Einzelnes Form-Feld rendern - nutzt ContentBuilderFieldRegistry
+     * Einzelnes Form-Feld rendern - nutzt FieldRegistry
      */
-    protected function renderFormField(string $fieldName, array $fieldConfig, array $sliceData)
+    protected function renderFormField(string $fieldName, array $fieldConfig, array $sliceData): void
     {
         // Wert aus sliceData extrahieren
         $value = $this->getValueForField($fieldName, $sliceData);
@@ -677,13 +690,13 @@ class yform_content_builder_module
         }
         
         // Field Registry nutzen für konsistentes Rendering
-        ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+        FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
     }
     
     /**
      * Get value for a field from sliceData - handles nested arrays properly
      */
-    protected function getValueForField(string $fieldName, array $sliceData)
+    protected function getValueForField(string $fieldName, array $sliceData): mixed
     {
         // Einfacher Key ohne Brackets
         if (strpos($fieldName, '[') === false) {
@@ -708,7 +721,7 @@ class yform_content_builder_module
     /**
      * Settings Modal Button rendern
      */
-    protected function renderSettingsModalButton(array $config, array $sliceData, bool $toolbarButton = false)
+    protected function renderSettingsModalButton(array $config, array $sliceData, bool $toolbarButton = false): void
     {
         $modalId = 'settings_modal_' . uniqid();
         $modalConfig = $config['settings_modal'];
@@ -761,7 +774,7 @@ class yform_content_builder_module
     /**
      * Formular mit Tabs rendern
      */
-    protected function renderFormWithTabs(array $config, array $sliceData)
+    protected function renderFormWithTabs(array $config, array $sliceData): void
     {
         $tabId = 'tab_' . uniqid();
         
@@ -799,7 +812,7 @@ class yform_content_builder_module
                     }
                 }
                 $self = $this;
-                ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                FieldRegistry::renderFieldRowsGroup(
                     $groupFieldMap,
                     [],
                     function (string $fieldName, array $fieldConfig) use ($self, $sliceData): void {

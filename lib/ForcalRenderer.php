@@ -1,7 +1,20 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use DateTimeImmutable;
+use DateTimeInterface;
+use Exception;
+use rex;
+use rex_addon;
+use rex_clang;
+use rex_logger;
+use rex_media_manager;
+use rex_sql;
+use Throwable;
+
 /**
- * ForcalListRenderer
+ * ForcalRenderer
  *
  * Liefert kommende Termine aus dem forcal-Addon fuer das forcal_list Element.
  *
@@ -13,7 +26,7 @@
  *
  * @author  Friends Of REDAXO
  */
-final class ForcalListRenderer
+final class ForcalRenderer
 {
     /** @var list<string> */
     public const ALLOWED_LAYOUTS = ['cards', 'list', 'compact'];

@@ -1,13 +1,65 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_addon;
+use rex_escape;
+use Throwable;
+
 /**
  * YForm Content Builder Helper
  * Einfache Frontend-Ausgabe von Slices
  */
-class yform_content_builder_helper
+class Helper
 {
-    /** Daten der aktuell offenen Section (für Grid-Close) */
+    /** @var array<string, mixed> Daten der aktuell offenen Section (für Grid-Close) */
     protected static array $activeSectionData = [];
+
+    /** @var array<string, bool> Bereits eingebundene Element-Sprachverzeichnisse */
+    protected static array $loadedElementLangDirs = [];
+
+    /**
+     * Bindet optional vorhandene Sprachdateien eines Elements ein.
+     */
+    public static function loadElementI18n(string $elementPath): void
+    {
+        $langDir = rtrim($elementPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'lang';
+        if (!is_dir($langDir) || isset(self::$loadedElementLangDirs[$langDir])) {
+            return;
+        }
+
+        \rex_i18n::addDirectory($langDir);
+        self::$loadedElementLangDirs[$langDir] = true;
+    }
+
+    /**
+     * Liefert eine lokalisierte Nachricht mit Fallback.
+     */
+    public static function t(string $key, string $fallback = ''): string
+    {
+        $msg = \rex_i18n::rawMsg($key);
+
+        if ($msg !== $key) {
+            return $msg;
+        }
+
+        return $fallback !== '' ? $fallback : $key;
+    }
+
+    /**
+     * Einheitliches i18n-Muster fuer Element-Configs.
+     *
+     * @return \Closure(string, string): string
+     */
+    public static function elementTranslator(string $prefix): \Closure
+    {
+        return static function (string $suffix, string $fallback = '') use ($prefix): string {
+            $keyPrefix = $prefix . '_';
+            $key = str_starts_with($suffix, $keyPrefix) ? $suffix : $keyPrefix . $suffix;
+
+            return self::t($key, $fallback);
+        };
+    }
 
     /**
      * Rendert Content Builder Slices im Frontend
@@ -100,14 +152,15 @@ class yform_content_builder_helper
     /**
      * Schließt eine offene Section
      *
-     * @param string $framework Framework
-     * @param array  $elementData Daten der zu schließenden Section (für Grid-Wrapper)
+    * @param string $framework Framework
+    * @param array<string, mixed> $elementData Daten der zu schließenden Section (für Grid-Wrapper)
      * @return string HTML-Ausgabe
      */
     protected static function renderSectionClose(string $framework, array $elementData = []): string
     {
         $addon = rex_addon::get('yform_content_builder');
         $elementPath = $addon->getPath('elements/section');
+        self::loadElementI18n($elementPath);
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         
         if (!file_exists($templateFile)) {
@@ -122,13 +175,15 @@ class yform_content_builder_helper
         
         ob_start();
         include $templateFile;
-        return ob_get_clean();
+        $output = ob_get_clean();
+
+        return is_string($output) ? $output : '';
     }
 
     /**
      * Rendert ein einzelnes Slice
      *
-     * @param array $slice Slice-Daten
+    * @param array<string, mixed> $slice Slice-Daten
      * @param string $framework Framework
      * @param string|null $closeType Optional: 'open' oder 'close' für Section-Elemente
      * @return string HTML-Ausgabe
@@ -144,6 +199,7 @@ class yform_content_builder_helper
         
         $addon = rex_addon::get('yform_content_builder');
         $elementPath = $addon->getPath('elements/' . $sliceType);
+        self::loadElementI18n($elementPath);
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         
         // Fallback auf plain.php
@@ -158,7 +214,60 @@ class yform_content_builder_helper
         ob_start();
         include $templateFile;
         $output = ob_get_clean();
-        return $output;
+
+        return is_string($output) ? $output : '';
+    }
+
+    /**
+     * Rendert direkt aus dem rohen JSON-String.
+     */
+    public static function outputRaw(string $jsonContent, string $framework = 'bootstrap'): string
+    {
+        return self::render($jsonContent, $framework);
+    }
+
+    /**
+     * Rendert direkt aus einem YORM/YForm-Datensatz.
+     */
+    public static function outputDataset(object $dataset, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
+    {
+        if (!method_exists($dataset, 'getValue')) {
+            return '';
+        }
+
+        $content = $dataset->getValue($fieldName);
+        if (!is_string($content)) {
+            return '';
+        }
+
+        return self::render($content, $framework);
+    }
+
+    /**
+     * Rendert direkt ueber YForm-Tabelle + Datensatz-ID.
+     */
+    public static function outputDatasetById(string $tableName, int $id, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
+    {
+        $tableName = trim($tableName);
+        if ($tableName === '' || $id < 1) {
+            return '';
+        }
+
+        if (!class_exists('rex_yform_manager_dataset')) {
+            return '';
+        }
+
+        try {
+            $dataset = \rex_yform_manager_dataset::get($id, $tableName);
+        } catch (Throwable) {
+            return '';
+        }
+
+        if (!is_object($dataset)) {
+            return '';
+        }
+
+        return self::outputDataset($dataset, $fieldName, $framework);
     }
 
     /**
@@ -169,17 +278,14 @@ class yform_content_builder_helper
      * @param string $framework Framework
      * @return string HTML-Ausgabe
      */
-    public static function output($dataset, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
+    public static function output(mixed $dataset, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
     {
         if (is_string($dataset)) {
-            // Direkter JSON-String
-            return self::render($dataset, $framework);
+            return self::outputRaw($dataset, $framework);
         }
         
         if (is_object($dataset) && method_exists($dataset, 'getValue')) {
-            // YOrm Dataset
-            $content = $dataset->getValue($fieldName);
-            return self::render($content, $framework);
+            return self::outputDataset($dataset, $fieldName, $framework);
         }
         
         return '';
@@ -189,7 +295,7 @@ class yform_content_builder_helper
      * Extrahiert alle Bilder aus dem Content für z.B. OG-Tags
      *
      * @param string $jsonContent JSON-String mit Slices
-     * @return array Array mit Bild-Dateinamen
+    * @return array<int, string> Array mit Bild-Dateinamen
      */
     public static function extractImages(string $jsonContent): array
     {

@@ -93,7 +93,7 @@ if ($image && !$video) {
     $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $image);
 }
 
-$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
+$resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
 
 // Parallax-Attribute
 $parallaxBgAttr = '';

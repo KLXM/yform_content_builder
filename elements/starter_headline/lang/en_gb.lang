@@ -1,0 +1,15 @@
+starter_headline_label = Headline
+starter_headline_description = Semantic rich headline with a combined input field.
+starter_headline_group_content_label = Content
+starter_headline_group_layout_label = Layout
+starter_headline_field_headline_label = Headline
+starter_headline_field_headline_notice = Eyebrow, highlight, subline and tag are managed together.
+starter_headline_field_container_width_label = Container width
+starter_headline_field_section_padding_label = Section spacing
+starter_headline_field_section_padding_choice_default = Default
+starter_headline_field_section_padding_choice_xsmall = Very compact
+starter_headline_field_section_padding_choice_small = Compact
+starter_headline_field_section_padding_choice_normal = Normal
+starter_headline_field_section_padding_choice_large = Large
+starter_headline_field_section_padding_choice_xlarge = Very large
+starter_headline_field_section_padding_notice = Controls the vertical section spacing (without colors/background image).

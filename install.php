@@ -11,7 +11,7 @@ if (!rex_addon::get('yform')->isInstalled()) {
 
 // Media Manager Typen anlegen
 if (rex_addon::get('media_manager')->isAvailable()) {
-    $mm = YFormContentMediaManagerHelper::factory();
+    $mm = \KLXM\YFormContentBuilder\MediaManagerHelper::factory();
     
     // Prüfen ob focuspoint AddOn verfügbar ist
     $hasFocuspoint = rex_addon::get('focuspoint')->isAvailable();

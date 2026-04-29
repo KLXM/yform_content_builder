@@ -1,9 +1,16 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_escape;
+use rex_file;
+use rex_i18n;
+use rex_markdown;
+
 /**
  * Gemeinsame Helper-Funktionen fuer Hilfe-Modal (help*.md) im Content Builder.
  */
-class yform_content_builder_help_modal_helper
+class ModalHelper
 {
     public static function createModalId(): string
     {

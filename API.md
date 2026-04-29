@@ -6,14 +6,21 @@ Diese Dokumentation beschreibt die API des YForm Content Builders, wie man eigen
 
 - [API-Endpunkte](#api-endpunkte)
 - [Modul-Integration](#modul-integration)
+- [Frontend-Output API](#frontend-output-api)
+- [Frameworks & Templates](#frameworks--templates)
 - [Feldtypen-System](#feldtypen-system)
 - [Feld-Konfiguration](#feld-konfiguration)
   - [Gemeinsame Optionen](#gemeinsame-optionen-alle-felder)
   - [Permission System](#permission-system)
 - [Eigene Elemente erstellen](#eigene-elemente-erstellen)
 - [Eigene Feldtypen erstellen](#eigene-feldtypen-erstellen)
+- [Datensatz-Picker Feldtypen](#datensatz-picker-feldtypen)
+- [Extra-Felder System](#extra-felder-system)
 - [Extension Points](#extension-points)
 - [Helper-Klassen](#helper-klassen)
+- [Datenstruktur](#datenstruktur)
+- [Best Practices](#best-practices)
+- [Fehlerbehebung](#fehlerbehebung)
 
 ---
 
@@ -86,11 +93,13 @@ Verwende den kompletten Content Builder mit mehreren Elementen und Drag & Drop.
 **INPUT:**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Wert aus Slice holen
 $currentValue = $this->getCurrentSlice()->getValue(1);
 
 // Content Builder erstellen
-$contentBuilder = yform_content_builder_module::createWithValue(1, $currentValue, [
+$contentBuilder = Module::createWithValue(1, $currentValue, [
     'framework' => 'bootstrap', // Framework für Backend-Preview
     'label' => 'Seiteninhalt',
     'description' => 'Fügen Sie Content-Elemente hinzu',
@@ -106,11 +115,13 @@ echo $contentBuilder->getEditor();
 **OUTPUT:**
 ```php
 <?php
+use KLXM\YFormContentBuilder\Module;
+
 // Wert aus Slice holen
 $currentValue = $this->getCurrentSlice()->getValue(1);
 
 // Content Builder erstellen
-$contentBuilder = yform_content_builder_module::createWithValue(1, $currentValue, [
+$contentBuilder = Module::createWithValue(1, $currentValue, [
     'framework' => 'uikit' 
 ]);
 
@@ -128,14 +139,18 @@ Empfohlen ist die Slot-basierte Schreibweise mit `createByValueId(...)`.
 **INPUT:**
 ```php
 <?php
-echo yform_content_builder_module::createByValueId('gallery', 1, 'bootstrap')->renderInput();
+use KLXM\YFormContentBuilder\Module;
+
+echo Module::createByValueId('gallery', 1, 'bootstrap')->renderInput();
 ?>
 ```
 
 **OUTPUT:**
 ```php
 <?php
-echo yform_content_builder_module::createByValueId('gallery', 1, 'uikit')->renderOutput();
+use KLXM\YFormContentBuilder\Module;
+
+echo Module::createByValueId('gallery', 1, 'uikit')->renderOutput();
 ?>
 ```
 
@@ -145,23 +160,123 @@ Die alte Schreibweise bleibt gültig:
 
 ```php
 <?php
-echo yform_content_builder_module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
+use KLXM\YFormContentBuilder\Module;
+
+echo Module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
 ?>
+```
+
+---
+
+## Frameworks & Templates
+
+Das Addon ist **Framework-agnostic**: Es lädt beim Rendern einfach die passende Template-Datei.
+
+### Backend vs. Frontend
+
+Du kannst für das Backend (Preview) und das Frontend unterschiedliche Frameworks nutzen:
+
+1. **Backend Preview** – wird in der YForm-Felddefinition unter „Framework" eingestellt.
+   - Default: `bootstrap` (passt zum REDAXO-Backend)
+   - Empfehlung: Lass dies auf `bootstrap`, damit die Vorschau sauber aussieht – auch wenn du im Frontend Tailwind nutzt.
+
+2. **Frontend Output** – wird beim Aufruf von `Helper::outputDataset(...)`, `Helper::outputDatasetById(...)` oder `Helper::outputRaw(...)` festgelegt.
+   - Volle Freiheit: `bootstrap`, `uikit`, `tailwind`, `plain`, etc.
+
+### Template-Struktur
+
+Das System sucht automatisch nach der Datei `elements/{element}/templates/{framework}.php`:
+
+```text
+elements/
+└── hero/
+    ├── config.php
+    └── templates/
+        ├── bootstrap.php   ← bei output* Methode mit Framework `bootstrap`
+        ├── uikit.php       ← bei output* Methode mit Framework `uikit`
+        ├── tailwind.php    ← bei output* Methode mit Framework `tailwind`
+        └── plain.php       ← Fallback
+```
+
+Gibt es kein passendes Template, wird `plain.php` als Fallback geladen.
+
+Element-spezifische Sprachdateien werden ebenfalls automatisch geladen, wenn vorhanden:
+
+```text
+elements/{element}/lang/de_de.lang
+elements/{element}/lang/en_gb.lang
+```
+
+Fuer konsistente Uebersetzungen in `config.php` empfiehlt sich `Helper::elementTranslator('{element}')`.
+
+### Custom Templates und Frameworks
+
+Eigene Frameworks ergänzt du einfach durch eine neue Template-Datei:
+
+```text
+project/elements/mein_element/templates/tailwind.php
+```
+
+---
+
+## Frontend-Output API
+
+Die empfohlene Frontend-Ausgabe fuer YForm-Datensaetze laeuft ueber `KLXM\YFormContentBuilder\Helper`.
+
+### Methoden
+
+| Methode | Beschreibung |
+|--------|--------------|
+| `Helper::outputDataset($dataset, $fieldName, $framework)` | Rendert aus einem vorhandenen YORM/YForm-Datensatz |
+| `Helper::outputDatasetById($tableName, $id, $fieldName, $framework)` | Rendert direkt ueber Tabelle + Datensatz-ID |
+| `Helper::outputRaw($rawContent, $framework)` | Rendert direkt aus dem gespeicherten JSON-String |
+
+### Beispiele
+
+```php
+<?php
+use KLXM\YFormContentBuilder\Helper;
+
+// Einzeiler mit vorhandenem Datensatz
+echo Helper::outputDataset($dataset, 'content_builder', 'bootstrap');
+
+// Einzeiler ueber Tabelle + ID
+echo Helper::outputDatasetById('rex_pages', 42, 'content_builder', 'uikit');
+
+// Direkt aus einem JSON-Feld
+echo Helper::outputRaw($dataset->getValue('content_builder'), 'plain');
+```
+
+YORM mit `where`-Bedingungen:
+
+```php
+<?php
+use KLXM\YFormContentBuilder\Helper;
+
+$item = \Project\Model\ContentPage::query()
+    ->where('status', 1)
+    ->where('clang_id', rex_clang::getCurrentId())
+    ->where('slug', 'startseite')
+    ->findOne();
+
+if ($item !== null) {
+    echo Helper::outputDataset($item, 'content_builder', 'bootstrap');
+}
 ```
 
 ---
 
 ## Feldtypen-System
 
-Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eigene Klasse im Namespace `FriendsOfREDAXO\YFormContentBuilder\Fields`.
+Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eigene Klasse im Namespace `KLXM\YFormContentBuilder\Fields`.
 
 ### Architektur
 
 ```
 lib/fields/
-├── ContentBuilderFieldInterface.php   # Interface (muss implementiert werden)
-├── ContentBuilderFieldAbstract.php    # Abstrakte Basisklasse (empfohlen)
-├── ContentBuilderFieldRegistry.php    # Registry zum Registrieren/Abrufen
+├── FieldInterface.php   # Interface (muss implementiert werden)
+├── FieldAbstract.php    # Abstrakte Basisklasse (empfohlen)
+├── FieldRegistry.php    # Registry zum Registrieren/Abrufen
 └── [FieldName]Field.php               # Konkrete Feldtypen
 ```
 
@@ -179,6 +294,7 @@ lib/fields/
 | `be_link` | `BeLinkField` | REDAXO Linkmap Widget |
 | `radio_image` | `RadioImageField` | Radio-Buttons mit Bildern/SVGs |
 | `color_swatches` | `ColorSwatchesField` | Farbauswahl mit visuellen Farbfeldern |
+| `smart_link` | `SmartLinkField` | Kombiniertes Linkfeld für URL, intern, Media, Mail, Tel und YForm |
 | `repeater` | `RepeaterField` | Wiederholbare Feldgruppen |
 
 ---
@@ -196,6 +312,37 @@ Jeder Feldtyp unterstützt spezifische Konfigurationsoptionen:
 | `notice` | string | Hilfetext unter dem Feld |
 | `default` | mixed | Standardwert |
 | `perm` | string/array | Berechtigungen - siehe Permission System unten |
+
+### Feldtyp `smart_link`
+
+Der Feldtyp `smart_link` speichert Linkziele in einem einheitlichen JSON-Format und unterstützt mehrere Linkarten in einem Feld.
+
+| Option | Typ | Beschreibung |
+|--------|-----|--------------|
+| `multiple` | bool | Erlaubt mehrere Links in einem Feld |
+| `types` | array/string | Erlaubte Linktypen als Array oder CSV |
+| `notice` | string | Hilfetext unter dem Feld |
+
+Erlaubte Typwerte für `types`:
+
+- `auto`
+- `url`
+- `intern`
+- `media`
+- `mail`
+- `tel`
+- `yform`
+
+Beispiel:
+
+```php
+'link' => [
+    'type' => 'smart_link',
+    'label' => 'Link',
+    'multiple' => false,
+    'types' => 'auto,url,intern,media,mail,tel,yform',
+]
+```
 
 ### Permission System
 
@@ -732,13 +879,13 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function():
 
 ### Interface implementieren
 
-Jeder Feldtyp muss das `ContentBuilderFieldInterface` implementieren:
+Jeder Feldtyp muss das `FieldInterface` implementieren:
 
 ```php
 <?php
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
-interface ContentBuilderFieldInterface
+interface FieldInterface
 {
     /**
      * Gibt den Feldtyp-Namen zurück
@@ -759,7 +906,7 @@ interface ContentBuilderFieldInterface
 
 ### Abstrakte Basisklasse nutzen (empfohlen)
 
-Die `ContentBuilderFieldAbstract` Klasse bietet hilfreiche Methoden:
+Die `FieldAbstract` Klasse bietet hilfreiche Methoden:
 
 | Methode | Beschreibung |
 |---------|--------------|
@@ -775,14 +922,14 @@ Die `ContentBuilderFieldAbstract` Klasse bietet hilfreiche Methoden:
 
 ```php
 <?php
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
 /**
  * E-Mail-Eingabefeld mit Validierung
  */
-class EmailField extends ContentBuilderFieldAbstract
+class EmailField extends FieldAbstract
 {
     public static function getType(): string
     {
@@ -818,14 +965,14 @@ class EmailField extends ContentBuilderFieldAbstract
 
 ```php
 <?php
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
 /**
  * Icon-Auswahl mit Vorschau
  */
-class IconPickerField extends ContentBuilderFieldAbstract
+class IconPickerField extends FieldAbstract
 {
     private static array $icons = [
         'fa-home' => 'Home',
@@ -903,11 +1050,11 @@ class IconPickerField extends ContentBuilderFieldAbstract
 
 ```php
 // In boot.php deines Addons
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 
 if (rex_addon::get('yform_content_builder')->isAvailable()) {
-    ContentBuilderFieldRegistry::register(new EmailField());
-    ContentBuilderFieldRegistry::register(new IconPickerField());
+    FieldRegistry::register(new EmailField());
+    FieldRegistry::register(new IconPickerField());
 }
 ```
 
@@ -934,7 +1081,7 @@ rex_extension::register('YFORM_CONTENT_BUILDER_FIELDS', function(rex_extension_p
 <?php
 namespace MyAddon\Fields;
 
-use FriendsOfREDAXO\YFormContentBuilder\Fields\BeMediaField;
+use KLXM\YFormContentBuilder\Fields\BeMediaField;
 
 /**
  * Erweitertes Media-Feld mit Drag & Drop
@@ -1007,6 +1154,7 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_PATHS', function($ep) {
     $paths[] = rex_addon::get('mein_addon')->getPath('content_elements/');
     return $paths;
 });
+```
 
 ### YFORM_CONTENT_BUILDER_ELEMENT_MODE
 
@@ -1020,69 +1168,69 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function():
     return 'merge';
 });
 ```
-```
 
 ---
 
 ## Helper-Klassen
 
-### ContentBuilderFieldRegistry
+### FieldRegistry
 
 ```php
-use FriendsOfREDAXO\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 
 // Feld registrieren
-ContentBuilderFieldRegistry::register(new MyField());
+FieldRegistry::register(new MyField());
 
 // Feld abrufen
-$field = ContentBuilderFieldRegistry::get('text');
+$field = FieldRegistry::get('text');
 
 // Prüfen ob Feld existiert
-if (ContentBuilderFieldRegistry::has('my_custom')) {
+if (FieldRegistry::has('my_custom')) {
     // ...
 }
 
 // Alle Felder abrufen
-$allFields = ContentBuilderFieldRegistry::getAll();
+$allFields = FieldRegistry::getAll();
 
 // Feld rendern (empfohlener Weg)
-ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
 ```
 
-### yform_content_builder_helper
+### Helper
 
 ```php
 // Prüfen ob Datei ein Bild ist
-yform_content_builder_helper::isImage('foto.jpg');  // true
+Helper::isImage('foto.jpg');  // true
 
 // Prüfen ob Datei ein Video ist
-yform_content_builder_helper::isVideo('clip.mp4');  // true
+Helper::isVideo('clip.mp4');  // true
 
 // Verfügbare Elemente abrufen
-$elements = yform_content_builder_helper::getAvailableElements();
+$elements = Helper::getAvailableElements();
 
 // Element-Konfiguration laden
-$config = yform_content_builder_helper::getElementConfig('text_image');
+$config = Helper::getElementConfig('text_image');
 ```
 
 ### Frontend-Rendering
 
 ```php
-use KLXM\YformContentBuilder\Helper as ContentBuilderHelper;
+use KLXM\YFormContentBuilder\Helper;
 
-// Aus YForm-Daten
+// Aus vorhandenem YForm/YORM-Datensatz
 $page = rex_yform_manager_dataset::get(1, 'rex_pages');
-$content = $page->getValue('content');
+if ($page !== null) {
+    echo Helper::outputDataset($page, 'content_builder', 'bootstrap');
+}
 
-// Mit Bootstrap-Templates rendern
-echo ContentBuilderHelper::render($content, 'bootstrap');
+// Direkt ueber Tabelle + Datensatz-ID
+echo Helper::outputDatasetById('rex_pages', 1, 'content_builder', 'uikit');
 
-// Mit UIkit-Templates rendern
-echo ContentBuilderHelper::render($content, 'uikit');
-
-// Mit Plain HTML rendern
-echo ContentBuilderHelper::render($content, 'plain');
+// Direkt aus Rohdaten
+echo Helper::outputRaw((string) $page?->getValue('content_builder'), 'plain');
 ```
+
+> **Hinweis zur Abwärtskompatibilität:** Die alten Klassennamen `yform_content_builder_helper`, `ContentBuilderFieldRegistry`, `ContentBuilderFieldAbstract` und `ContentBuilderFieldInterface` stehen weiterhin über PHP `class_alias()` zur Verfügung. Neuer Code sollte immer die kanonischen Klassennamen mit `use KLXM\YFormContentBuilder\...` verwenden.
 
 ---
 
@@ -1090,14 +1238,33 @@ echo ContentBuilderHelper::render($content, 'plain');
 
 ### Element-Templates
 
-1. **Keine Funktionen definieren** - Templates werden mehrfach eingebunden
-2. **Immer escapen** - `rex_escape()` für alle Ausgaben
-3. **Leere Werte prüfen** - `$elementData['field'] ?? ''`
-4. **Framework-agnostisch denken** - Logik im Template, Styling per CSS
+1. **Keine Funktionen definieren** – Templates werden mehrfach eingebunden. Vermeide `function myHelper() { ... }` direkt im Template: das führt bei mehrfach genutzten Elementen zu einem *„Cannot redeclare function"* Fatal Error.
+
+   ```php
+   // ❌ Falsch – führt zu Fehler bei mehrfacher Verwendung
+   function formatPrice($price) {
+       return number_format($price, 2, ',', '.');
+   }
+   echo formatPrice($price);
+   
+   // ✅ Richtig – Closure oder Helper-Klasse verwenden
+   use KLXM\YFormContentBuilder\Helper;
+   
+   if (Helper::isImage($file)) { ... }
+   
+   $formatPrice = static function (float $price): string {
+       return number_format($price, 2, ',', '.');
+   };
+   echo $formatPrice($price);
+   ```
+
+2. **Immer escapen** – `rex_escape()` für alle Ausgaben nutzen.
+3. **Leere Werte prüfen** – `$elementData['field'] ?? ''` als Fallback.
+4. **Framework-agnostisch denken** – Logik im Template, Styling per CSS.
 
 ### Feldtypen
 
-1. **Basisklasse nutzen** - `ContentBuilderFieldAbstract` vereinfacht vieles
+1. **Basisklasse nutzen** - `FieldAbstract` vereinfacht vieles
 2. **Eindeutige IDs** - `$this->generateId()` verwenden
 3. **processValue()** - Für Validierung/Transformation nutzen
 4. **Kompatibilität** - CSS im Feld nur wenn nötig, besser in eigenem Stylesheet
@@ -1107,3 +1274,279 @@ echo ContentBuilderHelper::render($content, 'plain');
 1. **Lazy Loading** - Felder werden erst bei Bedarf initialisiert
 2. **Caching** - Element-Konfigurationen werden gecacht
 3. **Minimale Requests** - API-Calls bündeln wo möglich
+
+---
+
+## Datensatz-Picker Feldtypen
+
+Es gibt **zwei verschiedene Feldtypen** für die Auswahl von Datensätzen aus Datenbanktabellen:
+
+### `be_table_select` – Einfacher Datensatz-Picker (Selectpicker)
+
+Leichtgewichtiger selectpicker für einfache Einzel- oder Mehrfachauswahl.
+
+**Features:**
+- Single & Multiple (kommagetrennte Speicherung bei Multiple: `"1,2,3"`)
+- Live Search im Dropdown
+- Responsive
+
+```php
+'featured_product' => [
+    'type' => 'be_table_select',
+    'label' => 'Produkt verknüpfen',
+    'table' => 'rex_yform_products',
+    'field' => 'title',
+    'multiple' => false,
+    'notice' => 'Einzelnes Produkt auswählen'
+],
+
+'related_events' => [
+    'type' => 'be_table_select',
+    'label' => 'Termine verknüpfen',
+    'table' => 'rex_yform_calendar',
+    'field' => 'title',
+    'multiple' => true,
+    'notice' => 'Mehrere Termine möglich'
+]
+```
+
+| Parameter | Typ | Erforderlich | Beschreibung |
+|-----------|-----|:---:|--------------|
+| `table` | string | ✅ | Tabellenname (z. B. `rex_yform_calendar`) |
+| `field` | string | ✅ | Anzeige-Spalte (z. B. `title`) |
+| `multiple` | bool | – | Mehrfachauswahl (default: `false`) |
+| `label` | string | ✅ | Feldbezeichnung im Backend |
+| `notice` | string | – | Hinweis-Text |
+
+### `yformpicker` – YForm Datensatz-Picker (Popup)
+
+Öffnet den YForm-Manager in einem Popup – ideal für große Datenmengen.
+
+**Features:**
+- Native YForm-Integration mit Pagination
+- Single & Multiple
+- Sortierbar (Drag & Drop oder Move-Buttons bei Multiple)
+
+```php
+'main_event' => [
+    'type' => 'yformpicker',
+    'label' => 'Haupttermin',
+    'table' => 'rex_yform_calendar',
+    'field' => 'title',
+    'multiple' => false
+],
+
+'team_members' => [
+    'type' => 'yformpicker',
+    'label' => 'Team-Mitglieder',
+    'table' => 'rex_kontakte',
+    'field' => 'nachname',
+    'multiple' => true
+]
+```
+
+### Vergleich
+
+| Feature | `be_table_select` | `yformpicker` |
+|---------|:-----------------:|:-------------:|
+| Darstellung | Selectpicker / Dropdown | Popup-Modal |
+| Große Datenmengen | ⚠️ | ✅ Pagination |
+| Sortierbar (Multiple) | – | ✅ |
+| Abhängigkeiten | Bootstrap Selectpicker | YForm |
+
+---
+
+## Extra-Felder System
+
+Das Extra-Felder System ermöglicht es, bestehenden Elementen projektspezifische Zusatzfelder hinzuzufügen **ohne den Element-Code zu modifizieren**.
+
+### Konzept
+
+1. **Extra-Klasse erstellen** – externe PHP-Klasse definiert zusätzliche Felder.
+2. **Backend-Rendering** – Felder erscheinen automatisch in einem Modal oder Extra-Tab.
+3. **Datenspeicherung** – Werte werden mit den Element-Daten gespeichert.
+4. **Frontend-Output** – `GetOutput()` formatiert die Werte für die Ausgabe.
+
+### Extra-Klasse erstellen
+
+```php
+<?php
+/**
+ * Projekt-spezifische Extra-Felder für das Cards-Element (Repeater-Items)
+ */
+class CardsRepeaterExtra
+{
+    /**
+     * Definiert zusätzliche Felder (Format wie Element-Config)
+     */
+    public static function GetConfig(): array
+    {
+        return [
+            'card_badge' => [
+                'type' => 'text',
+                'label' => 'Badge-Text',
+                'notice' => 'Z. B. „NEU" oder „SALE"'
+            ],
+            'card_premium' => [
+                'type' => 'choice',
+                'label' => 'Karten-Status',
+                'choices' => [
+                    'free'     => 'Kostenlos',
+                    'standard' => 'Standard',
+                    'premium'  => 'Premium',
+                ],
+                'default' => 'standard'
+            ],
+        ];
+    }
+
+    /**
+     * Formatiert Extra-Felder als HTML für das Frontend-Template
+     */
+    public static function GetOutput(array $item): string
+    {
+        $html = '';
+
+        if (!empty($item['card_badge'])) {
+            $html .= '<span class="badge">' . rex_escape($item['card_badge']) . '</span>';
+        }
+
+        return $html;
+    }
+}
+```
+
+### Element-Config für Extra-Felder anpassen
+
+```php
+<?php
+// Extra-Felder von Projekt-Addon laden
+$extra = [];
+if (class_exists('CardsRepeaterExtra') && method_exists('CardsRepeaterExtra', 'GetConfig')) {
+    $extra = CardsRepeaterExtra::GetConfig();
+}
+
+return [
+    'label' => 'Cards',
+    'icon'  => 'fa-th',
+    'fields' => [
+        'items' => [
+            'type'  => 'repeater',
+            'label' => 'Cards',
+
+            // Extras-Modal – nur wenn Extra-Felder vorhanden
+            ...(!empty($extra) ? [
+                'extras_modal' => [
+                    'label'         => 'Extras',
+                    'icon'          => 'fa-star',
+                    'trigger_after' => 'title',
+                    'fields'        => array_keys($extra),
+                ]
+            ] : []),
+
+            'fields' => [
+                'title' => ['type' => 'text', 'label' => 'Titel'],
+                'text'  => ['type' => 'cke5', 'label' => 'Text'],
+
+                // Extra-Felder integrieren
+                ...$extra,
+            ],
+        ],
+    ],
+];
+```
+
+### Frontend-Template mit Extra-Ausgabe
+
+```php
+<?php
+// Extra-Felder Ausgabe
+$extraHtml = '';
+if (class_exists('CardsRepeaterExtra') && method_exists('CardsRepeaterExtra', 'GetOutput')) {
+    $extraHtml = CardsRepeaterExtra::GetOutput($item);
+}
+
+if ($extraHtml !== '') {
+    echo '<div class="card-extras">' . $extraHtml . '</div>';
+}
+```
+
+---
+
+## Datenstruktur
+
+Content wird als **JSON-Array** in einer YForm-Textspalte oder einem REDAXO Module-Slot (REX_VALUE) gespeichert:
+
+```json
+[
+    {
+        "element_type": "headline",
+        "data": {
+            "text": "Willkommen",
+            "level": "h1",
+            "color": "default"
+        },
+        "slice_id": "slice_abc123"
+    },
+    {
+        "element_type": "media_text",
+        "data": {
+            "headline": "Über uns",
+            "text": "<p>...</p>",
+            "image": "team.jpg",
+            "layout": "media-left"
+        },
+        "slice_id": "slice_def456"
+    }
+]
+```
+
+Verschachtelte Felder (Repeater) werden als Arrays innerhalb von `data` gespeichert:
+
+```json
+{
+    "element_type": "cards",
+    "data": {
+        "items": [
+            { "title": "Karte 1", "text": "<p>...</p>", "image": "card1.jpg" },
+            { "title": "Karte 2", "text": "<p>...</p>", "image": "card2.jpg" }
+        ]
+    }
+}
+```
+
+---
+
+## Fehlerbehebung
+
+### Element wird nicht angezeigt
+
+1. Prüfe Ordnerstruktur: `elements/mein_element/config.php` vorhanden?
+2. Ist `config.php` syntaktisch valides PHP? Gibt es ein `return [...]`?
+3. Backend-Cache leeren: **REDAXO → System → Cache löschen**
+
+### CKE5 initialisiert nicht
+
+1. CKE5-Addon installiert und aktiviert?
+2. Browser-Konsole auf JavaScript-Fehler prüfen
+3. Feld-ID muss mit `ck` beginnen (wird intern automatisch vergeben)
+
+### Linkmap funktioniert nicht
+
+1. `REX_LINK_X` und `REX_LINK_X_NAME` korrekt referenziert?
+2. `deleteREXLink()` verfügbar (REDAXO Media/Link-Erweiterung geladen)?
+
+### Repeater-Daten werden nicht gespeichert
+
+1. `setNestedValue()` in `content-builder.js` auf Fehler prüfen
+2. Browser-Konsole auf JSON-Fehler prüfen
+3. Netzwerk-Tab: POST-Request auf `rex-api-call=content_builder` prüfen
+
+### Klasse nicht gefunden nach Update auf 2.0
+
+Alle alten Klassennamen stehen als `class_alias` zur Verfügung. Sollte eine Klasse fehlen, prüfe:
+
+1. `boot.php` hat alle benötigten `class_alias`-Einträge.
+2. REDAXO-Autoloader findet die Klasse in `lib/` (Cache löschen hilft).
+3. Für neuen Code: `use KLXM\YFormContentBuilder\Module;` statt des alten Alias verwenden.
+

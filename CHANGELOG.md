@@ -6,7 +6,180 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
-## [Unreleased]
+
+
+## [2.0.0] – 2026-04-29
+
+### Elemente
+
+Das bisherige Table-Element wurde durch den neuen `table_editor`-basierten Tabelleneditor ersetzt.
+
+### Übersetzungen (i18n)
+
+Elemente können jetzt übersetzt werden und auch mehrsprachige Hilfen verlinkt werden
+
+### Neuer Feldtyp: `smart_link`
+
+Ein kombiniertes Link-Feld, das alle gebräuchlichen Link-Typen in einem einzigen Widget vereint:
+
+- **7 Link-Typen**: `auto` (automatische Erkennung), `url` (externe URL), `intern` (REDAXO Linkmap), `media` (Mediendatei), `tel` (Telefon), `mail` (E-Mail), `yform` (Datensatz aus YForm-Tabelle)
+- **Single- und Multiple-Modus**: Ein einzelner Link oder eine geordnete Liste (Repeater-artig) über den Parameter `multiple: true`
+- **Label-Feld**: Optionaler Linktext für jeden Eintrag
+- **Typen-Filter**: Über den Parameter `types` lassen sich erlaubte Link-Typen einschränken (z. B. nur `intern` und `url`)
+- **Icon-Fallback**: Bei Medien-Links wird automatisch ein passendes Icon eingeblendet, wenn keine Vorschau möglich ist
+- **Neue Klassen**: `KLXM\YFormContentBuilder\SmartLink` (Normalisierung / Href-Generierung) und `KLXM\YFormContentBuilder\SmartLinkView` (Ausgabe-Helper)
+- **Zwei neue Demo-Elemente**: `smart_link_showcase` (Linkliste, Single-Modus) und `smart_links_multi_showcase` (Multiple-Modus) in der Kategorie `demo`
+
+```php
+// Einzelner Link
+'cta_link' => [
+    'type' => 'smart_link',
+    'label' => 'CTA-Link',
+    'types' => ['intern', 'url'],
+]
+
+// Liste von Links
+'nav_links' => [
+    'type' => 'smart_link',
+    'label' => 'Navigation Links',
+    'multiple' => true,
+]
+```
+
+### Neuer Feldtyp: `rich_headline`
+
+Kombiniertes Eingabefeld für semantisch vollständige Überschriften – alles in einer Zeile:
+
+- **Felder**: Eyebrow (Überkategorie), Haupttext (required), Highlight (farblich hervorgehobener Teil), Subline und HTML-Tag (h1–h6)
+- **Kompakte Darstellung**: Alle Teilfelder nebeneinander in einer Formularzeile
+- **JSON-Speicherung**: Werte werden als verschachteltes Array im Feld gespeichert
+- **`starter_headline`** aktualisiert (v1.15.0): nutzt jetzt `rich_headline` statt separater Felder
+
+```php
+'headline' => [
+    'type' => 'rich_headline',
+    'label' => 'Überschrift',
+    'notice' => 'Eyebrow, Highlight, Subline und Tag werden zusammen gepflegt.',
+]
+```
+
+### Neuer Feldtyp: `info`
+
+Statisches Info-Feld ohne Datenspeicherung – ideal für Hinweise und Anleitungen im Backend-Formular:
+
+- **4 Stile**: `info` (blau), `warning` (gelb), `success` (grün), `danger` (rot)
+- Kein Eingabefeld – nur visuelle Information für Redakteure
+- Unterstützt Permission-System (`perm`)
+
+```php
+'hint' => [
+    'type' => 'info',
+    'label' => 'Hinweis',
+    'text' => 'Bitte mindestens ein Bild hochladen.',
+    'style' => 'warning',
+]
+```
+
+### Neuer Feldtyp: `table_editor`
+
+Dedizierter Tabelleneditor für barrierefreie, responsive Tabellen:
+
+- Zeilen- und Spaltenverwaltung direkt im Backend
+- Kopfzeile und Kopfspalte per Nutzer konfigurierbar (`header_row_policy`, `header_col_policy`)
+- Tabellen-Caption für Accessibility
+- Optionaler Textarea-Modus pro Zelle
+- Min/Max-Grenzen für Zeilen und Spalten konfigurierbar
+- Wird vom überarbeiteten `table`-Element genutzt (UIkit-Templates mit Stil, Größe, Hover, Responsivität)
+
+### Dokumentation
+
+- **API.md und TUTORIAL.md** als eigene Backend-Seiten eingebunden: `package.yml` erhält zwei neue Subpages (`api`, `tutorial`) mit eigenen Seiten-Dateien `pages/api.php` und `pages/tutorial.php`
+- **README.md** grundlegend überarbeitet: kompakte Übersichtsseite mit Feature-Liste, vollständiger Elementtabelle und Quick-Start-Snippets
+- **Kommerzielle Lizenz**: README enthält jetzt eine explizite proprietäre Lizenz für KLXM Crossmedia und autorisierte Partner/Kunden
+
+### Komplette Namespace-Umstrukturierung (Breaking Change)
+
+Alle Klassen des Addons wurden in den PSR-4-Namespace `KLXM\YFormContentBuilder` verschoben. Die Klassen sind jetzt in `lib/` und `lib/Api/` sowie `lib/fields/` organisiert und werden vollständig vom REDAXO-Autoloader geladen.
+
+#### Neue Klassen-Namen (kanonisch)
+
+| Alter Name (bis 1.x) | Neuer Name (2.0) |
+|---|---|
+| `yform_content_builder_module` | `KLXM\YFormContentBuilder\Module` |
+| `yform_content_builder_helper` | `KLXM\YFormContentBuilder\Helper` |
+| `yform_content_builder_config` | `KLXM\YFormContentBuilder\Config` |
+| `YFormContentBuilderSvg` | `KLXM\YFormContentBuilder\Svg` |
+| `YFormContentBuilderMediaAltResolver` | `KLXM\YFormContentBuilder\MediaAltResolver` |
+| `YFormContentMediaManagerHelper` | `KLXM\YFormContentBuilder\MediaManagerHelper` |
+| `YformListProfiles` | `KLXM\YFormContentBuilder\ListProfiles` |
+| `YformListRenderer` | `KLXM\YFormContentBuilder\ListRenderer` |
+| `ForcalListRenderer` | `KLXM\YFormContentBuilder\ForcalRenderer` |
+| `ContentBuilderFieldRegistry` | `KLXM\YFormContentBuilder\Fields\FieldRegistry` |
+| `ContentBuilderFieldAbstract` | `KLXM\YFormContentBuilder\Fields\FieldAbstract` |
+| `ContentBuilderFieldInterface` | `KLXM\YFormContentBuilder\Fields\FieldInterface` |
+| `rex_api_content_builder` | `KLXM\YFormContentBuilder\Api\ContentBuilderApi` |
+| `rex_api_yform_list_columns` | `KLXM\YFormContentBuilder\Api\ListColumnsApi` |
+
+#### Neue Sub-Namespaces
+
+- **`KLXM\YFormContentBuilder`** – Kernklassen (`Module`, `Helper`, `Config`, `Svg`, `MediaAltResolver`, `MediaManagerHelper`, `ModalHelper`, `ListProfiles`, `ListRenderer`, `ForcalRenderer`)
+- **`KLXM\YFormContentBuilder\Fields`** – Feldtypen-System (`FieldRegistry`, `FieldAbstract`, `FieldInterface`, `TextField`, `TextareaField`, `CheckboxField`, `ChoiceField`, `SelectField`, `RadioImageField`, `ColorSwatchesField`, `BeMediaField`, `BeLinkField`, `BeTableSelectField`, `Cke5Field`, `TinyMceField`, `RepeaterField`, `InfoField`, `YFormPickerField`)
+- **`KLXM\YFormContentBuilder\Api`** – AJAX-API-Klassen (`ContentBuilderApi`, `ListColumnsApi`)
+
+#### `boot.php` aufgeräumt
+
+- Alle `require_once`-Aufrufe entfernt – REDAXO-Autoloader lädt alle Klassen in `lib/` und Unterordnern automatisch.
+- `glob`-Schleife für Feldklassen entfernt – Felder werden von `FieldRegistry` on-demand geladen.
+- `rex_api_function::register()` statt `class_alias` für API-Klassen (sauberere Integration).
+- Interne `class_alias`-Einträge entfernt: `rex_api_content_builder`, `rex_api_yform_list_columns`, `yform_content_builder_help_modal_helper`.
+
+#### Abwärtskompatibilität (class_alias)
+
+Die folgenden alten Klassennamen bleiben über `class_alias` in `boot.php` verfügbar – bestehende Module und Projekte müssen **nicht** sofort angepasst werden:
+
+```
+yform_content_builder_module      → KLXM\YFormContentBuilder\Module
+yform_content_builder_helper      → KLXM\YFormContentBuilder\Helper
+yform_content_builder_config      → KLXM\YFormContentBuilder\Config
+YFormContentBuilderSvg            → KLXM\YFormContentBuilder\Svg
+YFormContentBuilderMediaAltResolver → KLXM\YFormContentBuilder\MediaAltResolver
+YFormContentMediaManagerHelper    → KLXM\YFormContentBuilder\MediaManagerHelper
+YformListProfiles                 → KLXM\YFormContentBuilder\ListProfiles
+YformListRenderer                 → KLXM\YFormContentBuilder\ListRenderer
+ForcalListRenderer                → KLXM\YFormContentBuilder\ForcalRenderer (nur wenn forcal aktiv)
+```
+
+### Modul-Installer
+
+- Generierter Modul-Code (Input & Output) verwendet nun `use KLXM\YFormContentBuilder\Module;` + `Module::` statt des alten `yform_content_builder_module::`-Alias.
+- Gilt für neu erstellte **und** aktualisierte Module (Button „Bestehende Module aktualisieren").
+
+### Empfohlene Schreibweise für neuen Code
+
+```php
+// Input-Modul
+<?php
+use KLXM\YFormContentBuilder\Module;
+echo Module::createByValueId('cards', 1, 'uikit')->renderInput();
+
+// Output-Modul
+<?php
+use KLXM\YFormContentBuilder\Module;
+$slice = $this->getCurrentSlice();
+$rawValue = $slice ? (string) $slice->getValue(1) : '';
+echo Module::create('cards', $rawValue, 'uikit', 1)->renderOutput();
+
+// Frontend (YForm)
+<?php
+use KLXM\YFormContentBuilder\Helper;
+echo Helper::render($page->getValue('content'), 'bootstrap');
+```
+
+### Dokumentation
+
+- Alle Code-Beispiele in `README.md`, `API.md` und `TUTORIAL.md` verwenden jetzt durchgängig `use KLXM\YFormContentBuilder\Module;` bzw. `use KLXM\YFormContentBuilder\Helper;`.
+- Namespace-Tippfehler `KLXM\YformContentBuilder` → `KLXM\YFormContentBuilder` in `TUTORIAL.md` korrigiert.
+- Backward-Compat-Hinweise in allen Docs aktualisiert: klare Empfehlung für `use`-Importe in neuem Code.
 
 ---
 

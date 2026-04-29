@@ -1,20 +1,20 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
 /**
  * Statisches Info-Feld ohne Speicherung.
  */
-class InfoField extends ContentBuilderFieldAbstract
+class InfoField extends FieldAbstract
 {
     public static function getType(): string
     {
         return 'info';
     }
 
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void
     {
         if (!$this->hasPermission($fieldConfig)) {
             return;

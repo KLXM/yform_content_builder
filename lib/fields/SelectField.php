@@ -1,20 +1,20 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
 /**
  * Select-Feld (einfaches Dropdown)
  */
-class SelectField extends ContentBuilderFieldAbstract
+class SelectField extends FieldAbstract
 {
     public static function getType(): string
     {
         return 'select';
     }
 
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void
     {
         // Berechtigungsprüfung: Feld nicht rendern wenn Berechtigung fehlt
         if (!$this->hasPermission($fieldConfig)) {

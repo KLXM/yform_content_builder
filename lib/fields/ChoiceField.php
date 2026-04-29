@@ -1,20 +1,20 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
 /**
  * Choice-Feld (erweitertes Select mit Selectpicker, Farben, Icons)
  */
-class ChoiceField extends ContentBuilderFieldAbstract
+class ChoiceField extends FieldAbstract
 {
     public static function getType(): string
     {
         return 'choice';
     }
 
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void
     {
         // Berechtigungsprüfung: Feld nicht rendern wenn Berechtigung fehlt
         if (!$this->hasPermission($fieldConfig)) {

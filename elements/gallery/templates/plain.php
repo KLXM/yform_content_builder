@@ -62,8 +62,8 @@ $gridColumns = 'repeat(' . $columns . ', 1fr)';
             if (!$media) continue;
             
             // Media-Typ bestimmen
-            $isImage = yform_content_builder_helper::isImage($media);
-            $isVideo = yform_content_builder_helper::isVideo($media);
+            $isImage = \KLXM\YFormContentBuilder\Helper::isImage($media);
+            $isVideo = \KLXM\YFormContentBuilder\Helper::isVideo($media);
             ?>
             
             <div class="<?= $itemClass . $aspectRatioClass ?>" data-index="<?= $index ?>">

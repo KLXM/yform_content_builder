@@ -5,7 +5,7 @@
  * Großes Vollbild-Bild mit Überschrift, Text und einem oder zwei Buttons.
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
 return [
     'label' => 'Hero Banner',

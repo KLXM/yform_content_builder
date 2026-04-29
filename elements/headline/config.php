@@ -14,7 +14,7 @@ if (class_exists('HeadlineExtra') && method_exists('HeadlineExtra', 'GetConfig')
 }
 
 // Zentrale Konfigurationsklasse
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 $hasThemeBuilder = $config::hasThemeBuilder();
 
 // Dynamische Farboptionen

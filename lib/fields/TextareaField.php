@@ -1,20 +1,20 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_escape;
 
 /**
  * Textarea-Feld
  */
-class TextareaField extends ContentBuilderFieldAbstract
+class TextareaField extends FieldAbstract
 {
     public static function getType(): string
     {
         return 'textarea';
     }
 
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void
     {
         // Berechtigungsprüfung: Feld nicht rendern wenn Berechtigung fehlt
         if (!$this->hasPermission($fieldConfig)) {

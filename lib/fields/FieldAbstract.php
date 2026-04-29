@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex;
 use rex_escape;
@@ -14,7 +14,7 @@ use rex_escape;
  * - Notice/Hilfetext
  * - Berechtigungsprüfung
  */
-abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterface
+abstract class FieldAbstract implements FieldInterface
 {
     /**
      * Statische Widget-Counter für eindeutige IDs
@@ -27,9 +27,9 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     /**
      * Referenz zur Registry (für verschachtelte Felder wie Repeater)
      */
-    protected ?ContentBuilderFieldRegistry $registry = null;
+    protected ?FieldRegistry $registry = null;
 
-    public function setRegistry(ContentBuilderFieldRegistry $registry): void
+    public function setRegistry(FieldRegistry $registry): void
     {
         $this->registry = $registry;
     }
@@ -103,7 +103,7 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     /**
      * Standard-Wertverarbeitung (keine Änderung)
      */
-    public function processValue($value, array $fieldConfig)
+    public function processValue(mixed $value, array $fieldConfig): mixed
     {
         return $value;
     }
@@ -138,7 +138,7 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     /**
      * Holt Wert aus verschachteltem Array (z.B. "items[0][title]")
      */
-    protected function getNestedValue(string $key, array $data)
+    protected function getNestedValue(string $key, array $data): mixed
     {
         if (strpos($key, '[') === false) {
             return $data[$key] ?? '';

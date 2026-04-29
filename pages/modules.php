@@ -8,7 +8,8 @@
 $addon = rex_addon::get('yform_content_builder');
 
 // Helper: Generiert Modul-Code für ein Element
-function generateModuleCode($elementKey, $framework, $valueId = 1) {
+function generateModuleCode(string $elementKey, string $framework, int $valueId = 1): string
+{
     $config = [];
     $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
     
@@ -20,12 +21,13 @@ function generateModuleCode($elementKey, $framework, $valueId = 1) {
     
     $code = <<<PHP
 <?php
+use KLXM\YFormContentBuilder\Module;
 /**
  * Modul: {$label}
  * Element: {$elementKey}
  */
 
-    echo yform_content_builder_module::createByValueId('{$elementKey}', {$valueId}, '{$framework}')->renderInput();
+echo Module::createByValueId('{$elementKey}', {$valueId}, '{$framework}')->renderInput();
 ?>
 PHP;
     
@@ -66,9 +68,10 @@ if (rex_post('update_all_modules', 'bool')) {
             $inputCode = generateModuleCode($elementKey, $framework, $valueId);
             $outputCode = <<<PHP
 <?php
+use KLXM\YFormContentBuilder\Module;
 \$slice = \$this->getCurrentSlice();
 \$rawValue = \$slice ? (string) \$slice->getValue({$valueId}) : '';
-echo yform_content_builder_module::create('{$elementKey}', \$rawValue, '{$framework}', {$valueId})->renderOutput();
+echo Module::create('{$elementKey}', \$rawValue, '{$framework}', {$valueId})->renderOutput();
 ?>
 PHP;
 
@@ -131,9 +134,10 @@ if (rex_post('create_modules', 'bool')) {
             
             $outputCode = <<<PHP
 <?php
+use KLXM\YFormContentBuilder\Module;
 \$slice = \$this->getCurrentSlice();
 \$rawValue = \$slice ? (string) \$slice->getValue({$valueId}) : '';
-echo yform_content_builder_module::create('{$elementKey}', \$rawValue, '{$framework}', {$valueId})->renderOutput();
+echo Module::create('{$elementKey}', \$rawValue, '{$framework}', {$valueId})->renderOutput();
 ?>
 PHP;
             

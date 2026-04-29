@@ -90,7 +90,7 @@ if ($image) {
     }
 }
 
-$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
+$resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
 
 // Srcset für responsive Bilder
 $srcset = '';

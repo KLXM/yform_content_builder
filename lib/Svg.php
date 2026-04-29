@@ -1,12 +1,17 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
+use rex_addon;
+use rex_escape;
+
 /**
  * SVG Layout Preview Generator
  * Generiert programmatisch SVG-Vorschaubilder für Layout-Optionen.
  * Vorrangig werden externe SVG-Dateien aus assets/icons/ verwendet,
  * da data:-URLs in Bootstrap-Select nicht zuverlässig gerendert werden.
  */
-class YFormContentBuilderSvg
+class Svg
 {
     /**
      * Gibt die URL zu einer Icon-SVG-Datei zurück.

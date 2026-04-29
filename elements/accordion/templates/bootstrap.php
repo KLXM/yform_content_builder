@@ -149,7 +149,7 @@ if ($sectionPadding) {
                      aria-labelledby="<?= $uniqueId ?>-tab-<?= $index ?>"
                      tabindex="0">
                     <?php if (!empty($item['image'])): ?>
-                    <?php $resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
+                    <?php $resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
                         <img src="<?= rex_media_manager::getUrl('content_card', $item['image']) ?>" 
                         alt="<?= rex_escape($resolvedImageAlt) ?>" 
                              class="img-fluid mb-3" loading="lazy">
@@ -197,7 +197,7 @@ if ($sectionPadding) {
                              aria-labelledby="<?= $uniqueId ?>-tab-<?= $index ?>"
                              tabindex="0">
                             <?php if (!empty($item['image'])): ?>
-                                  <?php $resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
+                                  <?php $resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
                                 <img src="<?= rex_media_manager::getUrl('content_card', $item['image']) ?>" 
                                       alt="<?= rex_escape($resolvedImageAlt) ?>" 
                                      class="img-fluid mb-3" loading="lazy">
@@ -240,7 +240,7 @@ if ($sectionPadding) {
                          <?= $multiple ? '' : 'data-bs-parent="#' . $uniqueId . '"' ?>>
                         <div class="accordion-body">
                             <?php if (!empty($item['image'])): ?>
-                                <?php $resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $item['image'], '', (string) $title); ?>
+                                <?php $resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $item['image'], '', (string) $title); ?>
                                 <img src="<?= rex_media_manager::getUrl('content_card', $item['image']) ?>" 
                                      alt="<?= rex_escape($resolvedImageAlt) ?>" 
                                      class="img-fluid mb-3" loading="lazy">

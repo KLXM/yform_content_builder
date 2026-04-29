@@ -5,11 +5,11 @@
  * @var array<string,mixed> $elementData
  */
 
-if (!class_exists('YformListRenderer')) {
+if (!class_exists(\KLXM\YFormContentBuilder\ListRenderer::class)) {
     return;
 }
 
-$result = YformListRenderer::fetch($elementData);
+$result = \KLXM\YFormContentBuilder\ListRenderer::fetch($elementData);
 
 $headline = (string) ($elementData['headline'] ?? '');
 $description = (string) ($elementData['description'] ?? '');
@@ -59,7 +59,7 @@ if (null !== $error) {
             $title = rex_escape((string) $it['title']);
             $teaser = rex_escape((string) $it['teaser']);
             $href = $showLinks ? (string) $it['href'] : '';
-            $img = YformListRenderer::imgTag($it, 'uk-card-media-top');
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'uk-card-media-top');
             $titleHtml = '' !== $href
                 ? '<a href="' . rex_escape($href) . '" class="uk-link-reset">' . $title . '</a>'
                 : $title;
@@ -114,7 +114,7 @@ if (null !== $error) {
                     $name = (string) $it['title'];
                 }
                 $href = $showLinks ? (string) $it['href'] : '';
-                $img = YformListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
+                $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
                 $nameHtml = '' !== $href
                     ? '<a href="' . rex_escape($href) . '" class="uk-link-reset">' . rex_escape($name) . '</a>'
                     : rex_escape($name);
@@ -134,7 +134,7 @@ if (null !== $error) {
                 $title = rex_escape((string) $it['title']);
                 $teaser = rex_escape((string) $it['teaser']);
                 $href = $showLinks ? (string) $it['href'] : '';
-                $img = YformListRenderer::imgTag($it, 'rex-yfl-thumb', 80);
+                $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'rex-yfl-thumb', 80);
                 $titleHtml = '' !== $href
                     ? '<a href="' . rex_escape($href) . '">' . $title . '</a>'
                     : $title;
@@ -166,7 +166,7 @@ if (null !== $error) {
             $mobile = trim((string) ($contact['mobile'] ?? ''));
             $email = trim((string) ($contact['email'] ?? ''));
             $name = trim($first . ' ' . $last);
-            $img = YformListRenderer::imgTag($it, 'rex-yfl-contact-avatar uk-border-circle');
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'rex-yfl-contact-avatar uk-border-circle');
             $tel = static fn(string $v): string => preg_replace('/[^+\d]/', '', $v) ?? '';
 
             echo '<div>';
@@ -214,7 +214,7 @@ if (null !== $error) {
             $email = trim((string) ($contact['email'] ?? ''));
             $name = trim($first . ' ' . $last);
             // Bewusst ohne width/height – Cropping kommt aus dem MM-Typ.
-            $img = YformListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
             $tel = static fn(string $v): string => preg_replace('/[^+\d]/', '', $v) ?? '';
             $hrefMain = $showLinks ? (string) $it['href'] : '';
             $nameHtml = '' !== $hrefMain

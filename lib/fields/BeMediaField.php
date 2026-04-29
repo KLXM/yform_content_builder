@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_addon;
 use rex_escape;
@@ -8,19 +8,19 @@ use rex_i18n;
 use rex_media_manager;
 use rex_path;
 use rex_url;
-use yform_content_builder_helper;
+use KLXM\YFormContentBuilder\Helper;
 
 /**
  * REDAXO Backend Media Widget
  */
-class BeMediaField extends ContentBuilderFieldAbstract
+class BeMediaField extends FieldAbstract
 {
     public static function getType(): string
     {
         return 'be_media';
     }
 
-    public function render(string $fieldName, array $fieldConfig, $value, array $sliceData = []): void
+    public function render(string $fieldName, array $fieldConfig, mixed $value, array $sliceData = []): void
     {
         // Berechtigungsprüfung: Feld nicht rendern wenn Berechtigung fehlt
         if (!$this->hasPermission($fieldConfig)) {
@@ -96,8 +96,8 @@ class BeMediaField extends ContentBuilderFieldAbstract
     protected function renderPreview(string $value): void
     {
         $mediaPath = rex_path::media($value);
-        $isImage = yform_content_builder_helper::isImage($value);
-        $isVideo = yform_content_builder_helper::isVideo($value);
+        $isImage = Helper::isImage($value);
+        $isVideo = Helper::isVideo($value);
 
         if ($isImage && file_exists($mediaPath)) {
             $mediaUrl = rex_url::media($value);

@@ -9,13 +9,13 @@
  * Element nur verfuegbar, wenn mindestens ein Kontakt-Profil existiert.
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
-if (!class_exists('YformListProfiles')) {
+if (!class_exists(\KLXM\YFormContentBuilder\ListProfiles::class)) {
     return null;
 }
 
-$contactChoices = YformListProfiles::getContactPickerChoices();
+$contactChoices = \KLXM\YFormContentBuilder\ListProfiles::getContactPickerChoices();
 
 if ([] === $contactChoices) {
     return null;

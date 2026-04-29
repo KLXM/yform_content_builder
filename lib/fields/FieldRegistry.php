@@ -1,6 +1,6 @@
 <?php
 
-namespace FriendsOfREDAXO\YFormContentBuilder\Fields;
+namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_extension;
 use rex_extension_point;
@@ -16,17 +16,17 @@ use rex_extension_point;
  * Verwendung:
  * ```php
  * // Feldtyp registrieren
- * ContentBuilderFieldRegistry::register(new TextField());
+ * FieldRegistry::register(new TextField());
  * 
  * // Feldtyp abrufen und rendern
- * $field = ContentBuilderFieldRegistry::get('text');
+ * $field = FieldRegistry::get('text');
  * $field->render('title', $config, $value, $sliceData);
  * ```
  */
-class ContentBuilderFieldRegistry
+class FieldRegistry
 {
     /**
-     * @var array<string, ContentBuilderFieldInterface>
+     * @var array<string, FieldInterface>
      */
     private static array $fields = [];
 
@@ -39,12 +39,12 @@ class ContentBuilderFieldRegistry
      * Registriert einen Feldtyp
      * Überschreibt existierende Feldtypen mit gleichem Namen
      */
-    public static function register(ContentBuilderFieldInterface $field): void
+    public static function register(FieldInterface $field): void
     {
         self::$fields[$field::getType()] = $field;
         
         // Registry-Referenz setzen für verschachtelte Felder
-        if ($field instanceof ContentBuilderFieldAbstract) {
+        if ($field instanceof FieldAbstract) {
             $field->setRegistry(new self());
         }
     }
@@ -53,9 +53,9 @@ class ContentBuilderFieldRegistry
      * Gibt einen Feldtyp zurück
      * 
      * @param string $type Feldtyp-Name
-     * @return ContentBuilderFieldInterface|null
+     * @return FieldInterface|null
      */
-    public static function get(string $type): ?ContentBuilderFieldInterface
+    public static function get(string $type): ?FieldInterface
     {
         self::ensureInitialized();
         return self::$fields[$type] ?? null;
@@ -73,7 +73,7 @@ class ContentBuilderFieldRegistry
     /**
      * Gibt alle registrierten Feldtypen zurück
      * 
-     * @return array<string, ContentBuilderFieldInterface>
+     * @return array<string, FieldInterface>
      */
     public static function getAll(): array
     {
@@ -202,6 +202,9 @@ class ContentBuilderFieldRegistry
             new ColorSwatchesField(),
             new BeTableSelectField(),
             new YFormPickerField(),
+            new SmartLinkField(),
+            new RichHeadlineField(),
+            new TableEditorField(),
             new RepeaterField(),
         ];
 
@@ -213,7 +216,7 @@ class ContentBuilderFieldRegistry
     /**
      * Holt Wert aus verschachteltem Array
      */
-    private static function getNestedValue(string $key, array $data)
+    private static function getNestedValue(string $key, array $data): mixed
     {
         if (strpos($key, '[') === false) {
             return $data[$key] ?? '';

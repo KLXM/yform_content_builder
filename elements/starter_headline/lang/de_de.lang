@@ -1,0 +1,15 @@
+starter_headline_label = Ueberschrift
+starter_headline_description = Semantische Rich-Headline mit einem kombinierten Eingabefeld.
+starter_headline_group_content_label = Inhalt
+starter_headline_group_layout_label = Layout
+starter_headline_field_headline_label = Ueberschrift
+starter_headline_field_headline_notice = Eyebrow, Highlight, Subline und Tag werden zusammen gepflegt.
+starter_headline_field_container_width_label = Container-Breite
+starter_headline_field_section_padding_label = Section-Breite
+starter_headline_field_section_padding_choice_default = Standard
+starter_headline_field_section_padding_choice_xsmall = Sehr kompakt
+starter_headline_field_section_padding_choice_small = Kompakt
+starter_headline_field_section_padding_choice_normal = Normal
+starter_headline_field_section_padding_choice_large = Gross
+starter_headline_field_section_padding_choice_xlarge = Sehr gross
+starter_headline_field_section_padding_notice = Steuert die vertikale Section-Groesse (ohne Farben/Hintergrundbild).

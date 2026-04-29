@@ -35,7 +35,7 @@ $gapPx = $gap === 'collapse' ? '0px' : ($gap === 'small' ? '8px' : ($gap === 'la
                     $itemLinkText = 'Mehr erfahren';
                 }
                 $fallback = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Karte ' . ($index + 1);
-                $itemImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
+                $itemImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
                 ?>
                 <li>
                     <article style="border:1px solid #ddd; background:#fff; height:100%;">

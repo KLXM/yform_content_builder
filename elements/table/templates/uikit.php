@@ -6,7 +6,7 @@
 
 // Daten auslesen
 $tableData = $elementData['table_data'] ?? '';
-$tableCaption = $elementData['table_caption'] ?? '';
+$tableCaption = '';
 $tableStyle = $elementData['table_style'] ?? 'default';
 $tableSize = $elementData['table_size'] ?? 'default';
 $tableHover = !empty($elementData['table_hover']);
@@ -24,11 +24,31 @@ $containerWidth = $elementData['container_width'] ?? '';
 // Daten parsen (JSON)
 $tableRows = [];
 $tableHeadRows = [];
+$tableCols = [];
+$hasHeaderCol = false;
 try {
-    $data = json_decode($tableData, true);
-    if (is_array($data)) {
-        $tableHeadRows = $data['head'] ?? [];
-        $tableRows = $data['body'] ?? [];
+    $data = json_decode((string) $tableData, true);
+    if (is_array($data) && isset($data['rows'])) {
+        $rows = is_array($data['rows']) ? $data['rows'] : [];
+        $hasHeaderRow = (bool) ($data['has_header_row'] ?? true);
+        $hasHeaderCol = (bool) ($data['has_header_col'] ?? false);
+        $tableCols = is_array($data['cols'] ?? null) ? $data['cols'] : [];
+
+        if (is_string($data['caption'] ?? null)) {
+            $tableCaption = $data['caption'];
+        }
+
+        $normalizedRows = [];
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $normalizedRows[] = array_values($row);
+            }
+        }
+
+        if ($hasHeaderRow && $normalizedRows !== []) {
+            $tableHeadRows[] = array_shift($normalizedRows);
+        }
+        $tableRows = $normalizedRows;
     }
 } catch (Exception $e) {
     // Fehler bei JSON Parse
@@ -77,7 +97,20 @@ if ($tableAlign) {
     $tableClasses[] = $tableAlign;
 }
 
+$tableClasses = array_values(array_unique($tableClasses));
+
 $tableClassStr = implode(' ', $tableClasses);
+
+$alignStyle = static function (string $type): string {
+    if ($type === 'number') {
+        return ' style="text-align:right;"';
+    }
+    if ($type === 'center') {
+        return ' style="text-align:center;"';
+    }
+
+    return '';
+};
 
 // Section-Klassen
 $sectionClasses = ['uk-section'];
@@ -127,7 +160,11 @@ $needsWrapper = $tableResponsive === '' && !$hasSection; // Nur bei horizontal s
         <?php foreach ($tableHeadRows as $rowIndex => $row): ?>
         <tr>
             <?php foreach ($row as $cellIndex => $cell): ?>
-            <th scope="col">
+            <?php
+            $colDef = is_array($tableCols[$cellIndex] ?? null) ? $tableCols[$cellIndex] : [];
+            $headerType = (string) ($colDef['header_type'] ?? ($colDef['type'] ?? 'text'));
+            ?>
+            <th scope="col"<?= $alignStyle($headerType) ?>>
                 <?= rex_escape($cell) ?>
             </th>
             <?php endforeach; ?>
@@ -141,9 +178,15 @@ $needsWrapper = $tableResponsive === '' && !$hasSection; // Nur bei horizontal s
         <?php foreach ($tableRows as $rowIndex => $row): ?>
         <tr>
             <?php foreach ($row as $cellIndex => $cell): ?>
-            <td>
-                <?= rex_escape($cell) ?>
-            </td>
+            <?php
+            $colDef = is_array($tableCols[$cellIndex] ?? null) ? $tableCols[$cellIndex] : [];
+            $bodyType = (string) ($colDef['type'] ?? 'text');
+            ?>
+            <?php if ($hasHeaderCol && $cellIndex === 0): ?>
+            <th scope="row"<?= $alignStyle($bodyType) ?>><?= rex_escape($cell) ?></th>
+            <?php else: ?>
+            <td<?= $alignStyle($bodyType) ?>><?= rex_escape($cell) ?></td>
+            <?php endif; ?>
             <?php endforeach; ?>
         </tr>
         <?php endforeach; ?>
