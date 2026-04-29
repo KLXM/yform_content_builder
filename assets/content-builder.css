@@ -318,12 +318,44 @@
     margin-right: 5px;
 }
 
+@keyframes cbSlFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cbSlFlash {
+    0%   { background-color: inherit; }
+    35%  { background-color: #d4f0e2; }
+    100% { background-color: inherit; }
+}
+
+@keyframes cbSlShake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-4px); }
+    40%       { transform: translateX(4px); }
+    60%       { transform: translateX(-3px); }
+    80%       { transform: translateX(3px); }
+}
+
+@keyframes cbSlSpin {
+    to { transform: rotate(360deg); }
+}
+
 .cb-smart-link-row {
     margin-bottom: 12px;
     border: 1px solid #d7e4ea;
-    border-radius: 10px;
+    border-radius: 6px;
     background: linear-gradient(180deg, #f7fbfc 0%, #f2f8f7 100%);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    animation: cbSlFadeIn 0.2s ease both;
+}
+
+.cb-smart-link-row.is-success .cb-smart-link-panel-body {
+    animation: cbSlFlash 0.55s ease;
+}
+
+.cb-smart-link-row.is-removing {
+    animation: cbSlShake 0.3s ease;
 }
 
 .cb-smart-link-row:last-child {
@@ -348,7 +380,7 @@
 .cb-smart-link-input {
     height: 38px;
     border: 1px solid #c8d4dc;
-    border-radius: 8px;
+    border-radius: 5px;
     background: #fff;
     box-shadow: none;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
@@ -388,7 +420,7 @@
     align-items: stretch;
     flex-wrap: nowrap;
     border: 1px solid #c8d4dc;
-    border-radius: 8px;
+    border-radius: 5px;
     overflow: hidden;
     background: #fff;
 }
@@ -405,6 +437,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: background-color 0.14s ease, color 0.14s ease, transform 0.1s ease;
+}
+
+.cb-smart-link-btn:active {
+    transform: scale(0.88);
+    transition-duration: 0.06s;
+}
+
+.cb-smart-link-detect.is-spinning .fa {
+    animation: cbSlSpin 0.5s linear;
 }
 
 .cb-smart-link-target-actions > .cb-smart-link-btn:last-child,
@@ -463,7 +505,7 @@
 .cb-smart-link-actions {
     display: inline-flex;
     border: 1px solid #c8d4dc;
-    border-radius: 8px;
+    border-radius: 5px;
     overflow: hidden;
     background: #fff;
 }

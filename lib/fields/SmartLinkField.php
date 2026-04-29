@@ -2,11 +2,12 @@
 
 namespace KLXM\YFormContentBuilder\Fields;
 
-use KLXM\YFormContentBuilder\ListProfiles;
 use KLXM\YFormContentBuilder\SmartLink;
 use rex_escape;
 use rex_media;
+use rex_sql;
 use rex_url;
+use Throwable;
 
 /**
  * Kombiniertes Link-Feld fuer URL, intern, Media, Mail, Tel und YForm.
@@ -51,9 +52,21 @@ class SmartLinkField extends FieldAbstract
             ];
         }
 
+        // YForm-Konfiguration direkt aus dem Feld-Config (analog zu be_manager_relation)
+        $yformTable = trim((string) ($fieldConfig['yform_table'] ?? ''));
+        $yformField = trim((string) ($fieldConfig['yform_field'] ?? 'name'));
         $yformChoices = [];
-        if (class_exists(ListProfiles::class)) {
-            $yformChoices = ListProfiles::getContactPickerChoices(300);
+        $yformStatus = 'unconfigured'; // 'unconfigured' | 'ok' | 'missing' | 'noyform'
+
+        $needsYForm = in_array('yform', $allowedTypes, true) || in_array('auto', $allowedTypes, true);
+        if ($needsYForm) {
+            if ($yformTable === '') {
+                $yformStatus = 'unconfigured';
+            } elseif (!class_exists('rex_yform_manager_table')) {
+                $yformStatus = 'noyform';
+            } else {
+                [$yformChoices, $yformStatus] = $this->loadYFormChoices($yformTable, $yformField);
+            }
         }
 
         $id = 'cb_smart_link_' . uniqid();
@@ -66,7 +79,7 @@ class SmartLinkField extends FieldAbstract
         echo '<div class="cb-smart-link-rows">';
 
         foreach ($items as $idx => $item) {
-            $this->renderRow($id, $idx, $item, $yformChoices, $allowedTypes);
+            $this->renderRow($id, $idx, $item, $yformChoices, $yformStatus, $yformTable, $yformField, $allowedTypes);
         }
 
         echo '</div>';
@@ -81,11 +94,45 @@ class SmartLinkField extends FieldAbstract
     }
 
     /**
+     * Lädt YForm-Einträge direkt aus der konfigurierten Tabelle (analog be_manager_relation).
+     *
+     * @return array{0: array<string,string>, 1: string}  [choices, status]
+     */
+    private function loadYFormChoices(string $tableName, string $displayField): array
+    {
+        $table = \rex_yform_manager_table::get($tableName);
+        if ($table === null) {
+            return [[], 'missing:' . $tableName];
+        }
+        try {
+            $sql = rex_sql::factory();
+            // Sicherstellen dass das Anzeigefeld existiert
+            $cols = [];
+            foreach ($sql->getArray('SHOW COLUMNS FROM ' . $sql->escapeIdentifier($tableName)) as $col) {
+                $cols[] = $col['Field'];
+            }
+            $safeField = in_array($displayField, $cols, true) ? $displayField : 'id';
+            $rows = $sql->getArray(
+                'SELECT id, ' . $sql->escapeIdentifier($safeField)
+                . ' FROM ' . $sql->escapeIdentifier($tableName)
+                . ' ORDER BY ' . $sql->escapeIdentifier($safeField) . ' ASC LIMIT 500'
+            );
+            $choices = [];
+            foreach ($rows as $row) {
+                $choices[(string) $row['id']] = (string) ($row[$safeField] ?? '#' . $row['id']);
+            }
+            return [$choices, 'ok'];
+        } catch (Throwable) {
+            return [[], 'error:' . $tableName];
+        }
+    }
+
+    /**
      * @param array{type:string,value:string,label:string,pdfjs:bool} $item
      * @param array<string,string> $yformChoices
      * @param array<string> $allowedTypes
      */
-    private function renderRow(string $baseId, int $idx, array $item, array $yformChoices, array $allowedTypes): void
+    private function renderRow(string $baseId, int $idx, array $item, array $yformChoices, string $yformStatus, string $yformTable, string $yformField, array $allowedTypes): void
     {
         $rowId = $baseId . '_row_' . $idx;
         $widgetId = 'cbsl_' . self::getNextMediaCounter();
@@ -151,14 +198,42 @@ class SmartLinkField extends FieldAbstract
 
         if (in_array('yform', $allowedTypes, true) || in_array('auto', $allowedTypes, true)) {
             echo '<div class="cb-smart-link-yform-wrap" style="display:none;">';
-            echo '<label>YForm-Eintrag</label>';
-            echo '<select class="form-control cb-smart-link-select cb-smart-link-yform">';
-            echo '<option value="">-- auswählen --</option>';
-            foreach ($yformChoices as $choiceValue => $choiceLabel) {
-                $sel = $value === (string) $choiceValue ? ' selected' : '';
-                echo '<option value="' . rex_escape((string) $choiceValue) . '"' . $sel . '>' . rex_escape((string) $choiceLabel) . '</option>';
+            if ($yformStatus === 'unconfigured') {
+                echo '<div class="alert alert-info cb-smart-link-yform-info" style="margin:6px 0 0;padding:8px 12px;font-size:12px;">';
+                echo '<i class="fa fa-info-circle"></i> ';
+                echo '<strong>YForm-Datensatz:</strong> Kein Typ konfiguriert. ';
+                echo 'Demo-Modus &ndash; konfigurieren Sie <code>yform_table</code> und <code>yform_field</code> im Element.';
+                echo '</div>';
+            } elseif (str_starts_with($yformStatus, 'missing:')) {
+                $missingTable = rex_escape(substr($yformStatus, 8));
+                echo '<div class="alert alert-warning cb-smart-link-yform-info" style="margin:6px 0 0;padding:8px 12px;font-size:12px;">';
+                echo '<i class="fa fa-exclamation-triangle"></i> ';
+                echo 'Tabelle <code>' . $missingTable . '</code> nicht gefunden. ';
+                echo 'Bitte <code>yform_table</code> im Element konfigurieren oder die Tabelle in YForm anlegen.';
+                echo '</div>';
+            } elseif (str_starts_with($yformStatus, 'error:')) {
+                $errTable = rex_escape(substr($yformStatus, 6));
+                echo '<div class="alert alert-danger cb-smart-link-yform-info" style="margin:6px 0 0;padding:8px 12px;font-size:12px;">';
+                echo '<i class="fa fa-times-circle"></i> Fehler beim Laden der Tabelle <code>' . $errTable . '</code>.';
+                echo '</div>';
+            } elseif ($yformStatus === 'noyform') {
+                echo '<div class="alert alert-warning cb-smart-link-yform-info" style="margin:6px 0 0;padding:8px 12px;font-size:12px;">';
+                echo '<i class="fa fa-exclamation-triangle"></i> YForm-Addon nicht verfügbar.';
+                echo '</div>';
+            } else {
+                echo '<label>YForm-Eintrag';
+                if ($yformTable !== '') {
+                    echo ' <small class="text-muted">(' . rex_escape($yformTable) . '.' . rex_escape($yformField) . ')</small>';
+                }
+                echo '</label>';
+                echo '<select class="form-control cb-smart-link-select cb-smart-link-yform">';
+                echo '<option value="">-- auswählen --</option>';
+                foreach ($yformChoices as $choiceValue => $choiceLabel) {
+                    $sel = $value === (string) $choiceValue ? ' selected' : '';
+                    echo '<option value="' . rex_escape((string) $choiceValue) . '"' . $sel . '>' . rex_escape((string) $choiceLabel) . '</option>';
+                }
+                echo '</select>';
             }
-            echo '</select>';
             echo '</div>';
         }
         echo '</div>';

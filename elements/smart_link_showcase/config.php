@@ -61,6 +61,11 @@ return [
                         'label' => 'Link',
                         'multiple' => false,
                         'types' => 'auto,url,intern,media,mail,tel,yform',
+                        // yform_table: YForm-Tabellenname (z.B. 'rex_contacts')
+                        // yform_field: Anzeigefeld der Einträge (z.B. 'name')
+                        // Ohne Konfiguration erscheint im Widget ein Demo-Hinweis.
+                        'yform_table' => '',
+                        'yform_field' => 'name',
                         'notice' => 'Alle üblichen Linktypen sind aktiv.',
                     ],
                 ],

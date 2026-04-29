@@ -94,6 +94,13 @@
         updateAutoLabel($row, autoLabel || display);
         smartLinkToggleTypeUi($row);
         smartLinkSerialize($widget);
+
+        // Success flash
+        $row.removeClass('is-success');
+        // Force reflow so re-adding the class retriggers the animation
+        void $row[0].offsetWidth;
+        $row.addClass('is-success');
+        setTimeout(function() { $row.removeClass('is-success'); }, 600);
     }
 
     function renderSmartLinkPreview($row) {
@@ -359,11 +366,16 @@
 
         $widget.on('click', '.cb-smart-link-detect', function(e) {
             e.preventDefault();
-            var $row = $(this).closest('.cb-smart-link-row');
+            var $btn = $(this);
+            var $row = $btn.closest('.cb-smart-link-row');
             var value = ($row.find('.cb-smart-link-target').val() || '').toString();
             refreshSmartLinkSelect($row.find('.cb-smart-link-type'), detectLinkType(value));
             smartLinkToggleTypeUi($row);
             smartLinkSerialize($widget);
+
+            // Spin feedback on the icon
+            $btn.addClass('is-spinning');
+            setTimeout(function() { $btn.removeClass('is-spinning'); }, 520);
         });
 
         $widget.on('click', '.cb-smart-link-remove', function(e) {
@@ -371,15 +383,20 @@
             var $rows = $widget.find('.cb-smart-link-row');
             var $row = $(this).closest('.cb-smart-link-row');
             if ($rows.length > 1 && $widget.data('multiple') == 1) {
-                $row.remove();
+                $row.addClass('is-removing');
+                setTimeout(function() { $row.remove(); smartLinkSerialize($widget); }, 300);
             } else {
-                $row.find('.cb-smart-link-target, .cb-smart-link-label').val('');
-                $row.find('.cb-smart-link-target-display').val('');
-                $row.find('.cb-smart-link-yform').val('');
-                updateAutoLabel($row, '');
+                $row.addClass('is-removing');
+                setTimeout(function() {
+                    $row.removeClass('is-removing');
+                    $row.find('.cb-smart-link-target, .cb-smart-link-label').val('');
+                    $row.find('.cb-smart-link-target-display').val('');
+                    $row.find('.cb-smart-link-yform').val('');
+                    updateAutoLabel($row, '');
+                    smartLinkToggleTypeUi($row);
+                    smartLinkSerialize($widget);
+                }, 310);
             }
-            smartLinkToggleTypeUi($row);
-            smartLinkSerialize($widget);
         });
 
         $widget.on('click', '.cb-smart-link-add', function(e) {
