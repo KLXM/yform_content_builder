@@ -3,66 +3,55 @@
  * Starter Ueberschrift - bewusst minimal
  */
 
-$config = \KLXM\YFormContentBuilder\Config::class;
+use KLXM\YFormContentBuilder\Config;
+use KLXM\YFormContentBuilder\Helper;
+
+$config = Config::class;
+$_ci = Helper::elementTranslator('starter_headline');
 
 return [
-    'label' => 'Ueberschrift',
+    'label' => $_ci('label', 'Ueberschrift'),
     'icon' => 'fa fa-header',
-    'description' => 'Sehr einfache Ueberschrift ohne erweiterte Styling-Optionen.',
-    'version' => '1.14.0',
+    'description' => $_ci('description', 'Semantische Rich-Headline mit einem kombinierten Eingabefeld.'),
+    'version' => '1.15.0',
     'category' => 'standards',
     'field_groups' => [
         'content_tab' => [
-            'label' => 'Inhalt',
+            'label' => $_ci('group_content_label', 'Inhalt'),
             'icon' => 'fa-header',
-            'fields' => ['text', 'subline', 'tag'],
+            'fields' => ['headline'],
         ],
         'layout_tab' => [
-            'label' => 'Layout',
+            'label' => $_ci('group_layout_label', 'Layout'),
             'icon' => 'fa-columns',
             'fields' => ['container_width', 'section_padding'],
         ],
     ],
     'fields' => [
-        'text' => [
-            'type' => 'text',
-            'label' => 'Ueberschrift',
-            'required' => true,
-        ],
-        'subline' => [
-            'type' => 'text',
-            'label' => 'Subline (optional)',
-        ],
-        'tag' => [
-            'type' => 'choice',
-            'label' => 'HTML Tag',
-            'choices' => [
-                'h1' => 'H1',
-                'h2' => 'H2',
-                'h3' => 'H3',
-                'h4' => 'H4',
-            ],
-            'default' => 'h2',
+        'headline' => [
+            'type' => 'rich_headline',
+            'label' => $_ci('field_headline_label', 'Ueberschrift'),
+            'notice' => $_ci('field_headline_notice', 'Eyebrow, Highlight, Subline und Tag werden zusammen gepflegt.'),
         ],
         'container_width' => [
             'type' => 'choice',
-            'label' => 'Container-Breite',
+            'label' => $_ci('field_container_width_label', 'Container-Breite'),
             'choices' => $config::getContainerOptions(),
             'default' => 'uk-container',
         ],
         'section_padding' => [
             'type' => 'choice',
-            'label' => 'Section-Breite',
+            'label' => $_ci('field_section_padding_label', 'Section-Breite'),
             'choices' => [
-                '' => 'Standard',
-                'uk-section-xsmall' => 'Sehr kompakt',
-                'uk-section-small' => 'Kompakt',
-                'uk-section' => 'Normal',
-                'uk-section-large' => 'Groß',
-                'uk-section-xlarge' => 'Sehr groß',
+                '' => $_ci('field_section_padding_choice_default', 'Standard'),
+                'uk-section-xsmall' => $_ci('field_section_padding_choice_xsmall', 'Sehr kompakt'),
+                'uk-section-small' => $_ci('field_section_padding_choice_small', 'Kompakt'),
+                'uk-section' => $_ci('field_section_padding_choice_normal', 'Normal'),
+                'uk-section-large' => $_ci('field_section_padding_choice_large', 'Gross'),
+                'uk-section-xlarge' => $_ci('field_section_padding_choice_xlarge', 'Sehr gross'),
             ],
             'default' => '',
-            'notice' => 'Steuert die vertikale Section-Groesse (ohne Farben/Hintergrundbild).',
+            'notice' => $_ci('field_section_padding_notice', 'Steuert die vertikale Section-Groesse (ohne Farben/Hintergrundbild).'),
         ],
     ],
 ];

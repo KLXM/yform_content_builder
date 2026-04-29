@@ -203,6 +203,7 @@ class FieldRegistry
             new BeTableSelectField(),
             new YFormPickerField(),
             new SmartLinkField(),
+            new RichHeadlineField(),
             new RepeaterField(),
         ];
 
