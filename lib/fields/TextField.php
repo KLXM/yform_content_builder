@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Text-Eingabefeld
  */
-class TextField extends ContentBuilderFieldAbstract
+class TextField extends FieldAbstract
 {
     public static function getType(): string
     {

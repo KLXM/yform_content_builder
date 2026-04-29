@@ -2,7 +2,7 @@
 
 namespace KLXM\YFormContentBuilder;
 
-use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 use rex;
 use rex_escape;
 use rex_path;
@@ -17,10 +17,10 @@ use Throwable;
  * Nutzt das Field Plugin System für konsistentes Rendering
  * 
  * Verwendung:
- * Input:  echo yform_content_builder_module::create('gallery')->renderInput();
- * Output: echo yform_content_builder_module::create('gallery', 'REX_VALUE[id=1 output=html]')->renderOutput();
+ * Input:  echo Module::create('gallery')->renderInput();
+ * Output: echo Module::create('gallery', 'REX_VALUE[id=1 output=html]')->renderOutput();
  */
-class yform_content_builder_module
+class Module
 {
     protected string $elementType = '';
     protected array $data = [];
@@ -72,7 +72,7 @@ class yform_content_builder_module
      * Element über einen Value-Slot erstellen (verständlichere API).
      *
      * Beispiel:
-     * echo yform_content_builder_module::createByValueId('cards', 2, 'uikit')->renderInput();
+     * echo Module::createByValueId('cards', 2, 'uikit')->renderInput();
      *
      * @param string $type Element-Typ
      * @param int    $valueId REX_VALUE Slot (1-20)
@@ -626,7 +626,7 @@ class yform_content_builder_module
     {
         $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
         $elementDir = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/');
-        $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementDir);
+        $helpModalConfig = ModalHelper::buildConfigForElementDir($elementDir);
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
             echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
@@ -636,14 +636,14 @@ class yform_content_builder_module
             }
 
             if ($helpModalConfig !== null) {
-                $helpModalConfig['_modal_id'] = yform_content_builder_help_modal_helper::createModalId();
-                yform_content_builder_help_modal_helper::renderButton($helpModalConfig, true);
+                $helpModalConfig['_modal_id'] = ModalHelper::createModalId();
+                ModalHelper::renderButton($helpModalConfig, true);
             }
 
             echo '</div>';
 
             if ($helpModalConfig !== null) {
-                yform_content_builder_help_modal_helper::renderModal($helpModalConfig);
+                ModalHelper::renderModal($helpModalConfig);
             }
         }
         
@@ -658,7 +658,7 @@ class yform_content_builder_module
             }
             
             $self = $this;
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $config['fields'],
                 $modalFields,
                 function (string $fieldName, array $fieldConfig) use ($self, $sliceData): void {
@@ -669,7 +669,7 @@ class yform_content_builder_module
     }
     
     /**
-     * Einzelnes Form-Feld rendern - nutzt ContentBuilderFieldRegistry
+     * Einzelnes Form-Feld rendern - nutzt FieldRegistry
      */
     protected function renderFormField(string $fieldName, array $fieldConfig, array $sliceData): void
     {
@@ -686,7 +686,7 @@ class yform_content_builder_module
         }
         
         // Field Registry nutzen für konsistentes Rendering
-        ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+        FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
     }
     
     /**
@@ -808,7 +808,7 @@ class yform_content_builder_module
                     }
                 }
                 $self = $this;
-                ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                FieldRegistry::renderFieldRowsGroup(
                     $groupFieldMap,
                     [],
                     function (string $fieldName, array $fieldConfig) use ($self, $sliceData): void {

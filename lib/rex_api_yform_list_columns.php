@@ -1,6 +1,6 @@
 <?php
 
-use KLXM\YFormContentBuilder\YformListProfiles;
+use KLXM\YFormContentBuilder\ListProfiles;
 
 /**
  * API: Spalten einer YForm-Tabelle für die Profil-Konfiguration laden.
@@ -23,8 +23,8 @@ class rex_api_yform_list_columns extends rex_api_function
         rex_response::cleanOutputBuffers();
 
         $table = (string) rex_request('table', 'string', '');
-        $columns = '' !== $table ? YformListProfiles::collectColumns($table) : [];
-        $urlProfiles = YformListProfiles::collectUrlProfiles($table);
+        $columns = '' !== $table ? ListProfiles::collectColumns($table) : [];
+        $urlProfiles = ListProfiles::collectUrlProfiles($table);
 
         rex_response::sendJson([
             'table' => $table,

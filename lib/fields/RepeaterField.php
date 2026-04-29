@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Repeater-Feld für wiederholbare Feldgruppen
  */
-class RepeaterField extends ContentBuilderFieldAbstract
+class RepeaterField extends FieldAbstract
 {
     public static function getType(): string
     {
@@ -132,13 +132,13 @@ class RepeaterField extends ContentBuilderFieldAbstract
         }
 
         $self = $this;
-        ContentBuilderFieldRegistry::renderFieldRowsGroup(
+        FieldRegistry::renderFieldRowsGroup(
             $fieldConfig['fields'],
             $itemModalFields,
             function (string $subFieldName, array $subFieldConfig) use ($self, $fieldName, $fieldConfig, $baseFieldName, $templateId, $triggerModals, &$modalsToRender): void {
                 $fullFieldName = $fieldName . '[0][' . $subFieldName . ']';
                 $subData = [$baseFieldName => [0 => []]];
-                ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
+                FieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
 
                 // Trigger-Modal Button(s) nach diesem Feld
                 if (isset($triggerModals[$subFieldName])) {
@@ -185,13 +185,13 @@ class RepeaterField extends ContentBuilderFieldAbstract
         }
 
         $self = $this;
-        ContentBuilderFieldRegistry::renderFieldRowsGroup(
+        FieldRegistry::renderFieldRowsGroup(
             $fieldConfig['fields'],
             $itemModalFields,
             function (string $subFieldName, array $subFieldConfig) use ($self, $fieldName, $fieldConfig, $baseFieldName, $index, $item, $itemId, $triggerModals, &$modalsToRender): void {
                 $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
                 $subData = [$baseFieldName => [$index => $item]];
-                ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
+                FieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
 
                 // Trigger-Modal Button(s) nach diesem Feld
                 if (isset($triggerModals[$subFieldName])) {
@@ -269,7 +269,7 @@ class RepeaterField extends ContentBuilderFieldAbstract
                 if (isset($fieldConfig['fields'][$subFieldName])) {
                     $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
                     $subData = [$baseFieldName => [$index => $item]];
-                    ContentBuilderFieldRegistry::renderField($fullFieldName, $fieldConfig['fields'][$subFieldName], $subData);
+                    FieldRegistry::renderField($fullFieldName, $fieldConfig['fields'][$subFieldName], $subData);
                 }
             }
         }
@@ -326,13 +326,13 @@ class RepeaterField extends ContentBuilderFieldAbstract
                     $modalFieldMap[$subFieldName] = $fieldConfig['fields'][$subFieldName];
                 }
             }
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $modalFieldMap,
                 [],
                 function (string $subFieldName, array $subFieldConfig) use ($fieldName, $index, $item, $baseFieldName): void {
                     $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
                     $subData = [$baseFieldName => [$index => $item]];
-                    ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
+                    FieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
                 }
             );
         }
@@ -378,13 +378,13 @@ class RepeaterField extends ContentBuilderFieldAbstract
                     $modalFieldMap[$subFieldName] = $fieldConfig['fields'][$subFieldName];
                 }
             }
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $modalFieldMap,
                 [],
                 function (string $subFieldName, array $subFieldConfig) use ($fieldName, $index, $item, $baseFieldName): void {
                     $fullFieldName = $fieldName . '[' . $index . '][' . $subFieldName . ']';
                     $subData = [$baseFieldName => [$index => $item]];
-                    ContentBuilderFieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
+                    FieldRegistry::renderField($fullFieldName, $subFieldConfig, $subData);
                 }
             );
         }

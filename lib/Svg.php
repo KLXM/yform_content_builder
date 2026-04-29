@@ -11,7 +11,7 @@ use rex_escape;
  * Vorrangig werden externe SVG-Dateien aus assets/icons/ verwendet,
  * da data:-URLs in Bootstrap-Select nicht zuverlässig gerendert werden.
  */
-class YFormContentBuilderSvg
+class Svg
 {
     /**
      * Gibt die URL zu einer Icon-SVG-Datei zurück.

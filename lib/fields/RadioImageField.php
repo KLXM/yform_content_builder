@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Radio-Buttons mit Bildern/SVGs für visuelle Layout-Auswahl
  */
-class RadioImageField extends ContentBuilderFieldAbstract
+class RadioImageField extends FieldAbstract
 {
     public static function getType(): string
     {

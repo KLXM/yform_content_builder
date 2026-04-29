@@ -11,7 +11,7 @@ use rex_response;
 /**
  * REDAXO Backend Link Widget
  */
-class BeLinkField extends ContentBuilderFieldAbstract
+class BeLinkField extends FieldAbstract
 {
     private static bool $jsIncluded = false;
     public static function getType(): string

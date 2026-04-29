@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * CKEditor 5 WYSIWYG-Feld
  */
-class Cke5Field extends ContentBuilderFieldAbstract
+class Cke5Field extends FieldAbstract
 {
     public static function getType(): string
     {

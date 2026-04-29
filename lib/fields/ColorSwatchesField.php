@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Farbauswahl mit visuellen Farbfeldern (wie MForm RadioColorField)
  */
-class ColorSwatchesField extends ContentBuilderFieldAbstract
+class ColorSwatchesField extends FieldAbstract
 {
     public static function getType(): string
     {

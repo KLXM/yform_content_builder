@@ -9,7 +9,7 @@ use rex_escape;
  * YForm Content Builder Helper
  * Einfache Frontend-Ausgabe von Slices
  */
-class yform_content_builder_helper
+class Helper
 {
     /** Daten der aktuell offenen Section (für Grid-Close) */
     protected static array $activeSectionData = [];

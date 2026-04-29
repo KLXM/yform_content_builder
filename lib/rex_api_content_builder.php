@@ -1,6 +1,8 @@
 <?php
 
-use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
+use KLXM\YFormContentBuilder\Helper;
+use KLXM\YFormContentBuilder\ModalHelper;
 
 /**
  * API Handler für YForm Content Builder
@@ -85,7 +87,7 @@ class rex_api_content_builder extends rex_api_function
         echo '<form class="slice-form">';
 
         $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
-        $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementPath . '/');
+        $helpModalConfig = ModalHelper::buildConfigForElementDir($elementPath . '/');
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
             echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
@@ -95,14 +97,14 @@ class rex_api_content_builder extends rex_api_function
             }
 
             if ($helpModalConfig !== null) {
-                $helpModalConfig['_modal_id'] = yform_content_builder_help_modal_helper::createModalId();
-                yform_content_builder_help_modal_helper::renderButton($helpModalConfig, true);
+                $helpModalConfig['_modal_id'] = ModalHelper::createModalId();
+                ModalHelper::renderButton($helpModalConfig, true);
             }
 
             echo '</div>';
 
             if ($helpModalConfig !== null) {
-                yform_content_builder_help_modal_helper::renderModal($helpModalConfig);
+                ModalHelper::renderModal($helpModalConfig);
             }
         }
 
@@ -116,11 +118,11 @@ class rex_api_content_builder extends rex_api_function
                 $modalFields = $config['settings_modal']['fields'];
             }
 
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $config['fields'],
                 $modalFields,
                 function (string $fieldName, array $fieldConfig) use ($sliceData): void {
-                    ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                    FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
                 }
             );
         }
@@ -218,11 +220,11 @@ class rex_api_content_builder extends rex_api_function
                         $groupFieldMap[$fieldName] = $config['fields'][$fieldName];
                     }
                 }
-                ContentBuilderFieldRegistry::renderFieldRowsGroup(
+                FieldRegistry::renderFieldRowsGroup(
                     $groupFieldMap,
                     [],
                     function (string $fieldName, array $fieldConfig) use ($sliceData): void {
-                        ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                        FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
                     }
                 );
             }
@@ -274,11 +276,11 @@ class rex_api_content_builder extends rex_api_function
                     $modalFieldMap[$fieldName] = $config['fields'][$fieldName];
                 }
             }
-            ContentBuilderFieldRegistry::renderFieldRowsGroup(
+            FieldRegistry::renderFieldRowsGroup(
                 $modalFieldMap,
                 [],
                 function (string $fieldName, array $fieldConfig) use ($sliceData): void {
-                    ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+                    FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
                 }
             );
         }
@@ -370,8 +372,8 @@ class rex_api_content_builder extends rex_api_function
             return;
         }
 
-        $isImage = yform_content_builder_helper::isImage($filename);
-        $isVideo = yform_content_builder_helper::isVideo($filename);
+        $isImage = Helper::isImage($filename);
+        $isVideo = Helper::isVideo($filename);
 
         $html = '';
         if ($isImage) {

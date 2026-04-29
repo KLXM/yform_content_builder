@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Select-Feld (einfaches Dropdown)
  */
-class SelectField extends ContentBuilderFieldAbstract
+class SelectField extends FieldAbstract
 {
     public static function getType(): string
     {

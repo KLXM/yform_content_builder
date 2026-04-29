@@ -28,7 +28,7 @@ use Throwable;
  *   default_layout  string   cards|list|compact
  *   filter_default  string   optionaler WHERE-Snippet (key=value pro Zeile, KEINE Roh-SQL)
  */
-final class YformListProfiles
+final class ListProfiles
 {
     public const CONFIG_KEY = 'yform_list_profiles';
 

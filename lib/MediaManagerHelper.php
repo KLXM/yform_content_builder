@@ -14,7 +14,7 @@ use rex_sql;
  * REDAXO Media Manager Helper
  * Einfaches Handling von Media Manager Typen/Effekten in AddOns
  */
-class YFormContentMediaManagerHelper
+class MediaManagerHelper
 {
     /**
      * Zeigt die verfügbaren Parameter eines Effekts an

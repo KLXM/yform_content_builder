@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * TinyMCE WYSIWYG-Feld
  */
-class TinyMceField extends ContentBuilderFieldAbstract
+class TinyMceField extends FieldAbstract
 {
     private static bool $assetsBootstrapped = false;
 

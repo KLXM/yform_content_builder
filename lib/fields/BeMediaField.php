@@ -8,12 +8,12 @@ use rex_i18n;
 use rex_media_manager;
 use rex_path;
 use rex_url;
-use KLXM\YFormContentBuilder\yform_content_builder_helper;
+use KLXM\YFormContentBuilder\Helper;
 
 /**
  * REDAXO Backend Media Widget
  */
-class BeMediaField extends ContentBuilderFieldAbstract
+class BeMediaField extends FieldAbstract
 {
     public static function getType(): string
     {
@@ -96,8 +96,8 @@ class BeMediaField extends ContentBuilderFieldAbstract
     protected function renderPreview(string $value): void
     {
         $mediaPath = rex_path::media($value);
-        $isImage = yform_content_builder_helper::isImage($value);
-        $isVideo = yform_content_builder_helper::isVideo($value);
+        $isImage = Helper::isImage($value);
+        $isVideo = Helper::isVideo($value);
 
         if ($isImage && file_exists($mediaPath)) {
             $mediaUrl = rex_url::media($value);

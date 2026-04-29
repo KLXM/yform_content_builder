@@ -13,7 +13,7 @@ use rex_csrf_token;
 /**
  * YForm Datensatz-Picker Widget (Native YForm Integration)
  */
-class YFormPickerField extends ContentBuilderFieldAbstract
+class YFormPickerField extends FieldAbstract
 {
     public static function getType(): string
     {

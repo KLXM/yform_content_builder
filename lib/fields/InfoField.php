@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Statisches Info-Feld ohne Speicherung.
  */
-class InfoField extends ContentBuilderFieldAbstract
+class InfoField extends FieldAbstract
 {
     public static function getType(): string
     {

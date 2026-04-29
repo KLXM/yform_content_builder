@@ -14,7 +14,7 @@ use rex_sql;
 use Throwable;
 
 /**
- * ForcalListRenderer
+ * ForcalRenderer
  *
  * Liefert kommende Termine aus dem forcal-Addon fuer das forcal_list Element.
  *
@@ -26,7 +26,7 @@ use Throwable;
  *
  * @author  Friends Of REDAXO
  */
-final class ForcalListRenderer
+final class ForcalRenderer
 {
     /** @var list<string> */
     public const ALLOWED_LAYOUTS = ['cards', 'list', 'compact'];

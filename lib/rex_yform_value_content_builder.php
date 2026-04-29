@@ -1,5 +1,8 @@
 <?php
 
+use KLXM\YFormContentBuilder\Helper;
+use KLXM\YFormContentBuilder\ModalHelper;
+
 /**
  * YForm Content Builder Field
  * Slice-based content management für YForm
@@ -106,7 +109,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         echo '<form class="slice-form">';
 
         $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
-        $helpModalConfig = yform_content_builder_help_modal_helper::buildConfigForElementDir($elementPath . '/');
+        $helpModalConfig = ModalHelper::buildConfigForElementDir($elementPath . '/');
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
             echo '<div class="clearfix" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 6px;">';
@@ -116,15 +119,15 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             }
 
             if ($helpModalConfig !== null) {
-                $helpModalConfig['_modal_id'] = yform_content_builder_help_modal_helper::createModalId();
-                yform_content_builder_help_modal_helper::renderButton($helpModalConfig, true);
+                $helpModalConfig['_modal_id'] = ModalHelper::createModalId();
+                ModalHelper::renderButton($helpModalConfig, true);
             }
 
             echo '</div>';
 
             // Modal-HTML ausserhalb des text-align:right Wrappers rendern
             if ($helpModalConfig !== null) {
-                yform_content_builder_help_modal_helper::renderModal($helpModalConfig);
+                ModalHelper::renderModal($helpModalConfig);
             }
         }
         
@@ -451,8 +454,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 echo '<div class="content-builder-media-preview" data-input-id="' . $inputId . '">';
                 if ($value) {
                     $mediaPath = rex_path::media($value);
-                    $isImage = yform_content_builder_helper::isImage($value);
-                    $isVideo = yform_content_builder_helper::isVideo($value);
+                    $isImage = Helper::isImage($value);
+                    $isVideo = Helper::isVideo($value);
                     
                     if ($isImage && file_exists($mediaPath)) {
                         $mediaUrl = rex_url::media($value);

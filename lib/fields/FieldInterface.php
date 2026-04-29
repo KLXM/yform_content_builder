@@ -10,7 +10,7 @@ namespace KLXM\YFormContentBuilder\Fields;
  * - Von anderen Addons überschrieben werden
  * - Sauber getrennt gepflegt werden
  */
-interface ContentBuilderFieldInterface
+interface FieldInterface
 {
     /**
      * Gibt den Feldtyp-Namen zurück (z.B. 'text', 'be_media', 'repeater')

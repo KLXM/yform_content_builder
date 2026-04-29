@@ -14,7 +14,7 @@ use rex_escape;
  * - Notice/Hilfetext
  * - Berechtigungsprüfung
  */
-abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterface
+abstract class FieldAbstract implements FieldInterface
 {
     /**
      * Statische Widget-Counter für eindeutige IDs
@@ -27,9 +27,9 @@ abstract class ContentBuilderFieldAbstract implements ContentBuilderFieldInterfa
     /**
      * Referenz zur Registry (für verschachtelte Felder wie Repeater)
      */
-    protected ?ContentBuilderFieldRegistry $registry = null;
+    protected ?FieldRegistry $registry = null;
 
-    public function setRegistry(ContentBuilderFieldRegistry $registry): void
+    public function setRegistry(FieldRegistry $registry): void
     {
         $this->registry = $registry;
     }

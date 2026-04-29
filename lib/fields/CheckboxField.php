@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Checkbox-Feld
  */
-class CheckboxField extends ContentBuilderFieldAbstract
+class CheckboxField extends FieldAbstract
 {
     public static function getType(): string
     {

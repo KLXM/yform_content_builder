@@ -90,7 +90,7 @@ Verwende den kompletten Content Builder mit mehreren Elementen und Drag & Drop.
 $currentValue = $this->getCurrentSlice()->getValue(1);
 
 // Content Builder erstellen
-$contentBuilder = yform_content_builder_module::createWithValue(1, $currentValue, [
+$contentBuilder = Module::createWithValue(1, $currentValue, [
     'framework' => 'bootstrap', // Framework für Backend-Preview
     'label' => 'Seiteninhalt',
     'description' => 'Fügen Sie Content-Elemente hinzu',
@@ -110,7 +110,7 @@ echo $contentBuilder->getEditor();
 $currentValue = $this->getCurrentSlice()->getValue(1);
 
 // Content Builder erstellen
-$contentBuilder = yform_content_builder_module::createWithValue(1, $currentValue, [
+$contentBuilder = Module::createWithValue(1, $currentValue, [
     'framework' => 'uikit' 
 ]);
 
@@ -128,14 +128,14 @@ Empfohlen ist die Slot-basierte Schreibweise mit `createByValueId(...)`.
 **INPUT:**
 ```php
 <?php
-echo yform_content_builder_module::createByValueId('gallery', 1, 'bootstrap')->renderInput();
+echo Module::createByValueId('gallery', 1, 'bootstrap')->renderInput();
 ?>
 ```
 
 **OUTPUT:**
 ```php
 <?php
-echo yform_content_builder_module::createByValueId('gallery', 1, 'uikit')->renderOutput();
+echo Module::createByValueId('gallery', 1, 'uikit')->renderOutput();
 ?>
 ```
 
@@ -145,7 +145,7 @@ Die alte Schreibweise bleibt gültig:
 
 ```php
 <?php
-echo yform_content_builder_module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
+echo Module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
 ?>
 ```
 
@@ -159,9 +159,9 @@ Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eig
 
 ```
 lib/fields/
-├── ContentBuilderFieldInterface.php   # Interface (muss implementiert werden)
-├── ContentBuilderFieldAbstract.php    # Abstrakte Basisklasse (empfohlen)
-├── ContentBuilderFieldRegistry.php    # Registry zum Registrieren/Abrufen
+├── FieldInterface.php   # Interface (muss implementiert werden)
+├── FieldAbstract.php    # Abstrakte Basisklasse (empfohlen)
+├── FieldRegistry.php    # Registry zum Registrieren/Abrufen
 └── [FieldName]Field.php               # Konkrete Feldtypen
 ```
 
@@ -732,13 +732,13 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function():
 
 ### Interface implementieren
 
-Jeder Feldtyp muss das `ContentBuilderFieldInterface` implementieren:
+Jeder Feldtyp muss das `FieldInterface` implementieren:
 
 ```php
 <?php
 namespace KLXM\YFormContentBuilder\Fields;
 
-interface ContentBuilderFieldInterface
+interface FieldInterface
 {
     /**
      * Gibt den Feldtyp-Namen zurück
@@ -759,7 +759,7 @@ interface ContentBuilderFieldInterface
 
 ### Abstrakte Basisklasse nutzen (empfohlen)
 
-Die `ContentBuilderFieldAbstract` Klasse bietet hilfreiche Methoden:
+Die `FieldAbstract` Klasse bietet hilfreiche Methoden:
 
 | Methode | Beschreibung |
 |---------|--------------|
@@ -782,7 +782,7 @@ use rex_escape;
 /**
  * E-Mail-Eingabefeld mit Validierung
  */
-class EmailField extends ContentBuilderFieldAbstract
+class EmailField extends FieldAbstract
 {
     public static function getType(): string
     {
@@ -825,7 +825,7 @@ use rex_escape;
 /**
  * Icon-Auswahl mit Vorschau
  */
-class IconPickerField extends ContentBuilderFieldAbstract
+class IconPickerField extends FieldAbstract
 {
     private static array $icons = [
         'fa-home' => 'Home',
@@ -903,11 +903,11 @@ class IconPickerField extends ContentBuilderFieldAbstract
 
 ```php
 // In boot.php deines Addons
-use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 
 if (rex_addon::get('yform_content_builder')->isAvailable()) {
-    ContentBuilderFieldRegistry::register(new EmailField());
-    ContentBuilderFieldRegistry::register(new IconPickerField());
+    FieldRegistry::register(new EmailField());
+    FieldRegistry::register(new IconPickerField());
 }
 ```
 
@@ -1026,63 +1026,65 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function():
 
 ## Helper-Klassen
 
-### ContentBuilderFieldRegistry
+### FieldRegistry
 
 ```php
-use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 
 // Feld registrieren
-ContentBuilderFieldRegistry::register(new MyField());
+FieldRegistry::register(new MyField());
 
 // Feld abrufen
-$field = ContentBuilderFieldRegistry::get('text');
+$field = FieldRegistry::get('text');
 
 // Prüfen ob Feld existiert
-if (ContentBuilderFieldRegistry::has('my_custom')) {
+if (FieldRegistry::has('my_custom')) {
     // ...
 }
 
 // Alle Felder abrufen
-$allFields = ContentBuilderFieldRegistry::getAll();
+$allFields = FieldRegistry::getAll();
 
 // Feld rendern (empfohlener Weg)
-ContentBuilderFieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
+FieldRegistry::renderField($fieldName, $fieldConfig, $sliceData);
 ```
 
-### yform_content_builder_helper
+### Helper
 
 ```php
 // Prüfen ob Datei ein Bild ist
-yform_content_builder_helper::isImage('foto.jpg');  // true
+Helper::isImage('foto.jpg');  // true
 
 // Prüfen ob Datei ein Video ist
-yform_content_builder_helper::isVideo('clip.mp4');  // true
+Helper::isVideo('clip.mp4');  // true
 
 // Verfügbare Elemente abrufen
-$elements = yform_content_builder_helper::getAvailableElements();
+$elements = Helper::getAvailableElements();
 
 // Element-Konfiguration laden
-$config = yform_content_builder_helper::getElementConfig('text_image');
+$config = Helper::getElementConfig('text_image');
 ```
 
 ### Frontend-Rendering
 
 ```php
-use KLXM\YFormContentBuilder\yform_content_builder_helper as ContentBuilderHelper;
+use KLXM\YFormContentBuilder\Helper;
 
 // Aus YForm-Daten
 $page = rex_yform_manager_dataset::get(1, 'rex_pages');
 $content = $page->getValue('content');
 
 // Mit Bootstrap-Templates rendern
-echo ContentBuilderHelper::render($content, 'bootstrap');
+echo Helper::render($content, 'bootstrap');
 
 // Mit UIkit-Templates rendern
-echo ContentBuilderHelper::render($content, 'uikit');
+echo Helper::render($content, 'uikit');
 
 // Mit Plain HTML rendern
-echo ContentBuilderHelper::render($content, 'plain');
+echo Helper::render($content, 'plain');
 ```
+
+> **Hinweis zur Abwärtskompatibilität:** Die alten Klassennamen `yform_content_builder_helper`, `ContentBuilderFieldRegistry`, `ContentBuilderFieldAbstract` und `ContentBuilderFieldInterface` funktionieren weiterhin über PHP `class_alias()` Aliase und sind für bestehenden Code vollständig kompatibel. Es wird jedoch empfohlen, zukünftige Entwicklung mit den neuen kanonischen Klassennamen durchzuführen.
 
 ---
 
@@ -1097,7 +1099,7 @@ echo ContentBuilderHelper::render($content, 'plain');
 
 ### Feldtypen
 
-1. **Basisklasse nutzen** - `ContentBuilderFieldAbstract` vereinfacht vieles
+1. **Basisklasse nutzen** - `FieldAbstract` vereinfacht vieles
 2. **Eindeutige IDs** - `$this->generateId()` verwenden
 3. **processValue()** - Für Validierung/Transformation nutzen
 4. **Kompatibilität** - CSS im Feld nur wenn nötig, besser in eigenem Stylesheet

@@ -55,7 +55,7 @@ Für normale REDAXO-Module wird die slot-basierte API empfohlen:
 ```php
 <?php
 // Ein Element pro Modul
-echo yform_content_builder_module::createByValueId('cards', 1, 'uikit')->renderInput();
+echo Module::createByValueId('cards', 1, 'uikit')->renderInput();
 ?>
 ```
 
@@ -64,8 +64,8 @@ Mehrere Elemente im selben Modul sind möglich – jede Instanz erhält automati
 ```php
 <?php
 // Zwei unabhängige Elemente im selben Modul
-echo yform_content_builder_module::createByValueId('cards', 1, 'uikit')->renderInput();
-echo yform_content_builder_module::createByValueId('text', 2, 'uikit')->renderInput();
+echo Module::createByValueId('cards', 1, 'uikit')->renderInput();
+echo Module::createByValueId('text', 2, 'uikit')->renderInput();
 ?>
 ```
 
@@ -73,7 +73,7 @@ Bestehende Module mit der älteren Schreibweise bleiben kompatibel:
 
 ```php
 <?php
-echo yform_content_builder_module::create('cards', 'REX_VALUE[2]', 'uikit')->renderOutput();
+echo Module::create('cards', 'REX_VALUE[2]', 'uikit')->renderOutput();
 ?>
 ```
 
@@ -328,14 +328,14 @@ Mit dem Multiselect-Feld "Erlaubte Elemente" kannst du steuern, welche Content-E
 ### Frontend-Ausgabe
 
 ```php
-use KLXM\YFormContentBuilder\yform_content_builder_helper as ContentBuilderHelper;
+use KLXM\YFormContentBuilder\Helper;
 
 // Daten aus YForm-Tabelle holen
 $page = rex_yform_manager_dataset::get(1, 'rex_my_pages');
 $contentData = $page->getValue('page_content');
 
 // Content rendern - Framework explizit wählen
-echo ContentBuilderHelper::render($contentData, 'bootstrap');
+echo Helper::render($contentData, 'bootstrap');
 
 // Oder Tailwind nutzen (lädt templates/tailwind.php)
 echo ContentBuilderHelper::render($contentData, 'tailwind');
@@ -624,11 +624,11 @@ echo formatPrice($price);
 ```
 
 **Richtig:**
-Nutze stattdessen die bereitgestellte Helper-Klasse `yform_content_builder_helper` oder anonyme Funktionen (Closures), wenn die Logik nur lokal benötigt wird.
+Nutze stattdessen die bereitgestellte Helper-Klasse `Helper` oder anonyme Funktionen (Closures), wenn die Logik nur lokal benötigt wird.
 
 ```php
 // ✅ Nutzung der Helper-Klasse
-if (yform_content_builder_helper::isImage($file)) { ... }
+if (Helper::isImage($file)) { ... }
 
 // ✅ Oder anonyme Funktion (Closure)
 $formatPrice = function($price) {
@@ -716,7 +716,7 @@ Das Addon nutzt ein **Plugin-System für Feldtypen**. Jeder Feldtyp ist eine eig
 <?php
 namespace KLXM\YFormContentBuilder\Fields;
 
-class MyCustomField extends ContentBuilderFieldAbstract
+class MyCustomField extends FieldAbstract
 {
     public static function getType(): string
     {
@@ -742,10 +742,10 @@ class MyCustomField extends ContentBuilderFieldAbstract
 
 ```php
 // In boot.php deines Addons oder per Extension Point
-use KLXM\YFormContentBuilder\Fields\ContentBuilderFieldRegistry;
+use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 
 // Direkt registrieren
-ContentBuilderFieldRegistry::register(new MyCustomField());
+FieldRegistry::register(new MyCustomField());
 
 // Oder per Extension Point
 rex_extension::register('YFORM_CONTENT_BUILDER_FIELDS', function(rex_extension_point $ep) {
@@ -759,7 +759,7 @@ rex_extension::register('YFORM_CONTENT_BUILDER_FIELDS', function(rex_extension_p
 
 ```php
 // Eigene Implementierung von be_media mit zusätzlichen Features
-ContentBuilderFieldRegistry::register(new MyEnhancedMediaField());
+FieldRegistry::register(new MyEnhancedMediaField());
 ```
 
 ### Repeater-Beispiel
@@ -796,17 +796,19 @@ Content wird als **JSON-Array** gespeichert:
 ## 🔧 API & Helper
 
 ```php
-use KLXM\YFormContentBuilder\yform_content_builder_helper as ContentBuilderHelper;
+use KLXM\YFormContentBuilder\Helper;
 
 // Content rendern
-$html = ContentBuilderHelper::render($jsonData, 'bootstrap');
+$html = Helper::render($jsonData, 'bootstrap');
 
 // Verfügbare Elemente
-$elements = ContentBuilderHelper::getAvailableElements();
+$elements = Helper::getAvailableElements();
 
 // Element-Config laden
-$config = ContentBuilderHelper::getElementConfig('text_image');
+$config = Helper::getElementConfig('text_image');
 ```
+
+> **Hinweis:** Die alten Klassennamen (z.B. `yform_content_builder_module`, `yform_content_builder_helper`) funktionieren weiterhin für Abwärtskompatibilität. Es wird empfohlen, neue Projekte mit den vereinfachten Namen wie `Module` und `Helper` zu schreiben.
 
 ## � Permission System
 

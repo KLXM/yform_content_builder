@@ -10,7 +10,7 @@ use rex_addon;
  * Stellt gemeinsame Felder und Optionen für alle Elemente bereit.
  * Ermöglicht konsistente Section-Einstellungen über alle Elemente hinweg.
  */
-class yform_content_builder_config
+class Config
 {
     private static ?bool $hasUikitThemeBuilder = null;
     private static ?array $themeChoices = null;

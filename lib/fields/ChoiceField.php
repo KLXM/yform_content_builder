@@ -7,7 +7,7 @@ use rex_escape;
 /**
  * Choice-Feld (erweitertes Select mit Selectpicker, Farben, Icons)
  */
-class ChoiceField extends ContentBuilderFieldAbstract
+class ChoiceField extends FieldAbstract
 {
     public static function getType(): string
     {

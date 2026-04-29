@@ -16,7 +16,7 @@ use rex_yform_manager_table;
  * - selectpicker mit Live Search
  * - Komma-getrennte ID-Speicherung bei Multiple
  */
-class BeTableSelectField extends ContentBuilderFieldAbstract
+class BeTableSelectField extends FieldAbstract
 {
     public static function getType(): string
     {
