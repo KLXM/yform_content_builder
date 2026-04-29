@@ -3,7 +3,9 @@
  * Table Element - Barrierefreier Tabelleneditor mit CSV Import
  */
 
-$config = yform_content_builder_config::class;
+use KLXM\YFormContentBuilder\Config;
+
+$config = Config::class;
 
 return [
     'label' => 'Tabelle',

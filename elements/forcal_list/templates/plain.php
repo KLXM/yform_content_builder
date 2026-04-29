@@ -5,11 +5,13 @@
  * @var array<string,mixed> $elementData
  */
 
-if (!class_exists('ForcalListRenderer')) {
+use KLXM\YFormContentBuilder\ForcalRenderer;
+
+if (!class_exists(ForcalRenderer::class)) {
     return;
 }
 
-$result = ForcalListRenderer::fetch($elementData);
+$result = ForcalRenderer::fetch($elementData);
 
 $headline = (string) ($elementData['headline'] ?? '');
 $description = (string) ($elementData['description'] ?? '');
@@ -120,7 +122,7 @@ if (null !== $error) {
                 $teaser = rex_escape((string) $it['teaser']);
                 $href = $showLinks ? (string) $it['href'] : '';
                 $color = (string) $it['category_color'];
-                $dateStr = ForcalListRenderer::formatDate($it);
+                $dateStr = ForcalRenderer::formatDate($it);
 
                 $titleHtml = '' !== $href
                     ? '<a href="' . rex_escape($href) . '">' . $title . '</a>'
@@ -158,7 +160,7 @@ if (null !== $error) {
                 $teaser = rex_escape((string) $it['teaser']);
                 $href = $showLinks ? (string) $it['href'] : '';
                 $color = (string) $it['category_color'];
-                $dateStr = ForcalListRenderer::formatDate($it);
+                $dateStr = ForcalRenderer::formatDate($it);
 
                 $titleHtml = '' !== $href
                     ? '<a href="' . rex_escape($href) . '">' . $title . '</a>'
@@ -186,7 +188,7 @@ if (null !== $error) {
             foreach ($block['items'] as $it) {
                 $title = rex_escape((string) $it['title']);
                 $href = $showLinks ? (string) $it['href'] : '';
-                $dateStr = ForcalListRenderer::formatDate($it);
+                $dateStr = ForcalRenderer::formatDate($it);
 
                 $titleHtml = '' !== $href
                     ? '<a href="' . rex_escape($href) . '">' . $title . '</a>'
