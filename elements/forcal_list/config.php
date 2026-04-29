@@ -9,13 +9,15 @@
  * Layouts: Cards / Liste / Kompakt.
  */
 
+use KLXM\YFormContentBuilder\ForcalRenderer;
+
 $config = \KLXM\YFormContentBuilder\Config::class;
 
 // Element ausblenden, wenn forcal nicht installiert/aktiviert ist.
 $forcalAvailable = rex_addon::exists('forcal')
     && rex_addon::get('forcal')->isAvailable()
-    && class_exists('ForcalListRenderer')
-    && ForcalListRenderer::isAvailable();
+    && class_exists(ForcalRenderer::class)
+    && ForcalRenderer::isAvailable();
 
 if (!$forcalAvailable) {
     return null;
@@ -24,11 +26,11 @@ if (!$forcalAvailable) {
 $catChoices = ['' => '— Alle Kategorien —'];
 $repeatChoices = ['' => '— Bitte Termin waehlen —'];
 
-if (class_exists('ForcalListRenderer')) {
-    foreach (ForcalListRenderer::getCategoryChoices() as $id => $name) {
+if (class_exists(ForcalRenderer::class)) {
+    foreach (ForcalRenderer::getCategoryChoices() as $id => $name) {
         $catChoices[(string) $id] = $name . ' (#' . $id . ')';
     }
-    foreach (ForcalListRenderer::getRepeatingEntryChoices() as $id => $name) {
+    foreach (ForcalRenderer::getRepeatingEntryChoices() as $id => $name) {
         $repeatChoices[(string) $id] = $name . ' (#' . $id . ')';
     }
 }
@@ -150,7 +152,7 @@ return [
             'limit' => [
                 'type' => 'text',
                 'label' => 'Anzahl Termine',
-                'notice' => '1–' . ForcalListRenderer::MAX_LIMIT . '. Default: 5.',
+                'notice' => '1–' . ForcalRenderer::MAX_LIMIT . '. Default: 5.',
                 'default' => '5',
             ],
             'show_image' => [

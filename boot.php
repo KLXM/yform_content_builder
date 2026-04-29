@@ -9,22 +9,6 @@
 rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\Api\ContentBuilderApi::class);
 rex_api_function::register('yform_list_columns', \KLXM\YFormContentBuilder\Api\ListColumnsApi::class);
 
-// Forcal-Termine-Renderer (für forcal_list Element) – nur wenn forcal-Addon vorhanden
-if (rex_addon::get('forcal')->isAvailable()) {
-    class_alias(\KLXM\YFormContentBuilder\ForcalRenderer::class, 'ForcalListRenderer');
-}
-
-// Class aliases für externe Nutzung (z.B. project-Addon, eigene Elemente)
-class_alias(\KLXM\YFormContentBuilder\Helper::class, 'yform_content_builder_helper');
-class_alias(\KLXM\YFormContentBuilder\Config::class, 'yform_content_builder_config');
-class_alias(\KLXM\YFormContentBuilder\Module::class, 'yform_content_builder_module');
-class_alias(\KLXM\YFormContentBuilder\Svg::class, 'YFormContentBuilderSvg');
-class_alias(\KLXM\YFormContentBuilder\MediaAltResolver::class, 'YFormContentBuilderMediaAltResolver');
-class_alias(\KLXM\YFormContentBuilder\MediaManagerHelper::class, 'YFormContentMediaManagerHelper');
-class_alias(\KLXM\YFormContentBuilder\ListProfiles::class, 'YformListProfiles');
-class_alias(\KLXM\YFormContentBuilder\ListRenderer::class, 'YformListRenderer');
-class_alias(\KLXM\YFormContentBuilder\SmartLink::class, 'YFormContentBuilderSmartLink');
-
 // Theme Builder Integration - Theme für Backend setzen
 if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
     $configuredTheme = rex_addon::get('yform_content_builder')->getConfig('theme');
