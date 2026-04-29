@@ -154,6 +154,12 @@ class SmartLink
                         return str_replace('{id}', $id, $pattern);
                     }
                 }
+
+                return '?id=' . $id;
+            }
+
+            if (ctype_digit($value)) {
+                return '?id=' . $value;
             }
 
             return '';

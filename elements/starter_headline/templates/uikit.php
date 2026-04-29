@@ -21,7 +21,7 @@ if ($text === '') {
     return;
 }
 
-$sectionClass = trim((string) $sectionPadding);
+$sectionClass = trim('uk-section ' . (string) $sectionPadding);
 $headlineSeed = $eyebrow . '|' . $text . '|' . $highlight . '|' . $subline . '|' . $tag;
 $headlineId = 'headline-' . substr(md5($headlineSeed), 0, 10);
 $sublineId = $headlineId . '-subline';

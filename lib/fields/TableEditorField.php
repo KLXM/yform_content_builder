@@ -118,10 +118,7 @@ class TableEditorField extends FieldAbstract
             'has_header_row' => true,
             'has_header_col' => false,
             'cols' => [],
-            'rows' => [
-                ['Spalte 1', 'Spalte 2'],
-                ['', ''],
-            ],
+            'rows' => [],
         ];
 
         $parsed = null;
