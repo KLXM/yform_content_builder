@@ -37,7 +37,7 @@ class Helper
      */
     public static function t(string $key, string $fallback = ''): string
     {
-        $msg = \rex_i18n::msg($key);
+        $msg = \rex_i18n::rawMsg($key);
 
         if ($msg !== $key) {
             return $msg;
