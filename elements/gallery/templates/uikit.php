@@ -155,8 +155,8 @@ $lightboxId = 'gallery-' . uniqid();
             $finalAlt = $altTextManual ?: ($mediaPoolAlt ?: $media);
 
             // Media-Typ bestimmen
-            $isImage = yform_content_builder_helper::isImage($media);
-            $isVideo = yform_content_builder_helper::isVideo($media);
+            $isImage = \KLXM\YFormContentBuilder\Helper::isImage($media);
+            $isVideo = \KLXM\YFormContentBuilder\Helper::isVideo($media);
             
             // Originalbild für Lightbox, Thumbnail für Grid
             $fullImageUrl = rex_url::media($media);

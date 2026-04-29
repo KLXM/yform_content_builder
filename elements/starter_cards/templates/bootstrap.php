@@ -37,7 +37,7 @@ $colClass = $colMap[$columns] ?? 'col-sm-4';
                     $itemLinkText = 'Mehr erfahren';
                 }
                 $fallback = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Karte ' . ($index + 1);
-                $itemImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
+                $itemImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
                 ?>
                 <div class="<?= $colClass ?>" style="margin-bottom:15px;">
                     <article style="border:1px solid #ddd; background:#fff; height:100%;">

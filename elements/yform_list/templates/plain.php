@@ -5,11 +5,11 @@
  * @var array<string,mixed> $elementData
  */
 
-if (!class_exists('YformListRenderer')) {
+if (!class_exists(\KLXM\YFormContentBuilder\ListRenderer::class)) {
     return;
 }
 
-$result = YformListRenderer::fetch($elementData);
+$result = \KLXM\YFormContentBuilder\ListRenderer::fetch($elementData);
 
 $headline = (string) ($elementData['headline'] ?? '');
 $description = (string) ($elementData['description'] ?? '');
@@ -44,7 +44,7 @@ if (null !== $error) {
         $mobile = trim((string) ($contact['mobile'] ?? ''));
         $email = trim((string) ($contact['email'] ?? ''));
         $name = trim($first . ' ' . $last);
-        $img = YformListRenderer::imgTag($it, 'rex-yfl-contact-avatar');
+        $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'rex-yfl-contact-avatar');
         echo '<li class="rex-yfl-contact">'
             . ('' !== $img ? '<div class="rex-yfl-contact-image">' . $img . '</div>' : '')
             . '<div class="rex-yfl-contact-body">'
@@ -93,7 +93,7 @@ if (null !== $error) {
                 $name = (string) $it['title'];
             }
             $href = $showLinks ? (string) $it['href'] : '';
-            $img = YformListRenderer::imgTag($it, 'rex-yfl-contact-avatar');
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'rex-yfl-contact-avatar');
             $nameHtml = '' !== $href
                 ? '<a href="' . rex_escape($href) . '">' . rex_escape($name) . '</a>'
                 : rex_escape($name);
@@ -113,7 +113,7 @@ if (null !== $error) {
             $title = rex_escape((string) $it['title']);
             $teaser = rex_escape((string) $it['teaser']);
             $href = $showLinks ? (string) $it['href'] : '';
-            $img = YformListRenderer::imgTag($it);
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it);
             $titleHtml = '' !== $href
                 ? '<a href="' . rex_escape($href) . '">' . $title . '</a>'
                 : $title;

@@ -128,7 +128,7 @@ $renderIcon = function($icon) {
                 <li>
                     <div class="uk-card uk-card-body <?= $styleClass ?>">
                         <?php if (!empty($item['image'])): ?>
-                            <?php $resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
+                            <?php $resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
                             <img src="<?= rex_media_manager::getUrl('content_card', $item['image']) ?>" 
                                  alt="<?= rex_escape($resolvedImageAlt) ?>" 
                                  class="uk-margin-bottom" loading="lazy">
@@ -163,7 +163,7 @@ $renderIcon = function($icon) {
                         <li>
                             <div class="uk-card uk-card-body <?= $styleClass ?>">
                                 <?php if (!empty($item['image'])): ?>
-                                    <?php $resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
+                                    <?php $resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $item['image'], '', (string) ($item['title'] ?? '')); ?>
                                     <img src="<?= rex_media_manager::getUrl('content_card', $item['image']) ?>" 
                                          alt="<?= rex_escape($resolvedImageAlt) ?>" 
                                          class="uk-margin-bottom" loading="lazy">
@@ -199,7 +199,7 @@ $renderIcon = function($icon) {
                     </a>
                     <div class="uk-accordion-content">
                         <?php if (!empty($item['image'])): ?>
-                            <?php $resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $item['image'], '', (string) $title); ?>
+                            <?php $resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $item['image'], '', (string) $title); ?>
                             <img src="<?= rex_media_manager::getUrl('content_card', $item['image']) ?>" 
                                  alt="<?= rex_escape($resolvedImageAlt) ?>" 
                                  class="uk-margin-bottom" loading="lazy">

@@ -61,7 +61,7 @@ if ($imageShadow) {
 }
 
 $imageUrl = $image ? ($imageRatio ? rex_media_manager::getUrl('card_' . $imageRatio . '_w1200', $image) : rex_url::media($image)) : '';
-$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
+$resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
 
 $btnClass = match ($linkStyle) {
     'uk-button-primary'   => 'btn btn-primary',

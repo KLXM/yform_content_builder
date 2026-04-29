@@ -53,7 +53,7 @@ $gapPx = $gap === 'collapse' ? '0px' : ($gap === 'small' ? '8px' : ($gap === 'la
                     <?php
                     $caption = (string) ($item['caption'] ?? '');
                     $fallback = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Galeriebild ' . ($index + 1);
-                    $imageAlt = YFormContentBuilderMediaAltResolver::resolve($img, $caption, $fallback);
+                    $imageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve($img, $caption, $fallback);
                     ?>
                     <li style="break-inside: avoid; margin:0 0 <?= rex_escape($gapPx) ?> 0;">
                         <figure style="margin:0;">
@@ -72,7 +72,7 @@ $gapPx = $gap === 'collapse' ? '0px' : ($gap === 'small' ? '8px' : ($gap === 'la
                     <?php
                     $caption = (string) ($item['caption'] ?? '');
                     $fallback = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Galeriebild ' . ($index + 1);
-                    $imageAlt = YFormContentBuilderMediaAltResolver::resolve($img, $caption, $fallback);
+                    $imageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve($img, $caption, $fallback);
                     ?>
                     <li>
                         <figure style="margin:0;">

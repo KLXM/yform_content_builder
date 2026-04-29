@@ -32,7 +32,7 @@ if ($linkType === 'external' && $linkUrl) {
 }
 
 $imageUrl = $image ? ($imageRatio ? rex_media_manager::getUrl('card_' . $imageRatio . '_w1200', $image) : rex_url::media($image)) : '';
-$resolvedImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
+$resolvedImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $image, (string) $imageAlt, (string) $heading);
 
 ?>
 <div class="cb-media-text cb-media-text--<?= rex_escape($mediaPosition) ?>">

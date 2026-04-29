@@ -106,12 +106,12 @@ class SmartLinkField extends FieldAbstract
         $widgetHtml = $this->renderTargetWidget($widgetId, $targetFieldName, $value, $allowedTypes);
 
         echo '<div class="cb-smart-link-row panel panel-default" data-row-id="' . rex_escape($rowId) . '">';
-        echo '<div class="panel-body">';
+        echo '<div class="panel-body cb-smart-link-panel-body">';
 
-        echo '<div class="row">';
-        echo '<div class="col-sm-2">';
+        echo '<div class="row cb-smart-link-main-row">';
+        echo '<div class="col-md-2 col-sm-3">';
         echo '<label>Typ</label>';
-        echo '<select class="form-control cb-smart-link-type">';
+        echo '<select class="form-control cb-smart-link-select cb-smart-link-type">';
 
         $allTypes = [
             'auto' => 'Auto',
@@ -134,24 +134,25 @@ class SmartLinkField extends FieldAbstract
         echo '</select>';
         echo '</div>';
 
-        echo '<div class="col-sm-6">';
+        echo '<div class="col-md-6 col-sm-5">';
         echo '<label>Ziel</label>';
         echo $widgetHtml;
+        echo '<div class="cb-smart-link-preview text-muted small">' . $preview . '</div>';
         echo '</div>';
 
-        echo '<div class="col-sm-4">';
+        echo '<div class="col-md-4 col-sm-4">';
         echo '<label>Label (optional)</label>';
-        echo '<input type="text" class="form-control cb-smart-link-label" value="' . rex_escape($label) . '">';
+        echo '<input type="text" class="form-control cb-smart-link-input cb-smart-link-label" value="' . rex_escape($label) . '">';
         echo '</div>';
         echo '</div>';
 
-        echo '<div class="row" style="margin-top:8px;">';
-        echo '<div class="col-sm-8">';
+        echo '<div class="row cb-smart-link-secondary-row">';
+        echo '<div class="col-sm-7">';
 
         if (in_array('yform', $allowedTypes, true) || in_array('auto', $allowedTypes, true)) {
             echo '<div class="cb-smart-link-yform-wrap" style="display:none;">';
             echo '<label>YForm-Eintrag</label>';
-            echo '<select class="form-control cb-smart-link-yform">';
+            echo '<select class="form-control cb-smart-link-select cb-smart-link-yform">';
             echo '<option value="">-- auswählen --</option>';
             foreach ($yformChoices as $choiceValue => $choiceLabel) {
                 $sel = $value === (string) $choiceValue ? ' selected' : '';
@@ -160,19 +161,21 @@ class SmartLinkField extends FieldAbstract
             echo '</select>';
             echo '</div>';
         }
-
-        echo '<div class="cb-smart-link-preview text-muted small" style="padding-top:8px;">' . $preview . '</div>';
         echo '</div>';
 
-        echo '<div class="col-sm-4 text-right" style="padding-top:22px;">';
-        echo '<label style="margin-right:8px;"><input type="checkbox" class="cb-smart-link-pdfjs" value="1"' . ($pdfjs ? ' checked' : '') . '> PDF.js Lightbox</label> ';
-        echo '<button type="button" class="btn btn-default btn-sm cb-smart-link-detect" title="Typ automatisch erkennen"><i class="fa fa-magic"></i></button> ';
-        echo '<button type="button" class="btn btn-danger btn-sm cb-smart-link-remove" title="Link entfernen"><i class="fa fa-trash"></i></button>';
+        echo '<div class="col-sm-5">';
+        echo '<div class="cb-smart-link-toolbar">';
+        echo '<label class="cb-smart-link-pdfjs-label"><input type="checkbox" class="cb-smart-link-pdfjs" value="1"' . ($pdfjs ? ' checked' : '') . '> PDF.js Lightbox</label>';
+        echo '<div class="btn-group btn-group-sm cb-smart-link-actions" role="group" aria-label="Smart-Link Aktionen">';
+        echo '<button type="button" class="btn btn-default cb-smart-link-btn cb-smart-link-btn-secondary cb-smart-link-detect" title="Typ automatisch erkennen"><i class="fa fa-magic"></i></button>';
+        echo '<button type="button" class="btn btn-danger cb-smart-link-btn cb-smart-link-btn-danger cb-smart-link-remove" title="Link entfernen"><i class="fa fa-trash"></i></button>';
+        echo '</div>';
         echo '</div>';
         echo '</div>';
 
-        echo '</div>';
-        echo '</div>';
+        echo '</div>'; // closes secondary-row
+        echo '</div>'; // closes panel-body
+        echo '</div>'; // closes cb-smart-link-row panel
     }
 
     /**
@@ -190,29 +193,29 @@ class SmartLinkField extends FieldAbstract
 
         $clang = (string) \rex_clang::getCurrentId();
 
-        $html = '<div class="input-group custom-link cb-smart-link-target-wrap" data-link-widget-id="' . rex_escape($widgetId) . '" data-clang="' . rex_escape($clang) . '" data-extern-link-prefix="https://">';
-        $html .= '<input class="form-control cb-smart-link-target-display" type="text" id="REX_LINK_' . rex_escape($widgetId) . '_NAME" value="' . rex_escape($display) . '" readonly="readonly">';
+        $html = '<div class="custom-link cb-smart-link-target-wrap" data-link-widget-id="' . rex_escape($widgetId) . '" data-clang="' . rex_escape($clang) . '" data-extern-link-prefix="https://">';
+        $html .= '<input class="form-control cb-smart-link-input cb-smart-link-target-display" type="text" id="REX_LINK_' . rex_escape($widgetId) . '_NAME" value="' . rex_escape($display) . '" readonly="readonly">';
         $html .= '<input type="hidden" class="cb-smart-link-target" name="' . rex_escape($fieldName) . '" id="REX_LINK_' . rex_escape($widgetId) . '" value="' . rex_escape($value) . '">';
-        $html .= '<span class="input-group-btn">';
+        $html .= '<div class="btn-group btn-group-sm cb-smart-link-target-actions" role="group" aria-label="Smart-Link Zielauswahl">';
 
         if (in_array('intern', $allowedTypes, true) || in_array('auto', $allowedTypes, true)) {
-            $html .= '<a href="#" class="btn btn-popup intern_link" title="' . rex_escape(\rex_i18n::msg('var_link_open')) . '"><i class="rex-icon rex-icon-open-linkmap"></i></a>';
+            $html .= '<a href="#" class="btn btn-popup cb-smart-link-btn cb-smart-link-btn-picker intern_link" title="' . rex_escape(\rex_i18n::msg('var_link_open')) . '"><i class="rex-icon rex-icon-open-linkmap"></i></a>';
         }
         if (in_array('url', $allowedTypes, true) || in_array('auto', $allowedTypes, true)) {
-            $html .= '<a href="#" class="btn btn-popup external_link" title="' . rex_escape(\rex_i18n::msg('var_extern_link')) . '"><i class="rex-icon fa-external-link"></i></a>';
+            $html .= '<a href="#" class="btn btn-popup cb-smart-link-btn cb-smart-link-btn-picker external_link" title="' . rex_escape(\rex_i18n::msg('var_extern_link')) . '"><i class="rex-icon fa-external-link"></i></a>';
         }
         if (in_array('media', $allowedTypes, true) || in_array('auto', $allowedTypes, true)) {
-            $html .= '<a href="#" class="btn btn-popup media_link" title="' . rex_escape(\rex_i18n::msg('var_media_open')) . '"><i class="rex-icon fa-file-o"></i></a>';
+            $html .= '<a href="#" class="btn btn-popup cb-smart-link-btn cb-smart-link-btn-picker media_link" title="' . rex_escape(\rex_i18n::msg('var_media_open')) . '"><i class="rex-icon fa-file-o"></i></a>';
         }
         if (in_array('mail', $allowedTypes, true) || in_array('auto', $allowedTypes, true)) {
-            $html .= '<a href="#" class="btn btn-popup email_link" title="' . rex_escape(\rex_i18n::msg('var_mailto_link')) . '"><i class="rex-icon fa-envelope-o"></i></a>';
+            $html .= '<a href="#" class="btn btn-popup cb-smart-link-btn cb-smart-link-btn-picker email_link" title="' . rex_escape(\rex_i18n::msg('var_mailto_link')) . '"><i class="rex-icon fa-envelope-o"></i></a>';
         }
         if (in_array('tel', $allowedTypes, true) || in_array('auto', $allowedTypes, true)) {
-            $html .= '<a href="#" class="btn btn-popup phone_link" title="' . rex_escape(\rex_i18n::msg('var_phone_link')) . '"><i class="rex-icon fa-phone"></i></a>';
+            $html .= '<a href="#" class="btn btn-popup cb-smart-link-btn cb-smart-link-btn-picker phone_link" title="' . rex_escape(\rex_i18n::msg('var_phone_link')) . '"><i class="rex-icon fa-phone"></i></a>';
         }
 
-        $html .= '<a href="#" class="btn btn-popup delete_link" title="' . rex_escape(\rex_i18n::msg('var_link_delete')) . '"><i class="rex-icon rex-icon-delete-link"></i></a>';
-        $html .= '</span>';
+        $html .= '<a href="#" class="btn btn-popup cb-smart-link-btn cb-smart-link-btn-picker delete_link" title="' . rex_escape(\rex_i18n::msg('var_link_delete')) . '"><i class="rex-icon rex-icon-delete-link"></i></a>';
+        $html .= '</div>';
         $html .= '</div>';
 
         return $html;

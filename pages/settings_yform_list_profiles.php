@@ -34,7 +34,7 @@ if ('' !== $func && !$csrf->isValid()) {
     $func = '';
 }
 
-$profiles = YformListProfiles::getAll();
+$profiles = \KLXM\YFormContentBuilder\ListProfiles::getAll();
 
 if ('save' === $func) {
     $rawId = trim((string) rex_post('profile_id', 'string', ''));
@@ -68,8 +68,8 @@ if ('save' === $func) {
             unset($profiles[$origId]);
         }
         $profiles[$rawId] = $newProfile;
-        YformListProfiles::save($profiles);
-        $profiles = YformListProfiles::getAll();
+        \KLXM\YFormContentBuilder\ListProfiles::save($profiles);
+        $profiles = \KLXM\YFormContentBuilder\ListProfiles::getAll();
         $message = rex_view::success('Profil "' . rex_escape($rawId) . '" gespeichert.');
         // Im Edit-Modus bleiben, damit Spalten-Selects nach erstem Save erscheinen
         $_GET['edit'] = $rawId;
@@ -80,7 +80,7 @@ if ('delete' === $func) {
     $delId = (string) rex_request('profile_id', 'string', '');
     if ('' !== $delId && isset($profiles[$delId])) {
         unset($profiles[$delId]);
-        YformListProfiles::save($profiles);
+        \KLXM\YFormContentBuilder\ListProfiles::save($profiles);
         $message = rex_view::success('Profil "' . rex_escape($delId) . '" gelöscht.');
     }
 }
@@ -167,7 +167,7 @@ if (null === $editing) {
 }
 
 $columns = '' !== (string) $editing['table']
-    ? YformListProfiles::collectColumns((string) $editing['table'])
+    ? \KLXM\YFormContentBuilder\ListProfiles::collectColumns((string) $editing['table'])
     : [];
 
 $selectField = static function (string $name, string $current, array $columns, bool $allowEmpty = true): string {
@@ -313,7 +313,7 @@ $fields[] = [
 ];
 
 // Virtual URLs (separates Addon) – einfache Checkbox
-if (YformListProfiles::hasVirtualUrls()) {
+if (\KLXM\YFormContentBuilder\ListProfiles::hasVirtualUrls()) {
     $checked = !empty($editing['use_virtual_urls']) ? ' checked' : '';
     $fields[] = [
         'label' => '<label>Virtual URLs</label>',
@@ -331,8 +331,8 @@ if (YformListProfiles::hasVirtualUrls()) {
 }
 
 // URL-Profil (Url-Addon) – optional
-if (YformListProfiles::hasUrlAddon()) {
-    $urlProfiles = YformListProfiles::collectUrlProfiles((string) $editing['table']);
+if (\KLXM\YFormContentBuilder\ListProfiles::hasUrlAddon()) {
+    $urlProfiles = \KLXM\YFormContentBuilder\ListProfiles::collectUrlProfiles((string) $editing['table']);
     $currentUrlProfile = (string) $editing['url_profile'];
     $upHtml = '<select class="form-control" id="yfl-url-profile" name="url_profile"'
         . ' data-current-value="' . rex_escape($currentUrlProfile) . '">';

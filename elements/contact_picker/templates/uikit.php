@@ -8,7 +8,7 @@
  * @var array<string,mixed> $elementData
  */
 
-if (!class_exists('YformListRenderer')) {
+if (!class_exists(\KLXM\YFormContentBuilder\ListRenderer::class)) {
     return;
 }
 
@@ -35,7 +35,7 @@ if ([] === $picks) {
 
 // Element-Layout durchreichen
 $elementData['layout'] = (string) ($elementData['layout'] ?? 'contact_compact');
-$result = YformListRenderer::fetchPicked($picks, $elementData);
+$result = \KLXM\YFormContentBuilder\ListRenderer::fetchPicked($picks, $elementData);
 
 $headline = (string) ($elementData['headline'] ?? '');
 $description = (string) ($elementData['description'] ?? '');
@@ -92,7 +92,7 @@ if (null !== $error) {
             $mobile = trim((string) ($contact['mobile'] ?? ''));
             $email = trim((string) ($contact['email'] ?? ''));
             $name = trim($first . ' ' . $last);
-            $img = YformListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
             $tel = static fn(string $v): string => preg_replace('/[^+\d]/', '', $v) ?? '';
             $hrefMain = $showLinks ? (string) $it['href'] : '';
             $nameHtml = '' !== $hrefMain
@@ -151,7 +151,7 @@ if (null !== $error) {
             $mobile = trim((string) ($contact['mobile'] ?? ''));
             $email = trim((string) ($contact['email'] ?? ''));
             $name = trim($first . ' ' . $last);
-            $img = YformListRenderer::imgTag($it, 'rex-yfl-contact-avatar uk-border-circle');
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'rex-yfl-contact-avatar uk-border-circle');
             $tel = static fn(string $v): string => preg_replace('/[^+\d]/', '', $v) ?? '';
 
             echo '<div>';
@@ -207,7 +207,7 @@ if (null !== $error) {
                 $name = (string) $it['title'];
             }
             $href = $showLinks ? (string) $it['href'] : '';
-            $img = YformListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
+            $img = \KLXM\YFormContentBuilder\ListRenderer::imgTag($it, 'uk-border-circle uk-preserve-width');
             $nameHtml = '' !== $href
                 ? '<a href="' . rex_escape($href) . '" class="uk-link-reset">' . rex_escape($name) . '</a>'
                 : rex_escape($name);

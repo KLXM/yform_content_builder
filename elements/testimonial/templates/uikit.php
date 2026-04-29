@@ -78,7 +78,7 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
             $avatarAlt = '';
             if ($authorImage) {
                 $avatarUrl = rex_media_manager::getUrl('card_1_1_w400', $authorImage);
-                $avatarAlt = YFormContentBuilderMediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
+                $avatarAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
             }
             ?>
             <div class="<?= $itemWidthClass ?>">

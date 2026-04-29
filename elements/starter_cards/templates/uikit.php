@@ -38,7 +38,7 @@ $gapClass = $gap === 'collapse' ? '' : 'uk-grid-' . $gap;
                     $itemLinkText = 'Mehr erfahren';
                 }
                 $fallback = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Karte ' . ($index + 1);
-                $itemImageAlt = YFormContentBuilderMediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
+                $itemImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
                 ?>
                 <div>
                     <article class="uk-card uk-card-default uk-card-small uk-card-body" style="height:100%;">
