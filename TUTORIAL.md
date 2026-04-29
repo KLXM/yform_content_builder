@@ -76,6 +76,68 @@ return [
 
 ---
 
+## Schritt 2.1: Mehrsprachigkeit (i18n)
+
+Wenn dein Element mehrsprachig sein soll, lege pro Element einen `lang`-Ordner an:
+
+```text
+redaxo/src/addons/project/elements/team_member/lang/de_de.lang
+redaxo/src/addons/project/elements/team_member/lang/en_gb.lang
+```
+
+Beispielinhalt:
+
+```ini
+# de_de.lang
+team_member_label = Team Mitglied
+team_member_field_name = Name des Mitarbeiters
+team_member_field_job = Jobtitel
+team_member_field_photo = Profilfoto
+```
+
+```ini
+# en_gb.lang
+team_member_label = Team Member
+team_member_field_name = Employee name
+team_member_field_job = Job title
+team_member_field_photo = Profile photo
+```
+
+In `config.php` nutzt du dann statt fixer Texte Uebersetzungskeys.
+
+```php
+<?php
+use KLXM\YFormContentBuilder\Helper;
+
+$_ci = Helper::elementTranslator('team_member');
+
+return [
+    'label' => $_ci('label', 'Team Mitglied'),
+    'icon' => 'fa-user',
+    'fields' => [
+        'name' => ['type' => 'text', 'label' => $_ci('field_name', 'Name des Mitarbeiters')],
+        'job' => ['type' => 'text', 'label' => $_ci('field_job', 'Jobtitel')],
+        'photo' => ['type' => 'be_media', 'label' => $_ci('field_photo', 'Profilfoto')],
+    ],
+];
+```
+
+Der `lang`-Ordner wird beim Laden des Elements automatisch eingebunden.
+
+Wenn du direkt in bestehende Elemente schauen willst, nutze diese Referenzen im Addon:
+
+1. `redaxo/src/addons/yform_content_builder/elements/cards/config.php`
+2. `redaxo/src/addons/yform_content_builder/elements/cards/lang/de_de.lang`
+3. `redaxo/src/addons/yform_content_builder/elements/cards/lang/en_gb.lang`
+4. `redaxo/src/addons/yform_content_builder/elements/smart_link_showcase/config.php`
+5. `redaxo/src/addons/yform_content_builder/elements/smart_link_showcase/lang/de_de.lang`
+6. `redaxo/src/addons/yform_content_builder/elements/smart_link_showcase/lang/en_gb.lang`
+7. `redaxo/src/addons/yform_content_builder/elements/smart_links_multi_showcase/config.php`
+8. `redaxo/src/addons/yform_content_builder/elements/smart_links_multi_showcase/lang/de_de.lang`
+9. `redaxo/src/addons/yform_content_builder/elements/smart_links_multi_showcase/lang/en_gb.lang`
+
+---
+
 ## Schritt 3: Die Ausgabe (`templates/bootstrap.php`)
 
 Jetzt bestimmen wir, wie das Element aussieht (HTML).
