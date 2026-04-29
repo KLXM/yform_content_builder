@@ -9,7 +9,7 @@ Diese Einstellungen findest du ueber den Button **Allgemeine Block-Einstellungen
 ### Grid
 
 - **Spalten (Desktop / Tablet / Mobile)**: Steuert, wie viele Karten pro Zeile angezeigt werden.
-- **Abstand zwischen Cards**: `small`, `medium`, `large` oder `collapse`.
+- **Abstand zwischen Cards**: `collapse` (kein Abstand), `column-collapse` (kein Abstand links/rechts), `small`, `medium`, `large`.
 - **Gleiche Hoehe fuer alle Cards**: Sinnvoll bei unterschiedlich langen Texten.
 
 ### Karten-Stil
@@ -40,7 +40,8 @@ Im Repeater **Cards** legst du einzelne Karten an.
 ### Direkt sichtbare Felder pro Card
 
 - **Layout**: `media-top`, `media-bottom`, `media-left`, `media-right`, `media-overlay`.
-- **Farbe**: Optionaler Override gegenueber globaler Karten-Farbe.
+- **Karten-Farbe**: Optionaler Override gegenueber der globalen **Karten-Farbe**.
+- **Hinweis bei leerem Wert**: *Geerbt (Globale Einstellung)*.
 - **Animation**: Card-spezifische Animation.
 - **Bild oder Video**: Medium aus dem Medienpool.
 - **Titel / Untertitel / Text**: Hauptinhalt der Karte.
@@ -68,22 +69,34 @@ Hier steuerst du card-spezifische Layoutdetails:
 - **Vertikale Ausrichtung** bei horizontalen Layouts
 - **Schatten (ueberschreiben)**
 
+Wichtig: Das Modal wird im Repeater direkt nach dem Feld **Layout** angeboten.
+
 ## 5. Modal: Verlinkung
 
 Fuer jede Card kannst du einen Link konfigurieren:
 
 - **Link-Typ**: Kein Link, Externe URL oder Interne Seite
+- **Externe URL** oder **Interne Seite** (je nach Link-Typ)
 - **Link-Text**
 - **Button-Stil**
 - **Button-Ausrichtung**
 - **Gesamte Card verlinken**
+
+Wichtig: Das Modal wird im Repeater direkt nach dem Feld **Karten-Farbe** angeboten.
+
+## 6. Optionales Modal: Extras
+
+Wenn in deiner Installation Zusatzfelder ueber `CardsRepeaterExtra` bereitgestellt werden, erscheint zusaetzlich ein Modal **Extras** pro Karte.
+
+- Dieses Modal ist optional und nur sichtbar, wenn Extra-Felder konfiguriert sind.
+- Typische Inhalte sind projektspezifische Zusatzoptionen.
 
 Empfehlung:
 
 - Bei teaserartigen Karten ist **Gesamte Card verlinken** oft die beste UX.
 - Fuer redaktionelle Flexibilitaet kann stattdessen ein klassischer Button genutzt werden.
 
-## 6. Praktische Empfehlungen
+## 7. Praktische Empfehlungen
 
 - Nutze fuer ruhige Layouts einheitliche Medienformate und aktiviere **Gleiche Hoehe fuer alle Cards**.
 - Bei vielen Cards lieber kleine bis mittlere Abstaende waehlen.
