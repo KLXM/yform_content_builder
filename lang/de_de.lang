@@ -47,3 +47,27 @@ yform_content_builder_framework_plain = Plain HTML
 
 yform_content_builder_repeater_add = Hinzufügen
 yform_content_builder_repeater_remove = Entfernen
+
+yform_content_builder_smart_link_add_link = Link hinzufügen
+yform_content_builder_smart_link_type_label = Typ
+yform_content_builder_smart_link_type_auto = Auto
+yform_content_builder_smart_link_type_url = URL
+yform_content_builder_smart_link_type_intern = Intern
+yform_content_builder_smart_link_type_media = Media
+yform_content_builder_smart_link_type_tel = Telefon
+yform_content_builder_smart_link_type_mail = E-Mail
+yform_content_builder_smart_link_target_label = Ziel
+yform_content_builder_smart_link_custom_label = Label (optional)
+yform_content_builder_smart_link_yform_dataset_label = YForm-Datensatz:
+yform_content_builder_smart_link_yform_unconfigured = Kein Typ konfiguriert. Demo-Modus - konfigurieren Sie yform_table und yform_field im Element.
+yform_content_builder_smart_link_yform_missing_prefix = Tabelle
+yform_content_builder_smart_link_yform_missing_suffix = nicht gefunden. Bitte yform_table im Element konfigurieren oder die Tabelle in YForm anlegen.
+yform_content_builder_smart_link_yform_error_prefix = Fehler beim Laden der Tabelle
+yform_content_builder_smart_link_yform_addon_missing = YForm-Addon nicht verfügbar.
+yform_content_builder_smart_link_yform_entry_label = YForm-Eintrag
+yform_content_builder_smart_link_yform_select = -- auswählen --
+yform_content_builder_smart_link_pdfjs_label = PDF.js Lightbox
+yform_content_builder_smart_link_actions_aria = Smart-Link Aktionen
+yform_content_builder_smart_link_detect_title = Typ automatisch erkennen
+yform_content_builder_smart_link_remove_title = Link entfernen
+yform_content_builder_smart_link_target_actions_aria = Smart-Link Zielauswahl
