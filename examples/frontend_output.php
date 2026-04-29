@@ -1,50 +1,52 @@
 <?php
+
+use KLXM\YFormContentBuilder\Helper;
+
 /**
  * Beispiel: Frontend-Ausgabe von Content Builder Slices
- * 
- * Verwendung im Template oder Modul:
- * <?php include rex_addon::get('yform_content_builder')->getPath('examples/frontend_output.php'); ?>
+ *
+ * 1) Ein Datensatz (YORM + where):
+ *
+ * $dataset = \Project\Model\ContentPage::query()
+ *     ->where('status', 1)
+ *     ->where('clang_id', rex_clang::getCurrentId())
+ *     ->where('slug', 'startseite')
+ *     ->findOne();
+ *
+ * if ($dataset !== null) {
+ *     echo Helper::outputDataset($dataset, 'content_builder', 'bootstrap');
+ * }
+ *
+ * 2) Mehrere Datensaetze (YORM + where + limit):
+ *
+ * $items = \Project\Model\ContentPage::query()
+ *     ->where('status', 1)
+ *     ->where('category_id', 5)
+ *     ->orderBy('prio', 'asc')
+ *     ->limit(10)
+ *     ->find();
+ *
+ * foreach ($items as $item) {
+ *     echo Helper::outputDataset($item, 'content_builder', 'bootstrap');
+ * }
+ *
+ * 3) Einzeiler ueber Tabelle + ID:
+ *
+ * echo Helper::outputDatasetById('rex_content_pages', 42, 'content_builder', 'bootstrap');
+ *
+ * 4) Einzeiler wenn Datensatz bereits vorhanden ist:
+ *
+ * echo Helper::outputDataset($dataset, 'content_builder', 'bootstrap');
  */
 
-// Dataset holen (z.B. aus YOrm)
-// $dataset = \MyNamespace\MyModel::get($id);
-// $content = $dataset->getValue('content_builder');
-
-// Oder direkt aus YForm Table Manager
-$content = $this->getValue('content_builder'); // Im YForm-Context
-
-// JSON dekodieren
-$slices = json_decode($content, true);
-
-if (!is_array($slices) || empty($slices)) {
-    return;
-}
-
-// Framework-Einstellung (aus Config oder hardcoded)
 $framework = 'bootstrap'; // oder 'uikit', 'plain'
 
-foreach ($slices as $slice) {
-    // Offline geschaltete Abschnitte überspringen
-    if (is_array($slice) && array_key_exists('online', $slice) && $slice['online'] === false) {
-        continue;
-    }
-    $sliceType = $slice['type'];
-    $elementData = $slice['data'] ?? [];
-    
-    // Template-Pfad
-    $addon = rex_addon::get('yform_content_builder');
-    $elementPath = $addon->getPath('elements/' . $sliceType);
-    $templateFile = $elementPath . '/templates/' . $framework . '.php';
-    
-    // Fallback auf plain.php
-    if (!file_exists($templateFile)) {
-        $templateFile = $elementPath . '/templates/plain.php';
-    }
-    
-    // Template ausgeben
-    if (file_exists($templateFile)) {
-        include $templateFile;
-    } else {
-        echo '<!-- Element template not found: ' . rex_escape($sliceType) . ' -->';
-    }
+// Optional: Wenn im Scope bereits ein YORM-Datensatz vorhanden ist.
+if (isset($dataset) && is_object($dataset) && method_exists($dataset, 'getValue')) {
+	echo Helper::outputDataset($dataset, 'content_builder', $framework);
+}
+
+// Optional: Im YForm-Context (z.B. value Callback).
+if (isset($this) && is_object($this) && method_exists($this, 'getValue')) {
+	echo Helper::outputRaw($this->getValue('content_builder'), $framework);
 }

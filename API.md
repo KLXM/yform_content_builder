@@ -6,6 +6,7 @@ Diese Dokumentation beschreibt die API des YForm Content Builders, wie man eigen
 
 - [API-Endpunkte](#api-endpunkte)
 - [Modul-Integration](#modul-integration)
+- [Frontend-Output API](#frontend-output-api)
 - [Frameworks & Templates](#frameworks--templates)
 - [Feldtypen-System](#feldtypen-system)
 - [Feld-Konfiguration](#feld-konfiguration)
@@ -179,7 +180,7 @@ Du kannst für das Backend (Preview) und das Frontend unterschiedliche Framework
    - Default: `bootstrap` (passt zum REDAXO-Backend)
    - Empfehlung: Lass dies auf `bootstrap`, damit die Vorschau sauber aussieht – auch wenn du im Frontend Tailwind nutzt.
 
-2. **Frontend Output** – wird beim Aufruf von `Helper::render($data, 'framework')` festgelegt.
+2. **Frontend Output** – wird beim Aufruf von `Helper::outputDataset(...)`, `Helper::outputDatasetById(...)` oder `Helper::outputRaw(...)` festgelegt.
    - Volle Freiheit: `bootstrap`, `uikit`, `tailwind`, `plain`, etc.
 
 ### Template-Struktur
@@ -191,9 +192,9 @@ elements/
 └── hero/
     ├── config.php
     └── templates/
-        ├── bootstrap.php   ← bei render($data, 'bootstrap')
-        ├── uikit.php       ← bei render($data, 'uikit')
-        ├── tailwind.php    ← bei render($data, 'tailwind')
+        ├── bootstrap.php   ← bei output* Methode mit Framework `bootstrap`
+        ├── uikit.php       ← bei output* Methode mit Framework `uikit`
+        ├── tailwind.php    ← bei output* Methode mit Framework `tailwind`
         └── plain.php       ← Fallback
 ```
 
@@ -205,6 +206,53 @@ Eigene Frameworks ergänzt du einfach durch eine neue Template-Datei:
 
 ```text
 project/elements/mein_element/templates/tailwind.php
+```
+
+---
+
+## Frontend-Output API
+
+Die empfohlene Frontend-Ausgabe fuer YForm-Datensaetze laeuft ueber `KLXM\YFormContentBuilder\Helper`.
+
+### Methoden
+
+| Methode | Beschreibung |
+|--------|--------------|
+| `Helper::outputDataset($dataset, $fieldName, $framework)` | Rendert aus einem vorhandenen YORM/YForm-Datensatz |
+| `Helper::outputDatasetById($tableName, $id, $fieldName, $framework)` | Rendert direkt ueber Tabelle + Datensatz-ID |
+| `Helper::outputRaw($rawContent, $framework)` | Rendert direkt aus dem gespeicherten JSON-String |
+
+### Beispiele
+
+```php
+<?php
+use KLXM\YFormContentBuilder\Helper;
+
+// Einzeiler mit vorhandenem Datensatz
+echo Helper::outputDataset($dataset, 'content_builder', 'bootstrap');
+
+// Einzeiler ueber Tabelle + ID
+echo Helper::outputDatasetById('rex_pages', 42, 'content_builder', 'uikit');
+
+// Direkt aus einem JSON-Feld
+echo Helper::outputRaw($dataset->getValue('content_builder'), 'plain');
+```
+
+YORM mit `where`-Bedingungen:
+
+```php
+<?php
+use KLXM\YFormContentBuilder\Helper;
+
+$item = \Project\Model\ContentPage::query()
+    ->where('status', 1)
+    ->where('clang_id', rex_clang::getCurrentId())
+    ->where('slug', 'startseite')
+    ->findOne();
+
+if ($item !== null) {
+    echo Helper::outputDataset($item, 'content_builder', 'bootstrap');
+}
 ```
 
 ---
@@ -1160,18 +1208,17 @@ $config = Helper::getElementConfig('text_image');
 ```php
 use KLXM\YFormContentBuilder\Helper;
 
-// Aus YForm-Daten
+// Aus vorhandenem YForm/YORM-Datensatz
 $page = rex_yform_manager_dataset::get(1, 'rex_pages');
-$content = $page->getValue('content');
+if ($page !== null) {
+    echo Helper::outputDataset($page, 'content_builder', 'bootstrap');
+}
 
-// Mit Bootstrap-Templates rendern
-echo Helper::render($content, 'bootstrap');
+// Direkt ueber Tabelle + Datensatz-ID
+echo Helper::outputDatasetById('rex_pages', 1, 'content_builder', 'uikit');
 
-// Mit UIkit-Templates rendern
-echo Helper::render($content, 'uikit');
-
-// Mit Plain HTML rendern
-echo Helper::render($content, 'plain');
+// Direkt aus Rohdaten
+echo Helper::outputRaw((string) $page?->getValue('content_builder'), 'plain');
 ```
 
 > **Hinweis zur Abwärtskompatibilität:** Die alten Klassennamen `yform_content_builder_helper`, `ContentBuilderFieldRegistry`, `ContentBuilderFieldAbstract` und `ContentBuilderFieldInterface` stehen weiterhin über PHP `class_alias()` zur Verfügung. Neuer Code sollte immer die kanonischen Klassennamen mit `use KLXM\YFormContentBuilder\...` verwenden.

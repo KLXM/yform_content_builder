@@ -159,11 +159,22 @@ Du kannst das Element auch in einer YForm-Tabelle (z.B. für News oder Produkte)
 <?php
 use KLXM\YFormContentBuilder\Helper;
 
-// Angenommen, wir sind auf einer Detailseite und haben den Datensatz
-$data = $dataset->getValue('mein_content_feld');
+// A) Datensatz ist bereits vorhanden
+echo Helper::outputDataset($dataset, 'mein_content_feld', 'bootstrap');
 
-// Alles rendern
-echo Helper::render($data, 'bootstrap');
+// B) Direkt ueber Tabelle + ID
+echo Helper::outputDatasetById('rex_news', 42, 'mein_content_feld', 'bootstrap');
+
+// C) YORM-Abfrage mit where-Bedingungen
+$news = \Project\Model\News::query()
+    ->where('status', 1)
+    ->where('clang_id', rex_clang::getCurrentId())
+    ->where('slug', 'mein-artikel')
+    ->findOne();
+
+if ($news !== null) {
+    echo Helper::outputDataset($news, 'mein_content_feld', 'bootstrap');
+}
 ?>
 ```
 

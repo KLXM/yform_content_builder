@@ -4,6 +4,7 @@ namespace KLXM\YFormContentBuilder;
 
 use rex_addon;
 use rex_escape;
+use Throwable;
 
 /**
  * YForm Content Builder Helper
@@ -11,7 +12,7 @@ use rex_escape;
  */
 class Helper
 {
-    /** Daten der aktuell offenen Section (für Grid-Close) */
+    /** @var array<string, mixed> Daten der aktuell offenen Section (für Grid-Close) */
     protected static array $activeSectionData = [];
 
     /**
@@ -105,8 +106,8 @@ class Helper
     /**
      * Schließt eine offene Section
      *
-     * @param string $framework Framework
-     * @param array  $elementData Daten der zu schließenden Section (für Grid-Wrapper)
+    * @param string $framework Framework
+    * @param array<string, mixed> $elementData Daten der zu schließenden Section (für Grid-Wrapper)
      * @return string HTML-Ausgabe
      */
     protected static function renderSectionClose(string $framework, array $elementData = []): string
@@ -127,13 +128,15 @@ class Helper
         
         ob_start();
         include $templateFile;
-        return ob_get_clean();
+        $output = ob_get_clean();
+
+        return is_string($output) ? $output : '';
     }
 
     /**
      * Rendert ein einzelnes Slice
      *
-     * @param array $slice Slice-Daten
+    * @param array<string, mixed> $slice Slice-Daten
      * @param string $framework Framework
      * @param string|null $closeType Optional: 'open' oder 'close' für Section-Elemente
      * @return string HTML-Ausgabe
@@ -163,7 +166,60 @@ class Helper
         ob_start();
         include $templateFile;
         $output = ob_get_clean();
-        return $output;
+
+        return is_string($output) ? $output : '';
+    }
+
+    /**
+     * Rendert direkt aus dem rohen JSON-String.
+     */
+    public static function outputRaw(string $jsonContent, string $framework = 'bootstrap'): string
+    {
+        return self::render($jsonContent, $framework);
+    }
+
+    /**
+     * Rendert direkt aus einem YORM/YForm-Datensatz.
+     */
+    public static function outputDataset(object $dataset, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
+    {
+        if (!method_exists($dataset, 'getValue')) {
+            return '';
+        }
+
+        $content = $dataset->getValue($fieldName);
+        if (!is_string($content)) {
+            return '';
+        }
+
+        return self::render($content, $framework);
+    }
+
+    /**
+     * Rendert direkt ueber YForm-Tabelle + Datensatz-ID.
+     */
+    public static function outputDatasetById(string $tableName, int $id, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
+    {
+        $tableName = trim($tableName);
+        if ($tableName === '' || $id < 1) {
+            return '';
+        }
+
+        if (!class_exists('rex_yform_manager_dataset')) {
+            return '';
+        }
+
+        try {
+            $dataset = \rex_yform_manager_dataset::get($id, $tableName);
+        } catch (Throwable) {
+            return '';
+        }
+
+        if (!is_object($dataset)) {
+            return '';
+        }
+
+        return self::outputDataset($dataset, $fieldName, $framework);
     }
 
     /**
@@ -177,14 +233,11 @@ class Helper
     public static function output(mixed $dataset, string $fieldName = 'content_builder', string $framework = 'bootstrap'): string
     {
         if (is_string($dataset)) {
-            // Direkter JSON-String
-            return self::render($dataset, $framework);
+            return self::outputRaw($dataset, $framework);
         }
         
         if (is_object($dataset) && method_exists($dataset, 'getValue')) {
-            // YOrm Dataset
-            $content = $dataset->getValue($fieldName);
-            return self::render($content, $framework);
+            return self::outputDataset($dataset, $fieldName, $framework);
         }
         
         return '';
@@ -194,7 +247,7 @@ class Helper
      * Extrahiert alle Bilder aus dem Content für z.B. OG-Tags
      *
      * @param string $jsonContent JSON-String mit Slices
-     * @return array Array mit Bild-Dateinamen
+    * @return array<int, string> Array mit Bild-Dateinamen
      */
     public static function extractImages(string $jsonContent): array
     {

@@ -96,8 +96,14 @@ echo Module::createByValueId('cards', 1, 'uikit')->renderOutput();
 <?php
 use KLXM\YFormContentBuilder\Helper;
 
-$data = $dataset->getValue('content');
-echo Helper::render($data, 'uikit');
+// 1) Datensatz bereits vorhanden
+echo Helper::outputDataset($dataset, 'content_builder', 'uikit');
+
+// 2) Direkt ueber Tabelle + ID
+echo Helper::outputDatasetById('rex_pages', 42, 'content_builder', 'uikit');
+
+// 3) Direkt mit Rohwert
+echo Helper::outputRaw($dataset->getValue('content_builder'), 'uikit');
 ```
 
 > Vollständige API-Referenz, alle Feldtypen, Extension Points und Beispiele für eigene Elemente: **[API.md](API.md)**
