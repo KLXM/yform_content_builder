@@ -18,6 +18,85 @@ Das bisherige Table-Element wurde durch den neuen `table_editor`-basierten Tabel
 
 Elemente können jetzt übersetzt werden und auch mehrsprachige Hilfen verlinkt werden
 
+### Neuer Feldtyp: `smart_link`
+
+Ein kombiniertes Link-Feld, das alle gebräuchlichen Link-Typen in einem einzigen Widget vereint:
+
+- **7 Link-Typen**: `auto` (automatische Erkennung), `url` (externe URL), `intern` (REDAXO Linkmap), `media` (Mediendatei), `tel` (Telefon), `mail` (E-Mail), `yform` (Datensatz aus YForm-Tabelle)
+- **Single- und Multiple-Modus**: Ein einzelner Link oder eine geordnete Liste (Repeater-artig) über den Parameter `multiple: true`
+- **Label-Feld**: Optionaler Linktext für jeden Eintrag
+- **Typen-Filter**: Über den Parameter `types` lassen sich erlaubte Link-Typen einschränken (z. B. nur `intern` und `url`)
+- **Icon-Fallback**: Bei Medien-Links wird automatisch ein passendes Icon eingeblendet, wenn keine Vorschau möglich ist
+- **Neue Klassen**: `KLXM\YFormContentBuilder\SmartLink` (Normalisierung / Href-Generierung) und `KLXM\YFormContentBuilder\SmartLinkView` (Ausgabe-Helper)
+- **Zwei neue Demo-Elemente**: `smart_link_showcase` (Linkliste, Single-Modus) und `smart_links_multi_showcase` (Multiple-Modus) in der Kategorie `demo`
+
+```php
+// Einzelner Link
+'cta_link' => [
+    'type' => 'smart_link',
+    'label' => 'CTA-Link',
+    'types' => ['intern', 'url'],
+]
+
+// Liste von Links
+'nav_links' => [
+    'type' => 'smart_link',
+    'label' => 'Navigation Links',
+    'multiple' => true,
+]
+```
+
+### Neuer Feldtyp: `rich_headline`
+
+Kombiniertes Eingabefeld für semantisch vollständige Überschriften – alles in einer Zeile:
+
+- **Felder**: Eyebrow (Überkategorie), Haupttext (required), Highlight (farblich hervorgehobener Teil), Subline und HTML-Tag (h1–h6)
+- **Kompakte Darstellung**: Alle Teilfelder nebeneinander in einer Formularzeile
+- **JSON-Speicherung**: Werte werden als verschachteltes Array im Feld gespeichert
+- **`starter_headline`** aktualisiert (v1.15.0): nutzt jetzt `rich_headline` statt separater Felder
+
+```php
+'headline' => [
+    'type' => 'rich_headline',
+    'label' => 'Überschrift',
+    'notice' => 'Eyebrow, Highlight, Subline und Tag werden zusammen gepflegt.',
+]
+```
+
+### Neuer Feldtyp: `info`
+
+Statisches Info-Feld ohne Datenspeicherung – ideal für Hinweise und Anleitungen im Backend-Formular:
+
+- **4 Stile**: `info` (blau), `warning` (gelb), `success` (grün), `danger` (rot)
+- Kein Eingabefeld – nur visuelle Information für Redakteure
+- Unterstützt Permission-System (`perm`)
+
+```php
+'hint' => [
+    'type' => 'info',
+    'label' => 'Hinweis',
+    'text' => 'Bitte mindestens ein Bild hochladen.',
+    'style' => 'warning',
+]
+```
+
+### Neuer Feldtyp: `table_editor`
+
+Dedizierter Tabelleneditor für barrierefreie, responsive Tabellen:
+
+- Zeilen- und Spaltenverwaltung direkt im Backend
+- Kopfzeile und Kopfspalte per Nutzer konfigurierbar (`header_row_policy`, `header_col_policy`)
+- Tabellen-Caption für Accessibility
+- Optionaler Textarea-Modus pro Zelle
+- Min/Max-Grenzen für Zeilen und Spalten konfigurierbar
+- Wird vom überarbeiteten `table`-Element genutzt (UIkit-Templates mit Stil, Größe, Hover, Responsivität)
+
+### Dokumentation
+
+- **API.md und TUTORIAL.md** als eigene Backend-Seiten eingebunden: `package.yml` erhält zwei neue Subpages (`api`, `tutorial`) mit eigenen Seiten-Dateien `pages/api.php` und `pages/tutorial.php`
+- **README.md** grundlegend überarbeitet: kompakte Übersichtsseite mit Feature-Liste, vollständiger Elementtabelle und Quick-Start-Snippets
+- **Kommerzielle Lizenz**: README enthält jetzt eine explizite proprietäre Lizenz für KLXM Crossmedia und autorisierte Partner/Kunden
+
 ### Komplette Namespace-Umstrukturierung (Breaking Change)
 
 Alle Klassen des Addons wurden in den PSR-4-Namespace `KLXM\YFormContentBuilder` verschoben. Die Klassen sind jetzt in `lib/` und `lib/Api/` sowie `lib/fields/` organisiert und werden vollständig vom REDAXO-Autoloader geladen.
