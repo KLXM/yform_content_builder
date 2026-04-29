@@ -195,7 +195,10 @@ class ContentBuilderApi extends rex_api_function
     }
 
     /**
-     * Rendert Tabs für das Formular
+     * Rendert Tabs für das Formular.
+     *
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $sliceData
      */
     protected function renderFormWithTabs(array $config, array $sliceData): void
     {
@@ -248,7 +251,10 @@ class ContentBuilderApi extends rex_api_function
     }
 
     /**
-     * Rendert den Settings-Modal Button
+     * Rendert den Settings-Modal Button.
+     *
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $sliceData
      */
     protected function renderSettingsModalButton(array $config, array $sliceData, bool $toolbarButton = false): void
     {
@@ -326,7 +332,9 @@ class ContentBuilderApi extends rex_api_function
     }
 
     /**
-     * Fügt Unterkategorien rekursiv hinzu
+     * Fügt Unterkategorien rekursiv hinzu.
+     *
+     * @param array<int, array{id: int, name: string}> $categories
      */
     protected function addSubcategories(rex_media_category $parent, array &$categories, int $level = 1): void
     {

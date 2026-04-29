@@ -8,7 +8,8 @@
 $addon = rex_addon::get('yform_content_builder');
 
 // Helper: Generiert Modul-Code für ein Element
-function generateModuleCode($elementKey, $framework, $valueId = 1) {
+function generateModuleCode(string $elementKey, string $framework, int $valueId = 1): string
+{
     $config = [];
     $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
     
