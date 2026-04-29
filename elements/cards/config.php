@@ -1,10 +1,17 @@
 <?php
 
+use KLXM\YFormContentBuilder\Helper;
+
 /**
  * Cards Grid Element - Konfiguration
  * Erweitert mit allen Optionen des Content Builder Pro Moduls
  * Unterstützt Integration mit uikit_theme_builder (DomainContext)
  */
+
+// ============================================================================
+// ELEMENT I18N
+// ============================================================================
+$_ci = Helper::elementTranslator('cards');
 
 // ============================================================================
 // EXTRA FELDER - von CardsRepeaterExtra Klasse befüllt
@@ -23,45 +30,45 @@ $hasUikitThemeBuilder = rex_addon::get('uikit_theme_builder')->isAvailable();
 // Theme-Auswahl Optionen (nur wenn Theme Builder verfügbar)
 $themeChoices = [];
 if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
-    $themeChoices = ['' => '-- Automatisch (Domain) --'];
+    $themeChoices = ['' => $_ci('cards_choice_auto_domain', '-- Automatisch (Domain) --')];
     $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
     $themeChoices = array_merge($themeChoices, $availableThemes);
 }
 
 // Standard Card-Style Optionen (stabile uk-card-* Keys)
 $cardStyleChoices = [
-    'uk-card-default' => 'Standard (mit Rahmen)',
+    'uk-card-default' => $_ci('cards_choice_card_default', 'Standard (mit Rahmen)'),
     'uk-card-primary' => 'Primary',
     'uk-card-secondary' => 'Secondary',
-    'uk-background-muted' => 'Muted (Grau)',
-    'uk-card-hover' => 'Hover Effect',
-    'uk-card-transparent' => 'Transparent'
+    'uk-background-muted' => $_ci('cards_choice_muted', 'Muted (Grau)'),
+    'uk-card-hover' => $_ci('cards_choice_hover_effect', 'Hover Effect'),
+    'uk-card-transparent' => $_ci('cards_choice_transparent', 'Transparent'),
 ];
 
 // Card-Style Farben für color_swatches
 $cardStyleColors = [
-    'uk-card-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
+    'uk-card-default' => ['color' => '#ffffff', 'label' => $_ci('cards_choice_default_white', 'Default (Weiß)')],
     'uk-card-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
     'uk-card-secondary' => ['color' => '#222222', 'label' => 'Secondary'],
-    'uk-background-muted' => ['color' => '#f8f8f8', 'label' => 'Muted (Grau)']
+    'uk-background-muted' => ['color' => '#f8f8f8', 'label' => $_ci('cards_choice_muted', 'Muted (Grau)')],
 ];
 
 // Standard Background-Optionen
 $backgroundChoices = [
-    '' => 'Keine',
-    'uk-background-default' => 'Default (Weiß)',
-    'uk-background-muted' => 'Muted (Grau)',
+    '' => $_ci('cards_choice_none', 'Keine'),
+    'uk-background-default' => 'Default (White)',
+    'uk-background-muted' => $_ci('cards_choice_muted', 'Muted (Grau)'),
     'uk-background-primary' => 'Primary',
-    'uk-background-secondary' => 'Secondary'
+    'uk-background-secondary' => 'Secondary',
 ];
 
 // Background Farben für color_swatches
 $backgroundColors = [
-    '' => ['color' => 'transparent', 'label' => 'Keine'],
-    'uk-background-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
-    'uk-background-muted' => ['color' => '#f8f8f8', 'label' => 'Muted (Grau)'],
+    '' => ['color' => 'transparent', 'label' => $_ci('cards_choice_none', 'Keine')],
+    'uk-background-default' => ['color' => '#ffffff', 'label' => $_ci('cards_choice_default_white', 'Default (Weiß)')],
+    'uk-background-muted' => ['color' => '#f8f8f8', 'label' => $_ci('cards_choice_muted', 'Muted (Grau)')],
     'uk-background-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
-    'uk-background-secondary' => ['color' => '#222222', 'label' => 'Secondary']
+    'uk-background-secondary' => ['color' => '#222222', 'label' => 'Secondary'],
 ];
 
 // Dynamische Farben aus Theme laden wenn verfügbar
@@ -93,11 +100,11 @@ if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
 
 // Layout-Optionen für Selectpicker
 $layoutChoices = [
-    'media-top' => 'Medium oben',
-    'media-bottom' => 'Medium unten',
-    'media-left' => 'Medium links',
-    'media-right' => 'Medium rechts',
-    'media-overlay' => 'Overlay'
+    'media-top' => $_ci('cards_choice_media_top', 'Medium oben'),
+    'media-bottom' => $_ci('cards_choice_media_bottom', 'Medium unten'),
+    'media-left' => $_ci('cards_choice_media_left', 'Medium links'),
+    'media-right' => $_ci('cards_choice_media_right', 'Medium rechts'),
+    'media-overlay' => $_ci('cards_choice_media_overlay', 'Overlay'),
 ];
 
 // Layout-Icons für Selectpicker – externe SVG-Dateien aus assets/icons/
@@ -117,12 +124,12 @@ $layoutIcons = [
 
 // Schatten-Icons für Selectpicker (visualisieren die Schattenstärke)
 $shadowChoices = [
-    '' => 'Kein Schatten',
-    'uk-box-shadow-small' => 'Klein',
-    'uk-box-shadow-medium' => 'Mittel',
-    'uk-box-shadow-large' => 'Groß',
-    'uk-box-shadow-xlarge' => 'Extra Groß',
-    'uk-card-hover' => 'Nur bei Hover'
+    '' => $_ci('cards_choice_no_shadow', 'Kein Schatten'),
+    'uk-box-shadow-small' => $_ci('cards_choice_small', 'Klein'),
+    'uk-box-shadow-medium' => $_ci('cards_choice_medium', 'Mittel'),
+    'uk-box-shadow-large' => $_ci('cards_choice_large', 'Groß'),
+    'uk-box-shadow-xlarge' => $_ci('cards_choice_extra_large', 'Extra Groß'),
+    'uk-card-hover' => $_ci('cards_choice_hover_effect', 'Nur bei Hover'),
 ];
 
 $shadowIcons = [
@@ -143,37 +150,38 @@ $vAlignIcons = [
 
 // Card-Width Optionen – gleiche Werte für alle Breakpoints (Suffix wird im Template ergänzt)
 $cardWidthChoicesBase = [
-    ''      => 'Standard (aus Grid)',
-    '1-1'   => 'Vollbreite (100%)',
-    '3-4'   => '3/4 Breite (75%)',
-    '2-3'   => '2/3 Breite (66%)',
-    '1-2'   => '1/2 Breite (50%)',
-    '1-3'   => '1/3 Breite (33%)',
-    '1-4'   => '1/4 Breite (25%)',
+    ''      => $_ci('cards_choice_width_default', 'Standard (aus Grid)'),
+    '1-1'   => $_ci('cards_choice_width_full', 'Vollbreite (100%)'),
+    '3-4'   => $_ci('cards_choice_width_3_4', '3/4 Breite (75%)'),
+    '2-3'   => $_ci('cards_choice_width_2_3', '2/3 Breite (66%)'),
+    '1-2'   => $_ci('cards_choice_width_1_2', '1/2 Breite (50%)'),
+    '1-3'   => $_ci('cards_choice_width_1_3', '1/3 Breite (33%)'),
+    '1-4'   => $_ci('cards_choice_width_1_4', '1/4 Breite (25%)'),
 ];
 
 // Optional: Layouts aus SVG-Klasse laden wenn verfügbar
 if (class_exists(\KLXM\YFormContentBuilder\Svg::class)) {
     $rawLayouts = \KLXM\YFormContentBuilder\Svg::getLayoutOptions();
     if (!empty($rawLayouts)) {
-        $layoutChoices = [];
         foreach ($rawLayouts as $key => $data) {
-            $layoutChoices[$key] = $data['label'] ?? $key;
-            // Icons wurden bereits über $_cbIconImg gesetzt; hier kein Überschreiben nötig
+            // Bereits lokalisierte Standard-Labels nicht überschreiben
+            if (!isset($layoutChoices[$key])) {
+                $layoutChoices[$key] = $data['label'] ?? $key;
+            }
         }
     }
 }
 
 return [
-    'label' => 'Layout-Baukasten',
+    'label' => $_ci('cards_element_label', 'Layout-Baukasten'),
     'icon' => 'fa fa-th-large',
-    'description' => 'Karten-Grid mit flexiblen Layouts und Media-Optionen',
+    'description' => $_ci('cards_element_description', 'Karten-Grid mit flexiblen Layouts und Media-Optionen'),
     'version' => '1.13.0',
     'category' => 'content',
     
     // Settings Modal für Grid/Section-Einstellungen
     'settings_modal' => [
-        'label' => 'Allgemeine Block-Einstellungen',
+        'label' => $_ci('cards_settings_modal_label', 'Allgemeine Block-Einstellungen'),
         'icon' => 'fa-cog',
         'fields' => ['columns', 'columns_tablet', 'columns_mobile', 'gap', 'match_height', 'card_style', 'card_size', 'card_shadow', 'section_bg', 'section_bg_image', 'section_padding', 'container_width', 'animations_enabled', 'animations_scrollspy', 'animations_delay', 'animations_repeat', 'animations_cascading']
     ],
@@ -184,52 +192,52 @@ return [
         // =============================================================================
         'columns' => [
             'type' => 'choice',
-            'label' => 'Spalten (Desktop)',
+            'label' => $_ci('cards_field_columns', 'Spalten (Desktop)'),
             'choices' => [
-                '1' => '1 Spalte (100%)',
-                '2' => '2 Spalten',
-                '3' => '3 Spalten',
-                '4' => '4 Spalten',
-                '5' => '5 Spalten',
-                '6' => '6 Spalten'
+                '1' => $_ci('cards_choice_1_col_full', '1 Spalte (100%)'),
+                '2' => $_ci('cards_choice_2_cols', '2 Spalten'),
+                '3' => $_ci('cards_choice_3_cols', '3 Spalten'),
+                '4' => $_ci('cards_choice_4_cols', '4 Spalten'),
+                '5' => $_ci('cards_choice_5_cols', '5 Spalten'),
+                '6' => $_ci('cards_choice_6_cols', '6 Spalten')
             ],
             'default' => '3'
         ],
         'columns_tablet' => [
             'type' => 'choice',
-            'label' => 'Spalten (Tablet)',
+            'label' => $_ci('cards_field_columns_tablet', 'Spalten (Tablet)'),
             'choices' => [
-                '1' => '1 Spalte',
-                '2' => '2 Spalten',
-                '3' => '3 Spalten',
-                '4' => '4 Spalten'
+                '1' => $_ci('cards_choice_1_col', '1 Spalte'),
+                '2' => $_ci('cards_choice_2_cols', '2 Spalten'),
+                '3' => $_ci('cards_choice_3_cols', '3 Spalten'),
+                '4' => $_ci('cards_choice_4_cols', '4 Spalten')
             ],
             'default' => '2'
         ],
         'columns_mobile' => [
             'type' => 'choice',
-            'label' => 'Spalten (Mobile)',
+            'label' => $_ci('cards_field_columns_mobile', 'Spalten (Mobile)'),
             'choices' => [
-                '1' => '1 Spalte',
-                '2' => '2 Spalten'
+                '1' => $_ci('cards_choice_1_col', '1 Spalte'),
+                '2' => $_ci('cards_choice_2_cols', '2 Spalten')
             ],
             'default' => '1'
         ],
         'gap' => [
             'type' => 'choice',
-            'label' => 'Abstand zwischen Cards',
+            'label' => $_ci('cards_field_gap', 'Abstand zwischen Cards'),
             'choices' => [
-                'collapse' => 'Kein Abstand (alle Richtungen)',
-                'column-collapse' => 'Kein Abstand (links/rechts)',
-                'small' => 'Klein (15px)',
-                'medium' => 'Mittel (30px)',
-                'large' => 'Groß (40px)'
+                'collapse' => $_ci('cards_choice_no_gap_all', 'Kein Abstand (alle Richtungen)'),
+                'column-collapse' => $_ci('cards_choice_no_gap_horizontal', 'Kein Abstand (links/rechts)'),
+                'small' => $_ci('cards_choice_small', 'Klein') . ' (15px)',
+                'medium' => $_ci('cards_choice_medium', 'Mittel') . ' (30px)',
+                'large' => $_ci('cards_choice_large', 'Groß') . ' (40px)'
             ],
             'default' => 'medium'
         ],
         'match_height' => [
             'type' => 'checkbox',
-            'label' => 'Gleiche Höhe für alle Cards'
+            'label' => $_ci('cards_field_match_height', 'Gleiche Höhe für alle Cards')
         ],
         
         // =============================================================================
@@ -268,38 +276,38 @@ return [
         // =============================================================================
         'section_bg' => [
             'type' => 'choice',
-            'label' => 'Sektions-Hintergrund',
+            'label' => $_ci('cards_field_section_bg', 'Sektions-Hintergrund'),
             'choices' => $backgroundChoices,
             'default' => ''
         ],
         'section_bg_image' => [
             'type' => 'be_media',
-            'label' => 'Sektions-Hintergrund (Bild/Video)',
-            'notice' => 'Hintergrundbild oder -video (MP4, WebM). Video wird automatisch mit Autoplay und Loop abgespielt.'
+            'label' => $_ci('cards_field_section_bg_image', 'Sektions-Hintergrund (Bild/Video)'),
+            'notice' => $_ci('cards_field_section_bg_image_notice', 'Hintergrundbild oder -video (MP4, WebM). Video wird automatisch mit Autoplay und Loop abgespielt.')
         ],
         'section_padding' => [
             'type' => 'choice',
-            'label' => 'Sektions-Padding',
+            'label' => $_ci('cards_field_section_padding', 'Sektions-Padding'),
             'choices' => [
-                '' => 'Standard',
-                'uk-padding-remove' => 'Keine Füllung',
-                'uk-padding-small' => 'Klein',
-                'uk-padding' => 'Mittel',
-                'uk-padding-large' => 'Groß'
+                '' => $_ci('cards_choice_standard', 'Standard'),
+                'uk-padding-remove' => $_ci('cards_choice_no_padding', 'Keine Füllung'),
+                'uk-padding-small' => $_ci('cards_choice_small', 'Klein'),
+                'uk-padding' => $_ci('cards_choice_medium', 'Mittel'),
+                'uk-padding-large' => $_ci('cards_choice_large', 'Groß')
             ],
             'default' => ''
         ],
         'container_width' => [
             'type' => 'choice',
-            'label' => 'Container-Breite',
+            'label' => $_ci('cards_field_container_width', 'Container-Breite'),
             'choices' => [
-                'uk-container' => 'Standard',
-                'uk-container uk-container-xsmall' => 'Extra schmal',
-                'uk-container uk-container-small' => 'Schmal',
-                'uk-container uk-container-large' => 'Weit',
-                'uk-container uk-container-xlarge' => 'Extra weit',
-                'uk-container uk-container-expand' => 'Maximale Breite',
-                '' => 'Volle Breite (kein Container)'
+                'uk-container' => $_ci('cards_choice_standard', 'Standard'),
+                'uk-container uk-container-xsmall' => $_ci('cards_choice_extra_narrow', 'Extra schmal'),
+                'uk-container uk-container-small' => $_ci('cards_choice_narrow', 'Schmal'),
+                'uk-container uk-container-large' => $_ci('cards_choice_wide', 'Weit'),
+                'uk-container uk-container-xlarge' => $_ci('cards_choice_extra_wide', 'Extra weit'),
+                'uk-container uk-container-expand' => $_ci('cards_choice_max_width', 'Maximale Breite'),
+                '' => $_ci('cards_choice_full_width', 'Volle Breite (kein Container)')
             ],
             'default' => 'uk-container'
         ],
@@ -309,18 +317,18 @@ return [
         // =============================================================================
         'animations_enabled' => [
             'type' => 'checkbox',
-            'label' => 'Animationen aktivieren (UIkit)',
-            'notice' => 'Aktiviert ScrollSpy-Animationen beim Scrollen (nur UIkit)'
+            'label' => $_ci('cards_field_animations_enabled', 'Animationen aktivieren (UIkit)'),
+            'notice' => $_ci('cards_field_animations_enabled_notice', 'Aktiviert ScrollSpy-Animationen beim Scrollen (nur UIkit)')
         ],
         'animations_scrollspy' => [
             'type' => 'checkbox',
-            'label' => 'ScrollSpy aktivieren',
-            'notice' => 'Animationen starten wenn Cards in den Viewport kommen (statt sofort). Gilt für alle Cards.'
+            'label' => $_ci('cards_field_animations_scrollspy', 'ScrollSpy aktivieren'),
+            'notice' => $_ci('cards_field_animations_scrollspy_notice', 'Animationen starten wenn Cards in den Viewport kommen (statt sofort). Gilt für alle Cards.')
         ],
         'animations_delay' => [
             'type' => 'text',
-            'label' => 'Animationsverzögerung (ms)',
-            'notice' => 'Verzögerung zwischen Card-Animationen. Standardwert: 100',
+            'label' => $_ci('cards_field_animations_delay', 'Animationsverzögerung (ms)'),
+            'notice' => $_ci('cards_field_animations_delay_notice', 'Verzögerung zwischen Card-Animationen. Standardwert: 100'),
             'default' => '100'
         ],
         'animations_repeat' => [
@@ -339,11 +347,11 @@ return [
         // =============================================================================
         'items' => [
             'type' => 'repeater',
-            'label' => 'Cards',
+            'label' => $_ci('cards_items_label', 'Cards'),
             
             // Modal für Medieneinstellungen (wird nach image-Feld angezeigt)
             'media_modal' => [
-                'label' => 'Medieneinstellungen',
+                'label' => $_ci('cards_media_modal_label', 'Medieneinstellungen'),
                 'icon' => 'fa-sliders',
                 'trigger_after' => 'image',
                 'fields' => [
@@ -354,7 +362,7 @@ return [
 
             // Modal: Individuelle Layout-Einstellungen
             'item_modal' => [
-                'label' => 'Layout-Einstellungen',
+                'label' => $_ci('cards_item_modal_label', 'Layout-Einstellungen'),
                 'icon' => 'fa-cog',
                 'trigger_after' => 'layout',
                 'fields' => [
@@ -366,7 +374,7 @@ return [
 
             // Modal: Verlinkung
             'link_modal' => [
-                'label' => 'Verlinkung',
+                'label' => $_ci('cards_link_modal_label', 'Verlinkung'),
                 'icon' => 'fa-link',
                 'trigger_after' => 'card_style_override',
                 'fields' => [
@@ -377,7 +385,7 @@ return [
             // Modal für Extra-Felder (nur wenn Extra-Felder vorhanden sind)
             ...(!empty($extra) ? [
                 'extras_modal' => [
-                    'label' => 'Extras',
+                    'label' => $_ci('cards_extras_modal_label', 'Extras'),
                     'icon' => 'fa-star',
                     'trigger_after' => 'title',
                     'fields' => array_keys($extra)
@@ -388,7 +396,7 @@ return [
                 // Zeile 1: Layout / Farbe / Animation nebeneinander
                 'layout' => [
                     'type' => 'choice',
-                    'label' => 'Layout',
+                    'label' => $_ci('cards_field_layout', 'Layout'),
                     'choices' => $layoutChoices,
                     'choice_icons' => $layoutIcons,
                     'selectpicker' => true,
@@ -397,26 +405,26 @@ return [
                 ],
                 'card_style_override' => [
                     'type' => 'choice',
-                    'label' => 'Karten-Farbe',
-                    'choices' => array_merge(['' => 'Geerbt (Globale Einstellung)'], $cardStyleChoices),
-                    'choice_colors' => array_merge(['' => ['color' => 'transparent', 'label' => 'Geerbt']], $cardStyleColors),
+                    'label' => $_ci('cards_field_card_style_override', 'Karten-Farbe'),
+                    'choices' => array_merge(['' => $_ci('cards_choice_inherited', 'Geerbt (Globale Einstellung)')], $cardStyleChoices),
+                    'choice_colors' => array_merge(['' => ['color' => 'transparent', 'label' => $_ci('cards_choice_inherited_short', 'Geerbt')]], $cardStyleColors),
                     'selectpicker' => true,
-                    'notice' => 'Leer = Farbe aus den Block-Einstellungen übernehmen. Auswahl = individuelle Farbe für diese Karte.',
+                    'notice' => $_ci('cards_field_card_style_override_notice', 'Leer = Farbe aus den Block-Einstellungen übernehmen. Auswahl = individuelle Farbe für diese Karte.'),
                     'default' => '',
                     'col' => 4,
                 ],
                 'animation' => [
                     'type' => 'choice',
-                    'label' => 'Animation',
+                    'label' => $_ci('cards_field_animation', 'Animation'),
                     'choices' => [
-                        '' => 'Keine',
-                        'uk-animation-fade' => 'Fade In',
-                        'uk-animation-scale-up' => 'Scale Up',
-                        'uk-animation-scale-down' => 'Scale Down',
-                        'uk-animation-slide-top-small' => 'Slide von oben',
-                        'uk-animation-slide-bottom-small' => 'Slide von unten',
-                        'uk-animation-slide-left-small' => 'Slide von links',
-                        'uk-animation-slide-right-small' => 'Slide von rechts',
+                        '' => $_ci('cards_choice_none', 'Keine'),
+                        'uk-animation-fade' => $_ci('cards_choice_fade_in', 'Fade In'),
+                        'uk-animation-scale-up' => $_ci('cards_choice_scale_up', 'Scale Up'),
+                        'uk-animation-scale-down' => $_ci('cards_choice_scale_down', 'Scale Down'),
+                        'uk-animation-slide-top-small' => $_ci('cards_choice_slide_top', 'Slide von oben'),
+                        'uk-animation-slide-bottom-small' => $_ci('cards_choice_slide_bottom', 'Slide von unten'),
+                        'uk-animation-slide-left-small' => $_ci('cards_choice_slide_left', 'Slide von links'),
+                        'uk-animation-slide-right-small' => $_ci('cards_choice_slide_right', 'Slide von rechts'),
                     ],
                     'default' => '',
                     'col' => 4,
@@ -448,9 +456,9 @@ return [
                 // Media - volle Breite
                 'image' => [
                     'type' => 'be_media',
-                    'label' => 'Bild oder Video',
+                    'label' => $_ci('cards_field_image', 'Bild oder Video'),
                     'preview' => true,
-                    'notice' => 'Bilder und Videos werden unterstützt'
+                    'notice' => $_ci('cards_field_image_notice', 'Bilder und Videos werden unterstützt')
                 ],
                 
                 // Medien-Optionen (im Modal)
@@ -529,19 +537,19 @@ return [
                 // Content - Titel und Untertitel nebeneinander (2 Spalten)
                 'title' => [
                     'type' => 'text',
-                    'label' => 'Titel',
+                    'label' => $_ci('cards_field_title', 'Titel'),
                     'col' => 6,
                 ],
                 'subtitle' => [
                     'type' => 'text',
-                    'label' => 'Untertitel',
-                    'notice' => 'Optional',
+                    'label' => $_ci('cards_field_subtitle', 'Untertitel'),
+                    'notice' => $_ci('cards_field_subtitle_notice', 'Optional'),
                     'col' => 6,
                 ],
                 'text' => [
                     'type' => 'tinymce',
                     'profile' => 'default',
-                    'label' => 'Text'
+                    'label' => $_ci('cards_field_text', 'Text')
                 ],
                 
                 // Erweiterte Optionen (im Modal)
@@ -588,26 +596,26 @@ return [
                 // Link-Optionen
                 'link_type' => [
                     'type' => 'choice',
-                    'label' => 'Link',
+                    'label' => $_ci('cards_field_link_type', 'Link'),
                     'choices' => [
-                        '' => 'Kein Link',
-                        'external' => 'Externe URL',
-                        'internal' => 'Interne Seite'
+                        '' => $_ci('cards_choice_no_link', 'Kein Link'),
+                        'external' => $_ci('cards_choice_external_url', 'Externe URL'),
+                        'internal' => $_ci('cards_choice_internal_page', 'Interne Seite')
                     ],
                     'default' => ''
                 ],
                 'link_url' => [
                     'type' => 'text',
-                    'label' => 'Externe URL'
+                    'label' => $_ci('cards_field_link_url', 'Externe URL')
                 ],
                 'link_internal' => [
                     'type' => 'be_link',
-                    'label' => 'Interne Seite'
+                    'label' => $_ci('cards_field_link_internal', 'Interne Seite')
                 ],
                 'link_text' => [
                     'type' => 'text',
-                    'label' => 'Link Text',
-                    'default' => 'Mehr erfahren',
+                    'label' => $_ci('cards_field_link_text', 'Link Text'),
+                    'default' => $_ci('cards_default_link_text', 'Mehr erfahren'),
                     'col' => 6,
                 ],
                 'link_button_style' => [
@@ -625,17 +633,17 @@ return [
                 ],
                 'link_button_align' => [
                     'type' => 'choice',
-                    'label' => 'Button-Ausrichtung',
+                    'label' => $_ci('cards_field_link_button_align', 'Button-Ausrichtung'),
                     'choices' => [
-                        ''                => 'Links',
-                        'uk-text-center'  => 'Zentriert',
-                        'uk-text-right'   => 'Rechts',
+                        ''                => $_ci('cards_choice_left', 'Links'),
+                        'uk-text-center'  => $_ci('cards_choice_center', 'Zentriert'),
+                        'uk-text-right'   => $_ci('cards_choice_right', 'Rechts'),
                     ],
                     'default' => 'uk-text-center',
                 ],
                 'link_card' => [
                     'type' => 'checkbox',
-                    'label' => 'Gesamte Card verlinken'
+                    'label' => $_ci('cards_field_link_card', 'Gesamte Card verlinken')
                 ],
                 
                 // Extra-Felder (im Modal "Extras" sichtbar)

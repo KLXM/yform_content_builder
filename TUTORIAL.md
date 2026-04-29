@@ -28,6 +28,15 @@ Deine Struktur sollte so aussehen:
 redaxo/src/addons/project/elements/team_member/
 ```
 
+Optional fuer Uebersetzungen pro Element:
+
+```text
+redaxo/src/addons/project/elements/team_member/lang/de_de.lang
+redaxo/src/addons/project/elements/team_member/lang/en_gb.lang
+```
+
+Diese Sprachdateien werden automatisch geladen, sobald das Element verwendet wird.
+
 ---
 
 ## Schritt 2: Die Konfiguration (`config.php`)

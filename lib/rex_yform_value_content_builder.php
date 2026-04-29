@@ -91,6 +91,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         // Element-Pfad via getElementPath (unterstützt Overrides)
         $elementPath = $this->getElementPath($sliceType);
+        Helper::loadElementI18n($elementPath);
         $configFile = $elementPath . '/config.php';
         
         if (!file_exists($configFile)) {
@@ -882,6 +883,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         // Element-Pfad via getElementPath (unterstützt Overrides)
         $elementPath = $this->getElementPath($sliceType);
+        Helper::loadElementI18n($elementPath);
         
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         if (!file_exists($templateFile)) {
@@ -1060,6 +1062,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     $configFile = $elementPath . '/config.php';
 
                     if (is_dir($elementPath) && file_exists($configFile)) {
+                        Helper::loadElementI18n($elementPath);
                         $config = include $configFile;
                         if (!is_array($config)) {
                             continue;
@@ -1088,6 +1091,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $configFile = $elementPath . '/config.php';
                 
                 if (is_dir($elementPath) && file_exists($configFile)) {
+                    Helper::loadElementI18n($elementPath);
                     $config = include $configFile;
                     if (!is_array($config)) {
                         continue;
@@ -1115,6 +1119,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     $configFile = $elementPath . '/config.php';
 
                     if (is_dir($elementPath) && file_exists($configFile)) {
+                        Helper::loadElementI18n($elementPath);
                         $config = include $configFile;
                         if (!is_array($config)) {
                             continue;
@@ -1216,7 +1221,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             </div>
             
             <div class="slice-rendered">
-                <?php include $templateFile; ?>
+                <?php Helper::loadElementI18n(dirname(dirname($templateFile))); include $templateFile; ?>
             </div>
             
             <div class="slice-edit-form" style="display: none;">
@@ -1375,6 +1380,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     
                     $configFile = $customPath . $dir . '/config.php';
                     if (file_exists($configFile)) {
+                        Helper::loadElementI18n($customPath . $dir);
                         $config = include $configFile;
                         $choices[$dir] = $config['label'] ?? ucfirst($dir);
                     }
@@ -1394,6 +1400,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 
                 $configFile = $demoPath . $dir . '/config.php';
                 if (file_exists($configFile)) {
+                    Helper::loadElementI18n($demoPath . $dir);
                     $config = include $configFile;
                     $choices[$dir] = $config['label'] ?? ucfirst($dir);
                 }

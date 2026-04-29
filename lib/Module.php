@@ -593,6 +593,8 @@ class Module
             return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Template nicht gefunden: ' . $elementFile . '</div>' : '';
         }
         
+        Helper::loadElementI18n($elementDir);
+
         // Element-Template einbinden
         ob_start();
         $data = $this->data; // Für Template verfügbar machen
@@ -615,7 +617,9 @@ class Module
         if (!file_exists($configFile)) {
             return null;
         }
-        
+
+        Helper::loadElementI18n(dirname($configFile));
+
         return include $configFile;
     }
     

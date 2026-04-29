@@ -81,6 +81,7 @@ class ContentBuilderApi extends rex_api_function
         $sliceData = rex_request::post('slice_data', 'array', []);
 
         $elementPath = $this->getElementPath($sliceType);
+        Helper::loadElementI18n($elementPath);
         $configFile = $elementPath . '/config.php';
 
         if (!file_exists($configFile)) {
@@ -159,6 +160,7 @@ class ContentBuilderApi extends rex_api_function
         $framework = rex_request::post('framework', 'string', 'bootstrap');
 
         $elementPath = $this->getElementPath($sliceType);
+        Helper::loadElementI18n($elementPath);
 
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         if (!file_exists($templateFile)) {

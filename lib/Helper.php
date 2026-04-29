@@ -15,6 +15,52 @@ class Helper
     /** @var array<string, mixed> Daten der aktuell offenen Section (für Grid-Close) */
     protected static array $activeSectionData = [];
 
+    /** @var array<string, bool> Bereits eingebundene Element-Sprachverzeichnisse */
+    protected static array $loadedElementLangDirs = [];
+
+    /**
+     * Bindet optional vorhandene Sprachdateien eines Elements ein.
+     */
+    public static function loadElementI18n(string $elementPath): void
+    {
+        $langDir = rtrim($elementPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'lang';
+        if (!is_dir($langDir) || isset(self::$loadedElementLangDirs[$langDir])) {
+            return;
+        }
+
+        \rex_i18n::addDirectory($langDir);
+        self::$loadedElementLangDirs[$langDir] = true;
+    }
+
+    /**
+     * Liefert eine lokalisierte Nachricht mit Fallback.
+     */
+    public static function t(string $key, string $fallback = ''): string
+    {
+        $msg = \rex_i18n::msg($key);
+
+        if ($msg !== $key) {
+            return $msg;
+        }
+
+        return $fallback !== '' ? $fallback : $key;
+    }
+
+    /**
+     * Einheitliches i18n-Muster fuer Element-Configs.
+     *
+     * @return \Closure(string, string): string
+     */
+    public static function elementTranslator(string $prefix): \Closure
+    {
+        return static function (string $suffix, string $fallback = '') use ($prefix): string {
+            $keyPrefix = $prefix . '_';
+            $key = str_starts_with($suffix, $keyPrefix) ? $suffix : $keyPrefix . $suffix;
+
+            return self::t($key, $fallback);
+        };
+    }
+
     /**
      * Rendert Content Builder Slices im Frontend
      * Mit Auto-Close-Unterstützung für Section-Elemente
@@ -114,6 +160,7 @@ class Helper
     {
         $addon = rex_addon::get('yform_content_builder');
         $elementPath = $addon->getPath('elements/section');
+        self::loadElementI18n($elementPath);
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         
         if (!file_exists($templateFile)) {
@@ -152,6 +199,7 @@ class Helper
         
         $addon = rex_addon::get('yform_content_builder');
         $elementPath = $addon->getPath('elements/' . $sliceType);
+        self::loadElementI18n($elementPath);
         $templateFile = $elementPath . '/templates/' . $framework . '.php';
         
         // Fallback auf plain.php

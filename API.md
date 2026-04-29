@@ -200,6 +200,15 @@ elements/
 
 Gibt es kein passendes Template, wird `plain.php` als Fallback geladen.
 
+Element-spezifische Sprachdateien werden ebenfalls automatisch geladen, wenn vorhanden:
+
+```text
+elements/{element}/lang/de_de.lang
+elements/{element}/lang/en_gb.lang
+```
+
+Fuer konsistente Uebersetzungen in `config.php` empfiehlt sich `Helper::elementTranslator('{element}')`.
+
 ### Custom Templates und Frameworks
 
 Eigene Frameworks ergänzt du einfach durch eine neue Template-Datei:

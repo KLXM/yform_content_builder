@@ -1,0 +1,14 @@
+smart_link_showcase_label = Smart-Link Showcase
+smart_link_showcase_description = Demo link list with smart_link, automatic media preview and icon fallback.
+smart_link_showcase_settings_modal_label = Layout & Section
+smart_link_showcase_field_headline_label = Headline
+smart_link_showcase_field_headline_default = Link List
+smart_link_showcase_field_intro_label = Intro
+smart_link_showcase_field_intro_notice = Optional text above the link list.
+smart_link_showcase_field_show_preview_label = Show preview images
+smart_link_showcase_field_items_label = Links
+smart_link_showcase_field_items_add_label = Add link
+smart_link_showcase_field_item_title_label = Title
+smart_link_showcase_field_item_text_label = Description
+smart_link_showcase_field_item_link_label = Link
+smart_link_showcase_field_item_link_notice = All common link types are enabled.

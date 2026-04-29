@@ -1,20 +1,24 @@
 <?php
 
+use KLXM\YFormContentBuilder\Config;
+use KLXM\YFormContentBuilder\Helper;
+
 /**
  * Smart-Link Showcase - Demo-Element
  */
 
-$config = \KLXM\YFormContentBuilder\Config::class;
+$config = Config::class;
+$_ci = Helper::elementTranslator('smart_link_showcase');
 
 return [
-    'label' => 'Smart-Link Showcase',
+    'label' => $_ci('label', 'Smart-Link Showcase'),
     'icon' => 'fa fa-link',
-    'description' => 'Demo-Linkliste mit smart_link, automatischer Medienvorschau und Icon-Fallback.',
+    'description' => $_ci('description', 'Demo-Linkliste mit smart_link, automatischer Medienvorschau und Icon-Fallback.'),
     'version' => '1.13.0',
     'category' => 'demo',
 
     'settings_modal' => [
-        'label' => 'Layout & Sektion',
+        'label' => $_ci('settings_modal_label', 'Layout & Sektion'),
         'icon' => 'fa-cog',
         'fields' => $config::getSettingsModalFields([
             'headline',
@@ -28,37 +32,37 @@ return [
         [
             'headline' => [
                 'type' => 'text',
-                'label' => 'Überschrift',
-                'default' => 'Linkliste',
+                'label' => $_ci('field_headline_label', 'Ueberschrift'),
+                'default' => $_ci('field_headline_default', 'Linkliste'),
             ],
             'intro' => [
                 'type' => 'text',
-                'label' => 'Einleitung',
-                'notice' => 'Optionaler Text oberhalb der Linkliste.',
+                'label' => $_ci('field_intro_label', 'Einleitung'),
+                'notice' => $_ci('field_intro_notice', 'Optionaler Text oberhalb der Linkliste.'),
             ],
             'show_preview' => [
                 'type' => 'checkbox',
-                'label' => 'Vorschaubilder anzeigen',
+                'label' => $_ci('field_show_preview_label', 'Vorschaubilder anzeigen'),
                 'default' => true,
             ],
             'items' => [
                 'type' => 'repeater',
-                'label' => 'Links',
-                'add_label' => 'Link hinzufügen',
+                'label' => $_ci('field_items_label', 'Links'),
+                'add_label' => $_ci('field_items_add_label', 'Link hinzufuegen'),
                 'view' => 'list',
                 'fields' => [
                     'title' => [
                         'type' => 'text',
-                        'label' => 'Titel',
+                        'label' => $_ci('field_item_title_label', 'Titel'),
                         'col' => 12,
                     ],
                     'text' => [
                         'type' => 'text',
-                        'label' => 'Beschreibung',
+                        'label' => $_ci('field_item_text_label', 'Beschreibung'),
                     ],
                     'link' => [
                         'type' => 'smart_link',
-                        'label' => 'Link',
+                        'label' => $_ci('field_item_link_label', 'Link'),
                         'multiple' => false,
                         'types' => 'auto,url,intern,media,mail,tel,yform',
                         // yform_table: YForm-Tabellenname (z.B. 'rex_contacts')
@@ -66,7 +70,7 @@ return [
                         // Ohne Konfiguration erscheint im Widget ein Demo-Hinweis.
                         'yform_table' => '',
                         'yform_field' => 'name',
-                        'notice' => 'Alle üblichen Linktypen sind aktiv.',
+                        'notice' => $_ci('field_item_link_notice', 'Alle ueblichen Linktypen sind aktiv.'),
                     ],
                 ],
             ],

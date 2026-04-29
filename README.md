@@ -110,6 +110,17 @@ echo Helper::outputRaw($dataset->getValue('content_builder'), 'uikit');
 >
 > Schritt-für-Schritt-Einstieg für Entwickler: **[TUTORIAL.md](TUTORIAL.md)**
 
+### Element-i18n (Auto-Load)
+
+Wenn ein Element einen `lang`-Ordner besitzt, werden die Sprachdateien automatisch geladen.
+
+```text
+elements/<element>/lang/de_de.lang
+elements/<element>/lang/en_gb.lang
+```
+
+In `config.php` kannst du dann z. B. konsistent mit `Helper::elementTranslator('<element>')` arbeiten.
+
 ---
 
 ## 📋 Anforderungen
