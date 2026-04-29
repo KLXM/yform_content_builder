@@ -1,6 +1,6 @@
 # YForm Content Builder
 
-Slice-based Content Builder für REDAXO YForm – erstelle flexible, wiederverwendbare Content-Elemente für beliebige CSS-Frameworks.
+Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexible, wiederverwendbare Content-Elemente für beliebige CSS-Frameworks.
 
 📖 [API-Dokumentation](API.md) · 🚀 [Tutorial](TUTORIAL.md) · 📋 [Changelog](CHANGELOG.md)
 
