@@ -1,7 +1,8 @@
 <?php
 
-namespace KLXM\YFormContentBuilder;
+namespace KLXM\YFormContentBuilder\Api;
 
+use KLXM\YFormContentBuilder\ListProfiles;
 use rex;
 use rex_api_function;
 use rex_api_result;

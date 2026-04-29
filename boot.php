@@ -5,63 +5,24 @@
  * Slice-based Content Builder for YForm
  */
 
-// YForm-Feldklasse laden (im globalen Namespace für YForm-Erkennung)
-require_once rex_path::addon('yform_content_builder', 'lib/rex_yform_value_content_builder.php');
-
-// Helper-Klasse laden
-require_once rex_path::addon('yform_content_builder', 'lib/Helper.php');
-
-// Config-Klasse laden
-require_once rex_path::addon('yform_content_builder', 'lib/Config.php');
-
-// Help-Modal-Helper laden
-require_once rex_path::addon('yform_content_builder', 'lib/ModalHelper.php');
-
-// SVG-Helper laden
-require_once rex_path::addon('yform_content_builder', 'lib/Svg.php');
-
-// Media Manager Helper laden
-require_once rex_path::addon('yform_content_builder', 'lib/MediaManagerHelper.php');
-
-// Medien-ALT-Resolver laden (elementübergreifende ALT-Logik)
-require_once rex_path::addon('yform_content_builder', 'lib/MediaAltResolver.php');
-
-// Modul-Helper-Klasse laden (für Verwendung in normalen REDAXO Modulen)
-require_once rex_path::addon('yform_content_builder', 'lib/Module.php');
-
-// YForm-Listen-Profile + Renderer (für yform_list Element)
-require_once rex_path::addon('yform_content_builder', 'lib/ListProfiles.php');
-require_once rex_path::addon('yform_content_builder', 'lib/ListRenderer.php');
-
-// API-Klassen laden und registrieren (namespaced, via rex_api_function::register)
-require_once rex_path::addon('yform_content_builder', 'lib/ContentBuilderApi.php');
-require_once rex_path::addon('yform_content_builder', 'lib/ListColumnsApi.php');
-rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\ContentBuilderApi::class);
-rex_api_function::register('yform_list_columns', \KLXM\YFormContentBuilder\ListColumnsApi::class);
+// API-Klassen registrieren (namespaced, via rex_api_function::register)
+rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\Api\ContentBuilderApi::class);
+rex_api_function::register('yform_list_columns', \KLXM\YFormContentBuilder\Api\ListColumnsApi::class);
 
 // Forcal-Termine-Renderer (für forcal_list Element) – nur wenn forcal-Addon vorhanden
 if (rex_addon::get('forcal')->isAvailable()) {
-    require_once rex_path::addon('yform_content_builder', 'lib/ForcalRenderer.php');
     class_alias(\KLXM\YFormContentBuilder\ForcalRenderer::class, 'ForcalListRenderer');
 }
 
-// Field-Klassen laden (Plugin-System für Feldtypen)
-foreach (glob(rex_path::addon('yform_content_builder', 'lib/fields/*.php')) as $fieldFile) {
-    require_once $fieldFile;
-}
-
-// Class aliases for backward compatibility (namespaced classes → old global names)
+// Class aliases für externe Nutzung (z.B. project-Addon, eigene Elemente)
 class_alias(\KLXM\YFormContentBuilder\Helper::class, 'yform_content_builder_helper');
-class_alias(\KLXM\YFormContentBuilder\MediaAltResolver::class, 'YFormContentBuilderMediaAltResolver');
-class_alias(\KLXM\YFormContentBuilder\ListProfiles::class, 'YformListProfiles');
-class_alias(\KLXM\YFormContentBuilder\ListRenderer::class, 'YformListRenderer');
 class_alias(\KLXM\YFormContentBuilder\Config::class, 'yform_content_builder_config');
 class_alias(\KLXM\YFormContentBuilder\Module::class, 'yform_content_builder_module');
-class_alias(\KLXM\YFormContentBuilder\ModalHelper::class, 'yform_content_builder_help_modal_helper');
 class_alias(\KLXM\YFormContentBuilder\Svg::class, 'YFormContentBuilderSvg');
+class_alias(\KLXM\YFormContentBuilder\MediaAltResolver::class, 'YFormContentBuilderMediaAltResolver');
 class_alias(\KLXM\YFormContentBuilder\MediaManagerHelper::class, 'YFormContentMediaManagerHelper');
-class_alias(\KLXM\YFormContentBuilder\ContentBuilderApi::class, 'rex_api_content_builder');
-class_alias(\KLXM\YFormContentBuilder\ListColumnsApi::class, 'rex_api_yform_list_columns');
+class_alias(\KLXM\YFormContentBuilder\ListProfiles::class, 'YformListProfiles');
+class_alias(\KLXM\YFormContentBuilder\ListRenderer::class, 'YformListRenderer');
 
 // Theme Builder Integration - Theme für Backend setzen
 if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {

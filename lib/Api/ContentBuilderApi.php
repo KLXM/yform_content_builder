@@ -1,8 +1,10 @@
 <?php
 
-namespace KLXM\YFormContentBuilder;
+namespace KLXM\YFormContentBuilder\Api;
 
 use KLXM\YFormContentBuilder\Fields\FieldRegistry;
+use KLXM\YFormContentBuilder\Helper;
+use KLXM\YFormContentBuilder\ModalHelper;
 use rex;
 use rex_addon;
 use rex_api_function;
