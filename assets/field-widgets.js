@@ -461,17 +461,457 @@
         smartLinkSerialize($widget);
     }
 
+    function parseTableEditorConfig($widget) {
+        var defaults = {
+            minCols: 1,
+            maxCols: 999,
+            minRows: 1,
+            maxRows: 999,
+            headerRowPolicy: 'user',
+            headerColPolicy: 'user',
+            enableMedia: false,
+            enableLink: false,
+            enableTextarea: true
+        };
+
+        var raw = $widget.attr('data-config') || '{}';
+        try {
+            var parsed = JSON.parse(raw);
+            return $.extend({}, defaults, parsed || {});
+        } catch (e) {
+            return defaults;
+        }
+    }
+
+    function tableEditorGetBoolConfig($widget, key) {
+        var $el = $widget.find('[data-config="' + key + '"]');
+        if ($el.length === 0) {
+            return false;
+        }
+        if ($el.is(':checkbox')) {
+            return $el.is(':checked');
+        }
+        return ($el.val() || '').toString() === '1';
+    }
+
+    function normalizeTableEditorState(state, config) {
+        state.rows = Array.isArray(state.rows) ? state.rows : [];
+        state.cols = Array.isArray(state.cols) ? state.cols : [];
+
+        if (state.rows.length === 0) {
+            state.rows = [['']];
+        }
+
+        var colCount = 1;
+        state.rows.forEach(function(row) {
+            if (Array.isArray(row)) {
+                colCount = Math.max(colCount, row.length);
+            }
+        });
+        colCount = Math.max(colCount, config.minCols);
+
+        while (state.cols.length < colCount) {
+            state.cols.push({ type: 'text', header_type: 'text' });
+        }
+        if (state.cols.length > colCount) {
+            state.cols = state.cols.slice(0, colCount);
+        }
+
+        state.cols = state.cols.map(function(col) {
+            var type = (col && col.type) ? col.type : 'text';
+            var headerType = (col && col.header_type) ? col.header_type : 'text';
+            return {
+                type: type,
+                header_type: headerType
+            };
+        });
+
+        state.rows = state.rows.map(function(row) {
+            var out = Array.isArray(row) ? row.slice(0, colCount) : [];
+            while (out.length < colCount) {
+                out.push('');
+            }
+            return out.map(function(cell) {
+                return (cell == null) ? '' : String(cell);
+            });
+        });
+
+        while (state.rows.length < config.minRows) {
+            state.rows.push(new Array(colCount).fill(''));
+        }
+
+        if (config.headerRowPolicy === 'yes') {
+            state.has_header_row = true;
+        }
+        if (config.headerRowPolicy === 'no') {
+            state.has_header_row = false;
+        }
+        if (config.headerColPolicy === 'yes') {
+            state.has_header_col = true;
+        }
+        if (config.headerColPolicy === 'no') {
+            state.has_header_col = false;
+        }
+    }
+
+    function tableEditorTypes(config) {
+        var types = ['text', 'number', 'center'];
+        if (config.enableTextarea) {
+            types.push('textarea');
+        }
+        if (config.enableMedia) {
+            types.push('media');
+        }
+        if (config.enableLink) {
+            types.push('link');
+        }
+        return types;
+    }
+
+    function tableEditorTypeLabel(type) {
+        if (type === 'number') {
+            return 'Zahl';
+        }
+        if (type === 'center') {
+            return 'Zentriert';
+        }
+        if (type === 'textarea') {
+            return 'Mehrzeilig';
+        }
+        if (type === 'media') {
+            return 'Medien';
+        }
+        if (type === 'link') {
+            return 'Link';
+        }
+        return 'Text';
+    }
+
+    function tableEditorTypeIcon(type) {
+        if (type === 'number') {
+            return 'fa-hashtag';
+        }
+        if (type === 'center') {
+            return 'fa-align-center';
+        }
+        if (type === 'textarea') {
+            return 'fa-paragraph';
+        }
+        if (type === 'media') {
+            return 'fa-file-o';
+        }
+        if (type === 'link') {
+            return 'rex-icon-open-linkmap';
+        }
+        return 'fa-font';
+    }
+
+    function tableEditorHeaderIcon(type) {
+        if (type === 'number') {
+            return 'fa-align-right';
+        }
+        if (type === 'center') {
+            return 'fa-align-center';
+        }
+        return 'fa-align-left';
+    }
+
+    function tableEditorApplyAlign($input, type) {
+        if (type === 'number') {
+            $input.css('text-align', 'right');
+            return;
+        }
+        if (type === 'center') {
+            $input.css('text-align', 'center');
+            return;
+        }
+        $input.css('text-align', 'left');
+    }
+
+    function initTableEditorWidget($widget) {
+        if ($widget.data('table-editor-init')) {
+            return;
+        }
+        $widget.data('table-editor-init', 1);
+
+        var config = parseTableEditorConfig($widget);
+        var $hidden = $widget.find('.cb-table-editor-value');
+        var $caption = $widget.find('.cb-table-editor-caption');
+        var $table = $widget.find('.cb-table-editor-table');
+
+        var initialState = {};
+        try {
+            initialState = JSON.parse($hidden.val() || '{}') || {};
+        } catch (e) {
+            initialState = {};
+        }
+
+        var state = {
+            caption: (initialState.caption || $caption.val() || '').toString(),
+            has_header_row: tableEditorGetBoolConfig($widget, 'has_header_row'),
+            has_header_col: tableEditorGetBoolConfig($widget, 'has_header_col'),
+            cols: initialState.cols || [],
+            rows: initialState.rows || []
+        };
+
+        normalizeTableEditorState(state, config);
+
+        function persist() {
+            $hidden.val(JSON.stringify({
+                caption: state.caption,
+                has_header_row: state.has_header_row,
+                has_header_col: state.has_header_col,
+                cols: state.cols,
+                rows: state.rows
+            }));
+        }
+
+        function render() {
+            normalizeTableEditorState(state, config);
+
+            var $thead = $table.find('thead').empty();
+            var $tbody = $table.find('tbody').empty();
+
+            var canAddRow = state.rows.length < config.maxRows;
+            var canAddCol = state.cols.length < config.maxCols;
+            var canDelRow = state.rows.length > config.minRows;
+            var canDelCol = state.cols.length > config.minCols;
+
+            $widget.find('.cb-table-editor-add-row').toggle(canAddRow);
+            $widget.find('.cb-table-editor-add-col').toggle(canAddCol);
+
+            var $metaRow = $('<tr class="cb-table-editor-meta-row"></tr>');
+            state.cols.forEach(function(col, colIndex) {
+                var $th = $('<th class="text-center" style="padding:5px;"></th>');
+                var $btnGroup = $('<div style="display:flex;justify-content:center;gap:2px;"></div>');
+
+                var $headerBtn = $('<button type="button" class="btn btn-default btn-xs cb-table-editor-toggle-header" data-col="' + colIndex + '"></button>');
+                $headerBtn.attr('title', 'Kopf-Ausrichtung');
+                $headerBtn.html('<i class="rex-icon ' + tableEditorHeaderIcon(col.header_type || 'text') + '"></i>');
+                $btnGroup.append($headerBtn);
+
+                var $typeBtn = $('<button type="button" class="btn btn-default btn-xs cb-table-editor-toggle-type" data-col="' + colIndex + '"></button>');
+                $typeBtn.attr('title', tableEditorTypeLabel(col.type || 'text'));
+                $typeBtn.html('<i class="rex-icon ' + tableEditorTypeIcon(col.type || 'text') + '"></i>');
+                $btnGroup.append($typeBtn);
+
+                if (canAddCol) {
+                    $btnGroup.append('<button type="button" class="btn btn-default btn-xs cb-table-editor-add-col-inline" data-col="' + colIndex + '" title="Spalte rechts einfügen"><i class="rex-icon fa-plus"></i></button>');
+                }
+                if (canDelCol) {
+                    $btnGroup.append('<button type="button" class="btn btn-default btn-xs cb-table-editor-del-col" data-col="' + colIndex + '" title="Spalte löschen" style="color:#d9534f;"><i class="rex-icon fa-times"></i></button>');
+                }
+
+                $th.append($btnGroup);
+                $metaRow.append($th);
+            });
+            $thead.append($metaRow);
+
+            state.rows.forEach(function(row, rowIndex) {
+                var isHeaderRow = rowIndex === 0 && state.has_header_row;
+                var $tr = $('<tr></tr>');
+                if (isHeaderRow) {
+                    $tr.addClass('info');
+                }
+
+                row.forEach(function(cell, colIndex) {
+                    var col = state.cols[colIndex] || { type: 'text', header_type: 'text' };
+                    var isHeaderCol = colIndex === 0 && state.has_header_col;
+                    var isHeaderCell = isHeaderRow || isHeaderCol;
+                    var $cell = $('<' + (isHeaderCell ? 'th' : 'td') + '></' + (isHeaderCell ? 'th' : 'td') + '>');
+                    if (isHeaderCol && !isHeaderRow) {
+                        $cell.attr('scope', 'row');
+                    }
+
+                    var inputType = (!isHeaderRow && col.type === 'textarea') ? 'textarea' : 'input';
+                    var $input = inputType === 'textarea'
+                        ? $('<textarea class="form-control" rows="1" style="resize:vertical;min-height:30px;"></textarea>')
+                        : $('<input type="text" class="form-control input-sm">');
+
+                    $input.attr('data-row', rowIndex);
+                    $input.attr('data-col', colIndex);
+                    $input.val(cell);
+
+                    var alignType = isHeaderRow ? (col.header_type || 'text') : (col.type || 'text');
+                    tableEditorApplyAlign($input, alignType);
+
+                    var $wrap = $('<div class="cb-table-editor-cell-wrap" style="display:flex;gap:4px;align-items:flex-start;"></div>');
+                    $wrap.append($input);
+
+                    if (colIndex === row.length - 1) {
+                        var $actions = $('<div class="cb-table-editor-actions"></div>');
+                        if (canAddRow) {
+                            $actions.append('<button type="button" class="btn btn-default btn-xs cb-table-editor-add-row-inline" data-row="' + rowIndex + '" title="Zeile darunter einfügen" tabindex="-1"><i class="rex-icon fa-plus"></i></button>');
+                        }
+                        if (canDelRow) {
+                            $actions.append('<button type="button" class="btn btn-default btn-xs cb-table-editor-del-row" data-row="' + rowIndex + '" title="Zeile löschen" tabindex="-1"><i class="rex-icon fa-times"></i></button>');
+                        }
+                        $wrap.append($actions);
+                    }
+
+                    $cell.append($wrap);
+                    $tr.append($cell);
+                });
+
+                $tbody.append($tr);
+            });
+
+            persist();
+        }
+
+        $widget.on('input change', '.cb-table-editor-caption', function() {
+            state.caption = ($(this).val() || '').toString();
+            persist();
+        });
+
+        $widget.on('change', '.cb-table-editor-config', function() {
+            var key = ($(this).data('config') || '').toString();
+            if (key !== 'has_header_row' && key !== 'has_header_col') {
+                return;
+            }
+            state[key] = $(this).is(':checkbox') ? $(this).is(':checked') : ($(this).val() === '1');
+            render();
+        });
+
+        $widget.on('input change', '[data-row][data-col]', function() {
+            var row = parseInt($(this).attr('data-row'), 10);
+            var col = parseInt($(this).attr('data-col'), 10);
+            if (Number.isNaN(row) || Number.isNaN(col) || !state.rows[row]) {
+                return;
+            }
+            state.rows[row][col] = ($(this).val() || '').toString();
+            persist();
+        });
+
+        $widget.on('click', '.cb-table-editor-add-row', function(e) {
+            e.preventDefault();
+            if (state.rows.length >= config.maxRows) {
+                return;
+            }
+            state.rows.push(new Array(state.cols.length).fill(''));
+            render();
+        });
+
+        $widget.on('click', '.cb-table-editor-add-col', function(e) {
+            e.preventDefault();
+            if (state.cols.length >= config.maxCols) {
+                return;
+            }
+            state.cols.push({ type: 'text', header_type: 'text' });
+            state.rows.forEach(function(row) {
+                row.push('');
+            });
+            render();
+        });
+
+        $widget.on('click', '.cb-table-editor-add-col-inline', function(e) {
+            e.preventDefault();
+            if (state.cols.length >= config.maxCols) {
+                return;
+            }
+            var col = parseInt($(this).attr('data-col'), 10);
+            if (Number.isNaN(col)) {
+                return;
+            }
+            state.cols.splice(col + 1, 0, { type: 'text', header_type: 'text' });
+            state.rows.forEach(function(row) {
+                row.splice(col + 1, 0, '');
+            });
+            render();
+        });
+
+        $widget.on('click', '.cb-table-editor-del-col', function(e) {
+            e.preventDefault();
+            if (state.cols.length <= config.minCols) {
+                return;
+            }
+            var col = parseInt($(this).attr('data-col'), 10);
+            if (Number.isNaN(col)) {
+                return;
+            }
+            state.cols.splice(col, 1);
+            state.rows.forEach(function(row) {
+                row.splice(col, 1);
+            });
+            render();
+        });
+
+        $widget.on('click', '.cb-table-editor-add-row-inline', function(e) {
+            e.preventDefault();
+            if (state.rows.length >= config.maxRows) {
+                return;
+            }
+            var row = parseInt($(this).attr('data-row'), 10);
+            if (Number.isNaN(row)) {
+                return;
+            }
+            state.rows.splice(row + 1, 0, new Array(state.cols.length).fill(''));
+            render();
+        });
+
+        $widget.on('click', '.cb-table-editor-del-row', function(e) {
+            e.preventDefault();
+            if (state.rows.length <= config.minRows) {
+                return;
+            }
+            var row = parseInt($(this).attr('data-row'), 10);
+            if (Number.isNaN(row)) {
+                return;
+            }
+            state.rows.splice(row, 1);
+            render();
+        });
+
+        $widget.on('click', '.cb-table-editor-toggle-header', function(e) {
+            e.preventDefault();
+            var col = parseInt($(this).attr('data-col'), 10);
+            if (Number.isNaN(col) || !state.cols[col]) {
+                return;
+            }
+            var current = state.cols[col].header_type || 'text';
+            state.cols[col].header_type = current === 'text' ? 'center' : (current === 'center' ? 'number' : 'text');
+            render();
+        });
+
+        $widget.on('click', '.cb-table-editor-toggle-type', function(e) {
+            e.preventDefault();
+            var col = parseInt($(this).attr('data-col'), 10);
+            if (Number.isNaN(col) || !state.cols[col]) {
+                return;
+            }
+            var types = tableEditorTypes(config);
+            var current = state.cols[col].type || 'text';
+            var index = types.indexOf(current);
+            if (index < 0) {
+                index = 0;
+            }
+            state.cols[col].type = types[(index + 1) % types.length];
+            render();
+        });
+
+        render();
+    }
+
 
     function initAll(root) {
         var $root = root ? $(root) : $(document);
         var smartLinks = $root.find('.cb-smart-link-widget');
+        var tableEditors = $root.find('.cb-table-editor');
 
         if (smartLinks.length > 0) {
             console.log('[CB-Widgets] Initializing:', smartLinks.length, 'SmartLink(s)');
         }
 
+        if (tableEditors.length > 0) {
+            console.log('[CB-Widgets] Initializing:', tableEditors.length, 'TableEditor(s)');
+        }
+
         smartLinks.each(function() {
             initSmartLinkWidget($(this));
+        });
+
+        tableEditors.each(function() {
+            initTableEditorWidget($(this));
         });
     }
 

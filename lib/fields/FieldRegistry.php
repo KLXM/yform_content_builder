@@ -204,6 +204,7 @@ class FieldRegistry
             new YFormPickerField(),
             new SmartLinkField(),
             new RichHeadlineField(),
+            new TableEditorField(),
             new RepeaterField(),
         ];
 
