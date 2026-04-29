@@ -102,8 +102,8 @@ $layoutChoices = [
 
 // Layout-Icons für Selectpicker – externe SVG-Dateien aus assets/icons/
 $_cbIconImg = function(string $name): string {
-    if (class_exists('YFormContentBuilderSvg')) {
-        return YFormContentBuilderSvg::iconImg($name);
+    if (class_exists(\KLXM\YFormContentBuilder\Svg::class)) {
+        return \KLXM\YFormContentBuilder\Svg::iconImg($name);
     }
     return '';
 };
@@ -153,8 +153,8 @@ $cardWidthChoicesBase = [
 ];
 
 // Optional: Layouts aus SVG-Klasse laden wenn verfügbar
-if (class_exists('YFormContentBuilderSvg')) {
-    $rawLayouts = YFormContentBuilderSvg::getLayoutOptions();
+if (class_exists(\KLXM\YFormContentBuilder\Svg::class)) {
+    $rawLayouts = \KLXM\YFormContentBuilder\Svg::getLayoutOptions();
     if (!empty($rawLayouts)) {
         $layoutChoices = [];
         foreach ($rawLayouts as $key => $data) {

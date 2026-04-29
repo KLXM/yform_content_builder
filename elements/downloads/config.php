@@ -6,7 +6,7 @@
  */
 
 // Zentrale Konfiguration laden
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 $hasThemeBuilder = $config::hasThemeBuilder();
 
 // Element-spezifische Felder für settings_modal

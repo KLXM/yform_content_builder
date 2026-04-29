@@ -16,6 +16,11 @@ use rex_sql;
  */
 class MediaManagerHelper
 {
+    private static function isMediaManagerReady(): bool
+    {
+        return rex_addon::get('media_manager')->isAvailable() && class_exists('rex_media_manager');
+    }
+
     /**
      * Zeigt die verfügbaren Parameter eines Effekts an
      * @param string $effect Name des Effekts (z.B. 'resize', 'crop')
@@ -62,6 +67,16 @@ class MediaManagerHelper
     public function listAvailableEffects(bool $dump = true): ?array
     {
         $effects = [];
+        if (!self::isMediaManagerReady()) {
+            if ($dump) {
+                dump($effects);
+
+                return null;
+            }
+
+            return $effects;
+        }
+
         foreach (rex_media_manager::getSupportedEffects() as $class => $effect) {
             $effects[] = str_replace('rex_effect_', '', $effect);
         }
@@ -197,7 +212,12 @@ class MediaManagerHelper
      */
     private function isEffectAvailable(string $effect): bool 
     {
+        if (!self::isMediaManagerReady()) {
+            return false;
+        }
+
         $effects = rex_media_manager::getSupportedEffects();
+
         return isset($effects['rex_effect_' . $effect]);
     }
 
@@ -233,7 +253,7 @@ class MediaManagerHelper
      */
     public function install(): void 
     {
-        if (!rex_addon::get('media_manager')->isAvailable()) {
+        if (!self::isMediaManagerReady()) {
             return;
         }
 
@@ -408,8 +428,9 @@ class MediaManagerHelper
     ): bool {
         try {
             $this->exportToJson($typeNames, $file, $prettyPrint, $includeSystemTypes);
+
             return true;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
     }
@@ -419,7 +440,7 @@ class MediaManagerHelper
      */
     public function uninstall(): void 
     {
-        if (!$this->removeOnUninstall || !rex_addon::get('media_manager')->isAvailable()) {
+        if (!$this->removeOnUninstall || !self::isMediaManagerReady()) {
             return;
         }
 

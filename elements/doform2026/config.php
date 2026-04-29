@@ -4,7 +4,7 @@
  * Schrittweise Konfiguration mit Presets und kontextbezogenen Optionen.
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
 $spamProtectionOptions = [
     'honeypot' => 'Honeypot (verstecktes Feld)',

@@ -202,6 +202,7 @@ class FieldRegistry
             new ColorSwatchesField(),
             new BeTableSelectField(),
             new YFormPickerField(),
+            new SmartLinkField(),
             new RepeaterField(),
         ];
 

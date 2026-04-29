@@ -3,7 +3,7 @@
  * Starter Callout - einfacher CTA Block
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
 return [
     'label' => 'Callout',

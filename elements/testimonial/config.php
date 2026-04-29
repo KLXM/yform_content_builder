@@ -5,7 +5,7 @@
  * Repeater ohne Modal: Zitat, Autor, Bild – direkt und einfach einzugeben.
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
 return [
     'label' => 'Testimonials',

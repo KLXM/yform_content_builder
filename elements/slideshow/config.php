@@ -4,7 +4,7 @@
  */
 
 // Zentrale Konfigurationsklasse
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 $hasThemeBuilder = $config::hasThemeBuilder();
 
 // Dynamische Optionen aus uikit_theme_builder

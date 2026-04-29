@@ -14,12 +14,12 @@
  *   - optional: Headline / Beschreibung
  */
 
-$config = yform_content_builder_config::class;
+$config = \KLXM\YFormContentBuilder\Config::class;
 
 // Profile-Choices laden
 $profileChoices = [];
-if (class_exists('YformListProfiles')) {
-    $profileChoices = YformListProfiles::getChoices();
+if (class_exists(\KLXM\YFormContentBuilder\ListProfiles::class)) {
+    $profileChoices = \KLXM\YFormContentBuilder\ListProfiles::getChoices();
 }
 
 return [

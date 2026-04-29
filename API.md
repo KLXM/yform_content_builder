@@ -237,6 +237,7 @@ lib/fields/
 | `be_link` | `BeLinkField` | REDAXO Linkmap Widget |
 | `radio_image` | `RadioImageField` | Radio-Buttons mit Bildern/SVGs |
 | `color_swatches` | `ColorSwatchesField` | Farbauswahl mit visuellen Farbfeldern |
+| `smart_link` | `SmartLinkField` | Kombiniertes Linkfeld für URL, intern, Media, Mail, Tel und YForm |
 | `repeater` | `RepeaterField` | Wiederholbare Feldgruppen |
 
 ---
@@ -254,6 +255,37 @@ Jeder Feldtyp unterstützt spezifische Konfigurationsoptionen:
 | `notice` | string | Hilfetext unter dem Feld |
 | `default` | mixed | Standardwert |
 | `perm` | string/array | Berechtigungen - siehe Permission System unten |
+
+### Feldtyp `smart_link`
+
+Der Feldtyp `smart_link` speichert Linkziele in einem einheitlichen JSON-Format und unterstützt mehrere Linkarten in einem Feld.
+
+| Option | Typ | Beschreibung |
+|--------|-----|--------------|
+| `multiple` | bool | Erlaubt mehrere Links in einem Feld |
+| `types` | array/string | Erlaubte Linktypen als Array oder CSV |
+| `notice` | string | Hilfetext unter dem Feld |
+
+Erlaubte Typwerte für `types`:
+
+- `auto`
+- `url`
+- `intern`
+- `media`
+- `mail`
+- `tel`
+- `yform`
+
+Beispiel:
+
+```php
+'link' => [
+    'type' => 'smart_link',
+    'label' => 'Link',
+    'multiple' => false,
+    'types' => 'auto,url,intern,media,mail,tel,yform',
+]
+```
 
 ### Permission System
 

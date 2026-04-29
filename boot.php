@@ -23,6 +23,7 @@ class_alias(\KLXM\YFormContentBuilder\MediaAltResolver::class, 'YFormContentBuil
 class_alias(\KLXM\YFormContentBuilder\MediaManagerHelper::class, 'YFormContentMediaManagerHelper');
 class_alias(\KLXM\YFormContentBuilder\ListProfiles::class, 'YformListProfiles');
 class_alias(\KLXM\YFormContentBuilder\ListRenderer::class, 'YformListRenderer');
+class_alias(\KLXM\YFormContentBuilder\SmartLink::class, 'YFormContentBuilderSmartLink');
 
 // Theme Builder Integration - Theme für Backend setzen
 if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
@@ -48,6 +49,7 @@ if (rex::isBackend()) {
     rex_view::addCssFile(rex_addon::get('yform_content_builder')->getAssetsUrl('cards.css'));
     rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('content-builder.js'));
     rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('media-browser.js'));
+    rex_view::addJsFile(rex_addon::get('yform_content_builder')->getAssetsUrl('field-widgets.js'));
 
     // YForm Manager Assets laden (für YFormPickerField)
     if (rex_addon::get('yform')->isAvailable()) {
