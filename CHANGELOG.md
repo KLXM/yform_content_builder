@@ -6,11 +6,17 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
-## [Unreleased]
 
----
 
 ## [2.0.0] – 2026-04-29
+
+### Elemente
+
+Das bisherige Table-Element wurde durch den neuen `table_editor`-basierten Tabelleneditor ersetzt.
+
+### Übersetzungen (i18n)
+
+Elemente können jetzt übersetzt werden und auch mehrsprachige Hilfen verlinkt werden
 
 ### Komplette Namespace-Umstrukturierung (Breaking Change)
 
