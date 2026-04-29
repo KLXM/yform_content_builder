@@ -338,7 +338,7 @@ $contentData = $page->getValue('page_content');
 echo Helper::render($contentData, 'bootstrap');
 
 // Oder Tailwind nutzen (lädt templates/tailwind.php)
-echo ContentBuilderHelper::render($contentData, 'tailwind');
+echo Helper::render($contentData, 'tailwind');
 ```
 
 ## 📋 YForm-Liste (zentrale Profile)
@@ -518,7 +518,7 @@ Du kannst für das Backend (Preview) und das Frontend unterschiedliche Framework
     *   **Empfehlung**: Lasse dies auf `bootstrap`, damit die Vorschau im Backend sauber aussieht, auch wenn du im Frontend Tailwind nutzt.
     *   **Custom**: Du kannst auch `tailwind` wählen, wenn du z.B. Tailwind-CSS im Backend lädst.
 
-2.  **Frontend Output**: Wird beim Aufruf von `ContentBuilderHelper::render($data, 'framework')` festgelegt.
+2.  **Frontend Output**: Wird beim Aufruf von `Helper::render($data, 'framework')` festgelegt.
     *   Hier hast du die volle Freiheit: `bootstrap`, `uikit`, `tailwind`, `foundation`, etc.
 
 ### Template-Struktur

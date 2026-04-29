@@ -1,8 +1,18 @@
 <?php
 
+namespace KLXM\YFormContentBuilder;
+
 use KLXM\YFormContentBuilder\Fields\FieldRegistry;
-use KLXM\YFormContentBuilder\Helper;
-use KLXM\YFormContentBuilder\ModalHelper;
+use rex;
+use rex_addon;
+use rex_api_function;
+use rex_api_result;
+use rex_escape;
+use rex_media_category;
+use rex_request;
+use rex_response;
+use rex_sql;
+use rex_url;
 
 /**
  * API Handler für YForm Content Builder
@@ -16,7 +26,7 @@ use KLXM\YFormContentBuilder\ModalHelper;
  * 
  * Aufruf: /redaxo/index.php?rex-api-call=content_builder&action=<action>
  */
-class rex_api_content_builder extends rex_api_function
+class ContentBuilderApi extends rex_api_function
 {
     protected $published = true;
 
