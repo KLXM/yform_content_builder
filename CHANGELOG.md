@@ -12,36 +12,89 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [2.0.0] – 2026-04-29
 
-### Breaking Changes
+### Komplette Namespace-Umstrukturierung (Breaking Change)
 
-- **Namespace-Umstrukturierung**: API-Klassen liegen jetzt unter `KLXM\YFormContentBuilder\Api` (Unterordner `lib/Api/`).
-  - `KLXM\YFormContentBuilder\ContentBuilderApi` → `KLXM\YFormContentBuilder\Api\ContentBuilderApi`
-  - `KLXM\YFormContentBuilder\ListColumnsApi` → `KLXM\YFormContentBuilder\Api\ListColumnsApi`
-- **`boot.php` aufgeräumt**: Alle `require_once`-Aufrufe und die `glob`-Schleife für Feldklassen entfernt – der REDAXO-Autoloader übernimmt das vollständig.
-- **Class Aliases reduziert**: Nur noch Aliase für Klassen, die in externen Addons oder dem Project-Addon verwendet werden können. Interne Aliase (`rex_api_content_builder`, `rex_api_yform_list_columns`, `yform_content_builder_help_modal_helper`) wurden entfernt.
+Alle Klassen des Addons wurden in den PSR-4-Namespace `KLXM\YFormContentBuilder` verschoben. Die Klassen sind jetzt in `lib/` und `lib/Api/` sowie `lib/fields/` organisiert und werden vollständig vom REDAXO-Autoloader geladen.
+
+#### Neue Klassen-Namen (kanonisch)
+
+| Alter Name (bis 1.x) | Neuer Name (2.0) |
+|---|---|
+| `yform_content_builder_module` | `KLXM\YFormContentBuilder\Module` |
+| `yform_content_builder_helper` | `KLXM\YFormContentBuilder\Helper` |
+| `yform_content_builder_config` | `KLXM\YFormContentBuilder\Config` |
+| `YFormContentBuilderSvg` | `KLXM\YFormContentBuilder\Svg` |
+| `YFormContentBuilderMediaAltResolver` | `KLXM\YFormContentBuilder\MediaAltResolver` |
+| `YFormContentMediaManagerHelper` | `KLXM\YFormContentBuilder\MediaManagerHelper` |
+| `YformListProfiles` | `KLXM\YFormContentBuilder\ListProfiles` |
+| `YformListRenderer` | `KLXM\YFormContentBuilder\ListRenderer` |
+| `ForcalListRenderer` | `KLXM\YFormContentBuilder\ForcalRenderer` |
+| `ContentBuilderFieldRegistry` | `KLXM\YFormContentBuilder\Fields\FieldRegistry` |
+| `ContentBuilderFieldAbstract` | `KLXM\YFormContentBuilder\Fields\FieldAbstract` |
+| `ContentBuilderFieldInterface` | `KLXM\YFormContentBuilder\Fields\FieldInterface` |
+| `rex_api_content_builder` | `KLXM\YFormContentBuilder\Api\ContentBuilderApi` |
+| `rex_api_yform_list_columns` | `KLXM\YFormContentBuilder\Api\ListColumnsApi` |
+
+#### Neue Sub-Namespaces
+
+- **`KLXM\YFormContentBuilder`** – Kernklassen (`Module`, `Helper`, `Config`, `Svg`, `MediaAltResolver`, `MediaManagerHelper`, `ModalHelper`, `ListProfiles`, `ListRenderer`, `ForcalRenderer`)
+- **`KLXM\YFormContentBuilder\Fields`** – Feldtypen-System (`FieldRegistry`, `FieldAbstract`, `FieldInterface`, `TextField`, `TextareaField`, `CheckboxField`, `ChoiceField`, `SelectField`, `RadioImageField`, `ColorSwatchesField`, `BeMediaField`, `BeLinkField`, `BeTableSelectField`, `Cke5Field`, `TinyMceField`, `RepeaterField`, `InfoField`, `YFormPickerField`)
+- **`KLXM\YFormContentBuilder\Api`** – AJAX-API-Klassen (`ContentBuilderApi`, `ListColumnsApi`)
+
+#### `boot.php` aufgeräumt
+
+- Alle `require_once`-Aufrufe entfernt – REDAXO-Autoloader lädt alle Klassen in `lib/` und Unterordnern automatisch.
+- `glob`-Schleife für Feldklassen entfernt – Felder werden von `FieldRegistry` on-demand geladen.
+- `rex_api_function::register()` statt `class_alias` für API-Klassen (sauberere Integration).
+- Interne `class_alias`-Einträge entfernt: `rex_api_content_builder`, `rex_api_yform_list_columns`, `yform_content_builder_help_modal_helper`.
+
+#### Abwärtskompatibilität (class_alias)
+
+Die folgenden alten Klassennamen bleiben über `class_alias` in `boot.php` verfügbar – bestehende Module und Projekte müssen **nicht** sofort angepasst werden:
+
+```
+yform_content_builder_module      → KLXM\YFormContentBuilder\Module
+yform_content_builder_helper      → KLXM\YFormContentBuilder\Helper
+yform_content_builder_config      → KLXM\YFormContentBuilder\Config
+YFormContentBuilderSvg            → KLXM\YFormContentBuilder\Svg
+YFormContentBuilderMediaAltResolver → KLXM\YFormContentBuilder\MediaAltResolver
+YFormContentMediaManagerHelper    → KLXM\YFormContentBuilder\MediaManagerHelper
+YformListProfiles                 → KLXM\YFormContentBuilder\ListProfiles
+YformListRenderer                 → KLXM\YFormContentBuilder\ListRenderer
+ForcalListRenderer                → KLXM\YFormContentBuilder\ForcalRenderer (nur wenn forcal aktiv)
+```
 
 ### Modul-Installer
 
-- Generierter Modul-Code (Input & Output) verwendet nun `use KLXM\YFormContentBuilder\Module;` statt des alten `yform_content_builder_module::`-Alias.
-- Gilt für neu erstellte und aktualisierte Module (Button „Bestehende Module aktualisieren").
+- Generierter Modul-Code (Input & Output) verwendet nun `use KLXM\YFormContentBuilder\Module;` + `Module::` statt des alten `yform_content_builder_module::`-Alias.
+- Gilt für neu erstellte **und** aktualisierte Module (Button „Bestehende Module aktualisieren").
+
+### Empfohlene Schreibweise für neuen Code
+
+```php
+// Input-Modul
+<?php
+use KLXM\YFormContentBuilder\Module;
+echo Module::createByValueId('cards', 1, 'uikit')->renderInput();
+
+// Output-Modul
+<?php
+use KLXM\YFormContentBuilder\Module;
+$slice = $this->getCurrentSlice();
+$rawValue = $slice ? (string) $slice->getValue(1) : '';
+echo Module::create('cards', $rawValue, 'uikit', 1)->renderOutput();
+
+// Frontend (YForm)
+<?php
+use KLXM\YFormContentBuilder\Helper;
+echo Helper::render($page->getValue('content'), 'bootstrap');
+```
 
 ### Dokumentation
 
 - Alle Code-Beispiele in `README.md`, `API.md` und `TUTORIAL.md` verwenden jetzt durchgängig `use KLXM\YFormContentBuilder\Module;` bzw. `use KLXM\YFormContentBuilder\Helper;`.
-- Tippfehler im Namespace (`KLXM\YformContentBuilder` → `KLXM\YFormContentBuilder`) in `TUTORIAL.md` korrigiert.
-- Hinweise auf alte Klassennamen aktualisiert: klare Empfehlung für `use`-Importe in neuem Code.
-
-### Migration
-
-Bestehende Module mit alter Schreibweise funktionieren weiterhin über die verbleibenden `class_alias`-Einträge:
-```php
-// Alt – weiterhin funktionsfähig (class_alias)
-yform_content_builder_module::createByValueId('cards', 1, 'uikit')
-
-// Neu – empfohlen
-use KLXM\YFormContentBuilder\Module;
-Module::createByValueId('cards', 1, 'uikit')
-```
+- Namespace-Tippfehler `KLXM\YformContentBuilder` → `KLXM\YFormContentBuilder` in `TUTORIAL.md` korrigiert.
+- Backward-Compat-Hinweise in allen Docs aktualisiert: klare Empfehlung für `use`-Importe in neuem Code.
 
 ---
 
