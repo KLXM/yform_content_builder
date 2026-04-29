@@ -27,3 +27,9 @@ page:
         docs:
             title: 'translate:yform_content_builder_docs'
             icon: rex-icon fa-book
+        api:
+            title: 'translate:yform_content_builder_api'
+            icon: rex-icon fa-code-fork
+        tutorial:
+            title: 'translate:yform_content_builder_tutorial'
+            icon: rex-icon fa-graduation-cap

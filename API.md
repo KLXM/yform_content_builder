@@ -6,14 +6,20 @@ Diese Dokumentation beschreibt die API des YForm Content Builders, wie man eigen
 
 - [API-Endpunkte](#api-endpunkte)
 - [Modul-Integration](#modul-integration)
+- [Frameworks & Templates](#frameworks--templates)
 - [Feldtypen-System](#feldtypen-system)
 - [Feld-Konfiguration](#feld-konfiguration)
   - [Gemeinsame Optionen](#gemeinsame-optionen-alle-felder)
   - [Permission System](#permission-system)
 - [Eigene Elemente erstellen](#eigene-elemente-erstellen)
 - [Eigene Feldtypen erstellen](#eigene-feldtypen-erstellen)
+- [Datensatz-Picker Feldtypen](#datensatz-picker-feldtypen)
+- [Extra-Felder System](#extra-felder-system)
 - [Extension Points](#extension-points)
 - [Helper-Klassen](#helper-klassen)
+- [Datenstruktur](#datenstruktur)
+- [Best Practices](#best-practices)
+- [Fehlerbehebung](#fehlerbehebung)
 
 ---
 
@@ -157,6 +163,48 @@ use KLXM\YFormContentBuilder\Module;
 
 echo Module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
 ?>
+```
+
+---
+
+## Frameworks & Templates
+
+Das Addon ist **Framework-agnostic**: Es lädt beim Rendern einfach die passende Template-Datei.
+
+### Backend vs. Frontend
+
+Du kannst für das Backend (Preview) und das Frontend unterschiedliche Frameworks nutzen:
+
+1. **Backend Preview** – wird in der YForm-Felddefinition unter „Framework" eingestellt.
+   - Default: `bootstrap` (passt zum REDAXO-Backend)
+   - Empfehlung: Lass dies auf `bootstrap`, damit die Vorschau sauber aussieht – auch wenn du im Frontend Tailwind nutzt.
+
+2. **Frontend Output** – wird beim Aufruf von `Helper::render($data, 'framework')` festgelegt.
+   - Volle Freiheit: `bootstrap`, `uikit`, `tailwind`, `plain`, etc.
+
+### Template-Struktur
+
+Das System sucht automatisch nach der Datei `elements/{element}/templates/{framework}.php`:
+
+```text
+elements/
+└── hero/
+    ├── config.php
+    └── templates/
+        ├── bootstrap.php   ← bei render($data, 'bootstrap')
+        ├── uikit.php       ← bei render($data, 'uikit')
+        ├── tailwind.php    ← bei render($data, 'tailwind')
+        └── plain.php       ← Fallback
+```
+
+Gibt es kein passendes Template, wird `plain.php` als Fallback geladen.
+
+### Custom Templates und Frameworks
+
+Eigene Frameworks ergänzt du einfach durch eine neue Template-Datei:
+
+```text
+project/elements/mein_element/templates/tailwind.php
 ```
 
 ---
@@ -1017,6 +1065,7 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_PATHS', function($ep) {
     $paths[] = rex_addon::get('mein_addon')->getPath('content_elements/');
     return $paths;
 });
+```
 
 ### YFORM_CONTENT_BUILDER_ELEMENT_MODE
 
@@ -1029,7 +1078,6 @@ Steuert, wie Demo- und Custom-Elemente kombiniert werden.
 rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function(): string {
     return 'merge';
 });
-```
 ```
 
 ---
@@ -1102,10 +1150,29 @@ echo Helper::render($content, 'plain');
 
 ### Element-Templates
 
-1. **Keine Funktionen definieren** - Templates werden mehrfach eingebunden
-2. **Immer escapen** - `rex_escape()` für alle Ausgaben
-3. **Leere Werte prüfen** - `$elementData['field'] ?? ''`
-4. **Framework-agnostisch denken** - Logik im Template, Styling per CSS
+1. **Keine Funktionen definieren** – Templates werden mehrfach eingebunden. Vermeide `function myHelper() { ... }` direkt im Template: das führt bei mehrfach genutzten Elementen zu einem *„Cannot redeclare function"* Fatal Error.
+
+   ```php
+   // ❌ Falsch – führt zu Fehler bei mehrfacher Verwendung
+   function formatPrice($price) {
+       return number_format($price, 2, ',', '.');
+   }
+   echo formatPrice($price);
+   
+   // ✅ Richtig – Closure oder Helper-Klasse verwenden
+   use KLXM\YFormContentBuilder\Helper;
+   
+   if (Helper::isImage($file)) { ... }
+   
+   $formatPrice = static function (float $price): string {
+       return number_format($price, 2, ',', '.');
+   };
+   echo $formatPrice($price);
+   ```
+
+2. **Immer escapen** – `rex_escape()` für alle Ausgaben nutzen.
+3. **Leere Werte prüfen** – `$elementData['field'] ?? ''` als Fallback.
+4. **Framework-agnostisch denken** – Logik im Template, Styling per CSS.
 
 ### Feldtypen
 
@@ -1119,3 +1186,279 @@ echo Helper::render($content, 'plain');
 1. **Lazy Loading** - Felder werden erst bei Bedarf initialisiert
 2. **Caching** - Element-Konfigurationen werden gecacht
 3. **Minimale Requests** - API-Calls bündeln wo möglich
+
+---
+
+## Datensatz-Picker Feldtypen
+
+Es gibt **zwei verschiedene Feldtypen** für die Auswahl von Datensätzen aus Datenbanktabellen:
+
+### `be_table_select` – Einfacher Datensatz-Picker (Selectpicker)
+
+Leichtgewichtiger selectpicker für einfache Einzel- oder Mehrfachauswahl.
+
+**Features:**
+- Single & Multiple (kommagetrennte Speicherung bei Multiple: `"1,2,3"`)
+- Live Search im Dropdown
+- Responsive
+
+```php
+'featured_product' => [
+    'type' => 'be_table_select',
+    'label' => 'Produkt verknüpfen',
+    'table' => 'rex_yform_products',
+    'field' => 'title',
+    'multiple' => false,
+    'notice' => 'Einzelnes Produkt auswählen'
+],
+
+'related_events' => [
+    'type' => 'be_table_select',
+    'label' => 'Termine verknüpfen',
+    'table' => 'rex_yform_calendar',
+    'field' => 'title',
+    'multiple' => true,
+    'notice' => 'Mehrere Termine möglich'
+]
+```
+
+| Parameter | Typ | Erforderlich | Beschreibung |
+|-----------|-----|:---:|--------------|
+| `table` | string | ✅ | Tabellenname (z. B. `rex_yform_calendar`) |
+| `field` | string | ✅ | Anzeige-Spalte (z. B. `title`) |
+| `multiple` | bool | – | Mehrfachauswahl (default: `false`) |
+| `label` | string | ✅ | Feldbezeichnung im Backend |
+| `notice` | string | – | Hinweis-Text |
+
+### `yformpicker` – YForm Datensatz-Picker (Popup)
+
+Öffnet den YForm-Manager in einem Popup – ideal für große Datenmengen.
+
+**Features:**
+- Native YForm-Integration mit Pagination
+- Single & Multiple
+- Sortierbar (Drag & Drop oder Move-Buttons bei Multiple)
+
+```php
+'main_event' => [
+    'type' => 'yformpicker',
+    'label' => 'Haupttermin',
+    'table' => 'rex_yform_calendar',
+    'field' => 'title',
+    'multiple' => false
+],
+
+'team_members' => [
+    'type' => 'yformpicker',
+    'label' => 'Team-Mitglieder',
+    'table' => 'rex_kontakte',
+    'field' => 'nachname',
+    'multiple' => true
+]
+```
+
+### Vergleich
+
+| Feature | `be_table_select` | `yformpicker` |
+|---------|:-----------------:|:-------------:|
+| Darstellung | Selectpicker / Dropdown | Popup-Modal |
+| Große Datenmengen | ⚠️ | ✅ Pagination |
+| Sortierbar (Multiple) | – | ✅ |
+| Abhängigkeiten | Bootstrap Selectpicker | YForm |
+
+---
+
+## Extra-Felder System
+
+Das Extra-Felder System ermöglicht es, bestehenden Elementen projektspezifische Zusatzfelder hinzuzufügen **ohne den Element-Code zu modifizieren**.
+
+### Konzept
+
+1. **Extra-Klasse erstellen** – externe PHP-Klasse definiert zusätzliche Felder.
+2. **Backend-Rendering** – Felder erscheinen automatisch in einem Modal oder Extra-Tab.
+3. **Datenspeicherung** – Werte werden mit den Element-Daten gespeichert.
+4. **Frontend-Output** – `GetOutput()` formatiert die Werte für die Ausgabe.
+
+### Extra-Klasse erstellen
+
+```php
+<?php
+/**
+ * Projekt-spezifische Extra-Felder für das Cards-Element (Repeater-Items)
+ */
+class CardsRepeaterExtra
+{
+    /**
+     * Definiert zusätzliche Felder (Format wie Element-Config)
+     */
+    public static function GetConfig(): array
+    {
+        return [
+            'card_badge' => [
+                'type' => 'text',
+                'label' => 'Badge-Text',
+                'notice' => 'Z. B. „NEU" oder „SALE"'
+            ],
+            'card_premium' => [
+                'type' => 'choice',
+                'label' => 'Karten-Status',
+                'choices' => [
+                    'free'     => 'Kostenlos',
+                    'standard' => 'Standard',
+                    'premium'  => 'Premium',
+                ],
+                'default' => 'standard'
+            ],
+        ];
+    }
+
+    /**
+     * Formatiert Extra-Felder als HTML für das Frontend-Template
+     */
+    public static function GetOutput(array $item): string
+    {
+        $html = '';
+
+        if (!empty($item['card_badge'])) {
+            $html .= '<span class="badge">' . rex_escape($item['card_badge']) . '</span>';
+        }
+
+        return $html;
+    }
+}
+```
+
+### Element-Config für Extra-Felder anpassen
+
+```php
+<?php
+// Extra-Felder von Projekt-Addon laden
+$extra = [];
+if (class_exists('CardsRepeaterExtra') && method_exists('CardsRepeaterExtra', 'GetConfig')) {
+    $extra = CardsRepeaterExtra::GetConfig();
+}
+
+return [
+    'label' => 'Cards',
+    'icon'  => 'fa-th',
+    'fields' => [
+        'items' => [
+            'type'  => 'repeater',
+            'label' => 'Cards',
+
+            // Extras-Modal – nur wenn Extra-Felder vorhanden
+            ...(!empty($extra) ? [
+                'extras_modal' => [
+                    'label'         => 'Extras',
+                    'icon'          => 'fa-star',
+                    'trigger_after' => 'title',
+                    'fields'        => array_keys($extra),
+                ]
+            ] : []),
+
+            'fields' => [
+                'title' => ['type' => 'text', 'label' => 'Titel'],
+                'text'  => ['type' => 'cke5', 'label' => 'Text'],
+
+                // Extra-Felder integrieren
+                ...$extra,
+            ],
+        ],
+    ],
+];
+```
+
+### Frontend-Template mit Extra-Ausgabe
+
+```php
+<?php
+// Extra-Felder Ausgabe
+$extraHtml = '';
+if (class_exists('CardsRepeaterExtra') && method_exists('CardsRepeaterExtra', 'GetOutput')) {
+    $extraHtml = CardsRepeaterExtra::GetOutput($item);
+}
+
+if ($extraHtml !== '') {
+    echo '<div class="card-extras">' . $extraHtml . '</div>';
+}
+```
+
+---
+
+## Datenstruktur
+
+Content wird als **JSON-Array** in einer YForm-Textspalte oder einem REDAXO Module-Slot (REX_VALUE) gespeichert:
+
+```json
+[
+    {
+        "element_type": "headline",
+        "data": {
+            "text": "Willkommen",
+            "level": "h1",
+            "color": "default"
+        },
+        "slice_id": "slice_abc123"
+    },
+    {
+        "element_type": "media_text",
+        "data": {
+            "headline": "Über uns",
+            "text": "<p>...</p>",
+            "image": "team.jpg",
+            "layout": "media-left"
+        },
+        "slice_id": "slice_def456"
+    }
+]
+```
+
+Verschachtelte Felder (Repeater) werden als Arrays innerhalb von `data` gespeichert:
+
+```json
+{
+    "element_type": "cards",
+    "data": {
+        "items": [
+            { "title": "Karte 1", "text": "<p>...</p>", "image": "card1.jpg" },
+            { "title": "Karte 2", "text": "<p>...</p>", "image": "card2.jpg" }
+        ]
+    }
+}
+```
+
+---
+
+## Fehlerbehebung
+
+### Element wird nicht angezeigt
+
+1. Prüfe Ordnerstruktur: `elements/mein_element/config.php` vorhanden?
+2. Ist `config.php` syntaktisch valides PHP? Gibt es ein `return [...]`?
+3. Backend-Cache leeren: **REDAXO → System → Cache löschen**
+
+### CKE5 initialisiert nicht
+
+1. CKE5-Addon installiert und aktiviert?
+2. Browser-Konsole auf JavaScript-Fehler prüfen
+3. Feld-ID muss mit `ck` beginnen (wird intern automatisch vergeben)
+
+### Linkmap funktioniert nicht
+
+1. `REX_LINK_X` und `REX_LINK_X_NAME` korrekt referenziert?
+2. `deleteREXLink()` verfügbar (REDAXO Media/Link-Erweiterung geladen)?
+
+### Repeater-Daten werden nicht gespeichert
+
+1. `setNestedValue()` in `content-builder.js` auf Fehler prüfen
+2. Browser-Konsole auf JSON-Fehler prüfen
+3. Netzwerk-Tab: POST-Request auf `rex-api-call=content_builder` prüfen
+
+### Klasse nicht gefunden nach Update auf 2.0
+
+Alle alten Klassennamen stehen als `class_alias` zur Verfügung. Sollte eine Klasse fehlen, prüfe:
+
+1. `boot.php` hat alle benötigten `class_alias`-Einträge.
+2. REDAXO-Autoloader findet die Klasse in `lib/` (Cache löschen hilft).
+3. Für neuen Code: `use KLXM\YFormContentBuilder\Module;` statt des alten Alias verwenden.
+

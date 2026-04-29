@@ -2,7 +2,9 @@
 
 Willkommen! In diesem Tutorial erstellen wir **Schritt für Schritt** dein erstes eigenes Element für den YForm Content Builder.
 
-Wir bauen eine **"Team-Box"** (Bild, Name, Jobtitel).
+Wir bauen eine **„Team-Box"** (Bild, Name, Jobtitel).
+
+📖 Weitere Referenzen: [API-Dokumentation](API.md) · [README](README.md)
 
 ---
 
@@ -170,7 +172,7 @@ echo Helper::render($data, 'bootstrap');
 ## 💡 Tipps für Profis (die es werden wollen)
 
 *   **Eigene Icons:** Du kannst alle [FontAwesome 4.7 Icons](https://fontawesome.com/v4/icons/) nutzen.
-*   **Mehr Felder:** Schau in die `SCHEMA.md` oder `API.md`, welche Feldtypen es noch gibt (z.B. `textarea`, `choice`, `repeater`).
+*   **Mehr Felder:** Schau in die [API.md](API.md), welche Feldtypen es noch gibt (z. B. `textarea`, `choice`, `repeater`, `radio_image`, `color_swatches`).
 *   **Frameworks:** Wenn du Tailwind nutzt, erstelle einfach eine `templates/tailwind.php` und nutze Tailwind-Klassen statt Bootstrap-Klassen.
 
 Viel Erfolg beim Bauen! 🚀
@@ -372,14 +374,29 @@ Damit kannst du fast jede Anforderung umsetzen! Viel Spaß beim Coden. 💻
 
 # 🎁 Bonus: Spicken erlaubt!
 
-Das Addon liefert bereits **9 fertige Elemente** mit, die fast alles abdecken, was man im Alltag braucht:
+Das Addon liefert bereits **26 fertige Elemente** mit, die fast alles abdecken, was man im Alltag braucht:
 
-*   **Text & Bild** (mit verschiedenen Layouts)
-*   **Galerie** (Grid & Masonry)
-*   **Akkordeon**
-*   **Cards**
-*   **Slideshow**
-*   **Headline, Divider, Section...**
+*   **Section / Container** – Visuelle Abschnitte mit Hintergrundfarbe/-bild
+*   **Text & Bild** – mit verschiedenen Layouts
+*   **Accordion** – Aufklappbare Inhaltsblöcke / Tabs
+*   **Headline** – H1–H6, Farbe, Ausrichtung
+*   **Divider** – Trennlinien, 9 Styles
+*   **Cards Grid** – Repeater-basiert, Farb- und Layout-Auswahl
+*   **Slideshow** – Bild-/Video-Slideshow
+*   **Gallery** – Grid & Masonry, Mixed Media
+*   **Hero Banner** – Fullscreen-Banner mit Call-to-Action
+*   **Feature Grid** – Icon-Feature-Liste
+*   **Moving Tiles** – Parallax-Tiles mit alternierenden Layouts
+*   **Testimonial** – Zitate mit Autor und Bild
+*   **Timeline** – Zeitstrahl-Element
+*   **Downloads** – Dateiliste aus dem Mediapool
+*   **Countdown** – Countdown bis zu einem Datum
+*   **Table** – Einfache Tabellen-Ausgabe
+*   **YForm-Liste** – Datensätze aus YForm-Tabellen
+*   **Kontakt-Picker** – Einzelne Kontakte aus YForm-Profilen
+*   **Forcal-Termine** – Veranstaltungen aus forcal
+*   **Kontaktformular** – PHPMailer, Validierung, AJAX
+*   **Starter-Elemente** (`starter_text`, `starter_headline`, `starter_media_split`, `starter_gallery`, `starter_cards`, `starter_callout`) – reduzierte Vorlagen für schnellen Einstieg
 
 ### Der beste Weg zu lernen:
 Schau dir an, wie wir diese Elemente gebaut haben! Du findest sie im Ordner:
@@ -387,7 +404,7 @@ Schau dir an, wie wir diese Elemente gebaut haben! Du findest sie im Ordner:
 `redaxo/src/addons/yform_content_builder/elements/`
 
 **Pro-Tipp:**
-Wenn du ein Element brauchst, das *fast* so ist wie eines der Vorhandenen (z.B. eine Galerie, aber mit Video-Support), dann:
+Wenn du ein Element brauchst, das *fast* so ist wie eines der Vorhandenen (z. B. eine Galerie, aber mit Video-Support), dann:
 1.  Kopiere den Ordner aus dem Addon in dein `project/elements/` Verzeichnis.
 2.  Benenne ihn um.
 3.  Passe die `config.php` und das Template an.
