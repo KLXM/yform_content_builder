@@ -9,16 +9,6 @@
 rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\Api\ContentBuilderApi::class);
 rex_api_function::register('yform_list_columns', \KLXM\YFormContentBuilder\Api\ListColumnsApi::class);
 
-// Theme Builder Integration - Theme für Backend setzen
-if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-    $configuredTheme = rex_addon::get('yform_content_builder')->getConfig('theme');
-    if ($configuredTheme && class_exists('UikitThemeBuilder\DomainContext')) {
-        // Cache zurücksetzen und Theme setzen
-        \UikitThemeBuilder\DomainContext::resetContext();
-        \UikitThemeBuilder\DomainContext::setTheme($configuredTheme);
-    }
-}
-
 // Extension Points registrieren
 rex_extension::register('PACKAGES_INCLUDED', function() {
     // Templates registrieren

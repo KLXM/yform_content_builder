@@ -27,6 +27,19 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     
     public function enterObject()
     {
+        // Theme Builder einmalig pro Request initialisieren (nur wenn Content-Builder-Feld gerendert wird)
+        static $themeInitialized = false;
+        if (!$themeInitialized) {
+            $themeInitialized = true;
+            if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
+                $configuredTheme = rex_addon::get('yform_content_builder')->getConfig('theme');
+                if ($configuredTheme && class_exists('UikitThemeBuilder\DomainContext')) {
+                    \UikitThemeBuilder\DomainContext::resetContext();
+                    \UikitThemeBuilder\DomainContext::setTheme($configuredTheme);
+                }
+            }
+        }
+
         // AJAX-Anfragen behandeln - wenn AJAX, wird hier beendet
         if ($this->handleAjaxRequests()) {
             return; // AJAX wurde behandelt, normal processing stoppen
