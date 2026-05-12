@@ -19,6 +19,19 @@ $elementsDir = $addon->getPath('elements');
 $elements = [];
 
 if (is_dir($elementsDir)) {
+	// Zuerst alle Element-Lang-Dateien laden damit Übersetzungen verfügbar sind
+	$dirs = scandir($elementsDir);
+	foreach ($dirs as $dir) {
+		if ($dir === '.' || $dir === '..') {
+			continue;
+		}
+		$langDir = $elementsDir . '/' . $dir . '/lang';
+		if (is_dir($langDir)) {
+			\rex_i18n::addDirectory($langDir);
+		}
+	}
+
+	// Nun alle Elemente mit ihren Konfigurationen laden
 	$dirs = scandir($elementsDir);
 	foreach ($dirs as $dir) {
 		if ($dir === '.' || $dir === '..') {

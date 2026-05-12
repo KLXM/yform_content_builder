@@ -1,11 +1,30 @@
 yform_content_builder_title = YForm Content Builder
 yform_content_builder_description = Slice-based Content Builder for YForm
+yform_content_builder_intro = The YForm Content Builder enables the creation of flexible content elements in YForm forms and REDAXO modules.
+yform_content_builder_overview = Overview
 
 yform_content_builder_modules = Modules
+yform_content_builder_modules_description = Auto-generate REDAXO modules for Content Builder elements
+
+yform_content_builder_settings = Settings
 yform_content_builder_docs = Documentation
 yform_content_builder_api = API Documentation
 yform_content_builder_tutorial = Tutorial
-yform_content_builder_modules_description = Auto-generate REDAXO modules for Content Builder elements
+yform_content_builder_general_settings = General Settings
+yform_content_builder_theme_settings = Theme Builder Integration
+yform_content_builder_theme = Theme
+yform_content_builder_theme_notice = Select a theme from the UIkit Theme Builder to be used for color selection in the backend.
+yform_content_builder_theme_info = The selected theme determines which colors are displayed in the color selection fields (Card color, background, etc.). In the frontend, the theme of the respective domain is still used.
+yform_content_builder_theme_builder_missing = The addon "uikit_theme_builder" is not installed or enabled. Theme integration is therefore not available.
+yform_content_builder_settings_saved = Settings have been saved.
+
+yform_content_builder_compact_mode = Compact Mode
+yform_content_builder_compact_mode_label = Enable compact mode
+yform_content_builder_compact_mode_notice = In compact mode, slices are displayed without borders, backgrounds, and spacing. The toolbar remains visible.
+
+yform_content_builder_enable_online_toggle = Online/Offline per section
+yform_content_builder_enable_online_toggle_label = Enable online/offline switch for individual sections
+yform_content_builder_enable_online_toggle_notice = When enabled, an eye button appears in the slice toolbar that allows individual sections to be set offline. Offline sections are preserved in the data but automatically hidden in the frontend (via yform_content_builder_helper). Applies only to the YForm variant – the module variant uses the standard REDAXO slice functions.
 
 yform_content_builder_element_add = Add element
 yform_content_builder_element_edit = Edit
