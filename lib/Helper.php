@@ -39,7 +39,9 @@ class Helper
     {
         $msg = \rex_i18n::rawMsg($key);
 
-        if ($msg !== $key) {
+        // REDAXO returns missing keys as "[translate:key]".
+        // Treat both key and placeholder as untranslated so fallback is used.
+        if ($msg !== $key && $msg !== '[translate:' . $key . ']') {
             return $msg;
         }
 

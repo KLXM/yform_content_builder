@@ -1,28 +1,27 @@
 <?php
 
 /**
-@@+/**
-@@ * YForm Content Builder - Modul-Generator
-@@ * Erstelle automatisch REDAXO-Module für deine Content Builder Elemente
-@@ */
-@@
-@@$addon = rex_addon::get('yform_content_builder');
-@@
-@@// WICHTIG: Lang-Dateien aller Elemente am Anfang laden damit Übersetzungen verfügbar sind
-@@$elementsDir = rex_path::addon('yform_content_builder', 'elements');
-@@if (is_dir($elementsDir)) {
-@@    $dirs = scandir($elementsDir);
-@@    foreach ($dirs as $dir) {
-@@        if ($dir[0] !== '.') {
-@@            $langDir = $elementsDir . '/' . $dir . '/lang';
-@@            if (is_dir($langDir)) {
-@@                \rex_i18n::addDirectory($langDir);
-@@            }
-@@        }
-@@    }
-@@}
-@@
-@@// Helper: Generiert Modul-Code für ein Element
+ * YForm Content Builder - Modul-Generator
+ * Erstelle automatisch REDAXO-Module für deine Content Builder Elemente
+ */
+
+$addon = rex_addon::get('yform_content_builder');
+
+// WICHTIG: Lang-Dateien aller Elemente am Anfang laden damit Übersetzungen verfügbar sind
+$elementsDir = rex_path::addon('yform_content_builder', 'elements');
+if (is_dir($elementsDir)) {
+    $dirs = scandir($elementsDir);
+    foreach ($dirs as $dir) {
+        if ($dir[0] !== '.') {
+            $langDir = $elementsDir . '/' . $dir . '/lang';
+            if (is_dir($langDir)) {
+                \rex_i18n::addDirectory($langDir);
+            }
+        }
+    }
+}
+
+// Helper: Generiert Modul-Code für ein Element
 function generateModuleCode(string $elementKey, string $framework, int $valueId = 1): string
 {
     $config = [];
