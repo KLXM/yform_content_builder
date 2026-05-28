@@ -10,11 +10,22 @@
  * @var string $description
  * @var string $framework
  * @var array $available_elements
+ * @var string $legacy_html
+ * @var string $legacy_editor
+ * @var string $legacy_profile
  */
 
 $fieldClass = 'yform-content-builder';
 if ($required) {
     $fieldClass .= ' required';
+}
+
+$legacyHtml = isset($legacy_html) ? (string) $legacy_html : '';
+$legacyEditor = isset($legacy_editor) ? (string) $legacy_editor : 'none';
+$legacyProfile = isset($legacy_profile) ? (string) $legacy_profile : 'default';
+$hasLegacyHtml = ($legacyHtml !== '' && $legacyEditor !== 'none');
+if ($hasLegacyHtml) {
+    $fieldClass .= ' has-legacy-html';
 }
 
 // Kompaktmodus aus Addon-Config laden
@@ -47,6 +58,8 @@ foreach ($available_elements as $elementType => $config) {
 <div class="form-group yform-element <?= $fieldClass ?>" 
      data-framework="<?= $framework ?>"
      data-online-toggle="<?= $enableOnlineToggle ? '1' : '0' ?>"
+     data-legacy-editor="<?= rex_escape($legacyEditor) ?>"
+     data-legacy-profile="<?= rex_escape($legacyProfile) ?>"
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     
     <?php if ($label): ?>
@@ -56,8 +69,30 @@ foreach ($available_elements as $elementType => $config) {
     <?php if ($description): ?>
         <p class="help-block"><?= $description ?></p>
     <?php endif; ?>
-    
-    <div class="content-builder-slices">
+
+    <?php if ($hasLegacyHtml): ?>
+        <?php
+        $legacyEditorClass = $legacyEditor === 'cke5' ? 'cke5-editor' : 'tiny-editor';
+        $legacyEditorId = 'cb_legacy_' . uniqid();
+        $legacyInputName = 'FORM[' . $this->params['form_name'] . '][' . $this->getId() . ']';
+        ?>
+        <div class="content-builder-legacy" data-legacy-editor="<?= rex_escape($legacyEditor) ?>" data-legacy-profile="<?= rex_escape($legacyProfile) ?>">
+            <div class="alert alert-warning content-builder-legacy-notice">
+                <i class="fa fa-exclamation-triangle"></i>
+                <span class="content-builder-legacy-notice-text"><?= rex_i18n::msg('yform_content_builder_legacy_notice') ?></span>
+                <button type="button" class="btn btn-primary btn-sm content-builder-legacy-migrate" data-confirm="<?= rex_escape(rex_i18n::msg('yform_content_builder_legacy_migrate_confirm')) ?>">
+                    <i class="fa fa-magic"></i> <?= rex_i18n::msg('yform_content_builder_legacy_migrate') ?>
+                </button>
+            </div>
+            <textarea id="<?= rex_escape($legacyEditorId) ?>"
+                      name="<?= rex_escape($legacyInputName) ?>"
+                      class="form-control content-builder-legacy-textarea <?= $legacyEditorClass ?>"
+                      data-profile="<?= rex_escape($legacyProfile) ?>"
+                      rows="15"><?= rex_escape($legacyHtml) ?></textarea>
+        </div>
+    <?php endif; ?>
+
+    <div class="content-builder-slices"<?= $hasLegacyHtml ? ' style="display:none;"' : '' ?>>
         <?php if (!empty($value)): ?>
             <?php foreach ($value as $index => $slice): ?>
                 <?php
@@ -185,7 +220,7 @@ foreach ($available_elements as $elementType => $config) {
         <?php endif; ?>
     </div>
     
-    <div class="content-builder-add">
+    <div class="content-builder-add"<?= $hasLegacyHtml ? ' style="display:none;"' : '' ?>>
         <div class="btn-group btn-block">
             <button type="button" class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown">
                 <i class="fa fa-plus"></i> <?= rex_i18n::msg('yform_content_builder_element_add') ?>
@@ -222,10 +257,12 @@ foreach ($available_elements as $elementType => $config) {
         </div>
     </div>
     
+    <?php if (!$hasLegacyHtml): ?>
     <input type="hidden" 
            name="FORM[<?= $this->params['form_name'] ?>][<?= $this->getId() ?>]" 
            class="content-builder-data" 
            value='<?= rex_escape(json_encode($value, JSON_UNESCAPED_UNICODE)) ?>'>
+    <?php endif; ?>
     
     <?php if ($notice): ?>
         <p class="help-block"><?= $notice ?></p>

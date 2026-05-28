@@ -1381,3 +1381,24 @@ body.modal-open {
     overflow-wrap: break-word;
     text-align: left;
 }
+
+/* Legacy HTML Migration */
+.yform-content-builder .content-builder-legacy {
+    margin-bottom: 15px;
+}
+
+.yform-content-builder .content-builder-legacy-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.yform-content-builder .content-builder-legacy-notice-text {
+    flex: 1 1 auto;
+}
+
+.yform-content-builder .content-builder-legacy-notice .content-builder-legacy-migrate {
+    flex: 0 0 auto;
+    margin-left: auto;
+}

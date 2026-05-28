@@ -11,6 +11,15 @@ if (rex_post('save', 'bool')) {
     $addon->setConfig('theme', rex_post('theme', 'string', ''));
     $addon->setConfig('compact_mode', rex_post('compact_mode', 'bool', false));
     $addon->setConfig('enable_online_toggle', rex_post('enable_online_toggle', 'bool', false));
+
+    $allowedLegacyEditors = ['none', 'cke5', 'tinymce'];
+    $legacyEditor = rex_post('legacy_editor', 'string', 'none');
+    if (!in_array($legacyEditor, $allowedLegacyEditors, true)) {
+        $legacyEditor = 'none';
+    }
+    $addon->setConfig('legacy_editor', $legacyEditor);
+    $addon->setConfig('legacy_profile', rex_post('legacy_profile', 'string', 'default'));
+
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
     // Theme Builder Cache zurücksetzen
@@ -30,6 +39,11 @@ if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitT
 $currentTheme = $addon->getConfig('theme', '');
 $compactMode = $addon->getConfig('compact_mode', false);
 $enableOnlineToggle = $addon->getConfig('enable_online_toggle', false);
+$legacyEditor = $addon->getConfig('legacy_editor', 'none');
+if (!in_array($legacyEditor, ['none', 'cke5', 'tinymce'], true)) {
+    $legacyEditor = 'none';
+}
+$legacyProfile = (string) $addon->getConfig('legacy_profile', 'default');
 
 // Formular bauen
 $content = '';
@@ -62,6 +76,29 @@ $n = [];
 $n['label'] = '<label for="enable_online_toggle">' . rex_i18n::msg('yform_content_builder_enable_online_toggle') . '</label>';
 $n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_online_toggle" value="0"><input type="checkbox" id="enable_online_toggle" name="enable_online_toggle" value="1"' . ($enableOnlineToggle ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_enable_online_toggle_label') . '</label></div>';
 $n['note'] = rex_i18n::msg('yform_content_builder_enable_online_toggle_notice');
+$formElements[] = $n;
+
+// Legacy-Editor (HTML-Erkennung)
+$legacyEditorChoices = [
+    'none' => rex_i18n::msg('yform_content_builder_legacy_editor_none'),
+    'cke5' => 'CKEditor 5',
+    'tinymce' => 'TinyMCE',
+];
+$n = [];
+$n['label'] = '<label for="legacy_editor">' . rex_i18n::msg('yform_content_builder_legacy_editor') . '</label>';
+$n['field'] = '<select class="form-control" id="legacy_editor" name="legacy_editor">';
+foreach ($legacyEditorChoices as $value => $label) {
+    $selected = ($value === $legacyEditor) ? ' selected' : '';
+    $n['field'] .= '<option value="' . rex_escape($value) . '"' . $selected . '>' . rex_escape($label) . '</option>';
+}
+$n['field'] .= '</select>';
+$n['note'] = rex_i18n::msg('yform_content_builder_legacy_editor_notice');
+$formElements[] = $n;
+
+$n = [];
+$n['label'] = '<label for="legacy_profile">' . rex_i18n::msg('yform_content_builder_legacy_profile') . '</label>';
+$n['field'] = '<input type="text" class="form-control" id="legacy_profile" name="legacy_profile" value="' . rex_escape($legacyProfile) . '">';
+$n['note'] = rex_i18n::msg('yform_content_builder_legacy_profile_notice');
 $formElements[] = $n;
 
 $fragment = new rex_fragment();

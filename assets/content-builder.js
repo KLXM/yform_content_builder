@@ -32,6 +32,33 @@
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+            this.initLegacyEditors();
+        },
+
+        /**
+         * Legacy-HTML-Editor initialisieren (CKE5 oder TinyMCE) in Feldern,
+         * deren bisheriger Wert klassisches HTML statt Content-Builder-JSON enthielt.
+         */
+        initLegacyEditors: function() {
+            $('.yform-content-builder .content-builder-legacy').each(function() {
+                var $wrap = $(this);
+                if ($wrap.data('legacyInitialized')) {
+                    return;
+                }
+                $wrap.data('legacyInitialized', true);
+
+                var editor = ($wrap.data('legacyEditor') || '').toString();
+                var $textarea = $wrap.find('textarea.content-builder-legacy-textarea').first();
+                if ($textarea.length === 0) {
+                    return;
+                }
+
+                if (editor === 'cke5' && typeof cke5_init === 'function') {
+                    try { cke5_init($textarea); } catch (e) { /* noop */ }
+                } else if (editor === 'tinymce' && typeof tiny_init === 'function') {
+                    try { tiny_init($wrap); } catch (e) { /* noop */ }
+                }
+            });
         },
 
         initElementMenuTooltips: function() {
@@ -71,6 +98,14 @@
 
         bindEvents: function() {
             var self = this;
+
+            // Legacy-HTML → Content Builder migrieren
+            $(document).on('click', '.content-builder-legacy-migrate', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.migrateLegacyHtml($(this).closest('.yform-content-builder'));
+                return false;
+            });
 
             // Slice löschen - MUSS VOR edit kommen!
             $(document).on('click', '.btn-slice-delete', function(e) {
@@ -1374,6 +1409,94 @@
             $('html, body').animate({
                 scrollTop: offset
             }, 500);
+        },
+
+        /**
+         * Konvertiert einen klassischen HTML-Wert in einen einzelnen
+         * starter_text-Slice und initialisiert den Content Builder.
+         */
+        migrateLegacyHtml: function($container) {
+            if ($container.length === 0) {
+                return;
+            }
+
+            var $legacy = $container.find('.content-builder-legacy').first();
+            if ($legacy.length === 0) {
+                return;
+            }
+
+            var $textarea = $legacy.find('textarea.content-builder-legacy-textarea').first();
+            if ($textarea.length === 0) {
+                return;
+            }
+
+            // Aktuellen HTML-Inhalt holen (TinyMCE / CKE5 in Textarea zurueckschreiben).
+            var html = '';
+            var textareaId = $textarea.attr('id');
+
+            if (typeof tinymce !== 'undefined' && textareaId) {
+                var tinyEd = tinymce.get(textareaId);
+                if (tinyEd) {
+                    try {
+                        tinyEd.save();
+                        html = tinyEd.getContent();
+                    } catch (e) { /* noop */ }
+                }
+            }
+
+            if (!html && typeof CKEDITOR !== 'undefined' && CKEDITOR.instances && textareaId && CKEDITOR.instances[textareaId]) {
+                try { html = CKEDITOR.instances[textareaId].getData(); } catch (e) { /* noop */ }
+            }
+
+            if (!html) {
+                html = $textarea.val() || '';
+            }
+
+            var $confirmBtn = $legacy.find('.content-builder-legacy-migrate');
+            var confirmMsg = $confirmBtn.data('confirm');
+            if (confirmMsg && !window.confirm(confirmMsg)) {
+                return;
+            }
+
+            // Editor-Instanzen sauber entfernen.
+            if (typeof tinymce !== 'undefined' && textareaId) {
+                var ed = tinymce.get(textareaId);
+                if (ed) { try { ed.remove(); } catch (e) { /* noop */ } }
+            }
+            if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances && textareaId && CKEDITOR.instances[textareaId]) {
+                try { CKEDITOR.instances[textareaId].destroy(true); } catch (e) { /* noop */ }
+            }
+
+            // Form-Input-Name vom Legacy-Textarea uebernehmen, damit der
+            // submit ohne weitere Aktion den Content-Builder-JSON sendet.
+            var fieldName = $textarea.attr('name') || '';
+
+            // Legacy-Block entfernen.
+            $legacy.remove();
+
+            // Versteckten Content-Builder-Datenspeicher (neu) anlegen.
+            var $hidden = $container.find('input.content-builder-data');
+            if ($hidden.length === 0 && fieldName) {
+                $hidden = $('<input type="hidden" class="content-builder-data">').attr('name', fieldName);
+                $container.append($hidden);
+            }
+
+            // Container fuer Slices/Add-Button wieder anzeigen.
+            $container.find('.content-builder-slices, .content-builder-add').show();
+            $container.removeClass('has-legacy-html');
+
+            // Einen starter_text-Slice mit dem HTML als "text"-Feld anlegen.
+            var $slicesContainer = $container.find('.content-builder-slices').first();
+            this.addSlice($slicesContainer, 'starter_text', 'Text');
+
+            var $newSlice = $slicesContainer.children('.content-builder-slice').last();
+            if ($newSlice.length) {
+                var sliceData = { text: html };
+                $newSlice.attr('data-slice-data', JSON.stringify(sliceData));
+            }
+
+            // Hidden-Feld mit dem neuen Slice befuellen.
+            this.updateHiddenField();
         },
 
         updateHiddenField: function() {

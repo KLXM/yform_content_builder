@@ -980,7 +980,37 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     {
         $value = $this->parseValue();
         $framework = $this->getElement('framework', 'bootstrap');
-        
+
+        // Legacy-HTML-Erkennung:
+        // Wenn der gespeicherte Wert nicht leer ist aber keinen Slice-Array ergibt,
+        // gehen wir davon aus, dass es sich um klassisches HTML handelt und
+        // bieten dem Admin die Migration in den Content Builder an.
+        $rawValue = (string) $this->getValue();
+        $legacyHtml = '';
+        if ($rawValue !== '' && empty($value)) {
+            $decoded = json_decode($rawValue, true);
+            if (!is_array($decoded)) {
+                $legacyHtml = $rawValue;
+            }
+        }
+
+        $addon = rex_addon::get('yform_content_builder');
+        $legacyEditor = (string) $this->getElement('legacy_editor', '');
+        if ($legacyEditor === '') {
+            $legacyEditor = (string) $addon->getConfig('legacy_editor', 'none');
+        }
+        if (!in_array($legacyEditor, ['none', 'cke5', 'tinymce'], true)) {
+            $legacyEditor = 'none';
+        }
+
+        $legacyProfile = (string) $this->getElement('legacy_profile', '');
+        if ($legacyProfile === '') {
+            $legacyProfile = (string) $addon->getConfig('legacy_profile', 'default');
+        }
+        if ($legacyProfile === '') {
+            $legacyProfile = 'default';
+        }
+
         return [
             'value' => $value,
             'field_type' => 'content_builder',
@@ -993,6 +1023,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'description' => $this->getElement('description', ''),
             'framework' => $framework,
             'available_elements' => $this->getAvailableElements(),
+            'legacy_html' => $legacyHtml,
+            'legacy_editor' => $legacyEditor,
+            'legacy_profile' => $legacyProfile,
         ];
     }
 
@@ -1280,6 +1313,21 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     'multiple' => true,
                     'expanded' => false,
                     'default' => '',
+                ],
+                'legacy_editor' => [
+                    'type' => 'choice',
+                    'label' => 'Legacy-HTML-Editor (leer = Addon-Einstellung)',
+                    'choices' => [
+                        '' => '-- Addon-Einstellung --',
+                        'none' => 'Deaktiviert',
+                        'cke5' => 'CKEditor 5',
+                        'tinymce' => 'TinyMCE',
+                    ],
+                    'default' => '',
+                ],
+                'legacy_profile' => [
+                    'type' => 'text',
+                    'label' => 'Legacy-Editor-Profil (leer = Addon-Einstellung)',
                 ],
                 'description' => ['type' => 'text', 'label' => 'Beschreibung'],
                 'notice' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_notice')],

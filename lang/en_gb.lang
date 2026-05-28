@@ -47,6 +47,15 @@ yform_content_builder_enable_online_toggle = Online/Offline per section
 yform_content_builder_enable_online_toggle_label = Enable online/offline switch for individual sections
 yform_content_builder_enable_online_toggle_notice = When enabled, an eye button appears in the slice toolbar that allows individual sections to be set offline. Offline sections are preserved in the data but automatically hidden in the frontend (via yform_content_builder_helper). Applies only to the YForm variant – the module variant uses the standard REDAXO slice functions.
 
+yform_content_builder_legacy_editor = Legacy HTML editor
+yform_content_builder_legacy_editor_none = Disabled
+yform_content_builder_legacy_editor_notice = Editor shown when an existing value contains classic HTML instead of Content Builder JSON. Allows migrating legacy content into the Content Builder.
+yform_content_builder_legacy_profile = Legacy editor profile
+yform_content_builder_legacy_profile_notice = Profile name (attribute) for CKEditor 5 or TinyMCE used for the legacy editor.
+yform_content_builder_legacy_notice = The existing value is classic HTML. Switch to the Content Builder?
+yform_content_builder_legacy_migrate = Convert to Content Builder
+yform_content_builder_legacy_migrate_confirm = Move the existing HTML content into the Content Builder as a text element now?
+
 yform_content_builder_empty = No elements yet. Add an element below.
 yform_content_builder_delete_confirm = Really delete element?
 
