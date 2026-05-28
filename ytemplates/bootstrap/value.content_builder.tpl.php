@@ -73,7 +73,7 @@ foreach ($available_elements as $elementType => $config) {
     <?php if ($hasLegacyHtml): ?>
         <?php
         $legacyEditorClass = $legacyEditor === 'cke5' ? 'cke5-editor' : 'tiny-editor';
-        $legacyEditorId = 'cb_legacy_' . uniqid();
+        $legacyEditorId = 'cb_legacy_' . $this->getId() . '_' . uniqid();
         $legacyInputName = 'FORM[' . $this->params['form_name'] . '][' . $this->getId() . ']';
         ?>
         <div class="content-builder-legacy" data-legacy-editor="<?= rex_escape($legacyEditor) ?>" data-legacy-profile="<?= rex_escape($legacyProfile) ?>">

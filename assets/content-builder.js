@@ -1444,8 +1444,8 @@
                 }
             }
 
-            if (!html && typeof CKEDITOR !== 'undefined' && CKEDITOR.instances && textareaId && CKEDITOR.instances[textareaId]) {
-                try { html = CKEDITOR.instances[textareaId].getData(); } catch (e) { /* noop */ }
+            if (!html && typeof ckeditors !== 'undefined' && textareaId && ckeditors[textareaId]) {
+                try { html = ckeditors[textareaId].getData(); } catch (e) { /* noop */ }
             }
 
             if (!html) {
@@ -1463,8 +1463,8 @@
                 var ed = tinymce.get(textareaId);
                 if (ed) { try { ed.remove(); } catch (e) { /* noop */ } }
             }
-            if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances && textareaId && CKEDITOR.instances[textareaId]) {
-                try { CKEDITOR.instances[textareaId].destroy(true); } catch (e) { /* noop */ }
+            if (typeof ckeditors !== 'undefined' && textareaId && ckeditors[textareaId]) {
+                try { ckeditors[textareaId].destroy(); } catch (e) { /* noop */ }
             }
 
             // Form-Input-Name vom Legacy-Textarea uebernehmen, damit der
