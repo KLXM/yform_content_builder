@@ -90,6 +90,35 @@ use KLXM\YFormContentBuilder\Module;
 echo Module::createByValueId('cards', 1, 'uikit')->renderOutput();
 ```
 
+### REDAXO-Modul (Multi Element Builder)
+
+```php
+// Eingabe (Input-Modul)
+<?php
+use KLXM\YFormContentBuilder\Module;
+
+$contentBuilder = Module::createWithValue(1, null, [
+	'framework' => 'bootstrap',
+	'label' => 'Seiteninhalt',
+	'description' => 'Fügen Sie Content-Elemente hinzu',
+	// 'allowed_elements' => ['headline', 'gallery', 'section'],
+]);
+
+echo $contentBuilder->getEditor();
+```
+
+```php
+// Ausgabe (Output-Modul)
+<?php
+use KLXM\YFormContentBuilder\Module;
+
+$contentBuilder = Module::createWithValue(1, 'REX_VALUE[1]', [
+	'framework' => 'uikit',
+]);
+
+echo $contentBuilder->renderOutput();
+```
+
 ### Frontend-Ausgabe (YForm-Feld)
 
 ```php

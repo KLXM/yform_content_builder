@@ -23,6 +23,7 @@ use Throwable;
 class Module
 {
     protected string $elementType = '';
+    /** @var array<string, mixed> */
     protected array $data = [];
     protected mixed $rawValue = null;
     protected string $framework = 'bootstrap';
@@ -87,6 +88,18 @@ class Module
         }
 
         return self::create($type, null, $framework, $normalizedValueId);
+    }
+
+    /**
+     * Vollstaendigen Multi-Element Builder fuer normale REDAXO-Module erstellen.
+     *
+     * @param int   $valueId REX_VALUE Slot (1-20)
+     * @param mixed $rawValue Rohe REX_VALUE Daten oder JSON-String
+     * @param array<string, mixed> $options Builder-Optionen (framework, label, description, allowed_elements)
+     */
+    public static function createWithValue(int $valueId = 1, mixed $rawValue = null, array $options = []): ModuleBuilder
+    {
+        return ModuleBuilder::create($valueId, $rawValue, $options);
     }
 
     /**
@@ -557,7 +570,7 @@ class Module
         </script>
         <?php
         
-        return ob_get_clean();
+        return (string) ob_get_clean();
     }
     
     /**
@@ -602,13 +615,13 @@ class Module
         $config = $config; // Config auch verfügbar machen
         $framework = $this->framework; // Framework für Template verfügbar
         include $elementFile;
-        return ob_get_clean();
+          return (string) ob_get_clean();
     }
     
     /**
      * Config des Elements laden
      * 
-     * @return array|null
+      * @return array<string, mixed>|null
      */
     protected function loadConfig(): array|null
     {
@@ -625,6 +638,9 @@ class Module
     
     /**
      * Formular-Felder rendern - nutzt YForm Content Builder renderFormField
+        *
+        * @param array<string, mixed> $config
+        * @param array<string, mixed> $sliceData
      */
     protected function renderFormFields(array $config, array $sliceData): void
     {
@@ -674,6 +690,9 @@ class Module
     
     /**
      * Einzelnes Form-Feld rendern - nutzt FieldRegistry
+        *
+        * @param array<string, mixed> $fieldConfig
+        * @param array<string, mixed> $sliceData
      */
     protected function renderFormField(string $fieldName, array $fieldConfig, array $sliceData): void
     {
@@ -695,6 +714,8 @@ class Module
     
     /**
      * Get value for a field from sliceData - handles nested arrays properly
+        *
+        * @param array<string, mixed> $sliceData
      */
     protected function getValueForField(string $fieldName, array $sliceData): mixed
     {
@@ -720,6 +741,9 @@ class Module
     
     /**
      * Settings Modal Button rendern
+        *
+        * @param array<string, mixed> $config
+        * @param array<string, mixed> $sliceData
      */
     protected function renderSettingsModalButton(array $config, array $sliceData, bool $toolbarButton = false): void
     {
@@ -773,11 +797,14 @@ class Module
 
     /**
      * Formular mit Tabs rendern
+     *
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $sliceData
      */
     protected function renderFormWithTabs(array $config, array $sliceData): void
     {
         $tabId = 'tab_' . uniqid();
-        
+
         echo '<ul class="nav nav-tabs" role="tablist">';
         $firstTab = true;
         foreach ($config['field_groups'] as $groupKey => $group) {

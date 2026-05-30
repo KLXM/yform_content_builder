@@ -10,6 +10,8 @@ use rex_addon;
 use rex_api_function;
 use rex_api_result;
 use rex_escape;
+use rex_exception;
+use rex_i18n;
 use rex_media_category;
 use rex_request;
 use rex_response;
@@ -37,6 +39,15 @@ class ContentBuilderApi extends rex_api_function
         // Nur im Backend und für eingeloggte Benutzer
         if (!rex::isBackend() || !rex::getUser()) {
             return new rex_api_result(false, 'Zugriff verweigert');
+        }
+
+        $locale = $this->resolveBackendLocale();
+        if ($locale !== '') {
+            try {
+                rex_i18n::setLocale($locale, false);
+            } catch (rex_exception $e) {
+                // Fallback: aktuelle REDAXO-Locale beibehalten.
+            }
         }
 
         rex_response::cleanOutputBuffers();
@@ -70,6 +81,28 @@ class ContentBuilderApi extends rex_api_function
         }
 
         exit;
+    }
+
+    protected function resolveBackendLocale(): string
+    {
+        $userLanguage = trim((string) rex::getUser()?->getLanguage());
+        if ($userLanguage === '') {
+            return rex_i18n::getLocale();
+        }
+
+        if (preg_match('/^[a-z]{2}_[a-z]{2}$/', $userLanguage) === 1) {
+            return $userLanguage;
+        }
+
+        if (preg_match('/^[a-z]{2}$/', $userLanguage) === 1) {
+            foreach (rex_i18n::getLocales() as $availableLocale) {
+                if (str_starts_with($availableLocale, $userLanguage . '_')) {
+                    return $availableLocale;
+                }
+            }
+        }
+
+        return rex_i18n::getLocale();
     }
 
     /**

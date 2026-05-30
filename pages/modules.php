@@ -6,11 +6,16 @@
  */
 
 $addon = rex_addon::get('yform_content_builder');
+$dirs = [];
 
 // WICHTIG: Lang-Dateien aller Elemente am Anfang laden damit Übersetzungen verfügbar sind
 $elementsDir = rex_path::addon('yform_content_builder', 'elements');
 if (is_dir($elementsDir)) {
-    $dirs = scandir($elementsDir);
+    $scannedDirs = scandir($elementsDir);
+    if (is_array($scannedDirs)) {
+        $dirs = $scannedDirs;
+    }
+
     foreach ($dirs as $dir) {
         if ($dir[0] !== '.') {
             $langDir = $elementsDir . '/' . $dir . '/lang';
@@ -48,54 +53,184 @@ PHP;
     return $code;
 }
 
+/**
+ * @param array<int, string> $allowedElements
+ */
+function exportAllowedElementsCode(array $allowedElements): string
+{
+    $normalizedElements = [];
+    foreach ($allowedElements as $allowedElement) {
+        $allowedElement = trim((string) $allowedElement);
+        if ($allowedElement !== '') {
+            $normalizedElements[] = $allowedElement;
+        }
+    }
+
+    return var_export(array_values(array_unique($normalizedElements)), true);
+}
+
+/**
+ * @param array<int, string> $allowedElements
+ */
+function generateFullBuilderInputCode(string $framework, int $valueId, array $allowedElements): string
+{
+    $allowedElementsCode = exportAllowedElementsCode($allowedElements);
+
+    return <<<PHP
+<?php
+use KLXM\YFormContentBuilder\Module;
+/**
+ * Modul: Full Builder
+ * Typ: Full Builder
+ */
+
+
+
+
+
+\$builder = Module::createWithValue({$valueId}, null, [
+    'framework' => '{$framework}',
+    'label' => rex_i18n::msg('yform_content_builder_title'),
+    'description' => rex_i18n::msg('yform_content_builder_intro'),
+    'allowed_elements' => {$allowedElementsCode},
+]);
+
+echo \$builder->getEditor();
+?>
+PHP;
+}
+
+/**
+ * @param array<int, string> $allowedElements
+ */
+function generateFullBuilderOutputCode(string $framework, int $valueId, array $allowedElements): string
+{
+    $allowedElementsCode = exportAllowedElementsCode($allowedElements);
+
+    return <<<PHP
+<?php
+use KLXM\YFormContentBuilder\Module;
+
+
+
+
+
+
+
+\$rawValue = 'REX_VALUE[id={$valueId} output=html]';
+try {
+    \$slice = \$this->getCurrentSlice();
+    if (\$slice) {
+        \$rawValue = (string) \$slice->getValue({$valueId});
+    }
+} catch (\rex_exception \$exception) {
+    // Gridblock/Preview-Kontext ohne current slice: Fallback auf REX_VALUE-Placeholder.
+}
+\$builder = Module::createWithValue({$valueId}, \$rawValue, [
+    'framework' => '{$framework}',
+    'allowed_elements' => {$allowedElementsCode},
+]);
+
+echo \$builder->renderOutput();
+?>
+PHP;
+}
+
 // Bestehende Module aktualisieren (alle yfcb_* Module neu generieren)
 if (rex_post('update_all_modules', 'bool')) {
+    $moduleMode = rex_post('module_mode', 'string', 'single');
     $framework = rex_post('framework', 'string', 'uikit');
     $valueId = rex_post('value_id', 'int', 1);
+    $selectedElements = rex_post('elements', 'array', []);
+    $fullModuleKey = trim(rex_post('full_module_key', 'string', 'yfcb_builder'));
+    $fullModuleName = trim(rex_post('full_module_name', 'string', 'Content Builder'));
     if ($valueId < 1 || $valueId > 20) {
         $valueId = 1;
+    }
+
+    if ($moduleMode !== 'full') {
+        $moduleMode = 'single';
+    }
+
+    if ($fullModuleKey === '') {
+        $fullModuleKey = 'yfcb_builder';
+    }
+
+    if ($fullModuleName === '') {
+        $fullModuleName = 'Content Builder';
     }
 
     $updatedModules = [];
     $skippedModules = [];
 
     try {
-        $sql = rex_sql::factory();
-        $sql->setQuery(
-            'SELECT id, `key`, `name` FROM ' . rex::getTable('module') . ' WHERE `key` LIKE :prefix',
-            [':prefix' => 'yfcb_%']
-        );
+        if ($moduleMode === 'full') {
+            $existingSql = rex_sql::factory();
+            $existingSql->setQuery('SELECT id FROM ' . rex::getTable('module') . ' WHERE `key` = :key', [':key' => $fullModuleKey]);
 
-        while ($sql->hasNext()) {
-            $moduleKey = (string) $sql->getValue('key');
-            $moduleName = (string) $sql->getValue('name');
-            // Elementname aus Key ableiten: yfcb_cards → cards
-            $elementKey = substr($moduleKey, 5);
-            $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
+            if ($existingSql->getRows() === 0) {
+                $skippedModules[] = $fullModuleName . ' (Modul nicht gefunden)';
+            } else {
+                $inputCode = generateFullBuilderInputCode($framework, $valueId, $selectedElements);
+                $outputCode = generateFullBuilderOutputCode($framework, $valueId, $selectedElements);
 
-            if (!file_exists($configPath)) {
-                $skippedModules[] = $moduleName . ' (Config nicht gefunden)';
-                $sql->next();
-                continue;
+                $updateSql = rex_sql::factory();
+                $updateSql->setQuery(
+                    'UPDATE ' . rex::getTable('module') . ' SET `name` = :name, `input` = :input, `output` = :output WHERE `key` = :key',
+                    [
+                        ':name' => $fullModuleName,
+                        ':input' => $inputCode,
+                        ':output' => $outputCode,
+                        ':key' => $fullModuleKey,
+                    ]
+                );
+                $updatedModules[] = $fullModuleName;
             }
+        } else {
+            $sql = rex_sql::factory();
+            $sql->setQuery(
+                'SELECT id, `key`, `name` FROM ' . rex::getTable('module') . ' WHERE `key` LIKE :prefix',
+                [':prefix' => 'yfcb_%']
+            );
 
-            $inputCode = generateModuleCode($elementKey, $framework, $valueId);
-            $outputCode = <<<PHP
+            while ($sql->hasNext()) {
+                $moduleKey = (string) $sql->getValue('key');
+                $moduleName = (string) $sql->getValue('name');
+                // Elementname aus Key ableiten: yfcb_cards → cards
+                $elementKey = substr($moduleKey, 5);
+                $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
+
+                if (!file_exists($configPath)) {
+                    $skippedModules[] = $moduleName . ' (Config nicht gefunden)';
+                    $sql->next();
+                    continue;
+                }
+
+                $inputCode = generateModuleCode($elementKey, $framework, $valueId);
+                $outputCode = <<<PHP
 <?php
 use KLXM\YFormContentBuilder\Module;
-\$slice = \$this->getCurrentSlice();
-\$rawValue = \$slice ? (string) \$slice->getValue({$valueId}) : '';
+\$rawValue = 'REX_VALUE[id={$valueId} output=html]';
+try {
+    \$slice = \$this->getCurrentSlice();
+    if (\$slice) {
+        \$rawValue = (string) \$slice->getValue({$valueId});
+    }
+} catch (\rex_exception \$exception) {
+    // Gridblock/Preview-Kontext ohne current slice: Fallback auf REX_VALUE-Placeholder.
+}
 echo Module::create('{$elementKey}', \$rawValue, '{$framework}', {$valueId})->renderOutput();
 ?>
 PHP;
 
-            $updateSql = rex_sql::factory();
-            $updateSql->setQuery(
-                'UPDATE ' . rex::getTable('module') . ' SET `input` = :input, `output` = :output WHERE `key` = :key',
-                [':input' => $inputCode, ':output' => $outputCode, ':key' => $moduleKey]
-            );
-            $updatedModules[] = $moduleName;
-            $sql->next();
+                $updateSql = rex_sql::factory();
+                $updateSql->setQuery(
+                    'UPDATE ' . rex::getTable('module') . ' SET `input` = :input, `output` = :output WHERE `key` = :key',
+                    [':input' => $inputCode, ':output' => $outputCode, ':key' => $moduleKey]
+                );
+                $updatedModules[] = $moduleName;
+                $sql->next();
+            }
         }
     } catch (Exception $e) {
         echo rex_view::error('Fehler beim Aktualisieren: ' . $e->getMessage());
@@ -121,14 +256,65 @@ PHP;
 
 // Module erstellen
 if (rex_post('create_modules', 'bool')) {
+    $moduleMode = rex_post('module_mode', 'string', 'single');
     $selectedElements = rex_post('elements', 'array', []);
     $framework = rex_post('framework', 'string', 'uikit');
     $valueId = rex_post('value_id', 'int', 1);
+    $fullModuleKey = trim(rex_post('full_module_key', 'string', 'yfcb_builder'));
+    $fullModuleName = trim(rex_post('full_module_name', 'string', 'Content Builder'));
     if ($valueId < 1 || $valueId > 20) {
         $valueId = 1;
     }
+
+    if ($moduleMode !== 'full') {
+        $moduleMode = 'single';
+    }
+
+    if ($fullModuleKey === '') {
+        $fullModuleKey = 'yfcb_builder';
+    }
+
+    if ($fullModuleName === '') {
+        $fullModuleName = 'Content Builder';
+    }
     
-    if (!empty($selectedElements)) {
+    if ($moduleMode === 'full') {
+        $inputCode = generateFullBuilderInputCode($framework, $valueId, $selectedElements);
+        $outputCode = generateFullBuilderOutputCode($framework, $valueId, $selectedElements);
+
+        try {
+            $existingSql = rex_sql::factory();
+            $existingSql->setQuery('SELECT id FROM ' . rex::getTable('module') . ' WHERE `key` = :key', [':key' => $fullModuleKey]);
+
+            if ($existingSql->getRows() > 0) {
+                $updateSql = rex_sql::factory();
+                $updateSql->setQuery(
+                    'UPDATE ' . rex::getTable('module') . ' SET `name` = :name, `input` = :input, `output` = :output WHERE `key` = :key',
+                    [
+                        ':name' => $fullModuleName,
+                        ':input' => $inputCode,
+                        ':output' => $outputCode,
+                        ':key' => $fullModuleKey,
+                    ]
+                );
+            } else {
+                $insertSql = rex_sql::factory();
+                $insertSql->setQuery(
+                    'INSERT INTO ' . rex::getTable('module') . ' (`key`, `name`, `input`, `output`) VALUES (:key, :name, :input, :output)',
+                    [
+                        ':key' => $fullModuleKey,
+                        ':name' => $fullModuleName,
+                        ':input' => $inputCode,
+                        ':output' => $outputCode,
+                    ]
+                );
+            }
+
+            echo rex_view::success('Full-Builder-Modul erstellt/aktualisiert: ' . rex_escape($fullModuleName));
+        } catch (Exception $e) {
+            echo rex_view::error('Fehler beim Erstellen des Full-Builder-Moduls: ' . $e->getMessage());
+        }
+    } elseif (!empty($selectedElements)) {
         $createdModules = [];
         
         foreach ($selectedElements as $elementKey) {
@@ -149,8 +335,15 @@ if (rex_post('create_modules', 'bool')) {
             $outputCode = <<<PHP
 <?php
 use KLXM\YFormContentBuilder\Module;
-\$slice = \$this->getCurrentSlice();
-\$rawValue = \$slice ? (string) \$slice->getValue({$valueId}) : '';
+\$rawValue = 'REX_VALUE[id={$valueId} output=html]';
+try {
+    \$slice = \$this->getCurrentSlice();
+    if (\$slice) {
+        \$rawValue = (string) \$slice->getValue({$valueId});
+    }
+} catch (\rex_exception \$exception) {
+    // Gridblock/Preview-Kontext ohne current slice: Fallback auf REX_VALUE-Placeholder.
+}
 echo Module::create('{$elementKey}', \$rawValue, '{$framework}', {$valueId})->renderOutput();
 ?>
 PHP;
@@ -265,6 +458,33 @@ $fragment->setVar('title', 'Module erstellen/aktualisieren', false);
 $content = '';
 $content .= '<form action="' . rex_url::currentBackendPage() . '" method="post">';
 
+// Modus-Auswahl
+$content .= '<div class="form-group">';
+$content .= '<label for="module_mode"><strong>Modus</strong></label>';
+$content .= '<select class="form-control" id="module_mode" name="module_mode">';
+$content .= '<option value="single">Einzelmodul pro Element</option>';
+$content .= '<option value="full">Ein Full-Builder-Modul</option>';
+$content .= '</select>';
+$content .= '<small class="help-block">Im Einzelmodus wird für jedes ausgewählte Element ein Modul erzeugt. Im Full-Builder-Modus wird ein einziges Modul erzeugt; die Auswahl unten begrenzt dabei optional die erlaubten Elemente.</small>';
+$content .= '</div>';
+
+// Full-Builder Modulname/Key
+$content .= '<div class="row">';
+$content .= '<div class="col-sm-6">';
+$content .= '<div class="form-group">';
+$content .= '<label for="full_module_name"><strong>Full-Builder Modulname</strong></label>';
+$content .= '<input class="form-control" id="full_module_name" name="full_module_name" value="Content Builder">';
+$content .= '</div>';
+$content .= '</div>';
+$content .= '<div class="col-sm-6">';
+$content .= '<div class="form-group">';
+$content .= '<label for="full_module_key"><strong>Full-Builder Modul-Key</strong></label>';
+$content .= '<input class="form-control" id="full_module_key" name="full_module_key" value="yfcb_builder">';
+$content .= '<small class="help-block">Wird nur im Full-Builder-Modus verwendet.</small>';
+$content .= '</div>';
+$content .= '</div>';
+$content .= '</div>';
+
 // Framework-Auswahl
 $content .= '<div class="form-group">';
 $content .= '<label for="framework"><strong>Framework</strong></label>';
@@ -290,7 +510,7 @@ $content .= '</div>';
 // Elemente auswählen
 $content .= '<div class="form-group">';
 $content .= '<label><strong>Elemente auswählen</strong></label>';
-$content .= '<p class="help-block">Wähle die Elemente, für die du automatisch REDAXO-Module erstellen möchtest.</p>';
+$content .= '<p class="help-block">Im Einzelmodus werden dafür einzelne REDAXO-Module erzeugt. Im Full-Builder-Modus dient die Auswahl als erlaubte Elementliste.</p>';
 $content .= '<div style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; max-height: 400px; overflow-y: auto; background: #f9f9f9;">';
 
 if (empty($elements)) {
@@ -333,7 +553,7 @@ $content .= ' ';
 $content .= '<button type="submit" name="update_all_modules" value="1" class="btn btn-default">';
 $content .= '<i class="fa fa-refresh"></i> Bestehende Module aktualisieren';
 $content .= '</button>';
-$content .= '<p class="help-block">Aktualisiert alle vorhandenen <code>yfcb_*</code>-Module mit dem aktuellen Code (Framework + VALUE-Slot werden neu gesetzt).</p>';
+$content .= '<p class="help-block">Im Einzelmodus werden alle vorhandenen <code>yfcb_*</code>-Module aktualisiert. Im Full-Builder-Modus wird nur das konfigurierte Full-Builder-Modul aktualisiert.</p>';
 $content .= '</div>';
 
 $content .= '</form>';
@@ -345,11 +565,12 @@ echo $fragment->parse('core/page/section.php');
 $infoContent = '<p><i class="fa fa-info-circle"></i> ';
 $infoContent .= '<strong>So funktioniert es:</strong><br>';
 $infoContent .= '1. Wähle die gewünschten Elemente aus<br>';
-$infoContent .= '2. Wähle dein Framework (UIkit oder Bootstrap)<br>';
-$infoContent .= '3. Klicke auf "Module erstellen"<br>';
-$infoContent .= '4. Die Module werden automatisch in der REDAXO-Datenbank angelegt und sind sofort einsatzbereit<br>';
+$infoContent .= '2. Wähle den Modus (Einzelmodule oder Full Builder)<br>';
+$infoContent .= '3. Wähle dein Framework (UIkit oder Bootstrap)<br>';
+$infoContent .= '4. Klicke auf "Module erstellen"<br>';
+$infoContent .= '5. Die Module werden automatisch in der REDAXO-Datenbank angelegt und sind sofort einsatzbereit<br>';
 $infoContent .= '<br>';
-$infoContent .= '<strong>Module Key Format:</strong> yfcb_[element-name] (z.B. yfcb_cards)<br>';
+$infoContent .= '<strong>Module Key Format:</strong> Einzelmodule verwenden <code>yfcb_[element-name]</code> (z.B. yfcb_cards). Für den Full Builder kannst du Key und Name frei festlegen.<br>';
 $infoContent .= 'Du kannst die Module in deinen REDAXO-Seiten verwenden, indem du sie in dein Seitenlayout einbindest.';
 $infoContent .= '</p>';
 

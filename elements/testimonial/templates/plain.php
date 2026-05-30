@@ -26,7 +26,7 @@ if (empty($items)) {
             continue;
         }
 
-        $avatarUrl = $authorImage ? rex_media_manager::getUrl('card_1_1_w400', $authorImage) : '';
+        $avatarUrl = $authorImage ? \KLXM\YFormContentBuilder\MediaUrlResolver::getUrl($authorImage, 'card_1_1_w400') : '';
         $avatarAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) $authorImage, '', (string) $authorName);
         ?>
         <div class="cb-testimonials__item">

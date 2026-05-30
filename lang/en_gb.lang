@@ -30,9 +30,15 @@ yform_content_builder_element_add = Add element
 yform_content_builder_element_edit = Edit
 yform_content_builder_element_delete = Delete
 yform_content_builder_element_move = Move
+yform_content_builder_element_move_up = Move up
+yform_content_builder_element_move_down = Move down
 yform_content_builder_element_set_offline = Set section offline
 yform_content_builder_element_set_online = Set section online
 yform_content_builder_element_offline_badge = Offline
+yform_content_builder_category_other = Other
+yform_content_builder_template_not_found = Template not found
+yform_content_builder_section_label = Section
+yform_content_builder_section_unnamed = Unnamed
 
 yform_content_builder_save = Save
 yform_content_builder_cancel = Cancel

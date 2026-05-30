@@ -30,9 +30,15 @@ yform_content_builder_element_add = Element hinzufügen
 yform_content_builder_element_edit = Bearbeiten
 yform_content_builder_element_delete = Löschen
 yform_content_builder_element_move = Verschieben
+yform_content_builder_element_move_up = Nach oben verschieben
+yform_content_builder_element_move_down = Nach unten verschieben
 yform_content_builder_element_set_offline = Abschnitt offline schalten
 yform_content_builder_element_set_online = Abschnitt online schalten
 yform_content_builder_element_offline_badge = Offline
+yform_content_builder_category_other = Sonstiges
+yform_content_builder_template_not_found = Template nicht gefunden
+yform_content_builder_section_label = Abschnitt
+yform_content_builder_section_unnamed = Unbenannt
 
 yform_content_builder_save = Speichern
 yform_content_builder_cancel = Abbrechen
