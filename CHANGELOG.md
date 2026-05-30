@@ -8,6 +8,34 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 
 
+## [2.1.0] – 2026-05-30
+
+### Neu
+
+- **Legacy-HTML Support im YForm Value `content_builder`**:
+  - Option, alte HTML-Inhalte direkt im Backend weiter zu bearbeiten.
+  - Redaktioneller Hinweis mit klarer Aktion zum Wechsel in den modernen Content-Builder.
+  - Migration erzeugt gezielt ein Start-Element aus dem Legacy-Inhalt.
+- **Mediapool In-Use-Check für `content_builder`**:
+  - Neues Hooking über `MEDIA_IS_IN_USE` im Addon `boot.php`.
+  - Neue Klasse `KLXM\YFormContentBuilder\MediaInUse` prüft YForm-Manager-Tabellen mit `content_builder`-Feldern auf Dateiverwendungen.
+  - Trefferliste verlinkt direkt auf betroffene Datensätze im YForm Manager.
+
+### Änderungen
+
+- Legacy-Migration ist jetzt bewusst auf **`starter_text`** als Ziel-Element festgelegt.
+- Die bisherige frei wählbare Ziel-Option für das Migrationselement wurde entfernt, um Fehlkonfigurationen zu vermeiden.
+- Nach dem Klick auf den Wechsel-Button wird die Aktion direkt gespeichert (automatisches Übernehmen/Submit im Formular).
+
+### Bugfixes
+
+- **Doppelte CKE5-Initialisierung behoben**: kein manueller Doppel-Init mehr im Legacy-Editor-Zweig.
+- **CSRF-Probleme bei YForm-Edit-Links behoben**:
+  - Links werden über den offiziellen YForm-URL-Helper erstellt.
+  - Dadurch korrekte Token-Parameter für Edit-Aktionen.
+- **Fehlerhafte URL-Escapes behoben**: keine fehlerhafte `&amp;`-Weitergabe mehr in den In-Use-Warnlinks.
+
+
 ## [2.0.0] – 2026-04-29
 
 ### Elemente

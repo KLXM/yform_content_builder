@@ -1379,6 +1379,12 @@
         updateHiddenField: function() {
             $('.yform-content-builder').each(function() {
                 var $container = $(this);
+
+                // Legacy-Editor-Instanzen behalten ihren HTML-String im Hidden-Field.
+                if ($container.attr('data-legacy-mode') === '1') {
+                    return;
+                }
+
                 var slices = [];
                 
                 $container.find('.content-builder-slice').each(function() {

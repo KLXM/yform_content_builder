@@ -9,6 +9,10 @@
 rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\Api\ContentBuilderApi::class);
 rex_api_function::register('yform_list_columns', \KLXM\YFormContentBuilder\Api\ListColumnsApi::class);
 
+if (rex_addon::get('yform')->isAvailable()) {
+    rex_extension::register('MEDIA_IS_IN_USE', [\KLXM\YFormContentBuilder\MediaInUse::class, 'isMediaInUse']);
+}
+
 // Theme Builder Integration - Theme für Backend setzen
 if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
     $configuredTheme = rex_addon::get('yform_content_builder')->getConfig('theme');

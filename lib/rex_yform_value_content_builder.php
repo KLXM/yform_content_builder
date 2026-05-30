@@ -13,6 +13,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         'media' => 0,
         'link' => 0,
     ];
+
+    private const LEGACY_DEFAULT_PROFILE = 'default';
+    private const LEGACY_DEFAULT_LANG = 'de';
+    private const LEGACY_DEFAULT_TARGET = 'starter_text';
     
     /**
      * Get next unique media counter (global über alle Instanzen)
@@ -959,6 +963,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $decoded = json_decode($postValue, true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $this->setValue($postValue);
+                } elseif ($this->isLegacyModeEnabled() && $this->isLegacyHtmlString($postValue)) {
+                    // Legacy-HTML explizit erlauben, damit bestehende Inhalte editierbar bleiben.
+                    $this->setValue($postValue);
                 } else {
                     $this->setValue('');
                 }
@@ -978,8 +985,25 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
     protected function getTemplateVars(): array
     {
+        $rawValue = (string) $this->getValue();
         $value = $this->parseValue();
         $framework = $this->getElement('framework', 'bootstrap');
+
+        $legacyEnabled = $this->isLegacyModeEnabled();
+        $legacyActive = $legacyEnabled && $this->isLegacyHtmlString($rawValue);
+
+        $legacyProfile = trim((string) $this->getElement('legacy_cke5_profile', self::LEGACY_DEFAULT_PROFILE));
+        if ($legacyProfile === '') {
+            $legacyProfile = self::LEGACY_DEFAULT_PROFILE;
+        }
+
+        $legacyLang = trim((string) $this->getElement('legacy_cke5_lang', self::LEGACY_DEFAULT_LANG));
+        if ($legacyLang === '') {
+            $legacyLang = self::LEGACY_DEFAULT_LANG;
+        }
+
+        $migrationHintEnabled = $this->asBool($this->getElement('legacy_migration_hint', '1'));
+        $migrationTarget = self::LEGACY_DEFAULT_TARGET;
         
         return [
             'value' => $value,
@@ -993,6 +1017,13 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'description' => $this->getElement('description', ''),
             'framework' => $framework,
             'available_elements' => $this->getAvailableElements(),
+            'legacy_mode_enabled' => $legacyEnabled,
+            'legacy_is_active' => $legacyActive,
+            'legacy_html' => $legacyActive ? $rawValue : '',
+            'legacy_cke5_profile' => $legacyProfile,
+            'legacy_cke5_lang' => $legacyLang,
+            'legacy_migration_hint' => $migrationHintEnabled,
+            'legacy_migration_target' => $migrationTarget,
         ];
     }
 
@@ -1011,6 +1042,48 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
 
         return $data;
+    }
+
+    protected function isLegacyModeEnabled(): bool
+    {
+        return $this->asBool($this->getElement('legacy_cke5_enabled', '0'));
+    }
+
+    protected function isLegacyHtmlString(string $value): bool
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return false;
+        }
+
+        $decoded = json_decode($trimmed, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return false;
+        }
+
+        if (strpos($trimmed, '<') !== false && strpos($trimmed, '>') !== false) {
+            return true;
+        }
+
+        return trim(strip_tags($trimmed)) !== '';
+    }
+
+    protected function asBool(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value)) {
+            return $value === 1;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+        }
+
+        return false;
     }
 
     /**
@@ -1281,6 +1354,35 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     'expanded' => false,
                     'default' => '',
                 ],
+                'legacy_cke5_enabled' => [
+                    'type' => 'choice',
+                    'label' => 'Legacy-HTML mit CKE5 editierbar',
+                    'choices' => [
+                        '0' => 'Nein',
+                        '1' => 'Ja',
+                    ],
+                    'default' => '0',
+                    'notice' => 'Erlaubt die Bearbeitung alter HTML-Inhalte mit CKE5, statt sie als leer zu behandeln.',
+                ],
+                'legacy_cke5_profile' => [
+                    'type' => 'text',
+                    'label' => 'Legacy CKE5 Profil',
+                    'default' => self::LEGACY_DEFAULT_PROFILE,
+                ],
+                'legacy_cke5_lang' => [
+                    'type' => 'text',
+                    'label' => 'Legacy CKE5 Sprache',
+                    'default' => self::LEGACY_DEFAULT_LANG,
+                ],
+                'legacy_migration_hint' => [
+                    'type' => 'choice',
+                    'label' => 'Migrations-Hinweis anzeigen',
+                    'choices' => [
+                        '0' => 'Nein',
+                        '1' => 'Ja',
+                    ],
+                    'default' => '1',
+                ],
                 'description' => ['type' => 'text', 'label' => 'Beschreibung'],
                 'notice' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_notice')],
             ],
@@ -1300,6 +1402,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         $data = json_decode($value, true);
         
         if (!is_array($data) || empty($data)) {
+            if (trim($value) !== '') {
+                return '<span class="label label-warning">Legacy HTML</span>';
+            }
             return '<em>-- Keine Elemente --</em>';
         }
         
@@ -1348,65 +1453,44 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
      */
     protected function buildElementChoices(): array
     {
-        $addon = rex_addon::get('yform_content_builder');
-        $choices = [];
-        
-        // 1. Extension Point prüfen
-        $customPaths = rex_extension::registerPoint(new rex_extension_point(
-            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
-            []
-        ));
-        
-        // 2. project AddOn prüfen
-        if (empty($customPaths) && rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
-            $projectPath = rex_addon::get('project')->getPath('elements/');
-            if (is_dir($projectPath)) {
-                $customPaths[] = $projectPath;
+        // Nutzt dieselbe Quelle/Logik wie der Editor (inkl. merge/replace und Extension Points).
+        $elements = $this->getAllElementsForDefinition();
+
+        /** @var array<string, array<string, string>> $choicesByCategory */
+        $choicesByCategory = [];
+
+        foreach ($elements as $elementKey => $config) {
+            if (!is_array($config)) {
+                continue;
+            }
+
+            $category = trim((string) ($config['category'] ?? ''));
+            if ($category === '') {
+                $category = 'other';
+            }
+
+            $label = trim((string) ($config['label'] ?? ''));
+            if ($label === '') {
+                $label = ucfirst(str_replace('_', ' ', (string) $elementKey));
+            }
+
+            $choicesByCategory[$category][(string) $elementKey] = $label;
+        }
+
+        ksort($choicesByCategory);
+
+        /** @var array<string, string> $flatChoices */
+        $flatChoices = [];
+        foreach ($choicesByCategory as $category => $groupChoices) {
+            asort($groupChoices, SORT_NATURAL | SORT_FLAG_CASE);
+            $groupLabel = ucfirst(str_replace('_', ' ', $category));
+            foreach ($groupChoices as $elementKey => $label) {
+                // Flaches Choice-Format fuer YForm (verhindert array_flip-Warnings),
+                // visuell gruppiert ueber den Kategorie-Prefix.
+                $flatChoices[$elementKey] = $groupLabel . ' > ' . $label . ' [' . $elementKey . ']';
             }
         }
-        
-        // Custom Elemente
-        if (!empty($customPaths)) {
-            foreach ($customPaths as $customPath) {
-                if (!is_dir($customPath)) {
-                    continue;
-                }
-                
-                $dirs = scandir($customPath);
-                foreach ($dirs as $dir) {
-                    if ($dir === '.' || $dir === '..') {
-                        continue;
-                    }
-                    
-                    $configFile = $customPath . $dir . '/config.php';
-                    if (file_exists($configFile)) {
-                        Helper::loadElementI18n($customPath . $dir);
-                        $config = include $configFile;
-                        $choices[$dir] = $config['label'] ?? ucfirst($dir);
-                    }
-                }
-            }
-            return $choices;
-        }
-        
-        // Demo Elemente
-        $demoPath = $addon->getPath('elements/');
-        if (is_dir($demoPath)) {
-            $dirs = scandir($demoPath);
-            foreach ($dirs as $dir) {
-                if ($dir === '.' || $dir === '..') {
-                    continue;
-                }
-                
-                $configFile = $demoPath . $dir . '/config.php';
-                if (file_exists($configFile)) {
-                    Helper::loadElementI18n($demoPath . $dir);
-                    $config = include $configFile;
-                    $choices[$dir] = $config['label'] ?? ucfirst($dir);
-                }
-            }
-        }
-        
-        return $choices;
+
+        return $flatChoices;
     }
 }
