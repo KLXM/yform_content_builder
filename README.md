@@ -18,6 +18,7 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 - **⬆️⬇️ Pfeil-Sortierung** – zuverlässiges Verschieben von Elementen
 - **Tab-Gruppierung** – komplexe Formulare übersichtlich mit Icons und Tabs
 - **Settings-Modals** – selten benötigte Optionen ausgeblendet, auf Knopfdruck erreichbar
+- **Legacy-Migration** – ältere HTML-Inhalte können direkt im Backend in den modernen Content-Builder überführt werden
 
 ### Feldtypen
 - **14 Feldtypen** inkl. `cke5`, `be_media`, `be_link`, `repeater`, `radio_image`, `color_swatches`, `be_table_select`, `yformpicker`
@@ -32,6 +33,7 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 ### Integrationen
 - **YForm Table Manager** – Content Builder als Feldtyp direkt in YForm-Tabellen
 - **YForm-Listen-Profile** – No-Code-Ausgabe aus beliebigen YForm-Tabellen (News, Produkte, Events …)
+- **MediaPool In-Use-Check** – verwendet Medien in `content_builder`-Feldern und schützt sie vor versehentlichem Löschen
 - **Forcal-Termine** – Veranstaltungen aus dem forcal-Addon direkt im Content Builder
 - **uikit_theme_builder** – dynamische Farben aus dem DomainContext
 
@@ -134,6 +136,14 @@ echo Helper::outputDatasetById('rex_pages', 42, 'content_builder', 'uikit');
 // 3) Direkt mit Rohwert
 echo Helper::outputRaw($dataset->getValue('content_builder'), 'uikit');
 ```
+
+### Legacy-HTML Migration
+
+Wenn ältere Inhalte noch als HTML im Feld liegen, zeigt der Content Builder einen Hinweis zum Wechsel in den modernen Editor. Der Wechsel übernimmt den Inhalt direkt in ein `starter_text`-Element und kann sofort gespeichert werden.
+
+### MediaPool-Schutz
+
+Medien, die in `content_builder`-Feldern verwendet werden, erscheinen im MediaPool als in Benutzung. Die Warnung verlinkt direkt auf den betroffenen YForm-Datensatz.
 
 > Vollständige API-Referenz, alle Feldtypen, Extension Points und Beispiele für eigene Elemente: **[API.md](API.md)**
 >
