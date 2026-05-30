@@ -11,6 +11,7 @@ use rex_i18n;
 use rex_media;
 use rex_path;
 use rex_request;
+use rex_response;
 use rex_sql;
 use rex_url;
 use Throwable;
@@ -26,6 +27,12 @@ class ModuleBuilder
     /** @var array<int, string> */
     protected array $allowedElements = [];
     protected bool $enableOnlineToggle = false;
+    protected bool $legacyCke5Enabled = false;
+    protected string $legacyCke5Profile = 'default';
+    protected string $legacyCke5Lang = 'de';
+    protected bool $legacyMigrationHint = true;
+    protected string $legacyMigrationTarget = 'starter_text';
+    protected string $legacyHtml = '';
 
     /** @param array<string, mixed> $options */
     public static function create(int $valueId = 1, mixed $rawValue = null, array $options = []): self
@@ -39,12 +46,31 @@ class ModuleBuilder
         $instance->enableOnlineToggle = array_key_exists('enable_online_toggle', $options)
             ? (bool) $options['enable_online_toggle']
             : (bool) rex_addon::get('yform_content_builder')->getConfig('enable_online_toggle', false);
+        $instance->legacyCke5Enabled = array_key_exists('legacy_cke5_enabled', $options)
+            ? $instance->normalizeBool($options['legacy_cke5_enabled'])
+            : false;
+        $instance->legacyCke5Profile = trim((string) ($options['legacy_cke5_profile'] ?? 'default'));
+        if ($instance->legacyCke5Profile === '') {
+            $instance->legacyCke5Profile = 'default';
+        }
+        $instance->legacyCke5Lang = trim((string) ($options['legacy_cke5_lang'] ?? 'de'));
+        if ($instance->legacyCke5Lang === '') {
+            $instance->legacyCke5Lang = 'de';
+        }
+        $instance->legacyMigrationHint = array_key_exists('legacy_migration_hint', $options)
+            ? $instance->normalizeBool($options['legacy_migration_hint'])
+            : true;
+        $instance->legacyMigrationTarget = trim((string) ($options['legacy_migration_target'] ?? 'starter_text'));
+        if ($instance->legacyMigrationTarget === '') {
+            $instance->legacyMigrationTarget = 'starter_text';
+        }
 
         if ($rawValue === null || $rawValue === '') {
             $rawValue = self::loadRawValueFromCurrentSlice($instance->valueId);
         }
 
         $instance->slices = $instance->normalizeSlices($rawValue);
+        $instance->legacyMigrationTarget = $instance->resolveMigrationTarget($instance->legacyMigrationTarget);
 
         return $instance;
     }
@@ -55,17 +81,25 @@ class ModuleBuilder
 
         $availableElements = $this->getAvailableElements();
         $groupedAvailableElements = $this->groupAvailableElements($availableElements);
-        $hiddenValue = json_encode($this->slices, JSON_UNESCAPED_UNICODE);
+        $legacyActive = $this->legacyCke5Enabled && $this->legacyHtml !== '';
+        $hiddenValue = $legacyActive
+            ? $this->legacyHtml
+            : json_encode($this->slices, JSON_UNESCAPED_UNICODE);
 
         if (!is_string($hiddenValue)) {
             $hiddenValue = '[]';
         }
+
+        $legacyEditorId = 'yform_cb_module_legacy_editor_' . uniqid();
+        $legacyMigrateId = 'yform_cb_module_legacy_migrate_' . uniqid();
+        $legacyNoticeId = 'yform_cb_module_legacy_notice_' . uniqid();
 
         ob_start();
         ?>
         <div class="form-group yform-content-builder"
              data-framework="<?= rex_escape($this->framework) ?>"
              data-online-toggle="<?= $this->enableOnlineToggle ? '1' : '0' ?>"
+               data-legacy-mode="<?= $legacyActive ? '1' : '0' ?>"
              data-available-elements='<?= rex_escape(json_encode($availableElements, JSON_UNESCAPED_UNICODE)) ?>'>
             <?php if ($this->label !== ''): ?>
                 <label class="control-label"><?= rex_escape($this->label) ?></label>
@@ -75,48 +109,135 @@ class ModuleBuilder
                 <p class="help-block"><?= rex_escape($this->description) ?></p>
             <?php endif; ?>
 
-            <div class="content-builder-slices">
-                <?php foreach ($this->slices as $index => $slice): ?>
-                    <?= $this->renderEditorSlice($slice, $index, $groupedAvailableElements) ?>
-                <?php endforeach; ?>
-            </div>
+            <?php if ($legacyActive): ?>
+                <div class="panel panel-default" style="margin-bottom: 12px;">
+                    <div class="panel-body">
+                        <?php if ($this->legacyMigrationHint): ?>
+                            <div id="<?= $legacyNoticeId ?>" class="alert alert-info" style="margin-bottom: 12px; padding: 8px 12px;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                                    <span>Legacy-HTML ist aktiv. Du kannst direkt weiter editieren oder auf den modernen Editor umstellen.</span>
+                                    <button type="button" class="btn btn-default btn-xs" id="<?= $legacyMigrateId ?>">
+                                        <i class="fa fa-exchange"></i> Zum modernen Editor wechseln
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
 
-            <div class="content-builder-add">
-                <div class="btn-group btn-block">
-                    <button type="button" class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown">
-                        <i class="fa fa-plus"></i> <?= rex_i18n::msg('yform_content_builder_element_add') ?>
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <?php $categoryIndex = 0; ?>
-                        <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
-                            <?php if ($categoryIndex > 0): ?>
-                                <li role="separator" class="divider"></li>
-                            <?php endif; ?>
-                            <li class="dropdown-header"><?= rex_escape($this->formatCategoryLabel($category)) ?></li>
-                            <?php foreach ($elementsInCategory as $elementType => $config): ?>
-                                <?php $elementDescription = trim((string) ($config['description'] ?? '')); ?>
-                                <li>
-                                    <a href="#" class="btn-add-slice"
-                                       data-element-type="<?= rex_escape($elementType) ?>"
-                                       data-element-label="<?= rex_escape((string) ($config['label'] ?? $elementType)) ?>"
-                                       <?php if ($elementDescription !== ''): ?>
-                                       data-toggle="tooltip"
-                                       data-placement="right"
-                                       data-container="body"
-                                       data-delay='{"show":700,"hide":120}'
-                                       title="<?= rex_escape($elementDescription) ?>"
-                                       <?php endif; ?>>
-                                        <i class="fa <?= rex_escape((string) ($config['icon'] ?? 'fa-cube')) ?>"></i>
-                                        <?= rex_escape((string) ($config['label'] ?? $elementType)) ?>
-                                    </a>
-                                </li>
-                            <?php endforeach; ?>
-                            <?php ++$categoryIndex; ?>
-                        <?php endforeach; ?>
-                    </ul>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="control-label" for="<?= $legacyEditorId ?>">Legacy HTML (CKE5)</label>
+                            <textarea
+                                id="<?= $legacyEditorId ?>"
+                                class="form-control cke5-editor"
+                                data-profile="<?= rex_escape($this->legacyCke5Profile) ?>"
+                                data-lang="<?= rex_escape($this->legacyCke5Lang) ?>"
+                                rows="14"><?= rex_escape($this->legacyHtml) ?></textarea>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <script nonce="<?= rex_response::getNonce() ?>">
+                (function() {
+                    var $hidden = $('input[name="REX_INPUT_VALUE[<?= $this->valueId ?>]"]');
+                    var $textarea = $('#<?= $legacyEditorId ?>');
+                    var migrateButton = $('#<?= $legacyMigrateId ?>');
+                    var migrateTarget = '<?= rex_escape($this->legacyMigrationTarget) ?>';
+
+                    if ($hidden.length === 0 || $textarea.length === 0) {
+                        return;
+                    }
+
+                    function syncLegacyToHidden() {
+                        $hidden.val($textarea.val() || '');
+                    }
+
+                    $textarea.on('input change', syncLegacyToHidden);
+
+                    setTimeout(function() {
+                        if (typeof cke5_init === 'function') {
+                            try {
+                                cke5_init($textarea);
+                            } catch (e) {
+                                console.warn('Module legacy CKE5 init failed', e);
+                            }
+                        }
+                    }, 200);
+
+                    $(window).on('rex:cke5IsInit', function(event, editor, editorId) {
+                        if (editorId !== '<?= $legacyEditorId ?>') {
+                            return;
+                        }
+
+                        editor.model.document.on('change:data', function() {
+                            $textarea.val(editor.getData());
+                            syncLegacyToHidden();
+                        });
+                    });
+
+                    migrateButton.on('click', function() {
+                        var html = $textarea.val() || '';
+                        var payload = [{
+                            id: 'slice_' + Date.now(),
+                            type: migrateTarget || 'starter_text',
+                            online: true,
+                            data: { text: html }
+                        }];
+
+                        $hidden.val(JSON.stringify(payload));
+
+                        var $notice = $('#<?= $legacyNoticeId ?>');
+                        if ($notice.length) {
+                            $notice.removeClass('alert-info').addClass('alert-success');
+                            $notice.find('span').first().text('In den modernen Editor überführt. Bitte Modul speichern, um den Wechsel abzuschließen.');
+                        }
+
+                        $(this).prop('disabled', true);
+                    });
+                })();
+                </script>
+            <?php else: ?>
+                <div class="content-builder-slices">
+                    <?php foreach ($this->slices as $index => $slice): ?>
+                        <?= $this->renderEditorSlice($slice, $index, $groupedAvailableElements) ?>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="content-builder-add">
+                    <div class="btn-group btn-block">
+                        <button type="button" class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown">
+                            <i class="fa fa-plus"></i> <?= rex_i18n::msg('yform_content_builder_element_add') ?>
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <?php $categoryIndex = 0; ?>
+                            <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
+                                <?php if ($categoryIndex > 0): ?>
+                                    <li role="separator" class="divider"></li>
+                                <?php endif; ?>
+                                <li class="dropdown-header"><?= rex_escape($this->formatCategoryLabel($category)) ?></li>
+                                <?php foreach ($elementsInCategory as $elementType => $config): ?>
+                                    <?php $elementDescription = trim((string) ($config['description'] ?? '')); ?>
+                                    <li>
+                                        <a href="#" class="btn-add-slice"
+                                           data-element-type="<?= rex_escape($elementType) ?>"
+                                           data-element-label="<?= rex_escape((string) ($config['label'] ?? $elementType)) ?>"
+                                           <?php if ($elementDescription !== ''): ?>
+                                           data-toggle="tooltip"
+                                           data-placement="right"
+                                           data-container="body"
+                                           data-delay='{"show":700,"hide":120}'
+                                           title="<?= rex_escape($elementDescription) ?>"
+                                           <?php endif; ?>>
+                                            <i class="fa <?= rex_escape((string) ($config['icon'] ?? 'fa-cube')) ?>"></i>
+                                            <?= rex_escape((string) ($config['label'] ?? $elementType)) ?>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                                <?php ++$categoryIndex; ?>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <input type="hidden"
                    name="REX_INPUT_VALUE[<?= $this->valueId ?>]"
@@ -195,10 +316,72 @@ class ModuleBuilder
         if (is_string($rawValue)) {
             $decoded = html_entity_decode($rawValue, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $data = json_decode($decoded, true);
-            return is_array($data) ? array_values($data) : [];
+            if (is_array($data)) {
+                return array_values($data);
+            }
+
+            if ($this->legacyCke5Enabled && $this->isLegacyHtmlString($decoded)) {
+                $this->legacyHtml = $decoded;
+            }
+
+            return [];
         }
 
         return is_array($rawValue) ? array_values($rawValue) : [];
+    }
+
+    protected function isLegacyHtmlString(string $value): bool
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return false;
+        }
+
+        $decoded = json_decode($trimmed, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return false;
+        }
+
+        if (strpos($trimmed, '<') !== false && strpos($trimmed, '>') !== false) {
+            return true;
+        }
+
+        return trim(strip_tags($trimmed)) !== '';
+    }
+
+    protected function normalizeBool(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value)) {
+            return $value === 1;
+        }
+
+        if (is_string($value)) {
+            return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
+        }
+
+        return false;
+    }
+
+    protected function resolveMigrationTarget(string $target): string
+    {
+        $availableElements = $this->getAvailableElements();
+        if (isset($availableElements[$target])) {
+            return $target;
+        }
+
+        if (isset($availableElements['starter_text'])) {
+            return 'starter_text';
+        }
+
+        foreach (array_keys($availableElements) as $elementKey) {
+            return (string) $elementKey;
+        }
+
+        return 'starter_text';
     }
 
     /** @return array<int, string> */
