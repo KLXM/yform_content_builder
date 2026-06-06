@@ -160,16 +160,24 @@ class Helper
      */
     protected static function renderSectionClose(string $framework, array $elementData = []): string
     {
-        $addon = rex_addon::get('yform_content_builder');
-        $elementPath = $addon->getPath('elements/section');
+        $elementPath = self::resolveElementPath('section');
+        if ($elementPath === null) {
+            return '</section>';
+        }
+
         self::loadElementI18n($elementPath);
-        $templateFile = $elementPath . '/templates/' . $framework . '.php';
-        
-        if (!file_exists($templateFile)) {
-            $templateFile = $elementPath . '/templates/plain.php';
+
+        $templateCandidates = [$framework, 'plain', 'uikit', 'bootstrap'];
+        $templateFile = '';
+        foreach ($templateCandidates as $templateName) {
+            $candidate = $elementPath . '/templates/' . $templateName . '.php';
+            if (file_exists($candidate)) {
+                $templateFile = $candidate;
+                break;
+            }
         }
         
-        if (!file_exists($templateFile)) {
+        if ($templateFile === '') {
             return '</section>'; // Fallback
         }
         
@@ -199,17 +207,24 @@ class Helper
             return '';
         }
         
-        $addon = rex_addon::get('yform_content_builder');
-        $elementPath = $addon->getPath('elements/' . $sliceType);
+        $elementPath = self::resolveElementPath((string) $sliceType);
+        if ($elementPath === null) {
+            return '<!-- Element template not found: ' . rex_escape((string) $sliceType) . ' -->';
+        }
+
         self::loadElementI18n($elementPath);
-        $templateFile = $elementPath . '/templates/' . $framework . '.php';
-        
-        // Fallback auf plain.php
-        if (!file_exists($templateFile)) {
-            $templateFile = $elementPath . '/templates/plain.php';
+
+        $templateCandidates = [$framework, 'plain', 'uikit', 'bootstrap'];
+        $templateFile = '';
+        foreach ($templateCandidates as $templateName) {
+            $candidate = $elementPath . '/templates/' . $templateName . '.php';
+            if (file_exists($candidate)) {
+                $templateFile = $candidate;
+                break;
+            }
         }
         
-        if (!file_exists($templateFile)) {
+        if ($templateFile === '') {
             return '<!-- Element template not found: ' . rex_escape($sliceType) . ' -->';
         }
         
@@ -218,6 +233,40 @@ class Helper
         $output = ob_get_clean();
 
         return is_string($output) ? $output : '';
+    }
+
+    protected static function resolveElementPath(string $elementType): ?string
+    {
+        $customPaths = \rex_extension::registerPoint(new \rex_extension_point(
+            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+            ['']
+        ));
+
+        foreach ($customPaths as $customPath) {
+            if ($customPath === '') {
+                continue;
+            }
+
+            $elementPath = rtrim($customPath, '/\\') . '/' . $elementType;
+            if (is_dir($elementPath)) {
+                return $elementPath;
+            }
+        }
+
+        if (rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
+            $projectPath = rex_addon::get('project')->getPath('elements/' . $elementType);
+            if (is_dir($projectPath)) {
+                return $projectPath;
+            }
+        }
+
+        $dataPath = rex_addon::get('yform_content_builder')->getDataPath('elements/' . $elementType);
+        if (is_dir($dataPath)) {
+            return $dataPath;
+        }
+
+        $addonPath = rex_addon::get('yform_content_builder')->getPath('elements/' . $elementType);
+        return is_dir($addonPath) ? $addonPath : null;
     }
 
     /**

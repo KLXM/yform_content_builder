@@ -191,11 +191,59 @@ $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
                     $isSection = ($sliceType === 'section');
                     
                     $addon = rex_addon::get('yform_content_builder');
-                    $elementPath = $addon->getPath('elements/' . $sliceType);
-                    $templateFile = $elementPath . '/templates/' . $framework . '.php';
-                    
-                    if (!file_exists($templateFile)) {
-                        $templateFile = $elementPath . '/templates/plain.php';
+                    $elementPath = '';
+
+                    if (isset($available_elements[$sliceType]['_path']) && is_string($available_elements[$sliceType]['_path'])) {
+                        $candidate = (string) $available_elements[$sliceType]['_path'];
+                        if (is_dir($candidate)) {
+                            $elementPath = $candidate;
+                        }
+                    }
+
+                    if ($elementPath === '') {
+                        $customPaths = rex_extension::registerPoint(new rex_extension_point(
+                            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+                            ['']
+                        ));
+
+                        foreach ($customPaths as $customPath) {
+                            if ($customPath === '') {
+                                continue;
+                            }
+
+                            $candidate = rtrim($customPath, '/\\') . '/' . $sliceType;
+                            if (is_dir($candidate)) {
+                                $elementPath = $candidate;
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($elementPath === '' && rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
+                        $candidate = rex_addon::get('project')->getPath('elements/' . $sliceType);
+                        if (is_dir($candidate)) {
+                            $elementPath = $candidate;
+                        }
+                    }
+
+                    if ($elementPath === '') {
+                        $candidate = $addon->getDataPath('elements/' . $sliceType);
+                        if (is_dir($candidate)) {
+                            $elementPath = $candidate;
+                        }
+                    }
+
+                    if ($elementPath === '') {
+                        $elementPath = $addon->getPath('elements/' . $sliceType);
+                    }
+
+                    $templateFile = '';
+                    foreach ([$framework, 'plain', 'uikit', 'bootstrap'] as $templateName) {
+                        $candidate = $elementPath . '/templates/' . $templateName . '.php';
+                        if (file_exists($candidate)) {
+                            $templateFile = $candidate;
+                            break;
+                        }
                     }
                     ?>
                     
@@ -294,7 +342,7 @@ $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
                                     <span class="section-bg-thumbnail <?= $bgThumbnailClass ?>"<?= $bgThumbnailStyle ?>></span>
                                 </div>
                             <?php else: ?>
-                                <?php if (file_exists($templateFile)): ?>
+                                <?php if ($templateFile !== ''): ?>
                                     <?php include $templateFile; ?>
                                 <?php else: ?>
                                     <div class="alert alert-danger">Template not found: <?= rex_escape($sliceType) ?></div>

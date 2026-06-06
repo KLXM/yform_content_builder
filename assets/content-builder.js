@@ -72,6 +72,20 @@
         bindEvents: function() {
             var self = this;
 
+            $(document).on(
+                'change',
+                '.slice-edit-form :input',
+                function() {
+                    var $editForm = $(this).closest('.slice-edit-form');
+                    self.applyConditionalFieldVisibility($editForm);
+                }
+            );
+
+            $(document).on('shown.bs.tab', '.slice-edit-form a[data-toggle="tab"]', function() {
+                var $editForm = $(this).closest('.slice-edit-form');
+                self.applyConditionalFieldVisibility($editForm);
+            });
+
             // Slice löschen - MUSS VOR edit kommen!
             $(document).on('click', '.btn-slice-delete', function(e) {
                 e.preventDefault();
@@ -661,6 +675,7 @@
                 this.loadSliceForm($slice);
             } else {
                 // Formular ist bereits geladen - TinyMCE neu initialisieren
+                this.applyConditionalFieldVisibility($editForm);
                 $editForm.show();
                 
                 // WICHTIG: Auf jeden Fall tiny_init() aufrufen!
@@ -712,6 +727,8 @@
                     $editForm.find('.selectpicker').selectpicker({
                         sanitize: false
                     });
+
+                    self.applyConditionalFieldVisibility($editForm);
 
                     // REX Linkmap-Buttons mit Event-Delegation initialisieren
                     $editForm.on('click', '.rex-linkmap-btn', function(e) {
@@ -797,6 +814,169 @@
                     }, 300);
                 }
             });
+        },
+
+        findConditionalSourceFields: function($scope, fieldName) {
+            var source = String(fieldName || '').trim();
+            if (!source.length) {
+                return $();
+            }
+
+            return $scope.find(':input').filter(function() {
+                var name = this.name || '';
+                var id = this.id || '';
+
+                if (source.charAt(0) === '#') {
+                    return ('#' + id) === source;
+                }
+
+                if (name === source || id === source) {
+                    return true;
+                }
+
+                return name.endsWith('[' + source + ']') || name.endsWith('[' + source + '][]');
+            });
+        },
+
+        getConditionalSourceValue: function($scope, fieldName) {
+            var $inputs = this.findConditionalSourceFields($scope, fieldName);
+            if ($inputs.length === 0) {
+                return null;
+            }
+
+            var $first = $inputs.first();
+
+            if ($first.is(':checkbox')) {
+                var anyChecked = $inputs.filter(':checkbox:checked').length > 0;
+                return anyChecked ? '1' : '0';
+            }
+
+            if ($first.is(':radio')) {
+                var $checked = $inputs.filter(':checked').first();
+                return $checked.length > 0 ? String($checked.val()) : '';
+            }
+
+            if ($first.is('select') && $first.prop('multiple')) {
+                var selectedValues = $first.val();
+                if (Array.isArray(selectedValues)) {
+                    return selectedValues.map(function(item) {
+                        return String(item);
+                    });
+                }
+                return [];
+            }
+
+            return String($first.val() || '');
+        },
+
+        updateConditionalTabs: function($scope) {
+            // Tab-Sichtbarkeit nicht automatisch steuern, da dies in
+            // verschachtelten/async Formularen zu falschem Ausblenden fuehren kann.
+            // Conditionals werden weiterhin auf Feldebene ausgewertet.
+            void $scope;
+        },
+
+        matchesConditionalRule: function(actualValue, expectedValue) {
+            if (Array.isArray(expectedValue)) {
+                if (Array.isArray(actualValue)) {
+                    return expectedValue.some(function(expectedItem) {
+                        return actualValue.indexOf(String(expectedItem)) !== -1;
+                    });
+                }
+
+                return expectedValue.indexOf(String(actualValue)) !== -1;
+            }
+
+            return String(actualValue) === String(expectedValue);
+        },
+
+        getConditionalTargets: function($scope) {
+            var $targets = $();
+
+            if (!$scope || $scope.length === 0) {
+                return $targets;
+            }
+
+            $targets = $targets.add($scope.find('.yfcb-conditional-field[data-yfcb-visible-if]'));
+
+            // Modals können von Bootstrap außerhalb der Form in den Body verschoben werden.
+            // Diese zugehörigen Felder müssen trotzdem im selben Slice-Kontext ausgewertet werden.
+            $scope.find('[data-target], [data-bs-target]').each(function() {
+                var modalSelector = $(this).attr('data-target') || $(this).attr('data-bs-target') || '';
+                if (!modalSelector || modalSelector.charAt(0) !== '#') {
+                    return;
+                }
+
+                var $modal = $(modalSelector);
+                if ($modal.length > 0) {
+                    $targets = $targets.add($modal.find('.yfcb-conditional-field[data-yfcb-visible-if]'));
+                }
+            });
+
+            return $targets;
+        },
+
+        getConditionalFieldValue: function($conditionalField, $scope, sourceFieldName) {
+            var localSelector = '.repeater-item, .modal, .slice-edit-form';
+            var $localRoot = $conditionalField.closest(localSelector).first();
+            var actualValue = null;
+
+            if ($localRoot.length > 0) {
+                actualValue = this.getConditionalSourceValue($localRoot, sourceFieldName);
+            }
+
+            if (actualValue === null) {
+                actualValue = this.getConditionalSourceValue($scope, sourceFieldName);
+            }
+
+            return actualValue;
+        },
+
+        applyConditionalFieldVisibility: function($scope) {
+            var self = this;
+
+            if (!$scope || $scope.length === 0) {
+                return;
+            }
+
+            self.getConditionalTargets($scope).each(function() {
+                var $conditionalField = $(this);
+                var rawCondition = $conditionalField.attr('data-yfcb-visible-if');
+
+                if (!rawCondition) {
+                    return;
+                }
+
+                var conditions;
+                try {
+                    conditions = JSON.parse(rawCondition);
+                } catch (parseError) {
+                    return;
+                }
+
+                if (!conditions || typeof conditions !== 'object') {
+                    return;
+                }
+
+                var visible = true;
+
+                Object.keys(conditions).forEach(function(sourceFieldName) {
+                    if (!visible) {
+                        return;
+                    }
+
+                    var expectedValue = conditions[sourceFieldName];
+                    var actualValue = self.getConditionalFieldValue($conditionalField, $scope, sourceFieldName);
+
+                    if (actualValue === null || !self.matchesConditionalRule(actualValue, expectedValue)) {
+                        visible = false;
+                    }
+                });
+
+                $conditionalField.toggle(visible);
+            });
+
+            this.updateConditionalTabs($scope);
         },
 
         saveSlice: function($slice) {
@@ -2498,18 +2678,19 @@
         }
     }
 
-    // Bei Document Ready
-    $(document).ready(function() {
-        initContentBuilder();
-    });
-    
-    // Bei PJAX-Navigation (rex:ready wird nach PJAX-Load gefeuert)
+    // REDAXO Backend-Lifecycle: immer ueber rex:ready initialisieren
     $(document).on('rex:ready', function(event, container) {
         // Nur initialisieren, wenn Content Builder im geladenen Container vorhanden ist
-        if ($(container).find('.yform-content-builder').length > 0 || 
-            $(container).is('.yform-content-builder')) {
+        var $container = container ? $(container) : $(document);
+        if ($container.find('.yform-content-builder').length > 0 || 
+            $container.is('.yform-content-builder')) {
             initContentBuilder();
         }
+    });
+
+    // Initialen Lauf an rex:ready angleichen
+    $(function() {
+        $(document).trigger('rex:ready', [$(document)]);
     });
 
 })(jQuery);

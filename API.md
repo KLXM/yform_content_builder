@@ -847,6 +847,65 @@ return [
 ];
 ```
 
+### Conditional Felder mit `visible_if`
+
+Felder koennen ohne eigenes JavaScript per Konfiguration ein- und ausgeblendet werden.
+
+```php
+'fields' => [
+    'enable_section' => [
+        'type' => 'checkbox',
+        'label' => 'Sektion aktivieren',
+    ],
+    'layout_variant' => [
+        'type' => 'choice',
+        'label' => 'Layout',
+        'choices' => [
+            'cards' => 'Cards',
+            'list' => 'Liste',
+        ],
+    ],
+    'cards_gap' => [
+        'type' => 'choice',
+        'label' => 'Karten-Abstand',
+        'choices' => [
+            'small' => 'Klein',
+            'medium' => 'Mittel',
+            'large' => 'Gross',
+        ],
+        'visible_if' => [
+            'enable_section' => '1',
+            'layout_variant' => 'cards',
+        ],
+    ],
+]
+```
+
+Regeln:
+
+- `visible_if` ist ein Mapping aus `feldname => erwarteter_wert`.
+- Mehrere Bedingungen werden als UND ausgewertet.
+- Erwartete Werte koennen `string` oder `array` sein.
+
+Werte je Quellfeld-Typ:
+
+- `checkbox`: `1` (aktiv) oder `0` (inaktiv)
+- `radio`: `value` des ausgewaehlten Eintrags
+- `select` (single): ausgewaehlter `value`
+- `select` (multiple): Array der ausgewaehlten Werte
+
+Mehrfachwerte-Beispiel:
+
+```php
+'visible_if' => [
+    'image_mode' => ['cover', 'contain'],
+]
+```
+
+Scope:
+
+- Funktioniert in YForm-Editoren und Modul-Editoren (`Module::createWithValue()`, `Module::createByValueId()`), da dieselbe Render-/JS-Logik genutzt wird.
+
 ### WICHTIG: Demo-Elemente
 
 Das Verhalten ist über den Modus steuerbar:

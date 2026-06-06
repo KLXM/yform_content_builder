@@ -162,6 +162,77 @@ In `config.php` kannst du dann z. B. konsistent mit `Helper::elementTranslator('
 
 ---
 
+## Entwickler-Hinweis: Element-Overrides (z. B. CSE)
+
+Wenn ein Projekt eigene Elemente aus einem separaten Addon bereitstellt (z. B. `cse_elements`), sollten die Core-Dateien von `yform_content_builder` nicht direkt angepasst werden.
+
+Stattdessen über Extension Points arbeiten:
+
+- `YFORM_CONTENT_BUILDER_ELEMENT_PATHS` für zusätzliche/alternative Element-Pfade
+- `YFORM_CONTENT_BUILDER_ELEMENT_MODE` mit `replace` oder `merge`
+
+Empfehlung für unterscheidbare Menüs bei `merge`:
+
+- Eigene Element-Keys mit Präfix (`cse_*`)
+- Sichtbares Label ebenfalls mit Präfix, z. B. `CSE Text`, `CSE Cards`
+
+So bleiben Original-Elemente und Projekt-Elemente parallel wartbar und eindeutig unterscheidbar.
+
+## Entwickler-Hinweis: Conditional Toggles (visible_if)
+
+Der Content Builder unterstuetzt generische, konfigurierbare Sichtbarkeitsregeln pro Feld.
+
+Syntax in `elements/<element>/config.php`:
+
+```php
+'fields' => [
+	'enable_section' => [
+		'type' => 'checkbox',
+		'label' => 'Sektion aktivieren',
+	],
+	'section_bg' => [
+		'type' => 'choice',
+		'label' => 'Sektions-Hintergrund',
+		'choices' => ['' => 'Keine', 'uk-background-muted' => 'Muted'],
+		'visible_if' => ['enable_section' => '1'],
+	],
+],
+```
+
+Regeln:
+
+- `visible_if` ist ein Mapping aus `feldname => erwarteter_wert`
+- Mehrere Bedingungen werden als UND ausgewertet
+- Erwartete Werte koennen Strings oder Arrays sein
+- Unterstuetzte Quellfelder:
+	- Checkbox: Wert ist `1` (aktiv) oder `0` (inaktiv)
+	- Radio: Wert ist der `value` des ausgewaehlten Radio-Buttons
+	- Select (single): Wert ist der ausgewaehlte `value`
+	- Select (multiple): Wert ist ein Array der ausgewaehlten Werte
+
+Beispiele:
+
+```php
+'visible_if' => ['enable_section' => '1']
+```
+
+```php
+'visible_if' => ['layout_variant' => 'cards']
+```
+
+```php
+'visible_if' => ['image_mode' => ['cover', 'contain']]
+```
+
+Wichtig zum Scope:
+
+- Funktioniert in der YForm-Variante
+- Funktioniert ebenfalls in Modul-Editoren (Module::createWithValue / createByValueId), da dieselbe Render-/JS-Logik verwendet wird
+
+Damit koennen Element-Configs ohne Zusatz-JS kontextunabhaengig gesteuert werden.
+
+---
+
 ## 📋 Anforderungen
 
 - REDAXO >= 5.15

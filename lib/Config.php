@@ -221,7 +221,7 @@ class Config
     {
         return ['section_bg', 'section_bg_image', 'section_padding', 'container_width', 'section_light'];
     }
-    
+
     /**
      * Liefert Standard Grid-Spalten Optionen
      */

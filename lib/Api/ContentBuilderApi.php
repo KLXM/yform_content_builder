@@ -195,12 +195,23 @@ class ContentBuilderApi extends rex_api_function
         $elementPath = $this->getElementPath($sliceType);
         Helper::loadElementI18n($elementPath);
 
-        $templateFile = $elementPath . '/templates/' . $framework . '.php';
-        if (!file_exists($templateFile)) {
-            $templateFile = $elementPath . '/templates/plain.php';
+        $templateCandidates = [
+            $framework,
+            'plain',
+            'uikit',
+            'bootstrap',
+        ];
+
+        $templateFile = '';
+        foreach ($templateCandidates as $templateName) {
+            $candidate = $elementPath . '/templates/' . $templateName . '.php';
+            if (file_exists($candidate)) {
+                $templateFile = $candidate;
+                break;
+            }
         }
 
-        if (file_exists($templateFile)) {
+        if ($templateFile !== '') {
             $elementData = $sliceData;
             include $templateFile;
         } else {
@@ -213,6 +224,22 @@ class ContentBuilderApi extends rex_api_function
      */
     protected function getElementPath(string $elementType): string
     {
+        $customPaths = \rex_extension::registerPoint(new \rex_extension_point(
+            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+            ['']
+        ));
+
+        foreach ($customPaths as $customPath) {
+            if ($customPath === '') {
+                continue;
+            }
+
+            $elementPath = rtrim($customPath, '/\\') . '/' . $elementType;
+            if (is_dir($elementPath)) {
+                return $elementPath;
+            }
+        }
+
         // Zuerst in project/elements suchen (Override)
         $projectPath = rex_addon::get('project')->getPath('elements/' . $elementType);
         if (is_dir($projectPath)) {

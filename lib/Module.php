@@ -4,6 +4,7 @@ namespace KLXM\YFormContentBuilder;
 
 use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 use rex;
+use rex_addon;
 use rex_escape;
 use rex_path;
 use rex_request;
@@ -591,11 +592,19 @@ class Module
             return '';
         }
         
-        // Element-Template suchen - Framework-spezifisch
-        $elementDir = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType);
+        // Element-Template suchen - erst in registrierten Custom-Pfaden, dann in Core-Pfaden.
+        $elementDir = $this->resolveElementPath();
+        if ($elementDir === null) {
+            return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Pfad nicht gefunden: ' . rex_escape($this->elementType) . '</div>' : '';
+        }
         
         // Erst Framework-spezifisches Template versuchen
         $elementFile = $elementDir . '/templates/' . $this->framework . '.php';
+
+        // Fallback auf plain.php
+        if (!file_exists($elementFile)) {
+            $elementFile = $elementDir . '/templates/plain.php';
+        }
         
         // Fallback auf element.php (legacy)
         if (!file_exists($elementFile)) {
@@ -625,7 +634,12 @@ class Module
      */
     protected function loadConfig(): array|null
     {
-        $configFile = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/config.php');
+        $elementDir = $this->resolveElementPath();
+        if ($elementDir === null) {
+            return null;
+        }
+
+        $configFile = $elementDir . '/config.php';
         
         if (!file_exists($configFile)) {
             return null;
@@ -645,7 +659,10 @@ class Module
     protected function renderFormFields(array $config, array $sliceData): void
     {
         $hasSettingsModal = isset($config['settings_modal']) && is_array($config['settings_modal']);
-        $elementDir = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/');
+        $elementDir = $this->resolveElementPath();
+        if ($elementDir === null) {
+            $elementDir = rex_path::addon('yform_content_builder', 'elements/' . $this->elementType . '/');
+        }
         $helpModalConfig = ModalHelper::buildConfigForElementDir($elementDir);
 
         if ($hasSettingsModal || $helpModalConfig !== null) {
@@ -852,5 +869,39 @@ class Module
             $firstTab = false;
         }
         echo '</div>';
+    }
+
+    protected function resolveElementPath(): ?string
+    {
+        $customPaths = \rex_extension::registerPoint(new \rex_extension_point(
+            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+            ['']
+        ));
+
+        foreach ($customPaths as $customPath) {
+            if ($customPath === '') {
+                continue;
+            }
+
+            $elementPath = rtrim($customPath, '/\\') . '/' . $this->elementType;
+            if (is_dir($elementPath)) {
+                return $elementPath;
+            }
+        }
+
+        if (rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
+            $projectPath = rex_addon::get('project')->getPath('elements/' . $this->elementType);
+            if (is_dir($projectPath)) {
+                return $projectPath;
+            }
+        }
+
+        $dataPath = rex_addon::get('yform_content_builder')->getDataPath('elements/' . $this->elementType);
+        if (is_dir($dataPath)) {
+            return $dataPath;
+        }
+
+        $addonPath = rex_addon::get('yform_content_builder')->getPath('elements/' . $this->elementType);
+        return is_dir($addonPath) ? $addonPath : null;
     }
 }

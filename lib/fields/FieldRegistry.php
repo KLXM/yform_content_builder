@@ -4,6 +4,7 @@ namespace KLXM\YFormContentBuilder\Fields;
 
 use rex_extension;
 use rex_extension_point;
+use rex_escape;
 
 /**
  * Registry für Content Builder Feldtypen
@@ -143,6 +144,18 @@ class FieldRegistry
      */
     public static function renderField(string $fieldName, array $fieldConfig, array $sliceData): void
     {
+        $visibleIf = $fieldConfig['visible_if'] ?? null;
+        $hasVisibleIf = is_array($visibleIf) && [] !== $visibleIf;
+
+        if ($hasVisibleIf) {
+            $encodedVisibleIf = json_encode($visibleIf, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (is_string($encodedVisibleIf) && '' !== $encodedVisibleIf) {
+                echo '<div class="yfcb-conditional-field" data-yfcb-visible-if="' . rex_escape($encodedVisibleIf) . '">';
+            } else {
+                $hasVisibleIf = false;
+            }
+        }
+
         $type = $fieldConfig['type'] ?? 'text';
         $field = self::get($type);
 
@@ -159,6 +172,10 @@ class FieldRegistry
         $value = self::getNestedValue($fieldName, $sliceData);
 
         $field->render($fieldName, $fieldConfig, $value, $sliceData);
+
+        if ($hasVisibleIf) {
+            echo '</div>';
+        }
     }
 
     /**

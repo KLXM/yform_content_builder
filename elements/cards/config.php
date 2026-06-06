@@ -606,17 +606,26 @@ return [
                 ],
                 'link_url' => [
                     'type' => 'text',
-                    'label' => $_ci('cards_field_link_url', 'Externe URL')
+                    'label' => $_ci('cards_field_link_url', 'Externe URL'),
+                    'visible_if' => [
+                        'link_type' => 'external',
+                    ],
                 ],
                 'link_internal' => [
                     'type' => 'be_link',
-                    'label' => $_ci('cards_field_link_internal', 'Interne Seite')
+                    'label' => $_ci('cards_field_link_internal', 'Interne Seite'),
+                    'visible_if' => [
+                        'link_type' => 'internal',
+                    ],
                 ],
                 'link_text' => [
                     'type' => 'text',
                     'label' => $_ci('cards_field_link_text', 'Link Text'),
                     'default' => $_ci('cards_default_link_text', 'Mehr erfahren'),
                     'col' => 6,
+                    'visible_if' => [
+                        'link_type' => ['external', 'internal'],
+                    ],
                 ],
                 'link_button_style' => [
                     'type' => 'choice',
@@ -630,6 +639,9 @@ return [
                     ],
                     'default' => 'uk-button-text',
                     'col' => 6,
+                    'visible_if' => [
+                        'link_type' => ['external', 'internal'],
+                    ],
                 ],
                 'link_button_align' => [
                     'type' => 'choice',
@@ -640,10 +652,16 @@ return [
                         'uk-text-right'   => $_ci('cards_choice_right', 'Rechts'),
                     ],
                     'default' => 'uk-text-center',
+                    'visible_if' => [
+                        'link_type' => ['external', 'internal'],
+                    ],
                 ],
                 'link_card' => [
                     'type' => 'checkbox',
-                    'label' => $_ci('cards_field_link_card', 'Gesamte Card verlinken')
+                    'label' => $_ci('cards_field_link_card', 'Gesamte Card verlinken'),
+                    'visible_if' => [
+                        'link_type' => ['external', 'internal'],
+                    ],
                 ],
                 
                 // Extra-Felder (im Modal "Extras" sichtbar)

@@ -24,8 +24,40 @@ Since `config.php` files are PHP, direct JSON schema validation isn't native wit
 
 The schema defines:
 - **Root Properties**: `label`, `description`, `icon`, `fields`.
+- **Optional Root Properties**: `field_groups`, `settings_modal`, `category`, `version`.
 - **Field Types**: `text`, `textarea`, `choice`, `checkbox`, `ckeditor5`, `be_media`, `be_media_enhanced`, `be_link`, `repeater`.
 - **Recursive Definitions**: `repeater` fields can contain other fields.
+
+In current element configs you will also see newer field types such as `cke5`, `tinymce`, `radio_image`, `color_swatches`, `be_table_select`, `yformpicker`, `smart_link`, `rich_headline`, `info`, `table_editor`.
+
+### Conditional Visibility (`visible_if`)
+
+Every field definition can include `visible_if` rules to conditionally show/hide fields without writing custom JavaScript.
+
+Example:
+
+```php
+'section_bg' => [
+    'type' => 'choice',
+    'label' => 'Sektions-Hintergrund',
+    'visible_if' => ['enable_section' => '1'],
+]
+```
+
+Rules:
+
+- `visible_if` is a map of `source_field => expected_value`
+- multiple conditions are evaluated as logical AND
+- expected values can be `string` or `array`
+
+Supported source values:
+
+- `checkbox`: `1` / `0`
+- `radio`: selected `value`
+- `select` (single): selected `value`
+- `select` (multiple): array of selected values
+
+This behavior is shared by YForm and module editors.
 
 See `element-config.schema.json` for the full definition.
 

@@ -889,12 +889,23 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         $elementPath = $this->getElementPath($sliceType);
         Helper::loadElementI18n($elementPath);
         
-        $templateFile = $elementPath . '/templates/' . $framework . '.php';
-        if (!file_exists($templateFile)) {
-            $templateFile = $elementPath . '/templates/plain.php';
+        $templateCandidates = [
+            $framework,
+            'plain',
+            'uikit',
+            'bootstrap',
+        ];
+
+        $templateFile = '';
+        foreach ($templateCandidates as $templateName) {
+            $candidate = $elementPath . '/templates/' . $templateName . '.php';
+            if (file_exists($candidate)) {
+                $templateFile = $candidate;
+                break;
+            }
         }
         
-        if (file_exists($templateFile)) {
+        if ($templateFile !== '') {
             $elementData = $sliceData;
             include $templateFile;
         } else {
@@ -1215,6 +1226,32 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     {
         // Alle Elemente laden
         $allElements = $this->getAllElementsForDefinition();
+
+        // Elemente mit hidden=true ausblenden (z.B. Legacy-Elemente)
+        $allElements = array_filter(
+            $allElements,
+            static function (mixed $config): bool {
+                if (!is_array($config)) {
+                    return false;
+                }
+
+                $hidden = $config['hidden'] ?? false;
+
+                if (is_bool($hidden)) {
+                    return !$hidden;
+                }
+
+                if (is_int($hidden)) {
+                    return $hidden !== 1;
+                }
+
+                if (is_string($hidden)) {
+                    return !in_array(strtolower(trim($hidden)), ['1', 'true', 'yes', 'on'], true);
+                }
+
+                return true;
+            }
+        );
         
         // Prüfen ob allowed_elements gesetzt ist
         $allowedElements = $this->getElement('allowed_elements');
@@ -1250,9 +1287,38 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         if (isset($elements[$elementType]['_path'])) {
             return $elements[$elementType]['_path'];
         }
+
+        $customPaths = rex_extension::registerPoint(new rex_extension_point(
+            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+            ['']
+        ));
+
+        foreach ($customPaths as $customPath) {
+            if ($customPath === '') {
+                continue;
+            }
+
+            $candidate = rtrim($customPath, '/\\') . '/' . $elementType;
+            if (is_dir($candidate)) {
+                return $candidate;
+            }
+        }
+
+        if (rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
+            $projectPath = rex_addon::get('project')->getPath('elements/' . $elementType);
+            if (is_dir($projectPath)) {
+                return $projectPath;
+            }
+        }
+
+        $dataPath = rex_addon::get('yform_content_builder')->getDataPath('elements/' . $elementType);
+        if (is_dir($dataPath)) {
+            return $dataPath;
+        }
         
         // Fallback: Original Pfad
-        return rex_addon::get('yform_content_builder')->getPath('elements/' . $elementType);
+        $addonPath = rex_addon::get('yform_content_builder')->getPath('elements/' . $elementType);
+        return is_dir($addonPath) ? $addonPath : null;
     }
 
     public function renderSlice(string $elementType, array $elementData, int $index, string $sliceId, string $framework): string
@@ -1264,12 +1330,16 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
         
         // Template-Datei finden
-        $templateFile = $elementPath . '/templates/' . $framework . '.php';
-        if (!file_exists($templateFile)) {
-            $templateFile = $elementPath . '/templates/plain.php';
+        $templateFile = '';
+        foreach ([$framework, 'plain', 'uikit', 'bootstrap'] as $templateName) {
+            $candidate = $elementPath . '/templates/' . $templateName . '.php';
+            if (file_exists($candidate)) {
+                $templateFile = $candidate;
+                break;
+            }
         }
         
-        if (!file_exists($templateFile)) {
+        if ($templateFile === '') {
             return '<div class="alert alert-danger">Template not found: ' . rex_escape($elementType) . '</div>';
         }
         
