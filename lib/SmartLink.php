@@ -6,6 +6,7 @@ use rex_addon;
 use rex_escape;
 use rex_media;
 use rex_url;
+use Throwable;
 
 /**
  * Normalisiert kombinierte Link-Feldwerte und erzeugt ausgabefähige Hrefs.
@@ -105,6 +106,10 @@ class SmartLink
             return 'yform';
         }
 
+        if (preg_match('@^yform://[a-z0-9_]+/\d+$@i', $value) === 1) {
+            return 'yform';
+        }
+
         if (ctype_digit($value)) {
             return 'intern';
         }
@@ -149,13 +154,23 @@ class SmartLink
             if ($profileId !== '' && ctype_digit($id)) {
                 $profile = ListProfiles::get($profileId);
                 if (is_array($profile)) {
-                    $pattern = trim((string) ($profile['url_pattern'] ?? ''));
-                    if ($pattern !== '') {
-                        return str_replace('{id}', $id, $pattern);
-                    }
+                    return self::resolveYformHrefFromProfile($profile, (int) $id);
                 }
 
                 return '?id=' . $id;
+            }
+
+            if (preg_match('@^yform://([a-z0-9_]+)/([0-9]+)$@i', $value, $matches) === 1) {
+                $tableAlias = strtolower((string) $matches[1]);
+                $id = (int) $matches[2];
+                if ($id > 0) {
+                    $profile = self::findProfileByTableAlias($tableAlias);
+                    if (is_array($profile)) {
+                        return self::resolveYformHrefFromProfile($profile, $id);
+                    }
+
+                    return '?id=' . $id;
+                }
             }
 
             if (ctype_digit($value)) {
@@ -217,5 +232,68 @@ class SmartLink
         $ext = strtolower(pathinfo($value, PATHINFO_EXTENSION));
 
         return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'mp4', 'webm', 'mov', 'avi'], true);
+    }
+
+    /**
+     * @param array<string,mixed> $profile
+     */
+    private static function resolveYformHrefFromProfile(array $profile, int $id): string
+    {
+        $tableName = (string) ($profile['table'] ?? '');
+
+        if (!empty($profile['use_virtual_urls']) && $id > 0 && '' !== $tableName && ListProfiles::hasVirtualUrls()) {
+            try {
+                $vUrl = \FriendsOfRedaxo\VirtualUrl\VirtualUrlsHelper::getUrl($tableName, $id);
+                if (null !== $vUrl && '' !== $vUrl) {
+                    return $vUrl;
+                }
+            } catch (Throwable) {
+                // fallback
+            }
+        }
+
+        $urlProfile = trim((string) ($profile['url_profile'] ?? ''));
+        if ('' !== $urlProfile && $id > 0 && function_exists('rex_getUrl')) {
+            try {
+                $url = rex_getUrl('', '', [$urlProfile => $id]);
+                if ('' !== $url) {
+                    return $url;
+                }
+            } catch (Throwable) {
+                // fallback
+            }
+        }
+
+        $pattern = trim((string) ($profile['url_pattern'] ?? ''));
+        if ('' !== $pattern) {
+            return str_replace('{id}', (string) $id, $pattern);
+        }
+
+        return '?id=' . $id;
+    }
+
+    /**
+     * @return array<string,mixed>|null
+     */
+    private static function findProfileByTableAlias(string $tableAlias): ?array
+    {
+        $needle = strtolower(trim($tableAlias));
+        if ($needle === '') {
+            return null;
+        }
+
+        foreach (ListProfiles::getAll() as $profile) {
+            $tableName = strtolower(trim((string) ($profile['table'] ?? '')));
+            if ($tableName === '') {
+                continue;
+            }
+
+            $normalized = str_starts_with($tableName, 'rex_') ? substr($tableName, 4) : $tableName;
+            if ($normalized === $needle || $tableName === $needle) {
+                return $profile;
+            }
+        }
+
+        return null;
     }
 }

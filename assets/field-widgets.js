@@ -31,6 +31,9 @@
         if (/^[a-z0-9_]+:\d+$/i.test(v)) {
             return 'yform';
         }
+        if (/^yform:\/\/[a-z0-9_]+\/\d+$/i.test(v)) {
+            return 'yform';
+        }
         if (/\.(jpg|jpeg|png|gif|webp|svg|pdf|mp4|webm|mov|avi)$/i.test(v)) {
             return 'media';
         }

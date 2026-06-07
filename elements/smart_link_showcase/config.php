@@ -67,9 +67,11 @@ return [
                         'types' => 'auto,url,intern,media,mail,tel,yform',
                         // yform_table: YForm-Tabellenname (z.B. 'rex_contacts')
                         // yform_field: Anzeigefeld der Einträge (z.B. 'name')
+                        // yform_profile: Optionales Listenprofil fuer Pattern-URLs (z.B. 'events' => 'events:42')
                         // Ohne Konfiguration erscheint im Widget ein Demo-Hinweis.
                         'yform_table' => '',
                         'yform_field' => 'name',
+                        'yform_profile' => '',
                         'notice' => $_ci('field_item_link_notice', 'Alle ueblichen Linktypen sind aktiv.'),
                     ],
                 ],

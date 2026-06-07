@@ -55,6 +55,7 @@ class SmartLinkField extends FieldAbstract
         // YForm-Konfiguration direkt aus dem Feld-Config (analog zu be_manager_relation)
         $yformTable = trim((string) ($fieldConfig['yform_table'] ?? ''));
         $yformField = trim((string) ($fieldConfig['yform_field'] ?? 'name'));
+        $yformProfile = trim((string) ($fieldConfig['yform_profile'] ?? ''));
         $yformChoices = [];
         $yformStatus = 'unconfigured'; // 'unconfigured' | 'ok' | 'missing' | 'noyform'
 
@@ -79,7 +80,7 @@ class SmartLinkField extends FieldAbstract
         echo '<div class="cb-smart-link-rows">';
 
         foreach ($items as $idx => $item) {
-            $this->renderRow($id, $idx, $item, $yformChoices, $yformStatus, $yformTable, $yformField, $allowedTypes);
+            $this->renderRow($id, $idx, $item, $yformChoices, $yformStatus, $yformTable, $yformField, $yformProfile, $allowedTypes);
         }
 
         echo '</div>';
@@ -132,7 +133,7 @@ class SmartLinkField extends FieldAbstract
      * @param array<string,string> $yformChoices
      * @param array<string> $allowedTypes
      */
-    private function renderRow(string $baseId, int $idx, array $item, array $yformChoices, string $yformStatus, string $yformTable, string $yformField, array $allowedTypes): void
+    private function renderRow(string $baseId, int $idx, array $item, array $yformChoices, string $yformStatus, string $yformTable, string $yformField, string $yformProfile, array $allowedTypes): void
     {
         $rowId = $baseId . '_row_' . $idx;
         $widgetId = 'cbsl_' . self::getNextMediaCounter();
@@ -228,8 +229,18 @@ class SmartLinkField extends FieldAbstract
                 echo '<select class="form-control cb-smart-link-select cb-smart-link-yform">';
                 echo '<option value="">' . $this->t('yform_content_builder_smart_link_yform_select', '-- auswählen --') . '</option>';
                 foreach ($yformChoices as $choiceValue => $choiceLabel) {
-                    $sel = $value === (string) $choiceValue ? ' selected' : '';
-                    echo '<option value="' . rex_escape((string) $choiceValue) . '"' . $sel . '>' . rex_escape((string) $choiceLabel) . '</option>';
+                    $choiceId = (string) $choiceValue;
+                    $tableAlias = $this->normalizeYformTableName($yformTable);
+                    $choiceWithPrefix = 'yform://' . $tableAlias . '/' . $choiceId;
+                    $choiceStoredValue = '' !== $yformProfile ? $yformProfile . ':' . $choiceId : $choiceWithPrefix;
+                    $legacyTablePrefix = 'yform://' . $yformTable . '/' . $choiceId;
+                    $sel = (
+                        $value === $choiceStoredValue
+                        || $value === $choiceWithPrefix
+                        || $value === $legacyTablePrefix
+                        || $value === $choiceId
+                    ) ? ' selected' : '';
+                    echo '<option value="' . rex_escape($choiceStoredValue) . '"' . $sel . '>' . rex_escape((string) $choiceLabel) . '</option>';
                 }
                 echo '</select>';
             }
@@ -300,5 +311,18 @@ class SmartLinkField extends FieldAbstract
         $msg = \rex_i18n::rawMsg($key);
 
         return $msg !== $key ? $msg : $fallback;
+    }
+
+    private function normalizeYformTableName(string $tableName): string
+    {
+        $normalized = strtolower(trim($tableName));
+        if (str_starts_with($normalized, 'rex_')) {
+            $normalized = substr($normalized, 4);
+        }
+
+        $normalized = preg_replace('/[^a-z0-9_]+/', '_', $normalized) ?? '';
+        $normalized = trim($normalized, '_');
+
+        return '' !== $normalized ? $normalized : 'dataset';
     }
 }

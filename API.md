@@ -321,6 +321,9 @@ Der Feldtyp `smart_link` speichert Linkziele in einem einheitlichen JSON-Format 
 |--------|-----|--------------|
 | `multiple` | bool | Erlaubt mehrere Links in einem Feld |
 | `types` | array/string | Erlaubte Linktypen als Array oder CSV |
+| `yform_table` | string | YForm-Tabellenname (z.B. `rex_kontakt`) für Typ `yform` |
+| `yform_field` | string | Spaltenname, der im Select angezeigt wird (z.B. `name`, Fallback: `id`) |
+| `yform_profile` | string | Optionales Listenprofil für Pattern-Auflösung; mit Profil: `profilId:id`, ohne Profil: `yform://table_alias/id` |
 | `notice` | string | Hilfetext unter dem Feld |
 
 Erlaubte Typwerte für `types`:
@@ -333,6 +336,16 @@ Erlaubte Typwerte für `types`:
 - `tel`
 - `yform`
 
+Hinweise zu YForm:
+
+- `yform_table` muss der echte Tabellenname sein (inkl. Präfix, z.B. `rex_kontakt`).
+- `yform_field` ist die Spalte für die Anzeige im Dropdown.
+- Wenn `yform_field` nicht existiert, wird automatisch `id` verwendet.
+- Die Optionen werden über `SELECT id, <yform_field> ...` geladen.
+- Ohne `yform_profile` wird `yform://table_alias/id` gespeichert (Alias = normalisierter Tabellenname ohne `rex_`).
+- Mit `yform_profile` wird `profilId:id` gespeichert (z.B. `events:42`) und damit das URL-Pattern des Profils genutzt.
+- Die YForm-Auswahl ist relevant, wenn `types` den Wert `yform` oder `auto` enthält.
+
 Beispiel:
 
 ```php
@@ -341,8 +354,80 @@ Beispiel:
     'label' => 'Link',
     'multiple' => false,
     'types' => 'auto,url,intern,media,mail,tel,yform',
+    'yform_table' => 'rex_kontakt',
+    'yform_field' => 'name',
+    'yform_profile' => 'events',
 ]
 ```
+
+Ausgabe im Template (Outputfilter-Äquivalent):
+
+`smart_link` arbeitet nicht mit einem separaten String-Outputfilter wie bei mform, sondern mit PHP-Helpern:
+
+- `KLXM\YFormContentBuilder\SmartLinkView::resolveSingle(...)` für die direkte Ausgabe eines Links (inkl. finaler `href`)
+- `KLXM\YFormContentBuilder\SmartLink::normalize(...)` + `KLXM\YFormContentBuilder\SmartLink::buildHref(...)` für eigene Render-Logik
+
+Beispiel Single-Link:
+
+```php
+<?php
+$resolved = \KLXM\YFormContentBuilder\SmartLinkView::resolveSingle($data['link'] ?? null, 'Mehr erfahren');
+if (is_array($resolved)) {
+    $target = $resolved['is_external'] ? ' target="_blank" rel="noopener"' : '';
+    echo '<a href="' . rex_escape($resolved['href']) . '"' . $target . '>' . rex_escape($resolved['label']) . '</a>';
+}
+```
+
+Beispiel Multiple-Link:
+
+```php
+<?php
+$items = \KLXM\YFormContentBuilder\SmartLink::normalize($data['links'] ?? null, true);
+foreach ($items as $item) {
+    $href = \KLXM\YFormContentBuilder\SmartLink::buildHref($item);
+    if ($href === '') {
+        continue;
+    }
+
+    $label = \KLXM\YFormContentBuilder\SmartLink::linkLabel($item);
+    if ($label === '') {
+        $label = $href;
+    }
+
+    echo '<a href="' . rex_escape($href) . '">' . rex_escape($label) . '</a>';
+}
+```
+
+Hinweis zu `yform`-Werten:
+
+- Mit Profil: `profilId:datensatzId` (z. B. `events:42`).
+- Ohne Profil: `yform://table_alias/datensatzId` (z. B. `yform://kontakt/42`).
+- Die finale URL wird über das konfigurierte Listen-Profil (Pattern/URL-Profil) aufgelöst.
+- Ohne auflösbares Profil fällt die URL auf `?id=<datensatzId>` zurück.
+
+Auflösung im Detail (YForm-Link):
+
+1. Eingabe aus dem SmartLink-Feld:
+    - mit `yform_profile`: `profilId:id`
+    - ohne `yform_profile`: `yform://table_alias/id`
+2. Profil-Ermittlung:
+    - bei `profilId:id`: direkt über die Profil-ID
+    - bei `yform://table_alias/id`: über das erste Listenprofil mit passender Tabelle (Alias ohne `rex_`)
+3. URL-Generierung in dieser Reihenfolge:
+    - `virtual_urls` (wenn im Profil aktiviert)
+    - Url-Addon-Profil (`url_profile`)
+    - `url_pattern` (mindestens `{id}`)
+    - Fallback `?id=<id>`
+
+Beispiel-Auflösung:
+
+- Gespeicherter Wert: `events:42`
+- Profil `events` hat `url_profile = event_namespace`
+- Ergebnis: URL über `rex_getUrl('', '', ['event_namespace' => 42])`
+
+- Gespeicherter Wert: `yform://kontakt/42`
+- Gefundenes Profil zur Tabelle `rex_kontakt` hat `url_pattern = /kontakt/{id}`
+- Ergebnis: `/kontakt/42`
 
 ### Permission System
 
