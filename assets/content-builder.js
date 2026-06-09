@@ -162,6 +162,33 @@
                 return false;
             });
 
+            // Vor dem eigentlichen YForm/REDAXO-Submit alle offenen Slice-Editoren
+            // in data-slice-data + Hidden-Field synchronisieren.
+            $(document).on('submit', 'form', function() {
+                var $form = $(this);
+                var $builders = $form.find('.yform-content-builder');
+
+                if ($builders.length === 0) {
+                    return true;
+                }
+
+                $builders.each(function() {
+                    var $builder = $(this);
+
+                    $builder.find('.content-builder-slice').each(function() {
+                        var $slice = $(this);
+                        var $editForm = $slice.find('.slice-edit-form:visible');
+
+                        if ($editForm.length > 0) {
+                            self.collectSliceDataFromForm($slice);
+                        }
+                    });
+                });
+
+                self.updateHiddenField();
+                return true;
+            });
+
             // Slice bearbeiten - Edit on Click
             $(document).on('click', '.btn-slice-edit', function(e) {
                 e.preventDefault();
@@ -981,119 +1008,7 @@
 
         saveSlice: function($slice) {
             var self = this;
-            var $editForm = $slice.find('.slice-edit-form');
-            var sliceData = {};
-            
-            // WICHTIG: CKE5-Instanzen in Textareas zurückschreiben
-            $editForm.find('textarea.cke5-editor').each(function() {
-                var $textarea = $(this);
-                var textareaId = $textarea.attr('id');
-                
-                
-                // CKE5-Instanz finden und Daten in Textarea schreiben
-                if (typeof ckeditors !== 'undefined' && ckeditors[textareaId]) {
-                    var editorData = ckeditors[textareaId].getData();
-                    $textarea.val(editorData);
-                }
-            });
-            
-            // WICHTIG: TinyMCE-Instanzen in Textareas zurückschreiben
-            $editForm.find('textarea.tiny-editor').each(function() {
-                var $textarea = $(this);
-                var textareaId = $textarea.attr('id');
-                
-                // TinyMCE-Instanz finden und Daten in Textarea schreiben
-                if (typeof tinymce !== 'undefined' && tinymce.get(textareaId)) {
-                    var editor = tinymce.get(textareaId);
-                    var editorContent = editor.getContent();
-                    $textarea.val(editorContent);
-                }
-            });
-            
-            // Sammle alle Modal-IDs die zu diesem Slice gehören
-            var $allInputs = $editForm.find('input, textarea, select');
-            
-            // Auch Inputs in zugehörigen Modals sammeln (Bootstrap verschiebt Modals nach body)
-            // Sowohl Settings-Modals als auch Repeater-Item-Modals
-            $editForm.find('[data-toggle="modal"]').each(function() {
-                var modalId = $(this).attr('data-target');
-                if (modalId) {
-                    var $modal = $(modalId);
-                    if ($modal.length) {
-                        $allInputs = $allInputs.add($modal.find('input, textarea, select'));
-                    }
-                }
-            });
-            
-            // Auch Modals in body suchen die zu diesem Slice gehören könnten
-            // (Bootstrap verschiebt Modals nach body)
-            $('body > .modal').each(function() {
-                var $modal = $(this);
-                var modalId = $modal.attr('id');
-                // Prüfen ob dieses Modal zu unserem Slice gehört
-                if (modalId && $editForm.find('[data-target="#' + modalId + '"]').length > 0) {
-                    $allInputs = $allInputs.add($modal.find('input, textarea, select'));
-                }
-            });
-            
-            // Form-Daten sammeln - aus allen Input-Feldern
-            $allInputs.each(function() {
-                var $field = $(this);
-                var name = $field.attr('name');
-                var value = $field.val();
-
-                // Versteckte Repeater-Template-Felder niemals speichern,
-                // da diese mit Index [0] echte Item-Werte überschreiben können.
-                if ($field.closest('.repeater-item-template').length > 0) {
-                    return;
-                }
-
-                var $modal = $field.closest('.modal');
-                if ($modal.length > 0 && String($modal.attr('id') || '').indexOf('repeater_item_template_') === 0) {
-                    return;
-                }
-                
-                // Radio-Buttons: Nur gecheckte übernehmen
-                if ($field.is(':radio')) {
-                    if ($field.is(':checked') && name) {
-                        self.setNestedValue(sliceData, name, value);
-                    }
-                    return; // continue - nicht-gecheckte Radios überspringen
-                }
-                
-                // Checkboxen: Nur gecheckte übernehmen
-                if ($field.is(':checkbox')) {
-                    if ($field.is(':checked') && name) {
-                        self.setNestedValue(sliceData, name, value || '1');
-                    }
-                    return; // continue
-                }
-                
-                // Multiple Selects: Komma-getrennte Liste speichern
-                if ($field.is('select') && $field.prop('multiple')) {
-                    var selectedValues = $field.val();
-                    if (selectedValues && selectedValues.length > 0) {
-                        value = selectedValues.join(',');
-                    } else {
-                        value = '';
-                    }
-                }
-                
-                // YForm Hidden Inputs (.yform-dataset-real) speichern auch mit leerem Wert
-                // (Datensatz wurde gelöscht oder nicht ausgewählt)
-                if ($field.hasClass('yform-dataset-real')) {
-                    if (name) {
-                        const pickerValue = $field.val();
-                        self.setNestedValue(sliceData, name, pickerValue);
-                    }
-                } else if (name && value !== undefined && (value !== '' || $field.is('select'))) {
-                    // Verschachteltes Objekt erstellen aus Bracket-Notation
-                    self.setNestedValue(sliceData, name, value);
-                }
-            });
-            // Slice-Daten als Attribut UND als jQuery data speichern
-            $slice.attr('data-slice-data', JSON.stringify(sliceData));
-            $slice.data('slice-data', sliceData);
+            var sliceData = this.collectSliceDataFromForm($slice);
             
             // Slice neu rendern
             this.renderSlice($slice, sliceData);
@@ -1110,6 +1025,107 @@
             // Zur gespeicherten Slice scrollen und Glow-Effekt
             this.scrollToSlice($slice);
             this.glowEffect($slice);
+        },
+
+        collectSliceDataFromForm: function($slice) {
+            var self = this;
+            var $editForm = $slice.find('.slice-edit-form');
+            var sliceData = {};
+
+            // CKE5-Instanzen in Textareas zurückschreiben
+            $editForm.find('textarea.cke5-editor').each(function() {
+                var $textarea = $(this);
+                var textareaId = $textarea.attr('id');
+
+                if (typeof ckeditors !== 'undefined' && ckeditors[textareaId]) {
+                    var editorData = ckeditors[textareaId].getData();
+                    $textarea.val(editorData);
+                }
+            });
+
+            // TinyMCE-Instanzen in Textareas zurückschreiben
+            $editForm.find('textarea.tiny-editor').each(function() {
+                var $textarea = $(this);
+                var textareaId = $textarea.attr('id');
+
+                if (typeof tinymce !== 'undefined' && tinymce.get(textareaId)) {
+                    var editor = tinymce.get(textareaId);
+                    var editorContent = editor.getContent();
+                    $textarea.val(editorContent);
+                }
+            });
+
+            var $allInputs = $editForm.find('input, textarea, select');
+
+            $editForm.find('[data-toggle="modal"]').each(function() {
+                var modalId = $(this).attr('data-target');
+                if (modalId) {
+                    var $modal = $(modalId);
+                    if ($modal.length) {
+                        $allInputs = $allInputs.add($modal.find('input, textarea, select'));
+                    }
+                }
+            });
+
+            $('body > .modal').each(function() {
+                var $modal = $(this);
+                var modalId = $modal.attr('id');
+                if (modalId && $editForm.find('[data-target="#' + modalId + '"]').length > 0) {
+                    $allInputs = $allInputs.add($modal.find('input, textarea, select'));
+                }
+            });
+
+            $allInputs.each(function() {
+                var $field = $(this);
+                var name = $field.attr('name');
+                var value = $field.val();
+
+                if ($field.closest('.repeater-item-template').length > 0) {
+                    return;
+                }
+
+                var $modal = $field.closest('.modal');
+                if ($modal.length > 0 && String($modal.attr('id') || '').indexOf('repeater_item_template_') === 0) {
+                    return;
+                }
+
+                if ($field.is(':radio')) {
+                    if ($field.is(':checked') && name) {
+                        self.setNestedValue(sliceData, name, value);
+                    }
+                    return;
+                }
+
+                if ($field.is(':checkbox')) {
+                    if ($field.is(':checked') && name) {
+                        self.setNestedValue(sliceData, name, value || '1');
+                    }
+                    return;
+                }
+
+                if ($field.is('select') && $field.prop('multiple')) {
+                    var selectedValues = $field.val();
+                    if (selectedValues && selectedValues.length > 0) {
+                        value = selectedValues.join(',');
+                    } else {
+                        value = '';
+                    }
+                }
+
+                if ($field.hasClass('yform-dataset-real')) {
+                    if (name) {
+                        var pickerValue = $field.val();
+                        self.setNestedValue(sliceData, name, pickerValue);
+                    }
+                } else if (name && value !== undefined && (value !== '' || $field.is('select'))) {
+                    self.setNestedValue(sliceData, name, value);
+                }
+            });
+
+            $slice.attr('data-slice-data', JSON.stringify(sliceData));
+            $slice.data('slice-data', sliceData);
+
+            return sliceData;
         },
         
         /**

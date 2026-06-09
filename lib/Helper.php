@@ -182,12 +182,24 @@ class Helper
         }
         
         $closeType = 'close';
-        
-        ob_start();
-        include $templateFile;
-        $output = ob_get_clean();
 
-        return is_string($output) ? $output : '';
+        $obLevel = ob_get_level();
+        ob_start();
+
+        try {
+            include $templateFile;
+            $output = ob_get_clean();
+
+            return is_string($output) ? $output : '';
+        } catch (Throwable $e) {
+            while (ob_get_level() > $obLevel) {
+                ob_end_clean();
+            }
+
+            \rex_logger::logException($e);
+
+            return '<!-- Section close render error -->';
+        }
     }
 
     /**
@@ -227,12 +239,24 @@ class Helper
         if ($templateFile === '') {
             return '<!-- Element template not found: ' . rex_escape($sliceType) . ' -->';
         }
-        
-        ob_start();
-        include $templateFile;
-        $output = ob_get_clean();
 
-        return is_string($output) ? $output : '';
+        $obLevel = ob_get_level();
+        ob_start();
+
+        try {
+            include $templateFile;
+            $output = ob_get_clean();
+
+            return is_string($output) ? $output : '';
+        } catch (Throwable $e) {
+            while (ob_get_level() > $obLevel) {
+                ob_end_clean();
+            }
+
+            \rex_logger::logException($e);
+
+            return '<!-- Element render error: ' . rex_escape((string) $sliceType) . ' -->';
+        }
     }
 
     protected static function resolveElementPath(string $elementType): ?string
