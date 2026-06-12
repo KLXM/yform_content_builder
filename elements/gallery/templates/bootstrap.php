@@ -9,7 +9,32 @@ $layout = $elementData['layout'] ?? 'grid';
 $columns = intval($elementData['columns'] ?? 3);
 $aspectRatio = $elementData['aspect_ratio'] ?? 'auto';
 $gap = $elementData['gap'] ?? 'medium';
-$items = $elementData['items'] ?? [];
+$rawItems = $elementData['items'] ?? [];
+
+$items = [];
+if (is_string($rawItems)) {
+    $decodedItems = json_decode($rawItems, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $decodedItems = json_decode(html_entity_decode($rawItems, ENT_QUOTES | ENT_HTML5, 'UTF-8'), true);
+    }
+    if (is_array($decodedItems)) {
+        $rawItems = $decodedItems;
+    }
+}
+
+if (is_array($rawItems)) {
+    if (isset($rawItems['media'])) {
+        $items = [$rawItems];
+    } elseif (array_is_list($rawItems)) {
+        $items = $rawItems;
+    } else {
+        foreach ($rawItems as $maybeItem) {
+            if (is_array($maybeItem)) {
+                $items[] = $maybeItem;
+            }
+        }
+    }
+}
 
 // CSS-Klassen basierend auf Einstellungen
 $containerClass = 'gallery-container gallery-' . $layout . ' gallery-gap-' . $gap;
@@ -57,7 +82,25 @@ if ($columns == 5) {
         <div class="row">
             <?php foreach ($items as $index => $item): ?>
                 <?php 
-                $media = $item['media'] ?? '';
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $mediaRaw = $item['media'] ?? '';
+                $media = '';
+                if (is_string($mediaRaw)) {
+                    $media = $mediaRaw;
+                } elseif (is_array($mediaRaw)) {
+                    if (isset($mediaRaw['value']) && is_string($mediaRaw['value'])) {
+                        $media = $mediaRaw['value'];
+                    } else {
+                        $firstMedia = reset($mediaRaw);
+                        if (is_string($firstMedia)) {
+                            $media = $firstMedia;
+                        }
+                    }
+                }
+
                 $caption = $item['caption'] ?? '';
                 $altText = $item['alt_text'] ?? '';
                 

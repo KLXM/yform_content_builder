@@ -1,7 +1,7 @@
 <?php
 $headline = (string) ($elementData['headline'] ?? '');
 $layout = (string) ($elementData['layout'] ?? 'grid');
-$items = $elementData['items'] ?? [];
+$rawItems = $elementData['items'] ?? [];
 
 $columns = (string) ($elementData['columns'] ?? '3');
 $columnsTablet = (string) ($elementData['columns_tablet'] ?? '2');
@@ -12,6 +12,31 @@ $sectionBg = (string) ($elementData['section_bg'] ?? '');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionLight = !empty($elementData['section_light']);
+
+$items = [];
+if (is_string($rawItems)) {
+    $decodedItems = json_decode($rawItems, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $decodedItems = json_decode(html_entity_decode($rawItems, ENT_QUOTES | ENT_HTML5, 'UTF-8'), true);
+    }
+    if (is_array($decodedItems)) {
+        $rawItems = $decodedItems;
+    }
+}
+
+if (is_array($rawItems)) {
+    if (isset($rawItems['image'])) {
+        $items = [$rawItems];
+    } elseif (array_is_list($rawItems)) {
+        $items = $rawItems;
+    } else {
+        foreach ($rawItems as $maybeItem) {
+            if (is_array($maybeItem)) {
+                $items[] = $maybeItem;
+            }
+        }
+    }
+}
 
 if (!is_array($items) || $items === []) {
     return;
@@ -39,7 +64,28 @@ $gridAttr = $layout === 'masonry' ? 'masonry: true' : '';
         <?php if ($headline !== ''): ?><h3><?= rex_escape($headline) ?></h3><?php endif; ?>
         <div class="<?= rex_escape(trim($gridClass . ' ' . $gapClass)) ?>" uk-grid<?= $gridAttr !== '' ? '="' . rex_escape($gridAttr) . '"' : '' ?>>
             <?php foreach ($items as $index => $item): ?>
-                <?php $img = (string) ($item['image'] ?? ''); if ($img === '') { continue; } ?>
+                <?php
+                if (!is_array($item)) {
+                    continue;
+                }
+                $imageRaw = $item['image'] ?? '';
+                $img = '';
+                if (is_string($imageRaw)) {
+                    $img = $imageRaw;
+                } elseif (is_array($imageRaw)) {
+                    if (isset($imageRaw['value']) && is_string($imageRaw['value'])) {
+                        $img = $imageRaw['value'];
+                    } else {
+                        $firstImage = reset($imageRaw);
+                        if (is_string($firstImage)) {
+                            $img = $firstImage;
+                        }
+                    }
+                }
+                if ($img === '') {
+                    continue;
+                }
+                ?>
                 <?php
                 $caption = (string) ($item['caption'] ?? '');
                 $fallback = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Galeriebild ' . ($index + 1);

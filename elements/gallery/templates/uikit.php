@@ -14,7 +14,33 @@ $aspectRatio = $elementData['aspect_ratio'] ?? 'auto';
 $gap = $elementData['gap'] ?? 'medium';
 $lightbox = !empty($elementData['lightbox']);
 $mediaCaptionFallback = !empty($elementData['media_caption_fallback']);
-$items = $elementData['items'] ?? [];
+$rawItems = $elementData['items'] ?? [];
+
+// Repeater kann als JSON-String, einzelnes Item oder assoziatives Array ankommen.
+$items = [];
+if (is_string($rawItems)) {
+    $decodedItems = json_decode($rawItems, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $decodedItems = json_decode(html_entity_decode($rawItems, ENT_QUOTES | ENT_HTML5, 'UTF-8'), true);
+    }
+    if (is_array($decodedItems)) {
+        $rawItems = $decodedItems;
+    }
+}
+
+if (is_array($rawItems)) {
+    if (isset($rawItems['media'])) {
+        $items = [$rawItems];
+    } elseif (array_is_list($rawItems)) {
+        $items = $rawItems;
+    } else {
+        foreach ($rawItems as $maybeItem) {
+            if (is_array($maybeItem)) {
+                $items[] = $maybeItem;
+            }
+        }
+    }
+}
 
 // Section-Einstellungen
 $sectionBg = $elementData['section_bg'] ?? '';
@@ -132,7 +158,25 @@ $lightboxId = 'gallery-' . uniqid();
     <div class="<?= $gridClassStr ?>" <?= $gridAttrs ?><?php if ($lightbox): ?> uk-lightbox="animation: slide"<?php endif; ?>>
         <?php foreach ($items as $index => $item): ?>
             <?php 
-            $media = $item['media'] ?? '';
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $mediaRaw = $item['media'] ?? '';
+            $media = '';
+            if (is_string($mediaRaw)) {
+                $media = $mediaRaw;
+            } elseif (is_array($mediaRaw)) {
+                if (isset($mediaRaw['value']) && is_string($mediaRaw['value'])) {
+                    $media = $mediaRaw['value'];
+                } else {
+                    $firstMedia = reset($mediaRaw);
+                    if (is_string($firstMedia)) {
+                        $media = $firstMedia;
+                    }
+                }
+            }
+
             $caption = $item['caption'] ?? '';
             $altTextManual = $item['alt_text'] ?? '';
             $linkUrl = $item['link_url'] ?? '';
