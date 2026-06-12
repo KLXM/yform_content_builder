@@ -109,18 +109,20 @@ body.rex-theme-dark {
     .slice-toolbar .dropdown-menu {
         background: #35393d;
         border-color: #404448;
-    }
-
-    .slice-toolbar .dropdown-menu .dropdown-items-scroll {
         scrollbar-color: transparent transparent;
     }
 
-    .slice-toolbar .dropdown-menu .dropdown-items-scroll:hover {
+    .slice-toolbar .dropdown-menu:hover {
         scrollbar-color: rgba(80, 153, 187, 0.5) transparent;
     }
 
-    .slice-toolbar .dropdown-menu .dropdown-items-scroll:hover::-webkit-scrollbar-thumb {
+    .slice-toolbar .dropdown-menu:hover::-webkit-scrollbar-thumb {
         background: rgba(80, 153, 187, 0.5);
+    }
+
+    .slice-toolbar .dropdown-menu .dropdown-search-wrapper {
+        background: #35393d;
+        border-bottom-color: #404448;
     }
 
     .slice-toolbar .dropdown-menu > li > a {
@@ -135,12 +137,14 @@ body.rex-theme-dark {
     .slice-toolbar .dropdown-menu .dropdown-search {
         background: #2a2d31;
         color: #e8f0f7;
-        border-color: #404448;
+        border: 1px solid #404448;
+        box-shadow: none;
     }
 
     .slice-toolbar .dropdown-menu .dropdown-search:focus {
-        border-color: #5099bb;
-        box-shadow: 0 0 3px rgba(80, 153, 187, 0.3);
+        border-color: #5b6978;
+        box-shadow: none !important;
+        outline: none;
     }
 
     .slice-toolbar:hover::before {
@@ -679,6 +683,11 @@ body.rex-theme-dark {
             border-color: #404448;
         }
 
+        .slice-toolbar .dropdown-menu .dropdown-search-wrapper {
+            background: #35393d;
+            border-bottom-color: #404448;
+        }
+
         .slice-toolbar .dropdown-menu > li > a {
             color: #f2f2f2;
         }
@@ -690,12 +699,14 @@ body.rex-theme-dark {
         .slice-toolbar .dropdown-menu .dropdown-search {
             background: #2a2d31;
             color: #e8f0f7;
-            border-color: #404448;
+            border: 1px solid #404448;
+            box-shadow: none;
         }
 
         .slice-toolbar .dropdown-menu .dropdown-search:focus {
-            border-color: #5099bb;
-            box-shadow: 0 0 3px rgba(80, 153, 187, 0.3);
+            border-color: #5b6978;
+            box-shadow: none !important;
+            outline: none;
         }
 
         /* Add Slice */

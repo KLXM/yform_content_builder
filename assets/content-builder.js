@@ -46,20 +46,51 @@
                     var $slice = $(this).closest('.content-builder-slice');
                     $slice.css('z-index', 1000);
                 })
+                .on('shown.bs.dropdown', '.slice-toolbar .btn-group-insert', function() {
+                    var $menu = $(this).find('.dropdown-menu').first();
+                    if ($menu.length > 0) {
+                        var frozenWidth = $menu.outerWidth();
+                        if (frozenWidth && frozenWidth > 0) {
+                            $menu.css({
+                                width: frozenWidth + 'px',
+                                minWidth: frozenWidth + 'px'
+                            });
+                        }
+                    }
+                })
                 .on('hidden.bs.dropdown', '.slice-toolbar .btn-group-insert', function() {
                     var $slice = $(this).closest('.content-builder-slice');
                     $slice.css('z-index', 'auto');
+
+                    var $menu = $(this).find('.dropdown-menu').first();
+                    if ($menu.length > 0) {
+                        $menu.removeData('yfcbFrozenWidth');
+                        $menu.css({
+                            width: '',
+                            minWidth: ''
+                        });
+                    }
                 });
             
             // Live-Suche im Element-Dropdown
             $(document)
-                .on('keyup', '.dropdown-menu .dropdown-search', function(e) {
+                .on('input keyup', '.dropdown-menu .dropdown-search', function(e) {
                     var searchText = $(this).val().trim().toLowerCase();
                     var $menu = $(this).closest('.dropdown-menu');
-                    var $scroll = $menu.find('.dropdown-items-scroll');
-                    var $items = ($scroll.length ? $scroll : $menu).find('.element-item');
-                    var $headers = ($scroll.length ? $scroll : $menu).find('.dropdown-header');
-                    var $dividers = ($scroll.length ? $scroll : $menu).find('[role="separator"]');
+                    var frozenWidth = $menu.data('yfcbFrozenWidth');
+                    if (!frozenWidth) {
+                        frozenWidth = $menu.outerWidth();
+                        if (frozenWidth && frozenWidth > 0) {
+                            $menu.data('yfcbFrozenWidth', frozenWidth);
+                            $menu.css({
+                                width: frozenWidth + 'px',
+                                minWidth: frozenWidth + 'px'
+                            });
+                        }
+                    }
+                    var $items = $menu.find('.element-item');
+                    var $headers = $menu.find('.dropdown-header');
+                    var $dividers = $menu.find('[role="separator"]');
                     
                     if (searchText === '') {
                         // Alle Items zeigen

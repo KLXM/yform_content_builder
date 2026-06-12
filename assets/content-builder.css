@@ -277,45 +277,44 @@
     left: auto;
     margin-top: 2px;
     z-index: 99999;
-    display: flex;
-    flex-direction: column;
     max-height: 60vh;
-}
-
-/* Scrollbarer Bereich unterhalb des Suchfelds */
-.slice-toolbar .dropdown-menu .dropdown-items-scroll {
     overflow-y: auto;
-    flex: 1 1 auto;
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
-    transition: scrollbar-color 0.2s;
+    transition: width 0.2s ease, max-height 0.2s ease, box-shadow 0.2s ease, scrollbar-color 0.2s;
+    will-change: width;
 }
 
-.slice-toolbar .dropdown-menu .dropdown-items-scroll:hover {
+.slice-toolbar .dropdown-menu:hover {
     scrollbar-color: rgba(60, 141, 188, 0.45) transparent;
 }
 
-.slice-toolbar .dropdown-menu .dropdown-items-scroll::-webkit-scrollbar {
+.slice-toolbar .dropdown-menu::-webkit-scrollbar {
     width: 4px;
 }
 
-.slice-toolbar .dropdown-menu .dropdown-items-scroll::-webkit-scrollbar-track {
+.slice-toolbar .dropdown-menu::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.slice-toolbar .dropdown-menu .dropdown-items-scroll::-webkit-scrollbar-thumb {
+.slice-toolbar .dropdown-menu::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 4px;
-    transition: background 0.2s;
 }
 
-.slice-toolbar .dropdown-menu .dropdown-items-scroll:hover::-webkit-scrollbar-thumb {
+.slice-toolbar .dropdown-menu:hover::-webkit-scrollbar-thumb {
     background: rgba(60, 141, 188, 0.45);
 }
 
-/* Dropdown-Suchfeld */
+/* Suchfeld oben fixiert beim Scrollen */
 .slice-toolbar .dropdown-menu .dropdown-search-wrapper {
-    padding: 5px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff;
+    padding: 5px 8px 4px;
+    border-bottom: 1px solid #e8e8e8;
+    margin-bottom: 2px;
     list-style: none;
 }
 
