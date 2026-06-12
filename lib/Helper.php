@@ -298,11 +298,12 @@ class Helper
      */
     public static function outputRaw(string $jsonContent, string $framework = 'bootstrap'): string
     {
-        if (!self::isContentBuilderJson($jsonContent)) {
+        $normalizedContent = self::normalizeContentBuilderJson($jsonContent);
+        if ($normalizedContent === null) {
             return $jsonContent;
         }
 
-        return self::render($jsonContent, $framework);
+        return self::render($normalizedContent, $framework);
     }
 
     /**
@@ -319,40 +320,67 @@ class Helper
             return '';
         }
 
-        if (!self::isContentBuilderJson($content)) {
+        $normalizedContent = self::normalizeContentBuilderJson($content);
+        if ($normalizedContent === null) {
             return $content;
         }
 
-        return self::render($content, $framework);
+        return self::render($normalizedContent, $framework);
     }
 
     /**
-     * Prueft, ob der String das erwartete Content-Builder-JSON-Format hat.
+     * Normalisiert Content-Builder-JSON und liefert es als JSON-Array von Slices.
+     * Gibt null zurueck, wenn kein Content-Builder-JSON vorliegt.
      */
-    protected static function isContentBuilderJson(string $content): bool
+    protected static function normalizeContentBuilderJson(string $content): ?string
     {
         $trimmed = trim($content);
         if ($trimmed === '') {
-            return false;
+            return null;
         }
 
-        $decoded = json_decode($trimmed, true);
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded) || !array_is_list($decoded)) {
-            return false;
+        $candidates = [$trimmed];
+
+        // Manche Felder enthalten HTML-entity-kodiertes JSON.
+        $decodedEntities = html_entity_decode($trimmed, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if ($decodedEntities !== $trimmed) {
+            $candidates[] = $decodedEntities;
         }
 
-        // Leeres Slice-Array ist ein gueltiges Content-Builder-Format.
-        if ($decoded === []) {
-            return true;
-        }
+        foreach ($candidates as $candidate) {
+            $decoded = json_decode($candidate, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                continue;
+            }
 
-        foreach ($decoded as $slice) {
-            if (is_array($slice) && isset($slice['type']) && is_string($slice['type'])) {
-                return true;
+            // Standard: Liste von Slices.
+            if (array_is_list($decoded)) {
+                if ($decoded === []) {
+                    return '[]';
+                }
+
+                foreach ($decoded as $slice) {
+                    if (is_array($slice) && isset($slice['type']) && is_string($slice['type'])) {
+                        $normalized = json_encode($decoded);
+                        return is_string($normalized) ? $normalized : null;
+                    }
+                }
+            }
+
+            // Sonderfall: einzelnes Slice-Objekt.
+            if (isset($decoded['type']) && is_string($decoded['type'])) {
+                $normalized = json_encode([$decoded]);
+                return is_string($normalized) ? $normalized : null;
+            }
+
+            // Sonderfall: Wrapper mit slices-Array.
+            if (isset($decoded['slices']) && is_array($decoded['slices']) && array_is_list($decoded['slices'])) {
+                $normalized = json_encode($decoded['slices']);
+                return is_string($normalized) ? $normalized : null;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**

@@ -1,19 +1,14 @@
 <?php
-$headline = (string) ($elementData['headline'] ?? '');
-$headlineTag = (string) ($elementData['headline_tag'] ?? 'h2');
 $text = (string) ($elementData['text'] ?? '');
-
-$allowedHeadlineTags = ['h1', 'h2', 'h3', 'h4', 'p'];
-if (!in_array($headlineTag, $allowedHeadlineTags, true)) {
-    $headlineTag = 'h2';
-}
 
 $sectionBg = (string) ($elementData['section_bg'] ?? '');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !empty($elementData['enable_section']);
+$enableContainer = !empty($elementData['enable_container']);
 
-if ($headline === '' && trim(strip_tags($text)) === '') {
+if (trim(strip_tags($text)) === '') {
     return;
 }
 
@@ -29,6 +24,7 @@ $paddingMap = [
     'uk-padding' => '35px 0',
     'uk-padding-large' => '55px 0',
 ];
+
 $sectionStyle = '';
 if (isset($bgMap[$sectionBg])) {
     $sectionStyle .= 'background:' . $bgMap[$sectionBg] . ';';
@@ -43,15 +39,30 @@ if ($sectionLight) {
 $containerStyle = 'max-width:1140px;margin:0 auto;padding:0 15px;';
 if ($containerWidth === '') {
     $containerStyle = 'padding:0 15px;';
+} elseif (str_contains($containerWidth, 'xsmall')) {
+    $containerStyle = 'max-width:480px;margin:0 auto;padding:0 15px;';
+} elseif (str_contains($containerWidth, 'small')) {
+    $containerStyle = 'max-width:640px;margin:0 auto;padding:0 15px;';
+} elseif (str_contains($containerWidth, 'large')) {
+    $containerStyle = 'max-width:1320px;margin:0 auto;padding:0 15px;';
+} elseif (str_contains($containerWidth, 'xlarge')) {
+    $containerStyle = 'max-width:1600px;margin:0 auto;padding:0 15px;';
+} elseif (str_contains($containerWidth, 'expand')) {
+    $containerStyle = 'width:100%;padding:0 15px;';
 }
 ?>
+<?php if ($enableSection): ?>
 <section<?= $sectionStyle !== '' ? ' style="' . rex_escape($sectionStyle) . '"' : '' ?>>
+<?php endif; ?>
+<?php if ($enableContainer): ?>
     <div style="<?= rex_escape($containerStyle) ?>">
-        <?php if ($headline !== ''): ?>
-            <<?= $headlineTag ?> style="margin-top:0;"><?= rex_escape($headline) ?></<?= $headlineTag ?>>
-        <?php endif; ?>
+<?php endif; ?>
         <?php if ($text !== ''): ?>
             <div><?= $text ?></div>
         <?php endif; ?>
+<?php if ($enableContainer): ?>
     </div>
+<?php endif; ?>
+<?php if ($enableSection): ?>
 </section>
+<?php endif; ?>

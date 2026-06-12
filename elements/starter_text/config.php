@@ -3,7 +3,9 @@
  * Starter Text - sehr einfaches Textelement
  */
 
-$config = \KLXM\YFormContentBuilder\Config::class;
+use KLXM\YFormContentBuilder\Config;
+
+$elementConfig = Config::class;
 
 return [
     'label' => 'Text',
@@ -15,34 +17,34 @@ return [
         'content_tab' => [
             'label' => 'Inhalt',
             'icon' => 'fa-file-text-o',
-            'fields' => ['headline', 'headline_tag', 'text'],
+            'fields' => ['text'],
         ],
-        'section_tab' => [
+        'section_settings_tab' => [
             'label' => 'Sektion',
             'icon' => 'fa-columns',
-            'fields' => $config::getSectionFieldNames(),
+            'fields' => array_merge(
+                ['enable_section', 'enable_container'],
+                $elementConfig::getSectionFieldNames()
+            ),
         ],
     ],
     'fields' => array_merge([
-        'headline' => [
-            'type' => 'text',
-            'label' => 'Ueberschrift',
+        'enable_section' => [
+            'type' => 'checkbox',
+            'label' => 'Sektion aktivieren',
+            'default' => false,
+            'notice' => 'Nur aktivieren, wenn dieses Element eine eigene Section-Umhüllung benötigt.',
         ],
-        'headline_tag' => [
-            'type' => 'choice',
-            'label' => 'Ueberschrift Tag',
-            'choices' => [
-                'h2' => 'H2',
-                'h3' => 'H3',
-                'h4' => 'H4',
-                'p' => 'Absatz',
-            ],
-            'default' => 'h2',
+        'enable_container' => [
+            'type' => 'checkbox',
+            'label' => 'Container aktivieren',
+            'default' => false,
+            'notice' => 'Nur aktivieren, wenn ein eigener Container gesetzt werden soll.',
         ],
         'text' => [
             'type' => 'tinymce',
             'profile' => 'default',
             'label' => 'Text',
         ],
-    ], $config::getSectionFields()),
+    ], $elementConfig::getSectionFields()),
 ];
