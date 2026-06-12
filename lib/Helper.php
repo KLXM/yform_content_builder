@@ -298,6 +298,10 @@ class Helper
      */
     public static function outputRaw(string $jsonContent, string $framework = 'bootstrap'): string
     {
+        if (!self::isContentBuilderJson($jsonContent)) {
+            return $jsonContent;
+        }
+
         return self::render($jsonContent, $framework);
     }
 
@@ -315,7 +319,40 @@ class Helper
             return '';
         }
 
+        if (!self::isContentBuilderJson($content)) {
+            return $content;
+        }
+
         return self::render($content, $framework);
+    }
+
+    /**
+     * Prueft, ob der String das erwartete Content-Builder-JSON-Format hat.
+     */
+    protected static function isContentBuilderJson(string $content): bool
+    {
+        $trimmed = trim($content);
+        if ($trimmed === '') {
+            return false;
+        }
+
+        $decoded = json_decode($trimmed, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded) || !array_is_list($decoded)) {
+            return false;
+        }
+
+        // Leeres Slice-Array ist ein gueltiges Content-Builder-Format.
+        if ($decoded === []) {
+            return true;
+        }
+
+        foreach ($decoded as $slice) {
+            if (is_array($slice) && isset($slice['type']) && is_string($slice['type'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
