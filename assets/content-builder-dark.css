@@ -111,6 +111,18 @@ body.rex-theme-dark {
         border-color: #404448;
     }
 
+    .slice-toolbar .dropdown-menu .dropdown-items-scroll {
+        scrollbar-color: transparent transparent;
+    }
+
+    .slice-toolbar .dropdown-menu .dropdown-items-scroll:hover {
+        scrollbar-color: rgba(80, 153, 187, 0.5) transparent;
+    }
+
+    .slice-toolbar .dropdown-menu .dropdown-items-scroll:hover::-webkit-scrollbar-thumb {
+        background: rgba(80, 153, 187, 0.5);
+    }
+
     .slice-toolbar .dropdown-menu > li > a {
         color: #f2f2f2;
     }

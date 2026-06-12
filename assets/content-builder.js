@@ -56,9 +56,10 @@
                 .on('keyup', '.dropdown-menu .dropdown-search', function(e) {
                     var searchText = $(this).val().trim().toLowerCase();
                     var $menu = $(this).closest('.dropdown-menu');
-                    var $items = $menu.find('.element-item');
-                    var $headers = $menu.find('.dropdown-header');
-                    var $dividers = $menu.find('[role="separator"]');
+                    var $scroll = $menu.find('.dropdown-items-scroll');
+                    var $items = ($scroll.length ? $scroll : $menu).find('.element-item');
+                    var $headers = ($scroll.length ? $scroll : $menu).find('.dropdown-header');
+                    var $dividers = ($scroll.length ? $scroll : $menu).find('[role="separator"]');
                     
                     if (searchText === '') {
                         // Alle Items zeigen
@@ -1630,7 +1631,13 @@
                     if ($insertGroup.length === 0) {
                         // Create new button group
                         $insertGroup = self.createInsertButton(availableElements, index);
-                        $toolbar.prepend($insertGroup);
+                        // Immer direkt nach dem slice-label einfügen (rechts neben Label)
+                        var $sliceLabel = $toolbar.find('.slice-label');
+                        if ($sliceLabel.length) {
+                            $insertGroup.insertAfter($sliceLabel);
+                        } else {
+                            $toolbar.prepend($insertGroup);
+                        }
                     } else {
                         // Update index
                         $insertGroup.find('.btn-insert-slice').attr('data-insert-after', index);

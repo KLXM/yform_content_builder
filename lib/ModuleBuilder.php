@@ -707,6 +707,7 @@ class ModuleBuilder
                             <input type="text" class="form-control dropdown-search" placeholder="<?= rex_i18n::msg('search') ?>" />
                         </li>
                         <?php endif; ?>
+                        <ul class="dropdown-items-scroll">
                         <?php $categoryIndex = 0; ?>
                         <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
                             <?php if ($categoryIndex > 0): ?>
@@ -734,6 +735,7 @@ class ModuleBuilder
                             <?php endforeach; ?>
                             <?php ++$categoryIndex; ?>
                         <?php endforeach; ?>
+                        </ul>
                     </ul>
                 </div>
                 <button type="button" class="btn btn-xs btn-default btn-slice-edit" title="<?= rex_i18n::msg('yform_content_builder_element_edit') ?>">

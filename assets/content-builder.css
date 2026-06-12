@@ -277,6 +277,40 @@
     left: auto;
     margin-top: 2px;
     z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    max-height: 60vh;
+}
+
+/* Scrollbarer Bereich unterhalb des Suchfelds */
+.slice-toolbar .dropdown-menu .dropdown-items-scroll {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s;
+}
+
+.slice-toolbar .dropdown-menu .dropdown-items-scroll:hover {
+    scrollbar-color: rgba(60, 141, 188, 0.45) transparent;
+}
+
+.slice-toolbar .dropdown-menu .dropdown-items-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.slice-toolbar .dropdown-menu .dropdown-items-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.slice-toolbar .dropdown-menu .dropdown-items-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.slice-toolbar .dropdown-menu .dropdown-items-scroll:hover::-webkit-scrollbar-thumb {
+    background: rgba(60, 141, 188, 0.45);
 }
 
 /* Dropdown-Suchfeld */
