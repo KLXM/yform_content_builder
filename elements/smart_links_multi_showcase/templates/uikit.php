@@ -21,6 +21,8 @@ $sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionLight = (bool) ($elementData['section_light'] ?? false);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 $smartLinkClass = \KLXM\YFormContentBuilder\SmartLink::class;
 $smartLinkViewClass = \KLXM\YFormContentBuilder\SmartLinkView::class;
@@ -38,32 +40,24 @@ $gridClasses[] = 'uk-child-width-1-' . max(1, $columnsMobile);
 $gridClasses[] = 'uk-child-width-1-' . max(1, $columnsTablet) . '@s';
 $gridClasses[] = 'uk-child-width-1-' . max(1, $columns) . '@m';
 
-$sectionClasses = [];
-if ($sectionBg !== '') {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionPadding !== '') {
-    $sectionClasses[] = $sectionPadding;
-}
-if ($sectionLight) {
-    $sectionClasses[] = 'uk-light';
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
 
-$sectionStyle = '';
-if ($sectionBgImage !== '') {
-    $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $sectionBgImage);
-    $sectionStyle = ' style="background-image: url(\'' . rex_escape($bgImageUrl) . '\'); background-size: cover; background-position: center;"';
-    $sectionClasses[] = 'uk-background-cover';
-}
-
-$hasSection = $sectionClasses !== [] || $sectionStyle !== '';
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 ?>
-<?php if ($hasSection): ?>
-<section class="<?= rex_escape(implode(' ', $sectionClasses)) ?>"<?= $sectionStyle ?>>
-<?php endif; ?>
-
-<div class="<?= rex_escape($containerWidth !== '' ? $containerWidth : 'uk-container') ?>">
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
     <?php if ($headline !== ''): ?>
         <h2 class="uk-heading-divider"><?= rex_escape($headline) ?></h2>
     <?php endif; ?>
@@ -117,7 +111,4 @@ $hasSection = $sectionClasses !== [] || $sectionStyle !== '';
         <?php endforeach; ?>
     </div>
 </div>
-
-<?php if ($hasSection): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

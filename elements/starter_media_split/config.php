@@ -25,7 +25,7 @@ return [
         'section_tab' => [
             'label' => 'Sektion',
             'icon' => 'fa-columns',
-            'fields' => $config::getSectionFieldNames(),
+            'fields' => $config::getOptionalSectionFieldNames(),
         ],
     ],
     'fields' => array_merge([
@@ -56,5 +56,5 @@ return [
             'type' => 'text',
             'label' => 'Alt-Text',
         ],
-    ], $config::getSectionFields()),
+    ], $config::getOptionalSectionFields()),
 ];

@@ -24,32 +24,28 @@ $sectionBgImg = $elementData['section_bg_image'] ?? '';
 $sectionPad   = $elementData['section_padding'] ?? '';
 $container    = $elementData['container_width'] ?? 'uk-container';
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 if (empty($items)) {
     return;
 }
 
-$sectionClasses = [];
-if ($sectionBg) {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionPad) {
-    $sectionClasses[] = $sectionPad;
-}
-if ($sectionLight) {
-    $sectionClasses[] = 'uk-light';
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImg, false);
+$wrapper->setVar('section_padding', $sectionPad, false);
+$wrapper->setVar('container_width', $container, false);
+$wrapper->setVar('section_light', $sectionLight, false);
 
-$sectionStyle = '';
-if ($sectionBgImg) {
-    $ext = strtolower(pathinfo($sectionBgImg, PATHINFO_EXTENSION));
-    if (!in_array($ext, ['mp4', 'webm', 'ogg'], true)) {
-        $bgUrl = rex_media_manager::getUrl('content_slideshow', $sectionBgImg);
-        $sectionStyle = ' style="background-image: url(\'' . $bgUrl . '\'); background-size: cover; background-position: center;"';
-    }
-}
-
-$hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImg, false);
+$wrapperClose->setVar('container_width', $container, false);
 
 // CSS-Variablen für Icon-Farbe
 $colorMap = [
@@ -72,11 +68,7 @@ $isAlternating = $style === 'alternating';
 $isCard        = $style === 'card';
 
 ?>
-<?php if ($hasSection): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>"<?= $sectionStyle ?>>
-<?php endif; ?>
-
-<div class="<?= rex_escape($container ?: 'uk-container') ?>">
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
 
     <?php if ($heading || $intro): ?>
         <div class="uk-margin-medium-bottom<?= $isAlternating ? ' uk-text-center' : '' ?>">
@@ -149,10 +141,7 @@ $isCard        = $style === 'card';
 
     </div>
 </div>
-
-<?php if ($hasSection): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>
 
 <style>
 .cb-timeline {

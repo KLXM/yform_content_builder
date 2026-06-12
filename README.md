@@ -92,6 +92,24 @@ use KLXM\YFormContentBuilder\Module;
 echo Module::createByValueId('cards', 1, 'uikit')->renderOutput();
 ```
 
+#### Single Element mit Initialwerten
+
+Initialwerte greifen **nur wenn der Slot noch leer ist** – gespeicherte Inhalte werden nie überschrieben. Du musst **nur die Felder angeben, die vom Element-Default abweichen sollen** – leere Strings für unveränderte Felder sind nicht nötig.
+
+```php
+// Eingabe (Input-Modul) – Galerie mit Sektion + Container aktiv
+<?php
+use KLXM\YFormContentBuilder\Module;
+
+echo Module::createByValueId('gallery', 2, 'bootstrap', [
+    'enable_section'   => '1',
+    'enable_container' => '1',
+    'container_width'  => 'uk-container',
+    'layout'           => 'grid',
+    'lightbox'         => '1',
+])->renderInput();
+```
+
 ### REDAXO-Modul (Multi Element Builder)
 
 ```php
@@ -100,10 +118,64 @@ echo Module::createByValueId('cards', 1, 'uikit')->renderOutput();
 use KLXM\YFormContentBuilder\Module;
 
 $contentBuilder = Module::createWithValue(1, null, [
-	'framework' => 'bootstrap',
-	'label' => 'Seiteninhalt',
-	'description' => 'Fügen Sie Content-Elemente hinzu',
-	// 'allowed_elements' => ['headline', 'gallery', 'section'],
+    'framework'   => 'bootstrap',
+    'label'       => 'Seiteninhalt',
+    'description' => 'Fügen Sie Content-Elemente hinzu',
+    // 'allowed_elements' => ['headline', 'gallery', 'section'],
+]);
+
+echo $contentBuilder->getEditor();
+```
+
+Mit **`initial_slices`** und **`element_defaults`** lässt sich das Verhalten weiter steuern. Es müssen dabei **nur Felder angegeben werden, die vom Element-Standard abweichen** – alle anderen Felder bleiben auf ihrem jeweiligen Default:
+
+```php
+// Eingabe (Input-Modul) – mit Startlayout und Voreinstellungen
+<?php
+use KLXM\YFormContentBuilder\Module;
+
+$contentBuilder = Module::createWithValue(1, null, [
+    'framework'   => 'bootstrap',
+    'label'       => 'Seiteninhalt',
+    'description' => 'Fügen Sie Content-Elemente hinzu',
+
+    // Startlayout: wird nur beim ersten Aufruf (leerer Slot) angezeigt
+    'initial_slices' => [
+        [
+            'type'   => 'section',
+            'online' => true,
+            'data'   => [
+                'label'     => 'Hauptbereich',
+                'container' => 'container',
+            ],
+        ],
+        [
+            'type'   => 'starter_text',
+            'online' => true,
+            'data'   => [
+                'text'             => '<p>Willkommen auf der Seite.</p>',
+                'enable_section'   => '1',
+                'enable_container' => '1',
+                'container_width'  => 'uk-container',
+            ],
+        ],
+    ],
+
+    // Element-Defaults: Voreinstellungen für jeden neu hinzugefügten Slice dieses Typs
+    // '*' gilt für ALLE Element-Typen; typ-spezifische Einträge überschreiben ihn
+    'element_defaults' => [
+        '*' => [
+            // Gilt für jedes neu angelegte Element
+            'enable_section'   => '1',
+            'enable_container' => '1',
+            'container_width'  => 'uk-container',
+        ],
+        // Typ-spezifische Ergänzungen / Überschreibungen:
+        'gallery' => [
+            'layout'   => 'grid',
+            'lightbox' => '1',
+        ],
+    ],
 ]);
 
 echo $contentBuilder->getEditor();
@@ -115,11 +187,15 @@ echo $contentBuilder->getEditor();
 use KLXM\YFormContentBuilder\Module;
 
 $contentBuilder = Module::createWithValue(1, 'REX_VALUE[1]', [
-	'framework' => 'uikit',
+    'framework' => 'uikit',
 ]);
 
 echo $contentBuilder->renderOutput();
 ```
+
+> **`initial_slices`** – Startlayout für den ersten Aufruf (leerer Slot). Aliase `initial_values` / `initial_value` funktionieren gleichwertig.  
+> **`element_defaults`** – Voreinstellungen pro Element-Typ für jeden neu hinzugefügten Slice. Der Wildcard-Key `'*'` gilt für **alle** Typen; typ-spezifische Einträge überschreiben ihn. Alternativ: `global_defaults` als eigenständige Option. Bereits gespeicherte Inhalte werden **nie** überschrieben.  
+> Es müssen nur Felder angegeben werden, die vom jeweiligen Element-Standard abweichen. Beide Optionen können frei kombiniert werden.
 
 ### Frontend-Ausgabe (YForm-Feld)
 

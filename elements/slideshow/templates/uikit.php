@@ -36,6 +36,14 @@ $margin = $elementData['margin'] ?? '';
 $customId = $elementData['custom_id'] ?? '';
 $customClasses = $elementData['custom_classes'] ?? '';
 
+// Section-Einstellungen
+$sectionBg = $elementData['section_bg'] ?? '';
+$sectionBgImage = $elementData['section_bg_image'] ?? '';
+$sectionPadding = $elementData['section_padding'] ?? '';
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
+
 // Slides abrufen
 $slides = $elementData['slides'] ?? [];
 
@@ -46,10 +54,23 @@ if (empty($slides)) {
 // Backend Wrapper
 echo backendWrapper(true);
 
-// Container-Wrapper falls definiert
-if (!empty($container)) {
-    echo '<div class="' . $container . '">';
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $container, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $container, false);
+
+echo $wrapper->parse('ycb_elements/wrapper.php');
 
 echo '<div class="wellings-slideshow ' . $margin . ' ' . $customClasses . '"' . (!empty($customId) ? ' id="' . rex_escape($customId) . '"' : '') . '>';
 
@@ -199,9 +220,7 @@ if ($showDots) {
 echo '</div>';
 echo '</div>';
 
-if (!empty($container)) {
-    echo '</div>';
-}
+echo $wrapperClose->parse('ycb_elements/wrapper.php');
 
 // Backend Wrapper schließen
 echo backendWrapper(false);

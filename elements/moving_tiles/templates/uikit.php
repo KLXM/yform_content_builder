@@ -9,7 +9,12 @@
  */
 
 $sectionBg = $elementData['section_bg'] ?? '';
+$sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
+$containerWidth = $elementData['container_width'] ?? '';
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 $firstPosition = $elementData['first_position'] ?? 'left';
 $parallaxEnabled = !empty($elementData['parallax_enabled']);
 $parallaxOffset = (int)($elementData['parallax_offset'] ?? 30);
@@ -28,14 +33,21 @@ if (empty($items)) {
     return;
 }
 
-// Section classes
-$sectionClasses = ['uk-section', 'uk-padding-remove-vertical'];
-if ($sectionBg) {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionPadding) {
-    $sectionClasses[] = $sectionPadding;
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 // Hilfsfunktion: Prüfen ob Video
 if (!function_exists('movingTilesIsVideo')) {
@@ -59,7 +71,8 @@ if (!function_exists('movingTilesIsVideo')) {
 }
 </style>
 
-<div class="<?= implode(' ', $sectionClasses) ?>">
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
+<div class="uk-padding-remove-vertical">
     <?php 
     $itemIndex = 0;
     foreach ($items as $item): 
@@ -165,3 +178,4 @@ if (!function_exists('movingTilesIsVideo')) {
     
     <?php endforeach; ?>
 </div>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

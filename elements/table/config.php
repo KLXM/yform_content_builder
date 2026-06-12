@@ -27,7 +27,7 @@ return [
         'design' => [
             'label' => 'Design',
             'icon' => 'fa-paint-brush',
-            'fields' => array_merge(['table_align'], $config::getSectionFieldNames())
+            'fields' => array_merge(['table_align'], $config::getOptionalSectionFieldNames())
         ]
     ],
     'fields' => array_merge(
@@ -88,6 +88,6 @@ return [
                 'default' => ''
             ]
         ],
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

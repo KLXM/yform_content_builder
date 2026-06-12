@@ -20,6 +20,8 @@ $sectionBgImg = $elementData['section_bg_image'] ?? '';
 $sectionPad   = $elementData['section_padding'] ?? '';
 $container    = $elementData['container_width'] ?? 'uk-container';
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 if (empty($items)) {
     return;
@@ -30,36 +32,25 @@ $widthDesktop = 'uk-width-1-' . $columns . '@m';
 $widthTablet  = 'uk-width-1-' . $columnsTablet . '@s';
 $itemWidthClass = $widthTablet . ' ' . $widthDesktop;
 
-// Sektion aufbauen
-$sectionClasses = [];
-if ($sectionBg) {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionPad) {
-    $sectionClasses[] = $sectionPad;
-}
-if ($sectionLight) {
-    $sectionClasses[] = 'uk-light';
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImg, false);
+$wrapper->setVar('section_padding', $sectionPad, false);
+$wrapper->setVar('container_width', $container, false);
+$wrapper->setVar('section_light', $sectionLight, false);
 
-$sectionStyle = '';
-if ($sectionBgImg) {
-    $ext = strtolower(pathinfo($sectionBgImg, PATHINFO_EXTENSION));
-    if (!in_array($ext, ['mp4', 'webm', 'ogg'], true)) {
-        $bgUrl = rex_media_manager::getUrl('content_slideshow', $sectionBgImg);
-        $sectionStyle = ' style="background-image: url(\'' . $bgUrl . '\'); background-size: cover; background-position: center;"';
-    }
-}
-
-$hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImg, false);
+$wrapperClose->setVar('container_width', $container, false);
 
 ?>
 
-<?php if ($hasSection): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>"<?= $sectionStyle ?>>
-<?php endif; ?>
-
-<div class="<?= rex_escape($container ?: 'uk-container') ?>">
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
     <div class="uk-grid uk-grid-medium uk-grid-match" uk-grid>
 
         <?php foreach ($items as $item): ?>
@@ -131,10 +122,7 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
 
     </div>
 </div>
-
-<?php if ($hasSection): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>
 
 <style>
 /* Testimonial Basis-Stile */

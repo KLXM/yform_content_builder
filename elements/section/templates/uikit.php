@@ -52,11 +52,16 @@ $bgClasses = [
 
 $classes = [];
 
+$sectionPaddingClass = '';
+$sectionBgClass = '';
+$sectionClassExtra = '';
+
 // Section class
 if (isset($paddingMap[$paddingTop]) && isset($paddingMap[$paddingBottom])) {
     // Bei unterschiedlichen Paddings: Basis verwenden
     if ($paddingTop === $paddingBottom && !empty($paddingMap[$paddingTop])) {
-        $classes[] = $paddingMap[$paddingTop];
+        $sectionPaddingClass = $paddingMap[$paddingTop];
+        $classes[] = $sectionPaddingClass;
     } else {
         $classes[] = 'uk-section';
     }
@@ -66,16 +71,19 @@ if (isset($paddingMap[$paddingTop]) && isset($paddingMap[$paddingBottom])) {
 if (!empty($bgImage)) {
     $classes[] = 'uk-background-cover uk-background-center-center';
 } elseif (isset($bgClasses[$bgColor]) && $bgClasses[$bgColor]) {
-    $classes[] = $bgClasses[$bgColor];
+    $sectionBgClass = $bgClasses[$bgColor];
+    $classes[] = $sectionBgClass;
 }
 
 // Text Align
 if ($textAlign) {
+    $sectionClassExtra = trim($sectionClassExtra . ' ' . 'uk-text-' . $textAlign);
     $classes[] = 'uk-text-' . $textAlign;
 }
 
 // Custom Class
 if ($customClass) {
+    $sectionClassExtra = trim($sectionClassExtra . ' ' . $customClass);
     $classes[] = $customClass;
 }
 
@@ -96,6 +104,24 @@ if ($container === 'container-fluid') {
     $containerClass = 'uk-container uk-container-expand';
 }
 
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', true, false);
+$wrapper->setVar('enable_container', $container !== 'none', false);
+$wrapper->setVar('section_bg', $sectionBgClass, false);
+$wrapper->setVar('section_bg_image', $bgImage, false);
+$wrapper->setVar('section_padding', $sectionPaddingClass, false);
+$wrapper->setVar('container_width', $containerClass, false);
+$wrapper->setVar('section_light', false, false);
+$wrapper->setVar('section_id', $customId, false);
+$wrapper->setVar('section_class_extra', $sectionClassExtra, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', true, false);
+$wrapperClose->setVar('enable_container', $container !== 'none', false);
+$wrapperClose->setVar('section_bg_image', $bgImage, false);
+$wrapperClose->setVar('container_width', $containerClass, false);
+
 // Wenn closeType gesetzt ist, nur öffnen oder schließen
 if (isset($closeType)) {
     if ($closeType === 'close') {
@@ -103,20 +129,12 @@ if (isset($closeType)) {
         if ($gridEnabled) {
             echo '        </div>' . "\n"; // uk-grid
         }
-        // Section schließen
-        if ($container !== 'none') {
-            echo '    </div>' . "\n"; // Container schließen
-        }
-        echo '</section>' . "\n";
+        echo $wrapperClose->parse('ycb_elements/wrapper.php') . "\n";
         return;
     }
     
     if ($closeType === 'open') {
-        // Section öffnen
-        echo '<section class="' . $classString . '"' . $idAttr . $style . '>' . "\n";
-        if ($container !== 'none') {
-            echo '    <div class="' . rex_escape($containerClass) . '">' . "\n";
-        }
+        echo $wrapper->parse('ycb_elements/wrapper.php') . "\n";
 
         // Grid-Wrapper öffnen wenn aktiviert
         if ($gridEnabled) {
@@ -149,12 +167,6 @@ if (isset($closeType)) {
 // Fallback: Normaler Output (sollte nicht verwendet werden)
 ?>
 <!-- Section: <?= rex_escape($label ?: 'Unbenannt') ?> -->
-<section class="<?= $classString ?>"<?= $idAttr ?><?= $style ?>>
-    <?php if ($container !== 'none'): ?>
-    <div class="<?= rex_escape($containerClass) ?>">
-    <?php endif; ?>
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
         <!-- Nachfolgende Elemente werden hier eingefügt -->
-    <?php if ($container !== 'none'): ?>
-    </div>
-    <?php endif; ?>
-</section>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

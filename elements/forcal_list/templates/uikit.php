@@ -123,52 +123,31 @@ $sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? 'uk-container';
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
-$sectionClasses = ['uk-section'];
-if ('' !== $sectionPadding) {
-    $sectionClasses[] = $sectionPadding;
-}
-if ('' !== $sectionBg) {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionLight) {
-    $sectionClasses[] = 'uk-light';
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
 
-$bgIsVideo = false;
-$bgExt = '';
-if ('' !== $sectionBgImage) {
-    $bgExt = strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION));
-    $bgIsVideo = in_array($bgExt, ['mp4', 'webm'], true);
-    if (!$bgIsVideo) {
-        $sectionClasses[] = 'uk-background-cover';
-        $sectionClasses[] = 'uk-position-relative';
-    } else {
-        $sectionClasses[] = 'uk-position-relative';
-    }
-}
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 $columns = (string) ($elementData['columns'] ?? '3');
 $columnsTablet = (string) ($elementData['columns_tablet'] ?? '2');
 $columnsMobile = (string) ($elementData['columns_mobile'] ?? '1');
 $gap = (string) ($elementData['gap'] ?? 'medium');
 
-$sectionStyle = '';
-if ('' !== $sectionBgImage && !$bgIsVideo) {
-    $sectionStyle = ' style="background-image: url(\'' . rex_escape(rex_url::media($sectionBgImage), 'html_attr') . '\');"';
-}
-$sectionAttr = '';
-if ($bgIsVideo) {
-    $sectionAttr = ' uk-cover-container';
-}
-
-echo '<section class="' . rex_escape(implode(' ', $sectionClasses)) . '"' . $sectionStyle . $sectionAttr . '>';
-if ($bgIsVideo) {
-    echo '<video autoplay loop muted playsinline uk-cover>'
-        . '<source src="' . rex_escape(rex_url::media($sectionBgImage)) . '" type="video/' . rex_escape($bgExt) . '">'
-        . '</video>';
-}
-echo '<div class="' . rex_escape($containerWidth) . ('' !== $sectionBgImage ? ' uk-position-relative uk-position-z-index' : '') . '">';
+echo $wrapper->parse('ycb_elements/wrapper.php');
 
 if ('' !== $headline) {
     $hCls = trim($headlineStyle . ' uk-margin-medium-bottom');
@@ -330,4 +309,4 @@ if (null !== $error) {
     }
 }
 
-echo '</div></section>';
+echo $wrapperClose->parse('ycb_elements/wrapper.php');

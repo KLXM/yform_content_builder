@@ -38,7 +38,7 @@ return [
         'section_tab' => [
             'label' => 'Sektion',
             'icon' => 'fa-columns',
-            'fields' => $config::getSectionFieldNames(),
+            'fields' => $config::getOptionalSectionFieldNames(),
         ],
     ],
 
@@ -189,6 +189,6 @@ return [
                 'default' => 'uk-button-default',
             ],
         ],
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

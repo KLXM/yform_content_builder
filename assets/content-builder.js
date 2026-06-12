@@ -26,12 +26,107 @@
             if (!eventsInitialized) {
                 this.bindEvents();
                 this.fixTinyMCEInModals();
+                this.initDropdownZIndex();
                 eventsInitialized = true;
             }
             this.initElementMenuTooltips();
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+        },
+
+        /**
+         * Behebt z-index Problem beim Dropdown:
+         * Wenn das Element-Dropdown geöffnet wird, erhöht sich der z-index
+         * des parent .content-builder-slice damit es nicht von anderen Slices überdeckt wird
+         */
+        initDropdownZIndex: function() {
+            $(document)
+                .on('show.bs.dropdown', '.slice-toolbar .btn-group-insert', function() {
+                    var $slice = $(this).closest('.content-builder-slice');
+                    $slice.css('z-index', 1000);
+                })
+                .on('hidden.bs.dropdown', '.slice-toolbar .btn-group-insert', function() {
+                    var $slice = $(this).closest('.content-builder-slice');
+                    $slice.css('z-index', 'auto');
+                });
+            
+            // Live-Suche im Element-Dropdown
+            $(document)
+                .on('keyup', '.dropdown-menu .dropdown-search', function(e) {
+                    var searchText = $(this).val().trim().toLowerCase();
+                    var $menu = $(this).closest('.dropdown-menu');
+                    var $items = $menu.find('.element-item');
+                    var $headers = $menu.find('.dropdown-header');
+                    var $dividers = $menu.find('[role="separator"]');
+                    
+                    if (searchText === '') {
+                        // Alle Items zeigen
+                        $items.show();
+                        $headers.show();
+                        $dividers.show();
+                    } else {
+                        // Items filtern
+                        var visibleCount = 0;
+                        var lastCategory = null;
+                        
+                        $items.each(function() {
+                            var $item = $(this);
+                            var itemText = $item.data('element-search-text');
+                            
+                            if (itemText.indexOf(searchText) !== -1) {
+                                $item.show();
+                                visibleCount++;
+                            } else {
+                                $item.hide();
+                            }
+                        });
+                        
+                        // Headers und Dividers smart anzeigen
+                        var itemIndex = 0;
+                        $items.each(function() {
+                            var $item = $(this);
+                            if ($item.is(':visible')) {
+                                // Header vor diesem Item suchen
+                                var $header = $item.prevAll('.dropdown-header').first();
+                                if ($header.length > 0) {
+                                    $header.show();
+                                }
+                                itemIndex++;
+                            }
+                        });
+                        
+                        // Alle unsichtbaren Headers verstecken
+                        $headers.each(function() {
+                            var $header = $(this);
+                            var $nextItems = $header.nextUntil('.divider, .dropdown-header').filter('.element-item:visible');
+                            if ($nextItems.length === 0) {
+                                $header.hide();
+                            }
+                        });
+                        
+                        // Dividers intelligent anzeigen
+                        $dividers.each(function() {
+                            var $divider = $(this);
+                            var $nextHeader = $divider.nextAll('.dropdown-header').first();
+                            var $nextItems = $divider.nextUntil('.divider').filter('.element-item:visible');
+                            
+                            if ($nextItems.length > 0 && $nextHeader.length > 0) {
+                                var $prevHeader = $divider.prevAll('.dropdown-header').first();
+                                var $prevItems = $divider.prevUntil('.divider').filter('.element-item:visible');
+                                
+                                // Divider nur zeigen wenn davor und danach Items vorhanden sind
+                                if ($prevItems.length > 0) {
+                                    $divider.show();
+                                } else {
+                                    $divider.hide();
+                                }
+                            } else {
+                                $divider.hide();
+                            }
+                        });
+                    }
+                });
         },
 
         initElementMenuTooltips: function() {
@@ -80,6 +175,25 @@
                     self.applyConditionalFieldVisibility($editForm);
                 }
             );
+
+            // Bootstrap kann Modals in den body verschieben.
+            // Dann liegt das Feld nicht mehr in .slice-edit-form und braucht
+            // einen eigenen Conditional-Update-Handler.
+            $(document).on(
+                'change',
+                'body > .modal :input',
+                function() {
+                    var $modal = $(this).closest('.modal');
+                    if ($modal.length > 0) {
+                        self.applyConditionalFieldVisibility($modal);
+                    }
+                }
+            );
+
+            $(document).on('shown.bs.modal', 'body > .modal', function() {
+                var $modal = $(this);
+                self.applyConditionalFieldVisibility($modal);
+            });
 
             $(document).on('shown.bs.tab', '.slice-edit-form a[data-toggle="tab"]', function() {
                 var $editForm = $(this).closest('.slice-edit-form');
@@ -1341,18 +1455,41 @@
             var onlineBtnHtml = onlineToggleEnabled
                 ? '<button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="Offline/Online schalten"><i class="fa fa-eye"></i></button>'
                 : '';
+
+            // Element-Defaults aus dem Container lesen
+            var elementDefaultsRaw = $container.closest('.yform-content-builder').attr('data-element-defaults') || '{}';
+            var elementDefaults = {};
+            try { elementDefaults = JSON.parse(elementDefaultsRaw); } catch(e) {}
+            // '*' = globale Defaults, typ-spezifische Defaults überschreiben sie
+            var globalDefaults = elementDefaults['*'] || {};
+            var typeDefaults = elementDefaults[elementType] || {};
+            var sliceDefaults = Object.assign({}, globalDefaults, typeDefaults);
+
+            // Icon aus available-elements lesen
+            var availableElementsRaw = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
+            var availableElements = {};
+            try { availableElements = JSON.parse(availableElementsRaw); } catch(e) {}
+            var elementIcon = (availableElements[elementType] && availableElements[elementType].icon) ? availableElements[elementType].icon : 'fa-cube';
+            var sliceLabelHtml = '<span class="slice-label"><i class="fa ' + elementIcon + '"></i>' + $('<span>').text(elementLabel || elementType).html() + '</span>';
             
             var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + index + '" data-slice-online="1">' +
                 '<div class="slice-toolbar">' +
+                    sliceLabelHtml +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben"><i class="fa fa-arrow-up"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten"><i class="fa fa-arrow-down"></i></button>' +
                     onlineBtnHtml +
                     '<button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen"><i class="fa fa-trash"></i></button>' +
                 '</div>' +
-                '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + elementLabel + ' - Klicken zum Bearbeiten</div></div>' +
+                '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + (elementLabel || elementType) + ' - Klicken zum Bearbeiten</div></div>' +
                 '<div class="slice-edit-form" style="display: none;"></div>' +
             '</div>');
+
+            $newSlice.find('.slice-toolbar').attr('data-element-name', elementLabel || elementType || '');
+
+            if (Object.keys(sliceDefaults).length > 0) {
+                $newSlice.attr('data-slice-data', JSON.stringify(sliceDefaults));
+            }
             
             $container.append($newSlice);
             
@@ -1376,18 +1513,41 @@
             var onlineBtnHtml2 = onlineToggleEnabled2
                 ? '<button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="Offline/Online schalten"><i class="fa fa-eye"></i></button>'
                 : '';
+
+            // Element-Defaults aus dem Container lesen
+            var elementDefaultsRaw2 = $container.closest('.yform-content-builder').attr('data-element-defaults') || '{}';
+            var elementDefaults2 = {};
+            try { elementDefaults2 = JSON.parse(elementDefaultsRaw2); } catch(e) {}
+            // '*' = globale Defaults, typ-spezifische Defaults überschreiben sie
+            var globalDefaults2 = elementDefaults2['*'] || {};
+            var typeDefaults2 = elementDefaults2[elementType] || {};
+            var sliceDefaults2 = Object.assign({}, globalDefaults2, typeDefaults2);
+
+            // Icon aus available-elements lesen
+            var availableElementsRaw2 = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
+            var availableElements2 = {};
+            try { availableElements2 = JSON.parse(availableElementsRaw2); } catch(e) {}
+            var elementIcon2 = (availableElements2[elementType] && availableElements2[elementType].icon) ? availableElements2[elementType].icon : 'fa-cube';
+            var sliceLabelHtml2 = '<span class="slice-label"><i class="fa ' + elementIcon2 + '"></i>' + $('<span>').text(elementLabel || elementType).html() + '</span>';
             
             var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + position + '" data-slice-online="1">' +
                 '<div class="slice-toolbar">' +
+                    sliceLabelHtml2 +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben"><i class="fa fa-arrow-up"></i></button>' +
                     '<button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten"><i class="fa fa-arrow-down"></i></button>' +
                     onlineBtnHtml2 +
                     '<button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen"><i class="fa fa-trash"></i></button>' +
                 '</div>' +
-                '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + elementLabel + ' - Klicken zum Bearbeiten</div></div>' +
+                '<div class="slice-rendered"><div class="alert alert-info">Neues Element: ' + (elementLabel || elementType) + ' - Klicken zum Bearbeiten</div></div>' +
                 '<div class="slice-edit-form" style="display: none;"></div>' +
             '</div>');
+
+            $newSlice.find('.slice-toolbar').attr('data-element-name', elementLabel || elementType || '');
+
+            if (Object.keys(sliceDefaults2).length > 0) {
+                $newSlice.attr('data-slice-data', JSON.stringify(sliceDefaults2));
+            }
             
             var $slices = $container.children('.content-builder-slice');
             

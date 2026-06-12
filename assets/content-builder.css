@@ -252,11 +252,53 @@
     vertical-align: middle;
 }
 
+/* Element-Name-Chip links in der Toolbar */
+.slice-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 8px;
+    height: 26px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 3px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    vertical-align: middle;
+    margin-right: 2px;
+    pointer-events: none;
+    user-select: none;
+}
+
 .slice-toolbar .dropdown-menu {
     right: 0;
     left: auto;
     margin-top: 2px;
-    z-index: 1001;
+    z-index: 99999;
+}
+
+/* Dropdown-Suchfeld */
+.slice-toolbar .dropdown-menu .dropdown-search-wrapper {
+    padding: 5px 8px;
+    list-style: none;
+}
+
+.slice-toolbar .dropdown-menu .dropdown-search {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fff;
+    color: #333;
+}
+
+.slice-toolbar .dropdown-menu .dropdown-search:focus {
+    outline: none;
+    border-color: #3c8dbc;
+    box-shadow: 0 0 3px rgba(60, 141, 188, 0.3);
 }
 
 .slice-toolbar .btn {

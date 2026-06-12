@@ -36,7 +36,7 @@ return [
         'section_tab' => [
             'label' => 'Sektion',
             'icon' => 'fa-columns',
-            'fields' => $config::getSectionFieldNames(),
+            'fields' => $config::getOptionalSectionFieldNames(),
         ],
     ],
 
@@ -212,6 +212,6 @@ return [
                 'notice' => 'Text und Buttons schweben beim Scrollen leicht nach oben (uk-parallax y)',
             ],
         ],
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

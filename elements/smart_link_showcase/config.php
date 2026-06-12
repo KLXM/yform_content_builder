@@ -77,6 +77,6 @@ return [
                 ],
             ],
         ],
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

@@ -37,9 +37,11 @@ $parallaxContent = !empty($elementData['parallax_content']);
 
 // --- Sektion ---
 $sectionBg    = $elementData['section_bg'] ?? '';
+$sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPad   = $elementData['section_padding'] ?? '';
 $container    = $elementData['container_width'] ?? 'uk-container';
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
 
 if (empty($heading) && empty($image)) {
     return;
@@ -108,7 +110,25 @@ if ($parallaxContent) {
     $parallaxContentAttr = ' uk-parallax="y: -60; easing: 1"';
 }
 
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', false, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPad, false);
+$wrapper->setVar('container_width', '', false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', false, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', '', false);
+
 ?>
+
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
 
 <div class="uk-cover-container <?= $heightClass ?><?= $lightClass ?>">
 
@@ -167,6 +187,8 @@ if ($parallaxContent) {
     </div>
 
 </div>
+
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>
 
 <style>
 .cb-hero-height-large { min-height: 500px; }

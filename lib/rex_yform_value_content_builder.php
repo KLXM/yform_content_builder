@@ -1324,6 +1324,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     public function renderSlice(string $elementType, array $elementData, int $index, string $sliceId, string $framework): string
     {
         $elementPath = $this->getElementPath($elementType);
+        $elementLabel = ucfirst(str_replace('_', ' ', $elementType));
         
         if (!$elementPath || !is_dir($elementPath)) {
             return '<div class="alert alert-danger">Element not found: ' . rex_escape($elementType) . '</div>';
@@ -1351,7 +1352,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
              data-slice-type="<?= rex_escape($elementType) ?>"
              data-slice-index="<?= $index ?>">
             
-            <div class="slice-toolbar">
+            <div class="slice-toolbar" data-element-name="<?= rex_escape($elementLabel) ?>">
                 <button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten">
                     <i class="fa fa-pencil"></i>
                 </button>

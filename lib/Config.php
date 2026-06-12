@@ -187,29 +187,44 @@ class Config
                 'choices' => self::getBackgroundChoices(),
                 'choice_colors' => self::getBackgroundColors(),
                 'selectpicker' => true,
-                'default' => ''
+                'default' => '',
+                'visible_if' => [
+                    'enable_section' => [true, 1, '1'],
+                ],
             ],
             'section_bg_image' => [
                 'type' => 'be_media',
                 'label' => 'Sektions-Hintergrund (Bild/Video)',
-                'notice' => 'Hintergrundbild oder -video (MP4, WebM). Video wird automatisch mit Autoplay und Loop abgespielt.'
+                'notice' => 'Hintergrundbild oder -video (MP4, WebM). Video wird automatisch mit Autoplay und Loop abgespielt.',
+                'visible_if' => [
+                    'enable_section' => [true, 1, '1'],
+                ],
             ],
             'section_padding' => [
                 'type' => 'choice',
                 'label' => 'Sektions-Padding',
                 'choices' => self::getPaddingOptions(),
-                'default' => ''
+                'default' => '',
+                'visible_if' => [
+                    'enable_section' => [true, 1, '1'],
+                ],
             ],
             'container_width' => [
                 'type' => 'choice',
                 'label' => 'Container-Breite',
                 'choices' => self::getContainerOptions(),
-                'default' => 'uk-container'
+                'default' => 'uk-container',
+                'visible_if' => [
+                    'enable_container' => [true, 1, '1'],
+                ],
             ],
             'section_light' => [
                 'type' => 'checkbox',
                 'label' => 'Heller Text (uk-light)',
-                'notice' => 'Aktiviert uk-light Klasse für Text auf dunklem Hintergrund'
+                'notice' => 'Aktiviert uk-light Klasse für Text auf dunklem Hintergrund',
+                'visible_if' => [
+                    'enable_section' => [true, 1, '1'],
+                ],
             ]
         ];
     }
@@ -220,6 +235,59 @@ class Config
     public static function getSectionFieldNames(): array
     {
         return ['section_bg', 'section_bg_image', 'section_padding', 'container_width', 'section_light'];
+    }
+
+    /**
+     * Liefert optionale Wrapper-Control-Felder (Section/Container)
+     */
+    public static function getWrapperControlFields(array $overrides = []): array
+    {
+        $fields = [
+            'enable_section' => [
+                'type' => 'checkbox',
+                'label' => 'Sektion aktivieren',
+                'default' => true,
+                'notice' => 'Steuert, ob dieses Element eine eigene Section-Ausgabe rendert.',
+            ],
+            'enable_container' => [
+                'type' => 'checkbox',
+                'label' => 'Container aktivieren',
+                'default' => true,
+                'notice' => 'Steuert, ob dieses Element einen eigenen Container rendert.',
+            ],
+        ];
+
+        foreach ($overrides as $fieldName => $fieldOverrides) {
+            if (isset($fields[$fieldName]) && is_array($fieldOverrides)) {
+                $fields[$fieldName] = array_merge($fields[$fieldName], $fieldOverrides);
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Liefert die Feldnamen der Wrapper-Control-Felder
+     */
+    public static function getWrapperControlFieldNames(): array
+    {
+        return array_keys(self::getWrapperControlFields());
+    }
+
+    /**
+     * Liefert die kombinierten Feldnamen aus Wrapper + Section
+     */
+    public static function getOptionalSectionFieldNames(): array
+    {
+        return array_merge(self::getWrapperControlFieldNames(), self::getSectionFieldNames());
+    }
+
+    /**
+     * Liefert kombinierte Felder aus Wrapper + Section
+     */
+    public static function getOptionalSectionFields(array $wrapperOverrides = []): array
+    {
+        return array_merge(self::getWrapperControlFields($wrapperOverrides), self::getSectionFields());
     }
 
     /**

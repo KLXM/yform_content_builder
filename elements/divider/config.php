@@ -39,7 +39,7 @@ return [
     'settings_modal' => [
         'label' => 'Section-Einstellungen',
         'icon' => 'fa-cog',
-        'fields' => $config::getSectionFieldNames()
+        'fields' => $config::getOptionalSectionFieldNames()
     ],
     'fields' => array_merge(
         // Element-spezifische Felder
@@ -132,6 +132,6 @@ return [
         ],
         
         // Section-Felder aus zentraler Config
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

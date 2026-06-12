@@ -25,7 +25,7 @@ return [
         'design' => [
             'label' => 'Design',
             'icon' => 'fa-paint-brush',
-            'fields' => array_merge(['countdown_text_color'], $config::getSectionFieldNames())
+            'fields' => array_merge(['countdown_text_color'], $config::getOptionalSectionFieldNames())
         ]
     ],
     'fields' => array_merge(
@@ -114,6 +114,6 @@ return [
                 'default' => ''
             ]
         ],
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

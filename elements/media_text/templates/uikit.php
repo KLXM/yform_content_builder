@@ -39,6 +39,8 @@ $sectionBgImg = $elementData['section_bg_image'] ?? '';
 $sectionPad   = $elementData['section_padding'] ?? '';
 $container    = $elementData['container_width'] ?? 'uk-container';
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !array_key_exists('enable_section', $elementData) || !empty($elementData['enable_section']);
+$enableContainer = !array_key_exists('enable_container', $elementData) || !empty($elementData['enable_container']);
 
 // Abbruch wenn kein Inhalt
 if (empty($image) && empty($heading) && empty($text)) {
@@ -125,20 +127,29 @@ if ($sectionBgImg) {
     }
 }
 
-$hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImg, false);
+$wrapper->setVar('section_padding', $sectionPad, false);
+$wrapper->setVar('container_width', $container, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImg, false);
+$wrapperClose->setVar('container_width', $container, false);
 
 ?>
-
-<?php if ($hasSection): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>"<?= $sectionStyle ?>>
-<?php endif; ?>
-
-<div class="<?= rex_escape($container ?: 'uk-container') ?>">
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
     <div class="uk-grid uk-grid-large <?= $verticalClass ?>" uk-grid>
 
         <?php
         // Bild-Element (als eigenes Fragment)
-        $mediaBlock = static function () use ($imageUrl, $srcset, $imageAlt, $heading, $imgClasses, $image, $imageStyle): void {
+        $mediaBlock = static function () use ($imageUrl, $srcset, $resolvedImageAlt, $imgClasses, $image, $imageStyle): void {
             if (empty($image) || empty($imageUrl)) {
                 return;
             }
@@ -212,11 +223,7 @@ $hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
         <?php endif; ?>
 
     </div>
-</div>
-
-<?php if ($hasSection): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>
 
 <?php if ($imageStyle === 'stacked' || $imageStyle === 'overlap'): ?>
 <style>

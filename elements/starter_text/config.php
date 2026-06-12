@@ -22,29 +22,14 @@ return [
         'section_settings_tab' => [
             'label' => 'Sektion',
             'icon' => 'fa-columns',
-            'fields' => array_merge(
-                ['enable_section', 'enable_container'],
-                $elementConfig::getSectionFieldNames()
-            ),
+            'fields' => $elementConfig::getOptionalSectionFieldNames(),
         ],
     ],
     'fields' => array_merge([
-        'enable_section' => [
-            'type' => 'checkbox',
-            'label' => 'Sektion aktivieren',
-            'default' => false,
-            'notice' => 'Nur aktivieren, wenn dieses Element eine eigene Section-Umhüllung benötigt.',
-        ],
-        'enable_container' => [
-            'type' => 'checkbox',
-            'label' => 'Container aktivieren',
-            'default' => false,
-            'notice' => 'Nur aktivieren, wenn ein eigener Container gesetzt werden soll.',
-        ],
         'text' => [
             'type' => 'tinymce',
             'profile' => 'default',
             'label' => 'Text',
         ],
-    ], $elementConfig::getSectionFields()),
+    ], $elementConfig::getOptionalSectionFields()),
 ];

@@ -17,7 +17,7 @@ $overlayOptions = [
 
 // Settings Modal Felder aufbauen
 $settingsModalFields = ['ratio', 'animation', 'autoplay', 'interval', 'show_navigation', 'show_dots', 'is_viewport', 'container', 'margin', 'custom_id', 'custom_classes'];
-$settingsModalFields = array_merge($settingsModalFields, $config::getSectionFieldNames());
+$settingsModalFields = array_merge($settingsModalFields, $config::getOptionalSectionFieldNames());
 
 return [
     'label' => 'Slideshow',
@@ -267,6 +267,6 @@ return [
         ],
         
         // Section-Felder aus zentraler Config
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

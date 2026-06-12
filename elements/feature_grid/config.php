@@ -28,7 +28,7 @@ return [
         'section_tab' => [
             'label' => 'Sektion',
             'icon' => 'fa-columns',
-            'fields' => $config::getSectionFieldNames(),
+            'fields' => $config::getOptionalSectionFieldNames(),
         ],
     ],
 
@@ -147,6 +147,6 @@ return [
                 'default' => 'left',
             ],
         ],
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

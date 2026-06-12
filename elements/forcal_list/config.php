@@ -228,6 +228,6 @@ return [
                 'notice' => 'Visueller Stil – wirkt im UIkit-Template.',
             ],
         ],
-        $config::getSectionFields(),
+        $config::getOptionalSectionFields(),
     ),
 ];

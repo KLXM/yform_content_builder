@@ -9,8 +9,13 @@ $text = trim((string) ($headlineData['text'] ?? ''));
 $highlight = trim((string) ($headlineData['highlight'] ?? ''));
 $subline = trim((string) ($headlineData['subline'] ?? ''));
 $tag = (string) ($headlineData['tag'] ?? 'h2');
+$sectionBg = (string) ($elementData['section_bg'] ?? '');
+$sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 $allowedTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 if (!in_array($tag, $allowedTags, true)) {
@@ -21,7 +26,22 @@ if ($text === '') {
     return;
 }
 
-$sectionClass = trim('uk-section ' . (string) $sectionPadding);
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
+
 $headlineSeed = $eyebrow . '|' . $text . '|' . $highlight . '|' . $subline . '|' . $tag;
 $headlineId = 'headline-' . substr(md5($headlineSeed), 0, 10);
 $sublineId = $headlineId . '-subline';
@@ -45,10 +65,7 @@ $renderHeadline = static function (string $headline, string $highlightPart): str
         . rex_escape($after);
 };
 ?>
-<section<?= $sectionClass !== '' ? ' class="' . rex_escape($sectionClass) . '"' : '' ?>>
-    <?php if ($containerWidth !== ''): ?>
-    <div class="<?= rex_escape($containerWidth) ?>">
-    <?php endif; ?>
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
 
     <header>
         <?php if ($eyebrow !== ''): ?>
@@ -64,7 +81,4 @@ $renderHeadline = static function (string $headline, string $highlightPart): str
         <?php endif; ?>
     </header>
 
-    <?php if ($containerWidth !== ''): ?>
-    </div>
-    <?php endif; ?>
-</section>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

@@ -46,20 +46,35 @@ $items = $result['items'];
 $error = $result['error'];
 
 $sectionBg = $elementData['section_bg'] ?? '';
+$sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? 'uk-container';
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
-$sectionClasses = ['uk-section'];
-if ('' !== $sectionPadding) { $sectionClasses[] = $sectionPadding; }
-if ('' !== $sectionBg) { $sectionClasses[] = $sectionBg; }
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 $columns = (string) ($elementData['columns'] ?? '2');
 $columnsTablet = (string) ($elementData['columns_tablet'] ?? '2');
 $columnsMobile = (string) ($elementData['columns_mobile'] ?? '1');
 $gap = (string) ($elementData['gap'] ?? 'medium');
 
-echo '<section class="' . rex_escape(implode(' ', $sectionClasses)) . '">';
-echo '<div class="' . rex_escape($containerWidth) . '">';
+echo $wrapper->parse('ycb_elements/wrapper.php');
 
 if ('' !== $headline) {
     echo '<h2 class="uk-heading-line uk-margin-medium-bottom"><span>' . rex_escape($headline) . '</span></h2>';
@@ -224,4 +239,4 @@ if (null !== $error) {
     }
 }
 
-echo '</div></section>';
+echo $wrapperClose->parse('ycb_elements/wrapper.php');

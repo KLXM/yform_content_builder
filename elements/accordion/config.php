@@ -130,6 +130,6 @@ return [
         ],
         
         // Section-Felder aus zentraler Config
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

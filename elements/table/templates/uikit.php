@@ -20,6 +20,9 @@ $sectionBg = $elementData['section_bg'] ?? '';
 $sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? '';
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 // Daten parsen (JSON)
 $tableRows = [];
@@ -112,37 +115,25 @@ $alignStyle = static function (string $type): string {
     return '';
 };
 
-// Section-Klassen
-$sectionClasses = ['uk-section'];
-if ($sectionBg) $sectionClasses[] = $sectionBg;
-if ($sectionPadding) $sectionClasses[] = $sectionPadding;
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
 
-// Section Background
-$sectionStyle = '';
-if (!empty($sectionBgImage)) {
-    $bgMediaExt = strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION));
-    $videoExtensions = ['mp4', 'webm', 'ogg'];
-    
-    if (!in_array($bgMediaExt, $videoExtensions)) {
-        $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $sectionBgImage);
-        $sectionStyle = ' style="background-image: url(\'' . $bgImageUrl . '\'); background-size: cover; background-position: center;"';
-    }
-}
-
-$hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
-
-// Container-Wrapper nötig?
-$needsWrapper = $tableResponsive === '' && !$hasSection; // Nur bei horizontal scroll ohne section
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 ?>
 
-<?php if ($hasSection): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>"<?= $sectionStyle ?>>
-<?php endif; ?>
-
-<?php if ($containerWidth): ?>
-<div class="<?= $containerWidth ?>">
-<?php endif; ?>
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
 
 <?php if ($tableResponsive === ''): ?>
 <!-- Horizontal Scroll wrapper -->
@@ -199,10 +190,4 @@ $needsWrapper = $tableResponsive === '' && !$hasSection; // Nur bei horizontal s
 </div>
 <?php endif; ?>
 
-<?php if ($containerWidth): ?>
-</div>
-<?php endif; ?>
-
-<?php if ($hasSection): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

@@ -5,8 +5,8 @@ $sectionBg = (string) ($elementData['section_bg'] ?? '');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionLight = !empty($elementData['section_light']);
-$enableSection = !empty($elementData['enable_section']);
-$enableContainer = !empty($elementData['enable_container']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 if (trim(strip_tags($text)) === '') {
     return;

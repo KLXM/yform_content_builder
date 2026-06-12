@@ -185,6 +185,6 @@ return [
         ],
         
         // Section-Felder
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     )
 ];

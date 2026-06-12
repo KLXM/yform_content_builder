@@ -28,6 +28,9 @@ $sectionBg = $elementData['section_bg'] ?? '';
 $sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? 'uk-container';
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !array_key_exists('enable_section', $elementData) || !empty($elementData['enable_section']);
+$enableContainer = !array_key_exists('enable_container', $elementData) || !empty($elementData['enable_container']);
 
 $items = $elementData['items'] ?? [];
 
@@ -100,55 +103,23 @@ $cardSizeMap = [
     'large' => 'uk-card-large'
 ];
 $cardSizeClass = $cardSizeMap[$cardSize] ?? '';
-// Sektion-Klassen
-$sectionClasses = ['uk-section'];
-if ($sectionBg) {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionPadding) {
-    $sectionClasses[] = $sectionPadding;
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
 
-// Hintergrundbild oder -video
-$sectionStyle = '';
-$sectionBgVideoHtml = '';
-$isSectionBgVideo = false;
-
-if (!empty($sectionBgImage)) {
-    // Prüfen ob Video oder Bild
-    $bgMediaExt = strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION));
-    $videoExtensions = ['mp4', 'webm', 'ogg'];
-    
-    if (in_array($bgMediaExt, $videoExtensions)) {
-        // Video-Hintergrund
-        $isSectionBgVideo = true;
-        $videoSrc = rex_url::media($sectionBgImage);
-        $sectionBgVideoHtml = '<video class="uk-cover" autoplay loop muted playsinline uk-cover><source src="' . $videoSrc . '" type="video/' . $bgMediaExt . '"></video>';
-        $sectionClasses[] = 'uk-cover-container';
-        $sectionClasses[] = 'uk-position-relative';
-    } else {
-        // Bild-Hintergrund
-        $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $sectionBgImage);
-        $sectionStyle = ' style="background-image: url(\'' . $bgImageUrl . '\'); background-size: cover; background-position: center;"';
-        $sectionClasses[] = 'uk-background-cover';
-    }
-}
-
-// Prüfen ob Section nötig
-$hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 ?>
-
-<?php if ($hasSection): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>"<?= $sectionStyle ?>>
-<?php if ($isSectionBgVideo): ?>
-<?= $sectionBgVideoHtml ?>
-<div class="uk-position-relative">
-<?php endif; ?>
-<?php endif; ?>
-
-<?php if ($containerWidth): ?>
-<div class="<?= $containerWidth ?>">
-<?php endif; ?>
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
 
 <div class="<?= $gridClassStr ?>" uk-grid>
     <?php 
@@ -507,13 +478,4 @@ $hasSection = $sectionBg || $sectionPadding || !empty($sectionBgImage);
     <?php endforeach; ?>
 </div>
 
-<?php if ($containerWidth): ?>
-</div>
-<?php endif; ?>
-
-<?php if ($hasSection): ?>
-<?php if ($isSectionBgVideo): ?>
-</div>
-<?php endif; ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

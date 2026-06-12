@@ -24,6 +24,8 @@ $sectionBgImg = $elementData['section_bg_image'] ?? '';
 $sectionPad   = $elementData['section_padding'] ?? '';
 $container    = $elementData['container_width'] ?? 'uk-container';
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !array_key_exists('enable_section', $elementData) || !empty($elementData['enable_section']);
+$enableContainer = !array_key_exists('enable_container', $elementData) || !empty($elementData['enable_container']);
 
 if (empty($items)) {
     return;
@@ -62,7 +64,21 @@ if ($sectionBgImg) {
     }
 }
 
-$hasSection = !empty($sectionClasses) || !empty($sectionBgImg);
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImg, false);
+$wrapper->setVar('section_padding', $sectionPad, false);
+$wrapper->setVar('container_width', $container, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImg, false);
+$wrapperClose->setVar('container_width', $container, false);
 
 // Icon-Stil-Klassen
 $iconWrapClasses = ['cb-feature-icon'];
@@ -75,11 +91,7 @@ $iconWrapClass = implode(' ', $iconWrapClasses);
 
 ?>
 
-<?php if ($hasSection): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>"<?= $sectionStyle ?>>
-<?php endif; ?>
-
-<div class="<?= rex_escape($container ?: 'uk-container') ?>">
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
     <div class="uk-grid<?= $gridGapClass ?> uk-grid-match" uk-grid>
 
         <?php foreach ($items as $item): ?>
@@ -144,11 +156,8 @@ $iconWrapClass = implode(' ', $iconWrapClasses);
         <?php endforeach; ?>
 
     </div>
-</div>
 
-<?php if ($hasSection): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>
 
 <style>
 .cb-feature-icon { display: inline-flex; align-items: center; justify-content: center; color: currentColor; }

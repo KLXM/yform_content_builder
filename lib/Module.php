@@ -36,9 +36,10 @@ class Module
      * @param string $type Element-Typ (gallery, divider, cards, etc.)
      * @param mixed $rawValue Rohe REX_VALUE Daten oder JSON-String
      * @param string $framework CSS Framework für Output (bootstrap, uikit, plain)
+     * @param mixed $initialValues Optionale Initialwerte als Array oder JSON (werden nur genutzt wenn kein gespeicherter Wert vorhanden ist)
      * @return self
      */
-    public static function create(string $type, mixed $rawValue = null, string $framework = 'bootstrap', mixed $valueId = null): self
+    public static function create(string $type, mixed $rawValue = null, string $framework = 'bootstrap', mixed $valueId = null, mixed $initialValues = null): self
     {
         $instance = new self();
         $instance->elementType = $type;
@@ -66,6 +67,10 @@ class Module
         } else {
             $instance->data = [];
         }
+
+        if ($instance->data === [] && $initialValues !== null) {
+            $instance->data = $instance->normalizeInitialElementData($initialValues);
+        }
         
         return $instance;
     }
@@ -79,16 +84,78 @@ class Module
      * @param string $type Element-Typ
      * @param int    $valueId REX_VALUE Slot (1-20)
      * @param string $framework CSS Framework
+     * @param mixed  $initialValues Optionale Initialwerte als Array oder JSON
      * @return self
      */
-    public static function createByValueId(string $type, int $valueId = 1, string $framework = 'bootstrap'): self
+    public static function createByValueId(string $type, int $valueId = 1, string $framework = 'bootstrap', mixed $initialValues = null): self
     {
         $normalizedValueId = (int) $valueId;
         if ($normalizedValueId <= 0) {
             $normalizedValueId = 1;
         }
 
-        return self::create($type, null, $framework, $normalizedValueId);
+        return self::create($type, null, $framework, $normalizedValueId, $initialValues);
+    }
+
+    /**
+     * @param mixed $initialValues
+     * @return array<string, mixed>
+     */
+    protected function normalizeInitialElementData(mixed $initialValues): array
+    {
+        $data = [];
+
+        if (is_string($initialValues)) {
+            $decodedString = html_entity_decode($initialValues, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $decodedData = json_decode($decodedString, true);
+            if (is_array($decodedData)) {
+                $data = $decodedData;
+            }
+        } elseif (is_array($initialValues)) {
+            $data = $initialValues;
+        }
+
+        if ($data === []) {
+            return [];
+        }
+
+        // Unterstützt sowohl direkte Feld-Daten als auch Slice-Strukturen ({type,data} / [{...}]).
+        if (isset($data['data']) && is_array($data['data'])) {
+            return $data['data'];
+        }
+
+        if ($this->isListArray($data)) {
+            $first = $data[0] ?? null;
+            if (is_array($first)) {
+                if (isset($first['data']) && is_array($first['data'])) {
+                    return $first['data'];
+                }
+
+                return $first;
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array<mixed> $data
+     */
+    protected function isListArray(array $data): bool
+    {
+        if ($data === []) {
+            return true;
+        }
+
+        $expectedKey = 0;
+        foreach (array_keys($data) as $key) {
+            if ($key !== $expectedKey) {
+                return false;
+            }
+            ++$expectedKey;
+        }
+
+        return true;
     }
 
     /**

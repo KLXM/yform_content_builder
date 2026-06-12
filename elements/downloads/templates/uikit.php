@@ -31,6 +31,9 @@ $sectionBg = $elementData['section_bg'] ?? '';
 $sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? 'uk-container';
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 // Keine Items? Nichts ausgeben
 if (empty($items)) {
@@ -185,14 +188,21 @@ $getFiletypeLabel = function($filename) {
     return $labels[$ext] ?? strtoupper($ext);
 };
 
-// Section-Klassen
-$sectionClasses = ['uk-section'];
-if ($sectionBg) {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionPadding) {
-    $sectionClasses[] = $sectionPadding;
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 // Grid-Klassen basierend auf Spalten
 $gridClass = 'uk-child-width-1-' . $columnsMobile;
@@ -203,30 +213,7 @@ $gridClass .= ' uk-child-width-1-' . $columns . '@m';
 $gapClass = $gap === 'collapse' ? '' : 'uk-grid-' . $gap;
 ?>
 
-<section class="<?= implode(' ', $sectionClasses) ?>" <?php if ($sectionBgImage): ?>
-    <?php
-    $isVideo = in_array(strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION)), ['mp4', 'webm']);
-    if ($isVideo): ?>
-        uk-cover-container
-    <?php endif; ?>
-<?php endif; ?>>
-    
-    <?php if ($sectionBgImage): ?>
-        <?php
-        $isVideo = in_array(strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION)), ['mp4', 'webm']);
-        if ($isVideo): ?>
-            <video autoplay loop muted playsinline uk-cover>
-                <source src="<?= rex_url::media($sectionBgImage) ?>" type="video/<?= pathinfo($sectionBgImage, PATHINFO_EXTENSION) ?>">
-            </video>
-        <?php else: ?>
-            <div class="uk-background-cover uk-position-cover" style="background-image: url('<?= rex_url::media($sectionBgImage) ?>');"></div>
-        <?php endif; ?>
-        <div class="uk-position-relative">
-    <?php endif; ?>
-    
-    <?php if ($containerWidth): ?>
-        <div class="<?= rex_escape($containerWidth) ?>">
-    <?php endif; ?>
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
     
     <?php if ($headline || $description): ?>
         <div class="uk-margin-medium-bottom">
@@ -430,11 +417,4 @@ $gapClass = $gap === 'collapse' ? '' : 'uk-grid-' . $gap;
         </div>
     <?php endif; ?>
     
-    <?php if ($containerWidth): ?>
-        </div>
-    <?php endif; ?>
-    
-    <?php if ($sectionBgImage): ?>
-        </div>
-    <?php endif; ?>
-</section>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

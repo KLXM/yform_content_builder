@@ -33,6 +33,8 @@ class ModuleBuilder
     protected bool $legacyMigrationHint = true;
     protected string $legacyMigrationTarget = 'starter_text';
     protected string $legacyHtml = '';
+    /** @var array<string, array<string, mixed>> */
+    protected array $elementDefaults = [];
 
     /** @param array<string, mixed> $options */
     public static function create(int $valueId = 1, mixed $rawValue = null, array $options = []): self
@@ -70,6 +72,21 @@ class ModuleBuilder
         }
 
         $instance->slices = $instance->normalizeSlices($rawValue);
+        if ($instance->slices === []) {
+            $initialOption = $options['initial_slices'] ?? ($options['initial_values'] ?? ($options['initial_value'] ?? null));
+            $instance->slices = $instance->normalizeInitialSlices($initialOption);
+        }
+        // global_defaults als Alias oder als '*'-Key in element_defaults
+        $globalDefaults = $options['global_defaults'] ?? [];
+        $elementDefaultsInput = $options['element_defaults'] ?? [];
+        if (is_array($globalDefaults) && $globalDefaults !== []) {
+            if (!isset($elementDefaultsInput['*'])) {
+                $elementDefaultsInput['*'] = $globalDefaults;
+            } else {
+                $elementDefaultsInput['*'] = array_merge($globalDefaults, (array) $elementDefaultsInput['*']);
+            }
+        }
+        $instance->elementDefaults = $instance->normalizeElementDefaults($elementDefaultsInput);
         $instance->legacyMigrationTarget = $instance->resolveMigrationTarget($instance->legacyMigrationTarget);
 
         return $instance;
@@ -99,8 +116,9 @@ class ModuleBuilder
         <div class="form-group yform-content-builder"
              data-framework="<?= rex_escape($this->framework) ?>"
              data-online-toggle="<?= $this->enableOnlineToggle ? '1' : '0' ?>"
-               data-legacy-mode="<?= $legacyActive ? '1' : '0' ?>"
-             data-available-elements='<?= rex_escape(json_encode($availableElements, JSON_UNESCAPED_UNICODE)) ?>'>
+             data-legacy-mode="<?= $legacyActive ? '1' : '0' ?>"
+             data-available-elements='<?= rex_escape(json_encode($availableElements, JSON_UNESCAPED_UNICODE)) ?>'
+             <?php if ($this->elementDefaults !== []): ?>data-element-defaults='<?= rex_escape(json_encode($this->elementDefaults, JSON_UNESCAPED_UNICODE)) ?>'<?php endif; ?>>
             <?php if ($this->label !== ''): ?>
                 <label class="control-label"><?= rex_escape($this->label) ?></label>
             <?php endif; ?>
@@ -349,6 +367,90 @@ class ModuleBuilder
         return trim(strip_tags($trimmed)) !== '';
     }
 
+    /**
+     * @param mixed $elementDefaults
+     * @return array<string, array<string, mixed>>
+     */
+    protected function normalizeElementDefaults(mixed $elementDefaults): array
+    {
+        if (!is_array($elementDefaults) || $elementDefaults === []) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($elementDefaults as $type => $defaults) {
+            // '*' ist der Wildcard-Key für alle Element-Typen
+            if (!is_string($type) || $type === '' || !is_array($defaults)) {
+                continue;
+            }
+            $result[$type] = $defaults;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param mixed $initialSlices
+     * @return array<int, array<string, mixed>>
+     */
+    protected function normalizeInitialSlices(mixed $initialSlices): array
+    {
+        if ($initialSlices === null || $initialSlices === '') {
+            return [];
+        }
+
+        $data = null;
+        if (is_string($initialSlices)) {
+            $decodedString = html_entity_decode($initialSlices, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $decodedData = json_decode($decodedString, true);
+            if (is_array($decodedData)) {
+                $data = $decodedData;
+            }
+        } elseif (is_array($initialSlices)) {
+            $data = $initialSlices;
+        }
+
+        if (!is_array($data) || $data === []) {
+            return [];
+        }
+
+        $rawSlices = $this->isListArray($data) ? $data : [$data];
+        $normalized = [];
+        foreach ($rawSlices as $index => $slice) {
+            if (!is_array($slice)) {
+                continue;
+            }
+
+            $type = trim((string) ($slice['type'] ?? ''));
+            if ($type === '') {
+                continue;
+            }
+
+            $sliceData = $slice['data'] ?? [];
+            if (!is_array($sliceData)) {
+                $sliceData = [];
+            }
+
+            // Defaults anwenden: global ('*') < typ-spezifisch < gespeicherte Werte
+            $globalBase = isset($this->elementDefaults['*']) && is_array($this->elementDefaults['*'])
+                ? $this->elementDefaults['*']
+                : [];
+            $typeBase = isset($this->elementDefaults[$type]) && is_array($this->elementDefaults[$type])
+                ? $this->elementDefaults[$type]
+                : [];
+            $sliceData = array_merge($globalBase, $typeBase, $sliceData);
+
+            $normalized[] = [
+                'id' => (string) ($slice['id'] ?? ('slice_' . uniqid() . '_' . $index)),
+                'type' => $type,
+                'online' => !array_key_exists('online', $slice) || $this->normalizeBool($slice['online']),
+                'data' => $sliceData,
+            ];
+        }
+
+        return $normalized;
+    }
+
     protected function normalizeBool(mixed $value): bool
     {
         if (is_bool($value)) {
@@ -364,6 +466,26 @@ class ModuleBuilder
         }
 
         return false;
+    }
+
+    /**
+     * @param array<mixed> $data
+     */
+    protected function isListArray(array $data): bool
+    {
+        if ($data === []) {
+            return true;
+        }
+
+        $expectedKey = 0;
+        foreach (array_keys($data) as $key) {
+            if ($key !== $expectedKey) {
+                return false;
+            }
+            ++$expectedKey;
+        }
+
+        return true;
     }
 
     protected function resolveMigrationTarget(string $target): string
@@ -547,6 +669,15 @@ class ModuleBuilder
         $sliceOnline = !array_key_exists('online', $slice) || $slice['online'] !== false;
         $isSection = $sliceType === 'section';
         $templateFile = $this->resolveTemplateFile($sliceType);
+        $elementLabel = $sliceType;
+        $elementIcon = 'fa-cube';
+        foreach ($groupedAvailableElements as $elementsInCategory) {
+            if (isset($elementsInCategory[$sliceType]) && is_array($elementsInCategory[$sliceType])) {
+                $elementLabel = (string) ($elementsInCategory[$sliceType]['label'] ?? $sliceType);
+                $elementIcon  = (string) ($elementsInCategory[$sliceType]['icon'] ?? 'fa-cube');
+                break;
+            }
+        }
 
         ob_start();
         ?>
@@ -556,12 +687,26 @@ class ModuleBuilder
              data-slice-index="<?= $index ?>"
              data-slice-online="<?= $sliceOnline ? '1' : '0' ?>"
              data-slice-data='<?= rex_escape(json_encode($elementData, JSON_UNESCAPED_UNICODE)) ?>'>
-            <div class="slice-toolbar">
+            <div class="slice-toolbar" data-element-name="<?= rex_escape($elementLabel) ?>">
+                <span class="slice-label"><i class="fa <?= rex_escape($elementIcon) ?>"></i><?= rex_escape($elementLabel) ?></span>
                 <div class="btn-group btn-group-insert">
                     <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="<?= rex_i18n::msg('yform_content_builder_element_add') ?>">
                         <i class="fa fa-plus"></i>
                     </button>
                     <ul class="dropdown-menu pull-right">
+                        <?php 
+                        // Gesamtanzahl Elemente zählen
+                        $totalElements = 0;
+                        foreach ($groupedAvailableElements as $elementsInCategory) {
+                            $totalElements += count($elementsInCategory);
+                        }
+                        // Suchfeld anzeigen wenn mehr als 5 Elemente
+                        if ($totalElements > 5): 
+                        ?>
+                        <li class="dropdown-search-wrapper">
+                            <input type="text" class="form-control dropdown-search" placeholder="<?= rex_i18n::msg('search') ?>" />
+                        </li>
+                        <?php endif; ?>
                         <?php $categoryIndex = 0; ?>
                         <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
                             <?php if ($categoryIndex > 0): ?>
@@ -570,7 +715,7 @@ class ModuleBuilder
                             <li class="dropdown-header"><?= rex_escape($this->formatCategoryLabel($category)) ?></li>
                             <?php foreach ($elementsInCategory as $elementKey => $config): ?>
                                 <?php $elementDescription = trim((string) ($config['description'] ?? '')); ?>
-                                <li>
+                                <li class="element-item" data-element-search-text="<?= rex_escape(strtolower((string) ($config['label'] ?? $elementKey) . ' ' . $category)) ?>">
                                     <a href="#" class="btn-insert-slice"
                                        data-element-type="<?= rex_escape($elementKey) ?>"
                                        data-element-label="<?= rex_escape((string) ($config['label'] ?? $elementKey)) ?>"

@@ -52,6 +52,8 @@ $sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? 'uk-container';
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 // Im Backend: kein echtes Formular
 $isBackend = rex::isBackend();
@@ -705,17 +707,24 @@ if (!$isBackend && rex_request::server('REQUEST_METHOD', 'string') === 'POST' &&
 }
 
 // Section Wrapper
-$hasSection = !empty($sectionBg) || !empty($sectionBgImage) || !empty($sectionPadding);
-$sectionClasses = array_filter([$sectionBg, $sectionPadding]);
-if ($sectionLight) $sectionClasses[] = 'uk-light';
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
 
-if ($hasSection): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>"<?php if ($sectionBgImage): ?> style="background-image: url('<?= rex_url::media($sectionBgImage) ?>'); background-size: cover; background-position: center;"<?php endif; ?>>
-<?php endif; ?>
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
-<?php if ($containerWidth): ?>
-<div class="<?= rex_escape($containerWidth) ?>">
-<?php endif; ?>
+echo $wrapper->parse('ycb_elements/wrapper.php');
+?>
 
 <?php // Formular-Überschrift ?>
 <?php if (!empty($formHeadline)): ?>
@@ -1010,13 +1019,7 @@ if ($hasSection): ?>
 
 </div>
 
-<?php if ($containerWidth): ?>
-</div>
-<?php endif; ?>
-
-<?php if ($hasSection): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>
 
 <?php
 if (!$isBackend && ($ajaxEnhancement || $multistepEnabled) && !defined('YFORM_CB_CONTACT_FORM_AJAX_JS_INCLUDED')) {

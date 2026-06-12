@@ -56,6 +56,6 @@ return [
                 'notice' => $_ci('field_links_notice', 'Mehrfachauswahl aktiv: Ein Feld fuer viele Smart Links.'),
             ],
         ],
-        $config::getSectionFields()
+        $config::getOptionalSectionFields()
     ),
 ];

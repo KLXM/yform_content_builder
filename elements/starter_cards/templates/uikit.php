@@ -7,26 +7,39 @@ $columnsMobile = (string) ($elementData['columns_mobile'] ?? '1');
 $gap = (string) ($elementData['gap'] ?? 'medium');
 
 $sectionBg = (string) ($elementData['section_bg'] ?? '');
+$sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
 
 if (!is_array($items) || $items === []) {
     return;
 }
 
-$sectionClasses = ['uk-section'];
-if ($sectionBg !== '') { $sectionClasses[] = $sectionBg; }
-if ($sectionPadding !== '') { $sectionClasses[] = $sectionPadding; }
-if ($sectionLight) { $sectionClasses[] = 'uk-light'; }
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 $gridClass = 'uk-child-width-1-' . $columnsMobile;
 $gridClass .= ' uk-child-width-1-' . $columnsTablet . '@s';
 $gridClass .= ' uk-child-width-1-' . $columns . '@m';
 $gapClass = $gap === 'collapse' ? '' : 'uk-grid-' . $gap;
 ?>
-<section class="<?= rex_escape(implode(' ', $sectionClasses)) ?>">
-    <?php if ($containerWidth !== ''): ?><div class="<?= rex_escape($containerWidth) ?>"><?php endif; ?>
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
         <?php if ($headline !== ''): ?><h3><?= rex_escape($headline) ?></h3><?php endif; ?>
         <div class="<?= rex_escape(trim($gridClass . ' ' . $gapClass)) ?>" uk-grid>
             <?php foreach ($items as $index => $item): ?>
@@ -58,5 +71,4 @@ $gapClass = $gap === 'collapse' ? '' : 'uk-grid-' . $gap;
                 </div>
             <?php endforeach; ?>
         </div>
-    <?php if ($containerWidth !== ''): ?></div><?php endif; ?>
-</section>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

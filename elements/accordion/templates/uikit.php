@@ -21,8 +21,12 @@ $tabAlignment = $elementData['tab_alignment'] ?? 'left';
 
 // Sektion-Einstellungen
 $sectionBg = $elementData['section_bg'] ?? '';
+$sectionBgImage = $elementData['section_bg_image'] ?? '';
 $sectionPadding = $elementData['section_padding'] ?? '';
 $containerWidth = $elementData['container_width'] ?? 'uk-container';
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !array_key_exists('enable_section', $elementData) || !empty($elementData['enable_section']);
+$enableContainer = !array_key_exists('enable_container', $elementData) || !empty($elementData['enable_container']);
 
 if (empty($items)) {
     return;
@@ -77,14 +81,21 @@ if (!$animation) {
 }
 $accordionAttrStr = empty($accordionAttrs) ? '' : implode('; ', $accordionAttrs);
 
-// Sektion-Klassen
-$sectionClasses = ['uk-section'];
-if ($sectionBg) {
-    $sectionClasses[] = $sectionBg;
-}
-if ($sectionPadding) {
-    $sectionClasses[] = $sectionPadding;
-}
+$wrapper = new rex_fragment();
+$wrapper->setVar('enable_section', $enableSection, false);
+$wrapper->setVar('enable_container', $enableContainer, false);
+$wrapper->setVar('section_bg', $sectionBg, false);
+$wrapper->setVar('section_bg_image', $sectionBgImage, false);
+$wrapper->setVar('section_padding', $sectionPadding, false);
+$wrapper->setVar('container_width', $containerWidth, false);
+$wrapper->setVar('section_light', $sectionLight, false);
+
+$wrapperClose = new rex_fragment();
+$wrapperClose->setVar('mode', 'close', false);
+$wrapperClose->setVar('enable_section', $enableSection, false);
+$wrapperClose->setVar('enable_container', $enableContainer, false);
+$wrapperClose->setVar('section_bg_image', $sectionBgImage, false);
+$wrapperClose->setVar('container_width', $containerWidth, false);
 
 // Icon Rendering Helper
 $renderIcon = function($icon) {
@@ -101,13 +112,7 @@ $renderIcon = function($icon) {
 };
 ?>
 
-<?php if ($sectionBg || $sectionPadding): ?>
-<section class="<?= implode(' ', $sectionClasses) ?>">
-<?php endif; ?>
-
-<?php if ($containerWidth): ?>
-<div class="<?= $containerWidth ?>">
-<?php endif; ?>
+<?= $wrapper->parse('ycb_elements/wrapper.php') ?>
 
 <?php if ($displayType === 'tabs'): ?>
     <!-- TABS (Horizontal) -->
@@ -212,10 +217,4 @@ $renderIcon = function($icon) {
     </div>
 <?php endif; ?>
 
-<?php if ($containerWidth): ?>
-</div>
-<?php endif; ?>
-
-<?php if ($sectionBg || $sectionPadding): ?>
-</section>
-<?php endif; ?>
+<?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>

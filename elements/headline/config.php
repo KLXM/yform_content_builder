@@ -71,7 +71,7 @@ return [
         'section_tab' => [
             'label' => 'Sektion',
             'icon' => 'fa-columns',
-            'fields' => $config::getSectionFieldNames()
+            'fields' => $config::getOptionalSectionFieldNames()
         ]
     ],
     
@@ -187,7 +187,7 @@ return [
         ],
         
         // Section-Felder aus zentraler Config
-        $config::getSectionFields(),
+        $config::getOptionalSectionFields(),
         
         // Extra-Felder wenn vorhanden
         $extra

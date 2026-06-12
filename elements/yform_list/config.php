@@ -89,6 +89,6 @@ return [
                 'default' => true,
             ],
         ],
-        $config::getSectionFields(),
+        $config::getOptionalSectionFields(),
     ),
 ];
