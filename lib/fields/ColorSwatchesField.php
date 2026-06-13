@@ -26,7 +26,7 @@ class ColorSwatchesField extends FieldAbstract
         $default = $fieldConfig['default'] ?? '';
         $notice = $fieldConfig['notice'] ?? null;
 
-        if (empty($value) && !empty($default)) {
+        if (($value === null || $value === '') && !empty($default)) {
             $value = $default;
         }
 

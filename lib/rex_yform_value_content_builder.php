@@ -369,6 +369,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         // Wert aus verschachtelten Arrays extrahieren (z.B. "items[0][title]")
         $value = $this->getNestedValue($fieldName, $sliceData);
+        if ($value === null) {
+            $value = $fieldConfig['default'] ?? '';
+        }
         $label = $fieldConfig['label'] ?? $fieldName;
         $type = $fieldConfig['type'] ?? 'text';
         
@@ -548,7 +551,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $options = $fieldConfig['options'] ?? [];
                 $default = $fieldConfig['default'] ?? '';
                 
-                if (empty($value) && !empty($default)) {
+                if (($value === null || $value === '') && !empty($default)) {
                     $value = $default;
                 }
                 
@@ -595,7 +598,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $options = $fieldConfig['options'] ?? [];
                 $default = $fieldConfig['default'] ?? '';
                 
-                if (empty($value) && !empty($default)) {
+                if (($value === null || $value === '') && !empty($default)) {
                     $value = $default;
                 }
                 
@@ -678,7 +681,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     }
                 } else {
                     // Default verwenden wenn kein Wert gesetzt
-                    if (empty($value) && !empty($default)) {
+                    if (($value === null || $value === '') && !empty($default)) {
                         $value = $default;
                     }
                 }
@@ -705,37 +708,53 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
                 echo '<select class="' . $selectClass . '" name="' . $nameAttr . '"' . $multiAttrs . '>';
                 foreach ($choices as $choiceValue => $choiceLabel) {
-                    if ($isMultiple) {
-                        $selected = in_array((string) $choiceValue, array_map('strval', (array) $value), true) ? ' selected' : '';
-                    } else {
-                        $selected = ($value == $choiceValue) ? ' selected' : '';
-                    }
-                    
-                    $dataContent = '';
-                    
-                    // Icon/Piktogramm für Selectpicker (z.B. SVG oder HTML)
-                    if ($useSelectpicker && isset($choiceIcons[$choiceValue])) {
-                        $iconHtml = $choiceIcons[$choiceValue];
-                        // SVG/HTML für data-content - nur Anführungszeichen escapen, nicht das HTML
-                        $escapedIcon = str_replace('"', '&quot;', $iconHtml);
-                        $dataContent = ' data-content="' . $escapedIcon . ' ' . rex_escape($choiceLabel) . '"';
-                    }
-                    // Farbvorschau für Selectpicker wenn Farben definiert sind
-                    elseif ($useSelectpicker && isset($choiceColors[$choiceValue])) {
-                        $colorData = $choiceColors[$choiceValue];
-                        $color = is_array($colorData) ? ($colorData['color'] ?? '') : $colorData;
-                        if (!empty($color)) {
-                            $borderStyle = ($color === '#ffffff' || $color === 'transparent' || $color === '#fff') 
-                                ? 'border: 1px solid #ccc;' 
-                                : '';
-                            $bgColor = $color === 'transparent' 
-                                ? 'background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 5px, #fff 5px, #fff 10px);'
-                                : 'background-color: ' . rex_escape($color) . ';';
-                            $dataContent = ' data-content="<span style=\'display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:middle;border-radius:3px;' . $bgColor . $borderStyle . '\'></span>' . rex_escape($choiceLabel) . '"';
+                    if (is_array($choiceLabel)) {
+                        echo '<optgroup label="' . rex_escape($choiceValue) . '">';
+                        foreach ($choiceLabel as $subValue => $subLabel) {
+                            if ($isMultiple) {
+                                $selected = in_array((string) $subValue, array_map('strval', (array) $value), true) ? ' selected' : '';
+                            } else {
+                                $selected = ($value == $subValue) ? ' selected' : '';
+                            }
+                            $dataContent = '';
+                            if ($useSelectpicker && isset($choiceIcons[$subValue])) {
+                                $iconHtml = $choiceIcons[$subValue];
+                                $escapedIcon = str_replace('"', '&quot;', $iconHtml);
+                                $dataContent = ' data-content="' . $escapedIcon . ' ' . rex_escape($subLabel) . '"';
+                            } elseif ($useSelectpicker && isset($choiceColors[$subValue])) {
+                                $colorData = $choiceColors[$subValue];
+                                $color = is_array($colorData) ? ($colorData['color'] ?? '') : $colorData;
+                                if (!empty($color)) {
+                                    $borderStyle = ($color === '#ffffff' || $color === 'transparent' || $color === '#fff') ? 'border: 1px solid #ccc;' : '';
+                                    $bgColor = $color === 'transparent' ? 'background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 5px, #fff 5px, #fff 10px);' : 'background-color: ' . rex_escape($color) . ';';
+                                    $dataContent = ' data-content="<span style=\'display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:middle;border-radius:3px;' . $bgColor . $borderStyle . '\'></span>' . rex_escape($subLabel) . '"';
+                                }
+                            }
+                            echo '<option value="' . rex_escape($subValue) . '"' . $selected . $dataContent . '>' . rex_escape($subLabel) . '</option>';
                         }
+                        echo '</optgroup>';
+                    } else {
+                        if ($isMultiple) {
+                            $selected = in_array((string) $choiceValue, array_map('strval', (array) $value), true) ? ' selected' : '';
+                        } else {
+                            $selected = ($value == $choiceValue) ? ' selected' : '';
+                        }
+                        $dataContent = '';
+                        if ($useSelectpicker && isset($choiceIcons[$choiceValue])) {
+                            $iconHtml = $choiceIcons[$choiceValue];
+                            $escapedIcon = str_replace('"', '&quot;', $iconHtml);
+                            $dataContent = ' data-content="' . $escapedIcon . ' ' . rex_escape($choiceLabel) . '"';
+                        } elseif ($useSelectpicker && isset($choiceColors[$choiceValue])) {
+                            $colorData = $choiceColors[$choiceValue];
+                            $color = is_array($colorData) ? ($colorData['color'] ?? '') : $colorData;
+                            if (!empty($color)) {
+                                $borderStyle = ($color === '#ffffff' || $color === 'transparent' || $color === '#fff') ? 'border: 1px solid #ccc;' : '';
+                                $bgColor = $color === 'transparent' ? 'background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 5px, #fff 5px, #fff 10px);' : 'background-color: ' . rex_escape($color) . ';';
+                                $dataContent = ' data-content="<span style=\'display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:middle;border-radius:3px;' . $bgColor . $borderStyle . '\'></span>' . rex_escape($choiceLabel) . '"';
+                            }
+                        }
+                        echo '<option value="' . rex_escape($choiceValue) . '"' . $selected . $dataContent . '>' . rex_escape($choiceLabel) . '</option>';
                     }
-                    
-                    echo '<option value="' . rex_escape($choiceValue) . '"' . $selected . $dataContent . '>' . rex_escape($choiceLabel) . '</option>';
                 }
                 echo '</select>';
                 break;
@@ -943,7 +962,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     {
         // Einfacher Key ohne Brackets
         if (strpos($key, '[') === false) {
-            return $data[$key] ?? '';
+            return $data[$key] ?? null;
         }
         
         // Bracket-Notation parsen: items[0][title] -> ['items', '0', 'title']
@@ -955,7 +974,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             if (is_array($value) && isset($value[$k])) {
                 $value = $value[$k];
             } else {
-                return '';
+                return null;
             }
         }
         

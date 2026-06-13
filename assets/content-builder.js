@@ -232,6 +232,12 @@
                 self.applyConditionalFieldVisibility($editForm);
             });
 
+            // Robust tab switching click fallback for dynamically loaded Bootstrap tabs
+            $(document).on('click', '.slice-edit-form a[data-toggle="tab"], #nested-slice-edit-modal a[data-toggle="tab"], .yform-content-builder a[data-toggle="tab"]', function(e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+
             // Slice löschen - MUSS VOR edit kommen!
             $(document).on('click', '.btn-slice-delete', function(e) {
                 e.preventDefault();
@@ -1275,6 +1281,18 @@
             var $editForm = isNested ? $('#nested-slice-edit-modal .slice-edit-form') : $slice.find('.slice-edit-form');
             var sliceData = {};
 
+            // Preserve columns data for columns layouts to prevent them from being cleared
+            var existingColumns = null;
+            var oldData = $slice.data('slice-data');
+            if (oldData) {
+                if (typeof oldData === 'string') {
+                    try { oldData = JSON.parse(oldData); } catch(e) {}
+                }
+                if (oldData && oldData.columns) {
+                    existingColumns = oldData.columns;
+                }
+            }
+
             // CKE5-Instanzen in Textareas zurückschreiben
             $editForm.find('textarea.cke5-editor').each(function() {
                 var $textarea = $(this);
@@ -1340,8 +1358,8 @@
                 }
 
                 if ($field.is(':checkbox')) {
-                    if ($field.is(':checked') && name) {
-                        self.setNestedValue(sliceData, name, value || '1');
+                    if (name) {
+                        self.setNestedValue(sliceData, name, $field.is(':checked') ? (value || '1') : '0');
                     }
                     return;
                 }
@@ -1360,10 +1378,14 @@
                         var pickerValue = $field.val();
                         self.setNestedValue(sliceData, name, pickerValue);
                     }
-                } else if (name && value !== undefined && (value !== '' || $field.is('select'))) {
+                } else if (name && value !== undefined) {
                     self.setNestedValue(sliceData, name, value);
                 }
             });
+
+            if (existingColumns) {
+                sliceData.columns = existingColumns;
+            }
 
             $slice.attr('data-slice-data', JSON.stringify(sliceData));
             $slice.data('slice-data', sliceData);

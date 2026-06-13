@@ -1,7 +1,8 @@
 <?php
-/**
- * Columns Layout Element Configuration
- */
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
+
+$elementConfig = StarterConfig::class;
+
 return [
     'label' => 'Spalten-Layout',
     'icon' => 'fa-columns',
@@ -9,7 +10,7 @@ return [
     'version' => '1.0.0',
     'category' => 'layout',
     
-    'fields' => [
+    'fields' => array_merge([
         'col_layout' => [
             'type' => 'choice',
             'label' => 'Layout-Verteilung',
@@ -21,5 +22,6 @@ return [
             ],
             'default' => '50_50'
         ]
-    ]
+    ], $elementConfig::getOptionalSectionFields())
 ];
+

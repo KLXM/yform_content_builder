@@ -25,10 +25,12 @@ $isBackendEditMode = false;
 if (rex::isBackend()) {
     foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10) as $trace) {
         $function = $trace['function'] ?? '';
+        $class = $trace['class'] ?? '';
         $file = $trace['file'] ?? '';
         if ($function === 'renderSliceBackend' || 
             $function === 'renderEditorSlice' || 
             $function === 'ajaxRenderSlice' || 
+            ($function === 'renderSlice' && $class === 'KLXM\YFormContentBuilder\Api\ContentBuilderApi') || 
             strpos($file, 'value.content_builder.tpl.php') !== false) {
             $isBackendEditMode = true;
             break;
@@ -42,11 +44,79 @@ if ($isBackendEditMode) {
 }
 
 // Frontend Output Rendering
+$sectionBg = (string) ($elementData['section_bg'] ?? '');
+$sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
+$sectionPadding = (string) ($elementData['section_padding'] ?? '');
+$containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
+
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
+
+$sectionClasses = [];
+$sectionStyle = '';
+
+if ($enableSection) {
+    $bgClass = StarterConfig::mapBg($sectionBg, 'bootstrap');
+    if ($bgClass !== '') {
+        $sectionClasses[] = $bgClass;
+    }
+    
+    $paddingClass = StarterConfig::mapPadding($sectionPadding, 'bootstrap');
+    if ($paddingClass !== '') {
+        $sectionClasses[] = $paddingClass;
+    }
+    
+    if ($sectionLight) {
+        $sectionClasses[] = 'text-white';
+    }
+}
+
+$hasVideo = false;
+$videoExt = '';
+if ($enableSection && $sectionBgImage !== '') {
+    $videoExt = strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION));
+    if (in_array($videoExt, ['mp4', 'webm', 'ogg'], true)) {
+        $hasVideo = true;
+    } else {
+        $bgImageUrl = rex_media_manager::getUrl('content_slideshow', $sectionBgImage);
+        $sectionStyle = ' style="background-image: url(\'' . rex_escape($bgImageUrl) . '\'); background-size: cover; background-position: center;"';
+    }
+}
+
+$sectionClassStr = implode(' ', $sectionClasses);
+$containerClass = $enableContainer ? StarterConfig::mapContainer($containerWidth, 'bootstrap') : '';
 ?>
-<div class="<?= $rowClass ?>"<?= $rowAttrs ?>>
-    <?php for ($i = 0; $i < $numCols; $i++): ?>
-        <div class="<?= $classes[$i] ?>">
-            <?= \KLXM\YFormContentBuilder\Helper::renderNestedSlices($columnsData[$i] ?? [], $framework) ?>
+<?php if ($enableSection): ?>
+<section<?= $sectionClassStr !== '' ? ' class="' . rex_escape($sectionClassStr) . '"' : '' ?><?= $sectionStyle !== '' || $hasVideo ? ' style="' . ($hasVideo ? 'position:relative;overflow:hidden;' : '') . rex_escape($sectionStyle) . '"' : '' ?>>
+    <?php if ($hasVideo): ?>
+        <video autoplay loop muted playsinline style="position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); z-index: 0; object-fit: cover;">
+            <source src="<?= rex_url::media($sectionBgImage) ?>" type="video/<?= $videoExt ?>">
+        </video>
+        <div style="position: relative; z-index: 1; width: 100%;">
+    <?php endif; ?>
+<?php endif; ?>
+
+<?php if ($enableContainer && $containerClass !== ''): ?>
+    <div class="<?= rex_escape($containerClass) ?>">
+<?php endif; ?>
+
+        <div class="<?= $rowClass ?>"<?= $rowAttrs ?>>
+            <?php for ($i = 0; $i < $numCols; $i++): ?>
+                <div class="<?= $classes[$i] ?>">
+                    <?= \KLXM\YFormContentBuilder\Helper::renderNestedSlices($columnsData[$i] ?? [], $framework) ?>
+                </div>
+            <?php endfor; ?>
         </div>
-    <?php endfor; ?>
-</div>
+
+<?php if ($enableContainer && $containerClass !== ''): ?>
+    </div>
+<?php endif; ?>
+
+<?php if ($enableSection): ?>
+    <?php if ($hasVideo): ?>
+        </div>
+    <?php endif; ?>
+</section>
+<?php endif; ?>

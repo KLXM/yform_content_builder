@@ -170,6 +170,9 @@ class FieldRegistry
 
         // Wert aus sliceData extrahieren
         $value = self::getNestedValue($fieldName, $sliceData);
+        if ($value === null) {
+            $value = $fieldConfig['default'] ?? '';
+        }
 
         $field->render($fieldName, $fieldConfig, $value, $sliceData);
 
@@ -236,7 +239,7 @@ class FieldRegistry
     private static function getNestedValue(string $key, array $data): mixed
     {
         if (strpos($key, '[') === false) {
-            return $data[$key] ?? '';
+            return $data[$key] ?? null;
         }
 
         preg_match_all('/([^\[\]]+)/', $key, $matches);
@@ -247,7 +250,7 @@ class FieldRegistry
             if (is_array($value) && isset($value[$k])) {
                 $value = $value[$k];
             } else {
-                return '';
+                return null;
             }
         }
 

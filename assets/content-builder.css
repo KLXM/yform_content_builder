@@ -1456,3 +1456,14 @@ body.modal-open {
     overflow-wrap: break-word;
     text-align: left;
 }
+
+/* Hide column add slice button when elements are present inside the column slices container */
+.content-builder-column-slices:has(.content-builder-slice) + .column-add-slice {
+    display: none !important;
+}
+
+/* Position toolbars of nested slices inside columns on the left to avoid overlapping parent toolbars */
+.content-builder-column-slices .content-builder-slice > .slice-toolbar {
+    left: -1px;
+    right: auto;
+}
