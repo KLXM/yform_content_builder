@@ -15,6 +15,7 @@ use rex_response;
 use rex_sql;
 use rex_url;
 use Throwable;
+use KLXM\YFormContentBuilder\Starter\StarterConfig as Config;
 
 class ModuleBuilder
 {
@@ -771,6 +772,8 @@ class ModuleBuilder
 
             $config['_source'] = $source;
             $config['_path'] = $elementPath;
+            $config['type'] = $dir;
+            $config['key'] = $dir;
             $elements[$dir] = $config;
         }
 

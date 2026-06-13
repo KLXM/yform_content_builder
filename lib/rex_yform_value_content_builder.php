@@ -1256,6 +1256,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         }
                         $config['_source'] = 'custom';
                         $config['_path'] = $elementPath;
+                        $config['type'] = $dir;
+                        $config['key'] = $dir;
                         $elements[$dir] = $config;
                     }
                 }
@@ -1289,6 +1291,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     }
                     $config['_source'] = 'demo';
                     $config['_path'] = $elementPath;
+                    $config['type'] = $dir;
+                    $config['key'] = $dir;
                     $elements[$dir] = $config;
                 }
             }
@@ -1317,6 +1321,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         }
                         $config['_source'] = 'custom';
                         $config['_path'] = $elementPath;
+                        $config['type'] = $dir;
+                        $config['key'] = $dir;
                         $elements[$dir] = $config;
                     }
                 }

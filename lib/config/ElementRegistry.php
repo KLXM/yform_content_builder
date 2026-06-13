@@ -52,6 +52,7 @@ class ElementRegistry
             'starter_media_split',
             'starter_cards',
             'starter_callout',
+            'columns',
         ];
 
         // Extension Point für Custom-Bundled-Elemente

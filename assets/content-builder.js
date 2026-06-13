@@ -302,7 +302,13 @@
                 e.preventDefault();
                 e.stopPropagation();
                 var $slice = $(this).closest('.content-builder-slice');
-                if ($slice.length) {
+                if ($slice.length === 0) {
+                    var $modal = $(this).closest('#nested-slice-edit-modal');
+                    if ($modal.length > 0) {
+                        $slice = $modal.data('editing-slice');
+                    }
+                }
+                if ($slice && $slice.length) {
                     self.saveSlice($slice);
                 }
                 return false;
@@ -329,6 +335,15 @@
                             self.collectSliceDataFromForm($slice);
                         }
                     });
+
+                    // Modales Formular synchronisieren, falls für dieses Builder-Feld geöffnet
+                    var $modal = $('#nested-slice-edit-modal');
+                    if ($modal.length > 0 && $modal.is(':visible')) {
+                        var $editingSlice = $modal.data('editing-slice');
+                        if ($editingSlice && $editingSlice.length > 0 && $editingSlice.closest('.yform-content-builder').is($builder)) {
+                            self.collectSliceDataFromForm($editingSlice);
+                        }
+                    }
                 });
 
                 self.updateHiddenField();
@@ -352,28 +367,60 @@
                 self.addSlice($container, elementType, elementLabel);
             });
             
-            // Slice an bestimmter Position einfügen
+            // Neues nested Slice in Spalte hinzufügen
+            $(document).on('click', '.btn-add-nested-slice', function(e) {
+                e.preventDefault();
+                var elementType = $(this).data('element-type');
+                var elementLabel = $(this).data('element-label');
+                var $container = $(this).closest('.content-builder-column').find('.content-builder-column-slices');
+                self.addSlice($container, elementType, elementLabel);
+            });
+            
+            // Slice an bestimmter Position einfügen (container-relativ)
             $(document).on('click', '.btn-insert-slice', function(e) {
                 e.preventDefault();
                 var elementType = $(this).data('element-type');
                 var elementLabel = $(this).data('element-label');
                 var insertAfter = parseInt($(this).data('insert-after'));
-                var $container = $(this).closest('.yform-content-builder').find('.content-builder-slices');
+                var $slice = $(this).closest('.content-builder-slice');
+                var $container = $slice.parent();
                 self.insertSliceAt($container, elementType, elementLabel, insertAfter + 1);
             });
 
             // Formular speichern
             $(document).on('click', '.btn-slice-save', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 var $slice = $(this).closest('.content-builder-slice');
-                self.saveSlice($slice);
+                if ($slice.length === 0) {
+                    var $modal = $(this).closest('#nested-slice-edit-modal');
+                    if ($modal.length > 0) {
+                        $slice = $modal.data('editing-slice');
+                    }
+                }
+                if ($slice && $slice.length) {
+                    self.saveSlice($slice);
+                }
             });
 
             // Formular abbrechen
             $(document).on('click', '.btn-slice-cancel', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 var $slice = $(this).closest('.content-builder-slice');
-                self.cancelEdit($slice);
+                if ($slice.length === 0) {
+                    var $modal = $(this).closest('#nested-slice-edit-modal');
+                    if ($modal.length > 0) {
+                        $slice = $modal.data('editing-slice');
+                    }
+                }
+                if ($slice && $slice.length) {
+                    var confirmMsg = $(this).data('confirm');
+                    if (confirmMsg && !confirm(confirmMsg)) {
+                        return false;
+                    }
+                    self.cancelEdit($slice);
+                }
             });
             
             // Media Browser Events
@@ -835,45 +882,94 @@
 
         editSlice: function($slice) {
             var self = this;
+            var isNested = $slice.closest('.content-builder-column-slices').length > 0;
             
-            // Gerenderte Ansicht ausblenden
-            $slice.find('.slice-rendered').hide();
-            $slice.find('.slice-toolbar').hide();
-            
-            // Edit-Form anzeigen
-            var $editForm = $slice.find('.slice-edit-form');
-            
-            if ($editForm.children().length === 0) {
-                // Formular erstmal laden
-                this.loadSliceForm($slice);
-            } else {
-                // Formular ist bereits geladen - TinyMCE neu initialisieren
-                this.applyConditionalFieldVisibility($editForm);
+            if (isNested) {
+                var $modal = $('#nested-slice-edit-modal');
+                if ($modal.length === 0) {
+                    $modal = $('<div class="modal fade" id="nested-slice-edit-modal" style="z-index: 1050;" tabindex="-1" role="dialog">' +
+                        '<div class="modal-dialog modal-lg" role="document">' +
+                            '<div class="modal-content">' +
+                                '<div class="modal-header">' +
+                                    '<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>' +
+                                    '<h4 class="modal-title">Element bearbeiten</h4>' +
+                                '</div>' +
+                                '<div class="modal-body"></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>');
+                    $('body').append($modal);
+                    
+                    // Bind close event once
+                    $modal.on('hidden.bs.modal', function () {
+                        var $form = $modal.find('.slice-edit-form');
+                        if ($form.length > 0) {
+                            var $editingSlice = $modal.data('editing-slice');
+                            if ($editingSlice && $editingSlice.length > 0) {
+                                self.cancelEdit($editingSlice);
+                            }
+                        }
+                    });
+                }
+                
+                $modal.data('editing-slice', $slice);
+                var $editForm = $slice.find('.slice-edit-form');
+                $modal.find('.modal-body').empty().append($editForm);
                 $editForm.show();
                 
-                // WICHTIG: Auf jeden Fall tiny_init() aufrufen!
-                // Das ist notwendig, wenn das Formular vorher geschlossen wurde und
-                // TinyMCE-Instanzen zerstört wurden. tiny_init() prüft selbst,
-                // welche Textareas schon initialisiert sind.
-                setTimeout(function() {
-                    if (typeof tiny_init === 'function') {
-                        try {
-                            tiny_init($editForm);
-                        } catch(e) {
-                            console.error('tiny_init failed:', e);
+                if ($editForm.children().length === 0) {
+                    this.loadSliceForm($slice);
+                } else {
+                    this.applyConditionalFieldVisibility($editForm);
+                    setTimeout(function() {
+                        if (typeof tiny_init === 'function') {
+                            try {
+                                tiny_init($editForm);
+                            } catch(e) {
+                                console.error('tiny_init failed:', e);
+                            }
                         }
-                    }
-                }, 50);
+                    }, 50);
+                }
+                
+                $modal.modal('show');
+            } else {
+                // Gerenderte Ansicht ausblenden
+                $slice.find('.slice-rendered').hide();
+                $slice.find('.slice-toolbar').hide();
+                
+                // Edit-Form anzeigen
+                var $editForm = $slice.find('.slice-edit-form');
+                
+                if ($editForm.children().length === 0) {
+                    // Formular erstmal laden
+                    this.loadSliceForm($slice);
+                } else {
+                    // Formular ist bereits geladen - TinyMCE neu initialisieren
+                    this.applyConditionalFieldVisibility($editForm);
+                    $editForm.show();
+                    
+                    setTimeout(function() {
+                        if (typeof tiny_init === 'function') {
+                            try {
+                                tiny_init($editForm);
+                            } catch(e) {
+                                console.error('tiny_init failed:', e);
+                            }
+                        }
+                    }, 50);
+                }
+                
+                $editForm.show();
             }
-            
-            $editForm.show();
         },
 
         loadSliceForm: function($slice) {
             var self = this;
             var sliceType = $slice.data('slice-type');
             var sliceData = this.getSliceData($slice);
-            var $editForm = $slice.find('.slice-edit-form');
+            var isNested = $slice.closest('.content-builder-column-slices').length > 0;
+            var $editForm = isNested ? $('#nested-slice-edit-modal .slice-edit-form') : $slice.find('.slice-edit-form');
             
             
             // YForm-Formular per AJAX laden
@@ -1175,7 +1271,8 @@
 
         collectSliceDataFromForm: function($slice) {
             var self = this;
-            var $editForm = $slice.find('.slice-edit-form');
+            var isNested = $slice.closest('.content-builder-column-slices').length > 0;
+            var $editForm = isNested ? $('#nested-slice-edit-modal .slice-edit-form') : $slice.find('.slice-edit-form');
             var sliceData = {};
 
             // CKE5-Instanzen in Textareas zurückschreiben
@@ -1375,12 +1472,20 @@
         },
 
         cancelEdit: function($slice) {
-            // TinyMCE-Instanzen entfernen
-            this.destroyTinyMCEInContainer($slice);
+            var isNested = $slice.closest('.content-builder-column-slices').length > 0;
             
-            $slice.find('.slice-edit-form').hide();
-            $slice.find('.slice-rendered').show();
-            $slice.find('.slice-toolbar').show();
+            if (isNested) {
+                var $modal = $('#nested-slice-edit-modal');
+                this.destroyTinyMCEInContainer($modal);
+                var $editForm = $modal.find('.slice-edit-form');
+                $slice.append($editForm.hide());
+                $modal.modal('hide');
+            } else {
+                this.destroyTinyMCEInContainer($slice);
+                $slice.find('.slice-edit-form').hide();
+                $slice.find('.slice-rendered').show();
+                $slice.find('.slice-toolbar').show();
+            }
         },
 
         deleteSlice: function($slice) {
@@ -1501,7 +1606,15 @@
             var availableElementsRaw = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
             var availableElements = {};
             try { availableElements = JSON.parse(availableElementsRaw); } catch(e) {}
-            var elementIcon = (availableElements[elementType] && availableElements[elementType].icon) ? availableElements[elementType].icon : 'fa-cube';
+            var elementIcon = 'fa-cube';
+            if (Array.isArray(availableElements)) {
+                var found = availableElements.find(function(el) { return el && (el.type === elementType || el.key === elementType); });
+                if (found && found.icon) {
+                    elementIcon = found.icon;
+                }
+            } else if (availableElements[elementType] && availableElements[elementType].icon) {
+                elementIcon = availableElements[elementType].icon;
+            }
             var sliceLabelHtml = '<span class="slice-label"><i class="fa ' + elementIcon + '"></i>' + $('<span>').text(elementLabel || elementType).html() + '</span>';
             
             var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + index + '" data-slice-online="1">' +
@@ -1559,7 +1672,15 @@
             var availableElementsRaw2 = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
             var availableElements2 = {};
             try { availableElements2 = JSON.parse(availableElementsRaw2); } catch(e) {}
-            var elementIcon2 = (availableElements2[elementType] && availableElements2[elementType].icon) ? availableElements2[elementType].icon : 'fa-cube';
+            var elementIcon2 = 'fa-cube';
+            if (Array.isArray(availableElements2)) {
+                var found2 = availableElements2.find(function(el) { return el && (el.type === elementType || el.key === elementType); });
+                if (found2 && found2.icon) {
+                    elementIcon2 = found2.icon;
+                }
+            } else if (availableElements2[elementType] && availableElements2[elementType].icon) {
+                elementIcon2 = availableElements2[elementType].icon;
+            }
             var sliceLabelHtml2 = '<span class="slice-label"><i class="fa ' + elementIcon2 + '"></i>' + $('<span>').text(elementLabel || elementType).html() + '</span>';
             
             var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + position + '" data-slice-online="1">' +
@@ -1602,39 +1723,77 @@
         },
 
         getSliceData: function($slice) {
+            var self = this;
+            var baseData = {};
+            
             // Zuerst aus dem Attribut lesen (aktuellste Daten)
             var dataAttr = $slice.attr('data-slice-data');
             if (dataAttr) {
                 try {
-                    return JSON.parse(dataAttr);
+                    baseData = JSON.parse(dataAttr);
                 } catch(e) {
                     // Error parsing slice data
                 }
-            }
-            
-            // Fallback auf jQuery data
-            var dataStr = $slice.data('slice-data');
-            if (dataStr && typeof dataStr === 'string') {
-                try {
-                    return JSON.parse(dataStr);
-                } catch(e) {
-                    return {};
+            } else {
+                // Fallback auf jQuery data
+                var dataStr = $slice.data('slice-data');
+                if (dataStr && typeof dataStr === 'string') {
+                    try {
+                        baseData = JSON.parse(dataStr);
+                    } catch(e) {}
+                } else if (typeof dataStr === 'object') {
+                    baseData = dataStr;
                 }
             }
-            
-            // Falls bereits als Objekt
-            if (typeof dataStr === 'object') {
-                return dataStr;
+
+            if (!baseData) {
+                baseData = {};
             }
-            
-            return {};
+
+            // Falls dieses Element Spalten (geschachtelte Elemente) hat, diese dynamisch sammeln
+            var $cols = $slice.find('.content-builder-column-slices');
+            if ($cols.length > 0) {
+                baseData.columns = [];
+                $cols.each(function() {
+                    var $column = $(this);
+                    var colIndex = parseInt($column.attr('data-column-index') || 0);
+                    baseData.columns[colIndex] = [];
+                    
+                    $column.children('.content-builder-slice').each(function() {
+                        var $nestedSlice = $(this);
+                        var online = $nestedSlice.attr('data-slice-online');
+                        var isOnline = (online === undefined || online === '1');
+                        
+                        baseData.columns[colIndex].push({
+                            id: $nestedSlice.data('slice-id'),
+                            type: $nestedSlice.data('slice-type'),
+                            online: isOnline,
+                            data: self.getSliceData($nestedSlice) // Rekursion!
+                        });
+                    });
+                });
+            }
+
+            return baseData;
         },
 
         updateIndices: function() {
-            $('.content-builder-slice').each(function(index) {
-                $(this).attr('data-slice-index', index);
-                // Update insert-after indices for insert buttons in toolbar
-                $(this).find('.btn-insert-slice').attr('data-insert-after', index);
+            // Top-level slices indexen
+            $('.yform-content-builder').each(function() {
+                var $builder = $(this);
+                $builder.children('.content-builder-slices').children('.content-builder-slice').each(function(index) {
+                    $(this).attr('data-slice-index', index);
+                    $(this).find('> .slice-toolbar .btn-insert-slice').attr('data-insert-after', index);
+                });
+            });
+
+            // Geschachtelte slices in Spalten indexen
+            $('.content-builder-column-slices').each(function() {
+                var $column = $(this);
+                $column.children('.content-builder-slice').each(function(index) {
+                    $(this).attr('data-slice-index', index);
+                    $(this).find('> .slice-toolbar .btn-insert-slice').attr('data-insert-after', index);
+                });
             });
         },
         
@@ -1649,20 +1808,20 @@
                     return;
                 }
                 
-                // Remove old insert-between buttons (cleanup if any exist)
+                // Remove old insert-between-buttons
                 $builder.find('.content-builder-insert-between').remove();
                 
-                $builder.find('.content-builder-slice').each(function(index) {
+                // Top-level slices
+                $builder.children('.content-builder-slices').children('.content-builder-slice').each(function(index) {
                     var $slice = $(this);
-                    var $toolbar = $slice.find('.slice-toolbar');
-                    
-                    // Check if insert button group already exists
+                    var $toolbar = $slice.find('> .slice-toolbar');
+                    if ($toolbar.length === 0) {
+                        $toolbar = $slice.children('.slice-toolbar');
+                    }
                     var $insertGroup = $toolbar.find('.btn-group-insert');
                     
                     if ($insertGroup.length === 0) {
-                        // Create new button group
-                        $insertGroup = self.createInsertButton(availableElements, index);
-                        // Immer direkt nach dem slice-label einfügen (rechts neben Label)
+                        $insertGroup = self.createInsertButton(availableElements, index, false);
                         var $sliceLabel = $toolbar.find('.slice-label');
                         if ($sliceLabel.length) {
                             $insertGroup.insertAfter($sliceLabel);
@@ -1670,14 +1829,38 @@
                             $toolbar.prepend($insertGroup);
                         }
                     } else {
-                        // Update index
                         $insertGroup.find('.btn-insert-slice').attr('data-insert-after', index);
                     }
+                });
+
+                // Geschachtelte slices
+                $builder.find('.content-builder-column-slices').each(function() {
+                    var $column = $(this);
+                    $column.children('.content-builder-slice').each(function(index) {
+                        var $slice = $(this);
+                        var $toolbar = $slice.find('> .slice-toolbar');
+                        if ($toolbar.length === 0) {
+                            $toolbar = $slice.children('.slice-toolbar');
+                        }
+                        var $insertGroup = $toolbar.find('.btn-group-insert');
+                        
+                        if ($insertGroup.length === 0) {
+                            $insertGroup = self.createInsertButton(availableElements, index, true);
+                            var $sliceLabel = $toolbar.find('.slice-label');
+                            if ($sliceLabel.length) {
+                                $insertGroup.insertAfter($sliceLabel);
+                            } else {
+                                $toolbar.prepend($insertGroup);
+                            }
+                        } else {
+                            $insertGroup.find('.btn-insert-slice').attr('data-insert-after', index);
+                        }
+                    });
                 });
             });
         },
         
-        createInsertButton: function(availableElements, insertAfter) {
+        createInsertButton: function(availableElements, insertAfter, excludeColumns) {
             var dropdownItems = '';
 
             function esc(value) {
@@ -1700,25 +1883,49 @@
             var groupedElements = {};
             var categoryOrder = [];
             
-            for (var elementType in availableElements) {
-                if (availableElements.hasOwnProperty(elementType)) {
-                    var config = availableElements[elementType];
-                    var category = (config && config.category) ? String(config.category) : '';
-                    if (category.trim() === '') {
-                        category = 'sonstiges';
+            var elementsList = [];
+            if (Array.isArray(availableElements)) {
+                availableElements.forEach(function(config, index) {
+                    if (config) {
+                        var key = config.type || config.key || index;
+                        elementsList.push({
+                            elementType: key,
+                            config: config
+                        });
                     }
-
-                    if (!groupedElements[category]) {
-                        groupedElements[category] = [];
-                        categoryOrder.push(category);
+                });
+            } else {
+                for (var elementType in availableElements) {
+                    if (availableElements.hasOwnProperty(elementType)) {
+                        elementsList.push({
+                            elementType: elementType,
+                            config: availableElements[elementType]
+                        });
                     }
-
-                    groupedElements[category].push({
-                        elementType: elementType,
-                        config: config
-                    });
                 }
             }
+
+            elementsList.forEach(function(item) {
+                var elementType = item.elementType;
+                if (excludeColumns && elementType === 'columns') {
+                    return;
+                }
+                var config = item.config;
+                var category = (config && config.category) ? String(config.category) : '';
+                if (category.trim() === '') {
+                    category = 'sonstiges';
+                }
+
+                if (!groupedElements[category]) {
+                    groupedElements[category] = [];
+                    categoryOrder.push(category);
+                }
+
+                groupedElements[category].push({
+                    elementType: elementType,
+                    config: config
+                });
+            });
 
             categoryOrder.forEach(function(category, categoryIndex) {
                 if (categoryIndex > 0) {
@@ -1781,7 +1988,7 @@
 
                 var slices = [];
                 
-                $container.find('.content-builder-slice').each(function() {
+                $container.children('.content-builder-slices').children('.content-builder-slice').each(function() {
                     var $slice = $(this);
                     var online = $slice.attr('data-slice-online');
                     // Default: online (true) wenn Attribut nicht gesetzt

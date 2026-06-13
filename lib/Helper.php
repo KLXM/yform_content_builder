@@ -584,4 +584,186 @@ class Helper
         
         return $mimeTypes[$ext] ?? 'application/octet-stream';
     }
+
+    /**
+     * Rendert eine Liste von geschachtelten Slices im Frontend.
+     *
+     * @param array $slices Array von Slice-Daten
+     * @param string $framework Framework
+     * @return string HTML-Ausgabe
+     */
+    public static function renderNestedSlices(array $slices, string $framework): string
+    {
+        $output = '';
+        foreach ($slices as $slice) {
+            if (!is_array($slice)) {
+                continue;
+            }
+            $sliceOnline = !isset($slice['online']) || $slice['online'] !== false;
+            if ($sliceOnline) {
+                $output .= self::renderSlice($slice, $framework);
+            }
+        }
+        return $output;
+    }
+
+    /**
+     * Rendert eine Slice-Hülle für das Backend (inkl. Toolbar) rekursiv.
+     *
+     * @param array $slice Slice-Daten
+     * @param int $index Index der Slice im aktuellen Container
+     * @param array $available_elements Alle verfügbaren Elemente
+     * @param array $groupedAvailableElements Gruppierte verfügbare Elemente
+     * @param string $framework Framework
+     * @param bool $enableOnlineToggle Online/Offline-Toggle aktiv
+     * @return string HTML-Ausgabe
+     */
+    public static function renderSliceBackend(
+        array $slice,
+        int $index,
+        array $available_elements,
+        array $groupedAvailableElements,
+        string $framework,
+        bool $enableOnlineToggle
+    ): string {
+        $sliceId = $slice['id'] ?? 'slice_' . uniqid();
+        $sliceType = $slice['type'] ?? '';
+        $elementData = $slice['data'] ?? [];
+        $sliceOnline = !isset($slice['online']) || $slice['online'] !== false;
+        
+        $isSection = ($sliceType === 'section');
+        
+        $elementPath = self::resolveElementPath($sliceType);
+        $templateFile = '';
+        if ($elementPath !== null) {
+            foreach ([$framework, 'plain', 'uikit', 'bootstrap'] as $templateName) {
+                $candidate = $elementPath . '/templates/' . $templateName . '.php';
+                if (file_exists($candidate)) {
+                    $templateFile = $candidate;
+                    break;
+                }
+            }
+        }
+
+        $elementIcon = ($available_elements[$sliceType]['icon'] ?? 'fa-cube');
+        $elementLabel = ($available_elements[$sliceType]['label'] ?? $sliceType);
+        $sliceLabelHtml = '<span class="slice-label"><i class="fa ' . rex_escape($elementIcon) . '"></i>' . rex_escape($elementLabel) . '</span>';
+        
+        ob_start();
+        ?>
+        <div class="content-builder-slice <?= $isSection ? 'is-section' : '' ?> <?= $sliceOnline ? '' : 'is-offline' ?>" 
+             data-slice-id="<?= rex_escape($sliceId) ?>"
+             data-slice-type="<?= rex_escape($sliceType) ?>"
+             data-slice-index="<?= $index ?>"
+             data-slice-online="<?= $sliceOnline ? '1' : '0' ?>"
+             data-slice-data='<?= rex_escape(json_encode($elementData, JSON_UNESCAPED_UNICODE)) ?>'>
+            
+            <div class="slice-toolbar" data-element-name="<?= rex_escape($elementLabel) ?>">
+                <?= $sliceLabelHtml ?>
+                <div class="btn-group btn-group-insert">
+                    <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="Element einfügen">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    <ul class="dropdown-menu pull-right">
+                        <?php $categoryIndex = 0; ?>
+                        <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
+                            <?php if ($categoryIndex > 0): ?>
+                                <li role="separator" class="divider"></li>
+                            <?php endif; ?>
+                            <li class="dropdown-header"><?= rex_escape(ucfirst(str_replace('_', ' ', (string) $category))) ?></li>
+                            <?php foreach ($elementsInCategory as $elementType => $config): ?>
+                                <?php if ($sliceType !== 'columns' || $elementType !== 'columns'): // Avoid nested columns ?>
+                                <li>
+                                    <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
+                                    <a href="#" class="btn-insert-slice" 
+                                       data-element-type="<?= rex_escape($elementType) ?>"
+                                       data-element-label="<?= rex_escape($config['label'] ?? $elementType) ?>"
+                                       <?php if ($elementDescription !== ''): ?>
+                                       data-toggle="tooltip"
+                                       data-placement="right"
+                                       data-container="body"
+                                       data-delay='{"show":700,"hide":120}'
+                                       title="<?= rex_escape($elementDescription) ?>"
+                                       <?php endif; ?>
+                                       data-insert-after="<?= $index ?>">
+                                        <i class="fa <?= rex_escape($config['icon'] ?? 'fa-cube') ?>"></i>
+                                        <?= rex_escape($config['label'] ?? $elementType) ?>
+                                    </a>
+                                </li>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                            <?php ++$categoryIndex; ?>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten">
+                    <i class="fa fa-pencil"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben verschieben">
+                    <i class="fa fa-arrow-up"></i>
+                </button>
+                <button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten verschieben">
+                    <i class="fa fa-arrow-down"></i>
+                </button>
+                <?php if ($enableOnlineToggle): ?>
+                <button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="<?= $sliceOnline ? 'Offline schalten' : 'Online schalten' ?>">
+                    <i class="fa <?= $sliceOnline ? 'fa-eye' : 'fa-eye-slash' ?>"></i>
+                </button>
+                <?php endif; ?>
+                <button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+            
+            <div class="slice-rendered">
+                <?php if ($isSection): ?>
+                    <!-- Section-Label mit Hintergrund-Thumbnail -->
+                    <div class="section-backend-label">
+                        <i class="fa fa-object-group"></i>
+                        <strong>Section:</strong> <?= rex_escape($elementData['label'] ?? 'Unbenannt') ?>
+                        <span class="section-info">
+                            <?php if (!empty($elementData['background_color']) && $elementData['background_color'] !== 'none'): ?>
+                                <span class="label label-default"><?= rex_escape($elementData['background_color']) ?></span>
+                            <?php endif; ?>
+                            <?php if (!empty($elementData['custom_id'])): ?>
+                                <span class="label label-info">#<?= rex_escape($elementData['custom_id']) ?></span>
+                            <?php endif; ?>
+                        </span>
+                        <?php
+                        $bgColor = $elementData['background_color'] ?? 'light';
+                        $bgImage = $elementData['background_image'] ?? '';
+                        $bgThumbnailClass = 'bg-' . ($bgColor ?: 'light');
+                        $bgThumbnailStyle = '';
+                        
+                        if ($bgImage) {
+                            if (is_numeric($bgImage)) {
+                                $media = \rex_media::get($bgImage);
+                                if ($media instanceof \rex_media) {
+                                    $bgImage = $media->getFileName();
+                                }
+                            }
+                            $bgThumbnailStyle = ' style="background-image: url(' . \rex_url::media($bgImage) . ');"';
+                        }
+                        ?>
+                        <span class="section-bg-thumbnail <?= $bgThumbnailClass ?>"<?= $bgThumbnailStyle ?>></span>
+                    </div>
+                <?php else: ?>
+                    <?php if ($templateFile !== ''): ?>
+                        <?php 
+                        if ($elementPath !== null) {
+                            self::loadElementI18n($elementPath);
+                        }
+                        include $templateFile; 
+                        ?>
+                    <?php else: ?>
+                        <div class="alert alert-danger">Template not found: <?= rex_escape($sliceType) ?></div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+            
+            <div class="slice-edit-form" style="display: none;"></div>
+        </div>
+        <?php
+        return ob_get_clean() ?: '';
+    }
 }
