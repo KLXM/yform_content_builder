@@ -6,19 +6,51 @@
  */
 
 $addon = rex_addon::get('yform_content_builder');
-$dirs = [];
 
-// WICHTIG: Lang-Dateien aller Elemente am Anfang laden damit Übersetzungen verfügbar sind
-$elementsDir = rex_path::addon('yform_content_builder', 'elements');
-if (is_dir($elementsDir)) {
-    $scannedDirs = scandir($elementsDir);
-    if (is_array($scannedDirs)) {
-        $dirs = $scannedDirs;
+/**
+ * Liefert den Config-Pfad für einen Element-Key über alle registrierten Element-Pfade.
+ */
+function resolveElementConfigPath(string $elementKey): ?string
+{
+    $elementKey = trim($elementKey);
+    if ($elementKey === '') {
+        return null;
     }
 
-    foreach ($dirs as $dir) {
-        if ($dir[0] !== '.') {
-            $langDir = $elementsDir . '/' . $dir . '/lang';
+    $paths = \KLXM\YFormContentBuilder\Config\ElementRegistry::getElementPaths();
+    foreach ($paths as $basePath) {
+        $configPath = rtrim((string) $basePath, '/') . '/' . $elementKey . '/config.php';
+        if (is_file($configPath)) {
+            return $configPath;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Lädt Sprachdateien aus allen registrierten Element-Pfaden.
+ */
+function loadElementLanguageDirectories(): void
+{
+    $paths = \KLXM\YFormContentBuilder\Config\ElementRegistry::getElementPaths();
+    foreach ($paths as $basePath) {
+        $basePath = rtrim((string) $basePath, '/');
+        if (!is_dir($basePath)) {
+            continue;
+        }
+
+        $dirs = scandir($basePath);
+        if (!is_array($dirs)) {
+            continue;
+        }
+
+        foreach ($dirs as $dir) {
+            if ($dir === '.' || $dir === '..' || str_starts_with($dir, '.')) {
+                continue;
+            }
+
+            $langDir = $basePath . '/' . $dir . '/lang';
             if (is_dir($langDir)) {
                 \rex_i18n::addDirectory($langDir);
             }
@@ -26,11 +58,14 @@ if (is_dir($elementsDir)) {
     }
 }
 
+// WICHTIG: Lang-Dateien aller Elemente am Anfang laden damit Übersetzungen verfügbar sind
+loadElementLanguageDirectories();
+
 // Helper: Generiert Modul-Code für ein Element
 function generateModuleCode(string $elementKey, string $framework, int $valueId = 1): string
 {
     $config = [];
-    $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
+    $configPath = resolveElementConfigPath($elementKey);
     
     if (file_exists($configPath)) {
         $config = include $configPath;
@@ -198,7 +233,7 @@ if (rex_post('update_all_modules', 'bool')) {
                 $moduleName = (string) $sql->getValue('name');
                 // Elementname aus Key ableiten: yfcb_cards → cards
                 $elementKey = substr($moduleKey, 5);
-                $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
+                $configPath = resolveElementConfigPath($elementKey);
 
                 if (!file_exists($configPath)) {
                     $skippedModules[] = $moduleName . ' (Config nicht gefunden)';
@@ -319,7 +354,7 @@ if (rex_post('create_modules', 'bool')) {
         
         foreach ($selectedElements as $elementKey) {
             $elementKey = rex_escape($elementKey);
-            $configPath = rex_path::addon('yform_content_builder', 'elements/' . $elementKey . '/config.php');
+            $configPath = resolveElementConfigPath($elementKey);
             
             if (!file_exists($configPath)) {
                 continue;
@@ -399,32 +434,62 @@ PHP;
 }
 
 
-// Alle verfügbaren Elemente laden
-$elementsDir = rex_path::addon('yform_content_builder', 'elements');
+// Alle verfügbaren Elemente laden (zentral über registrierte Element-Pfade)
 $elements = [];
 $elementsByCategory = [];
+$elementSourceMeta = [];
+$elementPaths = \KLXM\YFormContentBuilder\Config\ElementRegistry::getElementPaths();
+$coreElementsPath = realpath(rex_path::addon('yform_content_builder', 'elements')) ?: '';
+foreach ($elementPaths as $pathKey => $basePath) {
+    $basePath = rtrim((string) $basePath, '/');
+    if (!is_dir($basePath)) {
+        continue;
+    }
 
-if (is_dir($elementsDir)) {
+    $resolvedBasePath = realpath($basePath) ?: $basePath;
+
+    $dirs = scandir($basePath);
+    if (!is_array($dirs)) {
+        continue;
+    }
+
     foreach ($dirs as $dir) {
-        if ($dir[0] === '.') continue;
-        $configPath = $elementsDir . '/' . $dir . '/config.php';
-        if (file_exists($configPath)) {
-            $config = include $configPath;
-            if (is_array($config) && isset($config['label'])) {
-                $label = (string) $config['label'];
-                $category = isset($config['category']) ? trim((string) $config['category']) : 'allgemein';
-                if ($category === '' || $category === '-') {
-                    $category = 'allgemein';
-                }
-
-                $elements[$dir] = $label;
-
-                if (!isset($elementsByCategory[$category])) {
-                    $elementsByCategory[$category] = [];
-                }
-                $elementsByCategory[$category][$dir] = $label;
-            }
+        if ($dir === '.' || $dir === '..' || str_starts_with($dir, '.')) {
+            continue;
         }
+
+        // Ersten Treffer pro Element-Key verwenden (keine Duplikate)
+        if (isset($elements[$dir])) {
+            continue;
+        }
+
+        $configPath = $basePath . '/' . $dir . '/config.php';
+        if (!is_file($configPath)) {
+            continue;
+        }
+
+        $config = include $configPath;
+        if (!is_array($config) || !isset($config['label'])) {
+            continue;
+        }
+
+        $label = (string) $config['label'];
+        $category = isset($config['category']) ? trim((string) $config['category']) : 'allgemein';
+        if ($category === '' || $category === '-') {
+            $category = 'allgemein';
+        }
+
+        $elements[$dir] = $label;
+        $isExternal = $coreElementsPath === '' ? $pathKey !== 'core' : ($resolvedBasePath !== $coreElementsPath);
+        $elementSourceMeta[$dir] = [
+            'is_external' => $isExternal,
+            'source' => (string) $pathKey,
+        ];
+
+        if (!isset($elementsByCategory[$category])) {
+            $elementsByCategory[$category] = [];
+        }
+        $elementsByCategory[$category][$dir] = $label;
     }
 }
 
@@ -511,6 +576,7 @@ $content .= '</div>';
 $content .= '<div class="form-group">';
 $content .= '<label><strong>Elemente auswählen</strong></label>';
 $content .= '<p class="help-block">Im Einzelmodus werden dafür einzelne REDAXO-Module erzeugt. Im Full-Builder-Modus dient die Auswahl als erlaubte Elementliste.</p>';
+$content .= '<p class="help-block"><span class="label label-success">intern</span> aus yform_content_builder · <span class="label label-info">extern</span> aus registrierten Addons/Pfaden</p>';
 $content .= '<div style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; max-height: 400px; overflow-y: auto; background: #f9f9f9;">';
 
 if (empty($elements)) {
@@ -530,10 +596,17 @@ if (empty($elements)) {
 
         foreach ($categoryElements as $elementKey => $elementLabel) {
             $moduleKey = 'yfcb_' . $elementKey;
+            $sourceInfo = $elementSourceMeta[$elementKey] ?? ['is_external' => false, 'source' => 'core'];
+            $isExternal = (bool) ($sourceInfo['is_external'] ?? false);
+            $source = (string) ($sourceInfo['source'] ?? 'core');
+            $badgeClass = $isExternal ? 'label-info' : 'label-success';
+            $badgeText = $isExternal ? 'extern' : 'intern';
             $content .= '<div class="checkbox" style="margin-left: 8px;">';
             $content .= '<label>';
             $content .= '<input type="checkbox" class="element-checkbox" name="elements[]" value="' . rex_escape($elementKey) . '">';
             $content .= ' <strong>' . rex_escape($elementLabel) . '</strong> ';
+            $content .= '<span class="label ' . $badgeClass . '">' . $badgeText . '</span> ';
+            $content .= '<small style="color: #777;">(' . rex_escape($source) . ')</small> ';
             $content .= '<small style="color: #999;">(Key: ' . rex_escape($moduleKey) . ')</small>';
             $content .= '</label>';
             $content .= '</div>';

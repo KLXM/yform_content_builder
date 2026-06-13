@@ -8,6 +8,7 @@ yform_content_builder_modules_description = Generiere automatisch REDAXO-Module 
 
 yform_content_builder_settings = Einstellungen
 yform_content_builder_docs = Dokumentation
+yform_content_builder_dev = Developer Guide
 yform_content_builder_api = API-Dokumentation
 yform_content_builder_tutorial = Tutorial
 yform_content_builder_general_settings = Allgemeine Einstellungen
@@ -25,6 +26,9 @@ yform_content_builder_compact_mode_notice = Im Kompaktmodus werden Slices ohne R
 yform_content_builder_enable_online_toggle = Online/Offline pro Abschnitt
 yform_content_builder_enable_online_toggle_label = Online/Offline-Schalter für einzelne Abschnitte aktivieren
 yform_content_builder_enable_online_toggle_notice = Wenn aktiv, erscheint in der Slice-Toolbar ein Augen-Button, mit dem einzelne Abschnitte offline geschaltet werden können. Offline-Abschnitte bleiben in den Daten erhalten, werden aber im Frontend (via yform_content_builder_helper) automatisch ausgeblendet. Gilt nur für die YForm-Variante – die Modulvariante nutzt die normalen REDAXO-Slice-Funktionen.
+yform_content_builder_enable_demo_elements = Mitgelieferte Demo-Elemente
+yform_content_builder_enable_demo_elements_label = Schlanke Demo-Elemente des Addons laden
+yform_content_builder_enable_demo_elements_notice = Wenn deaktiviert, werden keine mitgelieferten Demo-Elemente geladen. Es bleiben nur externe Elemente aus registrierten Pfaden (z. B. Projekt-/Addon-Elemente).
 
 yform_content_builder_element_add = Element hinzufügen
 yform_content_builder_element_edit = Bearbeiten

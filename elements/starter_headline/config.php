@@ -3,10 +3,10 @@
  * Starter Ueberschrift - bewusst minimal
  */
 
-use KLXM\YFormContentBuilder\Config;
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
 use KLXM\YFormContentBuilder\Helper;
 
-$config = Config::class;
+$config = StarterConfig::class;
 $_ci = Helper::elementTranslator('starter_headline');
 
 return [

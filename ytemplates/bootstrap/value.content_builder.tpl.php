@@ -15,8 +15,10 @@
  * @var string $legacy_html
  * @var string $legacy_cke5_profile
  * @var string $legacy_cke5_lang
+ * @var array $legacy_editor_attributes
  * @var bool $legacy_migration_hint
  * @var string $legacy_migration_target
+ * @var string $legacy_migration_field
  */
 
 $fieldClass = 'yform-content-builder';
@@ -53,6 +55,18 @@ foreach ($available_elements as $elementType => $config) {
 $legacyEditorId = 'yform_cb_legacy_editor_' . uniqid();
 $legacyMigrateButtonId = 'yform_cb_legacy_migrate_' . uniqid();
 $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
+$legacyEditorAttributeParts = [];
+foreach ($legacy_editor_attributes as $attrName => $attrValue) {
+    if ($attrName === '' || strtolower((string) $attrName) === 'id') {
+        continue;
+    }
+
+    $escapedName = rex_escape((string) $attrName);
+    $escapedValue = rex_escape((string) $attrValue);
+    $legacyEditorAttributeParts[] = $escapedName . '="' . $escapedValue . '"';
+}
+
+$legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
 ?>
 
 <div class="form-group yform-element <?= $fieldClass ?>" 
@@ -84,13 +98,10 @@ $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
                 <?php endif; ?>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label class="control-label" for="<?= $legacyEditorId ?>">Legacy HTML (CKE5)</label>
+                    <label class="control-label" for="<?= $legacyEditorId ?>">Legacy HTML (Editor)</label>
                     <textarea
                         id="<?= $legacyEditorId ?>"
-                        class="form-control cke5-editor yform-cb-legacy-editor"
-                        data-profile="<?= rex_escape($legacy_cke5_profile) ?>"
-                        data-lang="<?= rex_escape($legacy_cke5_lang) ?>"
-                        rows="14"><?= rex_escape($legacy_html) ?></textarea>
+                        <?= $legacyEditorAttributeString !== '' ? $legacyEditorAttributeString : '' ?>><?= rex_escape($legacy_html) ?></textarea>
                 </div>
             </div>
         </div>
@@ -105,6 +116,7 @@ $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
             var editorId = '<?= $legacyEditorId ?>';
             var migrateButtonId = '<?= $legacyMigrateButtonId ?>';
             var migrateTarget = '<?= rex_escape($legacy_migration_target) ?>';
+            var migrateField = '<?= rex_escape($legacy_migration_field) ?>';
             var $textarea = $('#' + editorId);
             var $root = $textarea.closest('.yform-content-builder');
             if ($root.length === 0) {
@@ -121,7 +133,52 @@ $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
                 $hidden.val($textarea.val() || '');
             }
 
+            function bindTinyMceSync() {
+                if (typeof tinymce === 'undefined') {
+                    return false;
+                }
+
+                var editor = tinymce.get(editorId);
+                if (!editor) {
+                    return false;
+                }
+
+                var syncFromTinyMce = function() {
+                    var content = editor.getContent();
+                    $textarea.val(content);
+                    syncLegacyHtmlToHidden();
+                };
+
+                editor.on('input change keyup SetContent', syncFromTinyMce);
+                syncFromTinyMce();
+                return true;
+            }
+
             $textarea.on('input change', syncLegacyHtmlToHidden);
+
+            if ($textarea.hasClass('tiny-editor') && typeof tiny_init === 'function') {
+                try {
+                    tiny_init($root);
+                } catch (e) {
+                    console.warn('Legacy TinyMCE init failed', e);
+                }
+
+                var tinyBindTries = 0;
+                var tinyBindTimer = setInterval(function() {
+                    tinyBindTries++;
+                    if (bindTinyMceSync() || tinyBindTries > 20) {
+                        clearInterval(tinyBindTimer);
+                    }
+                }, 150);
+            }
+
+            if ($textarea.hasClass('cke5-editor') && typeof cke5_init === 'function') {
+                try {
+                    cke5_init($textarea);
+                } catch (e) {
+                    console.warn('Legacy CKE5 init failed', e);
+                }
+            }
 
             $(window).on('rex:cke5IsInit', function(event, editor, initializedEditorId) {
                 if (initializedEditorId !== editorId) {
@@ -135,13 +192,13 @@ $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
 
             $('#' + migrateButtonId).on('click', function() {
                 var html = $textarea.val() || '';
+                var data = {};
+                data[migrateField || 'text'] = html;
                 var slice = {
                     id: 'slice_' + Date.now(),
                     type: migrateTarget || 'starter_text',
                     online: true,
-                    data: {
-                        text: html
-                    }
+                    data: data
                 };
 
                 $hidden.val(JSON.stringify([slice]));
@@ -173,6 +230,17 @@ $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
                         formEl.submit();
                     }
                 }
+            });
+
+            $root.closest('form').on('submit', function() {
+                if ($textarea.hasClass('tiny-editor') && typeof tinymce !== 'undefined') {
+                    var tinyEditor = tinymce.get(editorId);
+                    if (tinyEditor) {
+                        $textarea.val(tinyEditor.getContent());
+                    }
+                }
+
+                syncLegacyHtmlToHidden();
             });
         })();
         </script>

@@ -6,7 +6,60 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [3.0.0] – 2026-06-13
 
+### 🏗️ Architektur-Umbruch
+
+- **Element-Auslagerung in `klxm_elements`-Addon**:
+  - Alle projektspezifischen Elemente (hero_banner, feature_grid, timeline, testimonial, downloads, etc.) sind jetzt im `klxm_elements`-Addon (UIkit-only).
+  - Das Haupt-Addon enthält nur noch **Starter-Elemente** (starter_text, starter_cards, starter_headline, starter_media_split, starter_gallery, starter_callout) und **Core-Elemente** (section, headline, divider, accordion).
+  - Neue Konfigurierbar: `YFORM_CONTENT_BUILDER_ELEMENT_MODE` bestimmt, ob klxm_elements `merge` (extern + demo) oder `replace` (nur extern) ist.
+  - Settings-UI für klxm_elements zum Umschalten zwischen Replace/Merge verfügbar.
+
+### ✨ Neue Features
+
+- **Editor-neutrale Legacy-HTML-Migration**:
+  - Neues generisches Feld `legacy_editor_attributes` (wie Textarea-Attribute) statt fester CKE5-Profile.
+  - Fallback-Kompatibilität: `legacy_cke5_profile` und `legacy_cke5_lang` bleiben als Fallback.
+  - Automatische Erkennung des Editors (tiny-editor / cke5-editor Klasse) im Template.
+  - Unterstützung für **TinyMCE und CKE5** in der Legacy-Bearbeitung und Migration.
+
+- **Konfigurierbare Migration-Ziele**:
+  - `legacy_migration_target` (Zielelement beim Wechsel in modernen Editor).
+  - `legacy_migration_field` (Zielfeld-Key, z.B. text, content, body) – nicht mehr hart auf 'text' festgelegt.
+  - Sinnvolle Fallbacks bei ungültiger Konfiguration.
+
+- **Starter-Config Klasse**:
+  - Zentralisierte Verwaltung von Mapping-Funktionen (mapBg, mapPadding, mapContainer) für Plain/Bootstrap/UIkit-Konsistenz in Starter-Elementen.
+  - Einfachere Wartbarkeit von Template-Logik über Starter-Elemente hinweg.
+
+### 🔧 Änderungen
+
+- **YForm Value Definition erweitert**:
+  - Neue Parameter in Value-Definition: `legacy_editor_attributes`, `legacy_migration_target`, `legacy_migration_field`.
+  - Note mit Beispielen (CKE5, TinyMCE, plain Textfeld) für einfache Konfiguration.
+
+- **ModuleBuilder editor-neutral**:
+  - Legacy-Editor-Initialisierung prüft Klassen statt hartcodierter CKE5.
+  - TinyMCE/CKE5-Sync automatisch je nach Klasse.
+  - Form-Submit synced Inhalt vor Speicherung.
+
+- **Template-Rendering robuster**:
+  - Fallback auf erstes verfügbares Template, nicht mehr hart auf `plain` festgelegt.
+  - Korrekte Handling von Templates mit nur einem Framework.
+
+### 📦 Weitere Verbesserungen
+
+- **Knowledgebase-Addon Kompatibilität**:
+  - Include-Fallback-Chain für kb_cards bei Element-Relokation.
+  - Keine Warnings mehr bei fehlenden Pfaden.
+
+- **Legacy-Migration Fallback-Logik**:
+  - Wenn Zielelement nicht verfügbar: Fallback auf 'starter_text'.
+  - Wenn 'starter_text' nicht verfügbar: erstes verfügbares Element.
+  - Wenn kein Element verfügbar: Fallback bleibt 'starter_text' (sicher, nicht fehlgeschlagen).
+
+---
 
 ## [2.1.1] – 2026-06-05
 

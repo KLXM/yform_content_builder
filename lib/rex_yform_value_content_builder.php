@@ -2,6 +2,7 @@
 
 use KLXM\YFormContentBuilder\Helper;
 use KLXM\YFormContentBuilder\ModalHelper;
+use KLXM\YFormContentBuilder\Starter\StarterConfig as Config;
 
 /**
  * YForm Content Builder Field
@@ -17,6 +18,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     private const LEGACY_DEFAULT_PROFILE = 'default';
     private const LEGACY_DEFAULT_LANG = 'de';
     private const LEGACY_DEFAULT_TARGET = 'starter_text';
+    private const LEGACY_DEFAULT_EDITOR_CLASSES = 'form-control cke5-editor yform-cb-legacy-editor';
     
     /**
      * Get next unique media counter (global über alle Instanzen)
@@ -999,6 +1001,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         $rawValue = (string) $this->getValue();
         $value = $this->parseValue();
         $framework = $this->getElement('framework', 'bootstrap');
+        $availableElements = $this->getAvailableElements();
 
         $legacyEnabled = $this->isLegacyModeEnabled();
         $legacyActive = $legacyEnabled && $this->isLegacyHtmlString($rawValue);
@@ -1014,7 +1017,28 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
 
         $migrationHintEnabled = $this->asBool($this->getElement('legacy_migration_hint', '1'));
-        $migrationTarget = self::LEGACY_DEFAULT_TARGET;
+        $migrationTarget = trim((string) $this->getElement('legacy_migration_target', self::LEGACY_DEFAULT_TARGET));
+        if ($migrationTarget === '') {
+            $migrationTarget = self::LEGACY_DEFAULT_TARGET;
+        }
+
+        if (!isset($availableElements[$migrationTarget])) {
+            if (isset($availableElements[self::LEGACY_DEFAULT_TARGET])) {
+                $migrationTarget = self::LEGACY_DEFAULT_TARGET;
+            } else {
+                foreach (array_keys($availableElements) as $elementKey) {
+                    $migrationTarget = (string) $elementKey;
+                    break;
+                }
+            }
+        }
+
+        $migrationField = trim((string) $this->getElement('legacy_migration_field', 'text'));
+        if ($migrationField === '') {
+            $migrationField = 'text';
+        }
+
+        $legacyEditorAttributes = $this->resolveLegacyEditorAttributes($legacyProfile, $legacyLang);
         
         return [
             'value' => $value,
@@ -1027,15 +1051,92 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'required' => $this->getElement('required') ? true : false,
             'description' => $this->getElement('description', ''),
             'framework' => $framework,
-            'available_elements' => $this->getAvailableElements(),
+            'available_elements' => $availableElements,
             'legacy_mode_enabled' => $legacyEnabled,
             'legacy_is_active' => $legacyActive,
             'legacy_html' => $legacyActive ? $rawValue : '',
             'legacy_cke5_profile' => $legacyProfile,
             'legacy_cke5_lang' => $legacyLang,
+            'legacy_editor_attributes' => $legacyEditorAttributes,
             'legacy_migration_hint' => $migrationHintEnabled,
             'legacy_migration_target' => $migrationTarget,
+            'legacy_migration_field' => $migrationField,
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function resolveLegacyEditorAttributes(string $legacyProfile, string $legacyLang): array
+    {
+        $rawAttributes = trim((string) $this->getElement('legacy_editor_attributes', ''));
+        $attributes = $this->parseAttributeString($rawAttributes);
+
+        $classTokens = [];
+        if (isset($attributes['class'])) {
+            $classTokens = preg_split('/\s+/', trim((string) $attributes['class'])) ?: [];
+            $classTokens = array_values(array_filter($classTokens, static fn (string $token): bool => $token !== ''));
+        }
+
+        foreach (['form-control', 'yform-cb-legacy-editor'] as $requiredClass) {
+            if (!in_array($requiredClass, $classTokens, true)) {
+                $classTokens[] = $requiredClass;
+            }
+        }
+
+        $hasEditorClass = in_array('cke5-editor', $classTokens, true) || in_array('tiny-editor', $classTokens, true);
+        if (!$hasEditorClass) {
+            $classTokens[] = 'cke5-editor';
+        }
+
+        $attributes['class'] = implode(' ', $classTokens);
+
+        if (!isset($attributes['rows']) || trim((string) $attributes['rows']) === '') {
+            $attributes['rows'] = '14';
+        }
+
+        if (!isset($attributes['data-profile']) || trim((string) $attributes['data-profile']) === '') {
+            $attributes['data-profile'] = $legacyProfile;
+        }
+
+        if (!isset($attributes['data-lang']) || trim((string) $attributes['data-lang']) === '') {
+            $attributes['data-lang'] = $legacyLang;
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function parseAttributeString(string $rawAttributes): array
+    {
+        $attributes = [];
+        if ($rawAttributes === '') {
+            return $attributes;
+        }
+
+        preg_match_all("/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'=<>`]+)))?/", $rawAttributes, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $name = strtolower((string) ($match[1] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $value = '';
+            if (isset($match[2]) && $match[2] !== '') {
+                $value = (string) $match[2];
+            } elseif (isset($match[3]) && $match[3] !== '') {
+                $value = (string) $match[3];
+            } elseif (isset($match[4]) && $match[4] !== '') {
+                $value = (string) $match[4];
+            }
+
+            $attributes[$name] = $value;
+        }
+
+        return $attributes;
     }
 
     protected function parseValue(): array
@@ -1104,6 +1205,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     protected function getAllElementsForDefinition(): array
     {
         $addon = rex_addon::get('yform_content_builder');
+        $enableDemoElements = (bool) $addon->getConfig('enable_demo_elements', true);
+        $bundledDemoKeys = array_flip(Config::getBundledDemoElementKeys());
         $elements = [];
         
         // 1. Extension Point: Andere AddOns können Pfade registrieren
@@ -1173,6 +1276,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 
                 $elementPath = $demoPath . $dir;
                 $configFile = $elementPath . '/config.php';
+
+                if (!$enableDemoElements || !isset($bundledDemoKeys[$dir])) {
+                    continue;
+                }
                 
                 if (is_dir($elementPath) && file_exists($configFile)) {
                     Helper::loadElementI18n($elementPath);
@@ -1272,9 +1379,16 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             }
         }
         
-        // Nur erlaubte Elemente zurückgeben
+        // Nur erlaubte Elemente zurückgeben.
+        // Falls alte/stale Keys gesetzt sind und dadurch kein Element mehr matcht,
+        // auf die verfügbaren Elemente zurückfallen statt die Auswahl leer zu lassen.
         if (is_array($allowedElements) && !empty($allowedElements)) {
-            return array_intersect_key($allElements, array_flip($allowedElements));
+            $filtered = array_intersect_key($allElements, array_flip($allowedElements));
+            if ($filtered !== []) {
+                return $filtered;
+            }
+
+            return $allElements;
         }
         
         return $allElements;
@@ -1439,11 +1553,19 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     'type' => 'text',
                     'label' => 'Legacy CKE5 Profil',
                     'default' => self::LEGACY_DEFAULT_PROFILE,
+                    'notice' => 'Fallback für data-profile, wenn legacy_editor_attributes kein data-profile enthält.',
                 ],
                 'legacy_cke5_lang' => [
                     'type' => 'text',
                     'label' => 'Legacy CKE5 Sprache',
                     'default' => self::LEGACY_DEFAULT_LANG,
+                    'notice' => 'Fallback für data-lang, wenn legacy_editor_attributes kein data-lang enthält.',
+                ],
+                'legacy_editor_attributes' => [
+                    'type' => 'text',
+                    'label' => 'Legacy Editor Attribute',
+                    'default' => 'class="' . self::LEGACY_DEFAULT_EDITOR_CLASSES . '" data-profile="' . self::LEGACY_DEFAULT_PROFILE . '" data-lang="' . self::LEGACY_DEFAULT_LANG . '" rows="14"',
+                    'notice' => 'Freier Attribute-String wie bei textarea. Beispiel CKE5: class="form-control cke5-editor yform-cb-legacy-editor" data-profile="default" data-lang="de" rows="14". Beispiel TinyMCE: class="form-control tiny-editor yform-cb-legacy-editor" data-profile="default" rows="14".',
                 ],
                 'legacy_migration_hint' => [
                     'type' => 'choice',
@@ -1453,6 +1575,19 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         '1' => 'Ja',
                     ],
                     'default' => '1',
+                ],
+                'legacy_migration_target' => [
+                    'type' => 'choice',
+                    'label' => 'Legacy-Migration Zielelement',
+                    'choices' => $elementChoices,
+                    'default' => self::LEGACY_DEFAULT_TARGET,
+                    'notice' => 'Element-Typ, in den Legacy-HTML beim Wechsel in den modernen Builder übernommen wird.',
+                ],
+                'legacy_migration_field' => [
+                    'type' => 'text',
+                    'label' => 'Legacy-Migration Zielfeld (Key)',
+                    'default' => 'text',
+                    'notice' => 'Feldname im Zielelement, z. B. text, content oder body.',
                 ],
                 'description' => ['type' => 'text', 'label' => 'Beschreibung'],
                 'notice' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_notice')],

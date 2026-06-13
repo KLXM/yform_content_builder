@@ -11,6 +11,7 @@ if (rex_post('save', 'bool')) {
     $addon->setConfig('theme', rex_post('theme', 'string', ''));
     $addon->setConfig('compact_mode', rex_post('compact_mode', 'bool', false));
     $addon->setConfig('enable_online_toggle', rex_post('enable_online_toggle', 'bool', false));
+    $addon->setConfig('enable_demo_elements', rex_post('enable_demo_elements', 'bool', true));
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
     // Theme Builder Cache zurücksetzen
@@ -30,6 +31,7 @@ if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitT
 $currentTheme = $addon->getConfig('theme', '');
 $compactMode = $addon->getConfig('compact_mode', false);
 $enableOnlineToggle = $addon->getConfig('enable_online_toggle', false);
+$enableDemoElements = $addon->getConfig('enable_demo_elements', true);
 
 // Formular bauen
 $content = '';
@@ -62,6 +64,13 @@ $n = [];
 $n['label'] = '<label for="enable_online_toggle">' . rex_i18n::msg('yform_content_builder_enable_online_toggle') . '</label>';
 $n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_online_toggle" value="0"><input type="checkbox" id="enable_online_toggle" name="enable_online_toggle" value="1"' . ($enableOnlineToggle ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_enable_online_toggle_label') . '</label></div>';
 $n['note'] = rex_i18n::msg('yform_content_builder_enable_online_toggle_notice');
+$formElements[] = $n;
+
+// Demo-Elemente Toggle
+$n = [];
+$n['label'] = '<label for="enable_demo_elements">' . rex_i18n::msg('yform_content_builder_enable_demo_elements') . '</label>';
+$n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_demo_elements" value="0"><input type="checkbox" id="enable_demo_elements" name="enable_demo_elements" value="1"' . ($enableDemoElements ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_enable_demo_elements_label') . '</label></div>';
+$n['note'] = rex_i18n::msg('yform_content_builder_enable_demo_elements_notice');
 $formElements[] = $n;
 
 $fragment = new rex_fragment();

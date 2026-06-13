@@ -3,9 +3,9 @@
  * Starter Text - sehr einfaches Textelement
  */
 
-use KLXM\YFormContentBuilder\Config;
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
 
-$elementConfig = Config::class;
+$elementConfig = StarterConfig::class;
 
 return [
     'label' => 'Text',

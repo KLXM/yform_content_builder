@@ -19,33 +19,14 @@ $isVideo = in_array($ext, ['mp4', 'webm', 'ogg'], true);
 
 $mediaLabel = \KLXM\YFormContentBuilder\MediaAltResolver::resolve($mediaFile, $mediaAlt, $headline);
 
-$bgMap = [
-    'uk-background-default' => '#ffffff',
-    'uk-background-muted' => '#f7f7f7',
-    'uk-background-primary' => '#1e87f0',
-    'uk-background-secondary' => '#222222',
-];
-$paddingMap = [
-    'uk-padding-remove' => '0',
-    'uk-padding-small' => '18px 0',
-    'uk-padding' => '35px 0',
-    'uk-padding-large' => '55px 0',
-];
-$sectionStyle = '';
-if (isset($bgMap[$sectionBg])) {
-    $sectionStyle .= 'background:' . $bgMap[$sectionBg] . ';';
-}
-if (isset($paddingMap[$sectionPadding])) {
-    $sectionStyle .= 'padding:' . $paddingMap[$sectionPadding] . ';';
-}
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
+
+$sectionStyle = StarterConfig::mapBg($sectionBg, 'plain');
+$sectionStyle .= StarterConfig::mapPadding($sectionPadding, 'plain');
 if ($sectionLight) {
     $sectionStyle .= 'color:#fff;';
 }
-
-$containerStyle = 'max-width:1140px;margin:0 auto;padding:0 15px;';
-if ($containerWidth === '') {
-    $containerStyle = 'padding:0 15px;';
-}
+$containerStyle = StarterConfig::mapContainer($containerWidth, 'plain');
 $mediaHtml = '';
 if ($mediaFile !== '') {
     if ($isVideo) {

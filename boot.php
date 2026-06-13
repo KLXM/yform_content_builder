@@ -5,6 +5,11 @@
  * Slice-based Content Builder for YForm
  */
 
+// === PHASE 1: Config-Klassen registrieren ===
+require_once rex_path::addon('yform_content_builder', 'lib/config/FrameworkConfig.php');
+require_once rex_path::addon('yform_content_builder', 'lib/config/EditorConfig.php');
+require_once rex_path::addon('yform_content_builder', 'lib/config/ElementRegistry.php');
+
 // API-Klassen registrieren (namespaced, via rex_api_function::register)
 rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\Api\ContentBuilderApi::class);
 rex_api_function::register('yform_list_columns', \KLXM\YFormContentBuilder\Api\ListColumnsApi::class);

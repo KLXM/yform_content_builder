@@ -8,6 +8,7 @@ yform_content_builder_modules_description = Auto-generate REDAXO modules for Con
 
 yform_content_builder_settings = Settings
 yform_content_builder_docs = Documentation
+yform_content_builder_dev = Developer Guide
 yform_content_builder_api = API Documentation
 yform_content_builder_tutorial = Tutorial
 yform_content_builder_general_settings = General Settings
@@ -25,6 +26,9 @@ yform_content_builder_compact_mode_notice = In compact mode, slices are displaye
 yform_content_builder_enable_online_toggle = Online/Offline per section
 yform_content_builder_enable_online_toggle_label = Enable online/offline switch for individual sections
 yform_content_builder_enable_online_toggle_notice = When enabled, an eye button appears in the slice toolbar that allows individual sections to be set offline. Offline sections are preserved in the data but automatically hidden in the frontend (via yform_content_builder_helper). Applies only to the YForm variant – the module variant uses the standard REDAXO slice functions.
+yform_content_builder_enable_demo_elements = Bundled demo elements
+yform_content_builder_enable_demo_elements_label = Load minimal bundled demo elements
+yform_content_builder_enable_demo_elements_notice = If disabled, bundled demo elements are not loaded. Only external elements from registered paths remain available (e.g. project/addon elements).
 
 yform_content_builder_element_add = Add element
 yform_content_builder_element_edit = Edit

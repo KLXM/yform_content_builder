@@ -30,8 +30,12 @@ class ModuleBuilder
     protected bool $legacyCke5Enabled = false;
     protected string $legacyCke5Profile = 'default';
     protected string $legacyCke5Lang = 'de';
+    /** @var array<string, string> */
+    protected array $legacyEditorAttributes = [];
     protected bool $legacyMigrationHint = true;
     protected string $legacyMigrationTarget = 'starter_text';
+    /** Key des Feldes im Zielelement, in das das HTML übertragen wird (Standard: text) */
+    protected string $legacyMigrationField = 'text';
     protected string $legacyHtml = '';
     /** @var array<string, array<string, mixed>> */
     protected array $elementDefaults = [];
@@ -59,12 +63,21 @@ class ModuleBuilder
         if ($instance->legacyCke5Lang === '') {
             $instance->legacyCke5Lang = 'de';
         }
+        $instance->legacyEditorAttributes = $instance->resolveLegacyEditorAttributes(
+            $options['legacy_editor_attributes'] ?? '',
+            $instance->legacyCke5Profile,
+            $instance->legacyCke5Lang
+        );
         $instance->legacyMigrationHint = array_key_exists('legacy_migration_hint', $options)
             ? $instance->normalizeBool($options['legacy_migration_hint'])
             : true;
         $instance->legacyMigrationTarget = trim((string) ($options['legacy_migration_target'] ?? 'starter_text'));
         if ($instance->legacyMigrationTarget === '') {
             $instance->legacyMigrationTarget = 'starter_text';
+        }
+        $instance->legacyMigrationField = trim((string) ($options['legacy_migration_field'] ?? 'text'));
+        if ($instance->legacyMigrationField === '') {
+            $instance->legacyMigrationField = 'text';
         }
 
         if ($rawValue === null || $rawValue === '') {
@@ -110,6 +123,15 @@ class ModuleBuilder
         $legacyEditorId = 'yform_cb_module_legacy_editor_' . uniqid();
         $legacyMigrateId = 'yform_cb_module_legacy_migrate_' . uniqid();
         $legacyNoticeId = 'yform_cb_module_legacy_notice_' . uniqid();
+        $legacyEditorAttributeParts = [];
+        foreach ($this->legacyEditorAttributes as $attrName => $attrValue) {
+            if ($attrName === '' || strtolower((string) $attrName) === 'id') {
+                continue;
+            }
+
+            $legacyEditorAttributeParts[] = rex_escape((string) $attrName) . '="' . rex_escape((string) $attrValue) . '"';
+        }
+        $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
 
         ob_start();
         ?>
@@ -131,9 +153,20 @@ class ModuleBuilder
                 <div class="panel panel-default" style="margin-bottom: 12px;">
                     <div class="panel-body">
                         <?php if ($this->legacyMigrationHint): ?>
+                            <?php
+                            $migrateElements = $this->getAvailableElements();
+                            ?>
                             <div id="<?= $legacyNoticeId ?>" class="alert alert-info" style="margin-bottom: 12px; padding: 8px 12px;">
-                                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                                    <span>Legacy-HTML ist aktiv. Du kannst direkt weiter editieren oder auf den modernen Editor umstellen.</span>
+                                <div style="margin-bottom:8px;">Legacy-HTML ist aktiv. Du kannst direkt weiter editieren oder auf den modernen Editor umstellen.</div>
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                    <label style="margin:0;font-weight:normal;white-space:nowrap;">Element:</label>
+                                    <select id="<?= $legacyMigrateId ?>_element" class="form-control input-sm" style="width:auto;min-width:140px;">
+                                        <?php foreach ($migrateElements as $eKey => $eCfg): ?>
+                                            <option value="<?= rex_escape($eKey) ?>"<?= $eKey === $this->legacyMigrationTarget ? ' selected' : '' ?>><?= rex_escape((string) ($eCfg['label'] ?? $eKey)) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <label style="margin:0;font-weight:normal;white-space:nowrap;">Feld (Key):</label>
+                                    <input id="<?= $legacyMigrateId ?>_field" type="text" class="form-control input-sm" style="width:120px;" value="<?= rex_escape($this->legacyMigrationField) ?>" placeholder="text">
                                     <button type="button" class="btn btn-default btn-xs" id="<?= $legacyMigrateId ?>">
                                         <i class="fa fa-exchange"></i> Zum modernen Editor wechseln
                                     </button>
@@ -142,13 +175,10 @@ class ModuleBuilder
                         <?php endif; ?>
 
                         <div class="form-group" style="margin-bottom:0;">
-                            <label class="control-label" for="<?= $legacyEditorId ?>">Legacy HTML (CKE5)</label>
+                            <label class="control-label" for="<?= $legacyEditorId ?>">Legacy HTML (Editor)</label>
                             <textarea
                                 id="<?= $legacyEditorId ?>"
-                                class="form-control cke5-editor"
-                                data-profile="<?= rex_escape($this->legacyCke5Profile) ?>"
-                                data-lang="<?= rex_escape($this->legacyCke5Lang) ?>"
-                                rows="14"><?= rex_escape($this->legacyHtml) ?></textarea>
+                                <?= $legacyEditorAttributeString !== '' ? $legacyEditorAttributeString : '' ?>><?= rex_escape($this->legacyHtml) ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -158,7 +188,8 @@ class ModuleBuilder
                     var $hidden = $('input[name="REX_INPUT_VALUE[<?= $this->valueId ?>]"]');
                     var $textarea = $('#<?= $legacyEditorId ?>');
                     var migrateButton = $('#<?= $legacyMigrateId ?>');
-                    var migrateTarget = '<?= rex_escape($this->legacyMigrationTarget) ?>';
+                    var $migrateElementSelect = $('#<?= $legacyMigrateId ?>_element');
+                    var $migrateFieldInput = $('#<?= $legacyMigrateId ?>_field');
 
                     if ($hidden.length === 0 || $textarea.length === 0) {
                         return;
@@ -168,17 +199,52 @@ class ModuleBuilder
                         $hidden.val($textarea.val() || '');
                     }
 
+                    function bindTinyMceSync() {
+                        if (typeof tinymce === 'undefined') {
+                            return false;
+                        }
+
+                        var editor = tinymce.get('<?= $legacyEditorId ?>');
+                        if (!editor) {
+                            return false;
+                        }
+
+                        var syncFromTinyMce = function() {
+                            var content = editor.getContent();
+                            $textarea.val(content);
+                            syncLegacyToHidden();
+                        };
+
+                        editor.on('input change keyup SetContent', syncFromTinyMce);
+                        syncFromTinyMce();
+                        return true;
+                    }
+
                     $textarea.on('input change', syncLegacyToHidden);
 
-                    setTimeout(function() {
-                        if (typeof cke5_init === 'function') {
-                            try {
-                                cke5_init($textarea);
-                            } catch (e) {
-                                console.warn('Module legacy CKE5 init failed', e);
-                            }
+                    if ($textarea.hasClass('tiny-editor') && typeof tiny_init === 'function') {
+                        try {
+                            tiny_init($textarea.closest('.panel-body'));
+                        } catch (e) {
+                            console.warn('Module legacy TinyMCE init failed', e);
                         }
-                    }, 200);
+
+                        var tinyBindTries = 0;
+                        var tinyBindTimer = setInterval(function() {
+                            tinyBindTries++;
+                            if (bindTinyMceSync() || tinyBindTries > 20) {
+                                clearInterval(tinyBindTimer);
+                            }
+                        }, 150);
+                    }
+
+                    if ($textarea.hasClass('cke5-editor') && typeof cke5_init === 'function') {
+                        try {
+                            cke5_init($textarea);
+                        } catch (e) {
+                            console.warn('Module legacy CKE5 init failed', e);
+                        }
+                    }
 
                     $(window).on('rex:cke5IsInit', function(event, editor, editorId) {
                         if (editorId !== '<?= $legacyEditorId ?>') {
@@ -191,13 +257,28 @@ class ModuleBuilder
                         });
                     });
 
+                    $textarea.closest('form').on('submit', function() {
+                        if ($textarea.hasClass('tiny-editor') && typeof tinymce !== 'undefined') {
+                            var tinyEditor = tinymce.get('<?= $legacyEditorId ?>');
+                            if (tinyEditor) {
+                                $textarea.val(tinyEditor.getContent());
+                            }
+                        }
+
+                        syncLegacyToHidden();
+                    });
+
                     migrateButton.on('click', function() {
                         var html = $textarea.val() || '';
+                        var targetElement = ($migrateElementSelect.length ? $migrateElementSelect.val() : '') || '<?= rex_escape($this->legacyMigrationTarget) ?>';
+                        var targetField = ($migrateFieldInput.length ? $migrateFieldInput.val().trim() : '') || '<?= rex_escape($this->legacyMigrationField) ?>';
+                        var data = {};
+                        data[targetField] = html;
                         var payload = [{
                             id: 'slice_' + Date.now(),
-                            type: migrateTarget || 'starter_text',
+                            type: targetElement,
                             online: true,
-                            data: { text: html }
+                            data: data
                         }];
 
                         $hidden.val(JSON.stringify(payload));
@@ -506,6 +587,81 @@ class ModuleBuilder
         return 'starter_text';
     }
 
+    /**
+     * @return array<string, string>
+     */
+    protected function resolveLegacyEditorAttributes(mixed $rawAttributes, string $legacyProfile, string $legacyLang): array
+    {
+        $attributeString = trim((string) $rawAttributes);
+        $attributes = $this->parseAttributeString($attributeString);
+
+        $classTokens = [];
+        if (isset($attributes['class'])) {
+            $classTokens = preg_split('/\s+/', trim((string) $attributes['class'])) ?: [];
+            $classTokens = array_values(array_filter($classTokens, static fn (string $token): bool => $token !== ''));
+        }
+
+        foreach (['form-control', 'yform-cb-legacy-editor'] as $requiredClass) {
+            if (!in_array($requiredClass, $classTokens, true)) {
+                $classTokens[] = $requiredClass;
+            }
+        }
+
+        $hasEditorClass = in_array('cke5-editor', $classTokens, true) || in_array('tiny-editor', $classTokens, true);
+        if (!$hasEditorClass) {
+            $classTokens[] = 'cke5-editor';
+        }
+
+        $attributes['class'] = implode(' ', $classTokens);
+
+        if (!isset($attributes['rows']) || trim((string) $attributes['rows']) === '') {
+            $attributes['rows'] = '14';
+        }
+
+        if (!isset($attributes['data-profile']) || trim((string) $attributes['data-profile']) === '') {
+            $attributes['data-profile'] = $legacyProfile;
+        }
+
+        if (!isset($attributes['data-lang']) || trim((string) $attributes['data-lang']) === '') {
+            $attributes['data-lang'] = $legacyLang;
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function parseAttributeString(string $rawAttributes): array
+    {
+        $attributes = [];
+        if ($rawAttributes === '') {
+            return $attributes;
+        }
+
+        preg_match_all("/([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"'=<>`]+)))?/", $rawAttributes, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $name = strtolower((string) ($match[1] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $value = '';
+            if (isset($match[2]) && $match[2] !== '') {
+                $value = (string) $match[2];
+            } elseif (isset($match[3]) && $match[3] !== '') {
+                $value = (string) $match[3];
+            } elseif (isset($match[4]) && $match[4] !== '') {
+                $value = (string) $match[4];
+            }
+
+            $attributes[$name] = $value;
+        }
+
+        return $attributes;
+    }
+
     /** @return array<int, string> */
     protected function normalizeAllowedElements(mixed $allowedElements): array
     {
@@ -581,6 +737,9 @@ class ModuleBuilder
             return [];
         }
 
+        $enableDemoElements = (bool) rex_addon::get('yform_content_builder')->getConfig('enable_demo_elements', true);
+        $bundledDemoKeys = array_flip(Config::getBundledDemoElementKeys());
+
         /** @var array<string, array<string, mixed>> $elements */
         $elements = [];
         $dirs = scandir($basePath);
@@ -590,6 +749,10 @@ class ModuleBuilder
 
         foreach ($dirs as $dir) {
             if ($dir === '.' || $dir === '..') {
+                continue;
+            }
+
+            if ($source === 'demo' && (!$enableDemoElements || !isset($bundledDemoKeys[$dir]))) {
                 continue;
             }
 
@@ -624,7 +787,12 @@ class ModuleBuilder
             return $elements;
         }
 
-        return array_intersect_key($elements, array_flip($this->allowedElements));
+        $filtered = array_intersect_key($elements, array_flip($this->allowedElements));
+        if ($filtered !== []) {
+            return $filtered;
+        }
+
+        return $elements;
     }
 
     /**
@@ -832,12 +1000,37 @@ class ModuleBuilder
             return null;
         }
 
-        $templateFile = $elementPath . '/templates/' . $this->framework . '.php';
-        if (!file_exists($templateFile)) {
-            $templateFile = $elementPath . '/templates/plain.php';
+        $templateCandidates = array_values(array_unique([
+            $this->framework,
+            'plain',
+            'uikit',
+            'bootstrap',
+        ]));
+
+        foreach ($templateCandidates as $templateName) {
+            $candidate = $elementPath . '/templates/' . $templateName . '.php';
+            if (file_exists($candidate)) {
+                return $candidate;
+            }
         }
 
-        return file_exists($templateFile) ? $templateFile : null;
+        $allTemplateFiles = glob($elementPath . '/templates/*.php');
+        if (is_array($allTemplateFiles)) {
+            sort($allTemplateFiles);
+            foreach ($allTemplateFiles as $file) {
+                $basename = basename($file);
+                if ($basename !== '' && $basename[0] !== '_') {
+                    return $file;
+                }
+            }
+        }
+
+        $legacyTemplate = $elementPath . '/element.php';
+        if (file_exists($legacyTemplate)) {
+            return $legacyTemplate;
+        }
+
+        return null;
     }
 
     /** @return array<string, mixed>|null */

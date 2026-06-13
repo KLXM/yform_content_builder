@@ -1295,8 +1295,20 @@ Wird aufgerufen um zusätzliche Pfade für Elemente zu registrieren.
 ```php
 rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_PATHS', function($ep) {
     $paths = $ep->getSubject();
-    $paths[] = rex_addon::get('mein_addon')->getPath('content_elements/');
+    $paths['my_addon'] = rex_path::addon('my_addon', 'elements/');
     return $paths;
+});
+```
+
+### YFORM_CONTENT_BUILDER_BUNDLED_ELEMENTS
+
+Registriert, welche Elemente als "bundled" (Haupt-Addon) gelten. Standard: Core + Starter-Elemente.
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_BUNDLED_ELEMENTS', function($ep) {
+    $bundled = $ep->getSubject() ?? [];
+    $bundled[] = 'my_custom_element'; // Diese Ele wird Teil des bundles
+    return $bundled;
 });
 ```
 
@@ -1313,9 +1325,153 @@ rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function():
 });
 ```
 
+### YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS ⭐ *NEU (v3.1.0)*
+
+Framework-agnostische Optionen für Hintergründe, Padding, Container etc.
+Ermöglicht es, UIkit/Bootstrap/Plain/Custom-Frameworks zu unterstützen.
+
+**Parameter:**
+- `framework`: 'uikit', 'bootstrap', 'plain', oder custom
+- `option_type`: 'backgrounds', 'paddings', 'containers', 'background_colors', 'css_prefix'
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', function($ep) {
+    $framework = $ep->getParam('framework');
+    $optionType = $ep->getParam('option_type');
+    
+    if ('bootstrap' === $framework && 'backgrounds' === $optionType) {
+        return [
+            '' => 'Keine',
+            'bg-primary' => 'Primary (Blau)',
+            'bg-secondary' => 'Secondary (Grau)',
+            'bg-danger' => 'Danger (Rot)',
+        ];
+    }
+    
+    return $ep->getSubject();
+});
+```
+
+**Verfügbare Option-Types:**
+- `backgrounds` → Array [class => label]
+- `background_colors` → Array [class => ['color' => hex, 'label' => str]]
+- `paddings` → Array [class => label]
+- `containers` → Array [class => label]
+- `css_prefix` → String (z.B. 'uk-', 'bs-')
+
+### YFORM_CONTENT_BUILDER_EDITOR_PROFILES ⭐ *NEU (v3.1.0)*
+
+Editor-Profile pro Element-Feld. Erlaubt verschiedene TinyMCE/CKE5-Profile.
+
+**Parameter:**
+- `element`: Element-Key (z.B. 'starter_text')
+- `field`: Feld-Name (z.B. 'text')
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_EDITOR_PROFILES', function($ep) {
+    $element = $ep->getParam('element');
+    $field = $ep->getParam('field');
+    
+    if ('starter_callout' === $element && 'description' === $field) {
+        return 'minimal'; // Nutze 'minimal' Profil statt default
+    }
+    
+    return $ep->getSubject() ?? 'default';
+});
+```
+
 ---
 
-## Helper-Klassen
+## Helper-Klassen ⭐ *ERWEITERT (v3.1.0)*
+
+### FrameworkConfig
+
+```php
+use KLXM\YFormContentBuilder\Config\FrameworkConfig;
+
+// Hintergrund-Optionen für ein Framework
+$options = FrameworkConfig::getBackgroundChoices('bootstrap');
+// => ['', 'bg-white', 'bg-light', ...]
+
+// Padding-Optionen
+$paddings = FrameworkConfig::getPaddingChoices('uikit');
+
+// Container-Optionen
+$containers = FrameworkConfig::getContainerChoices('plain');
+
+// Farben für Color-Swatches
+$colors = FrameworkConfig::getBackgroundColors('bootstrap');
+// => ['' => ['color' => 'transparent', ...], ...]
+
+// CSS-Präfix für Framework
+$prefix = FrameworkConfig::getCssPrefix('uikit');  // 'uk-'
+$prefix = FrameworkConfig::getCssPrefix('bootstrap');  // 'bs-'
+```
+
+### EditorConfig
+
+```php
+use KLXM\YFormContentBuilder\Config\EditorConfig;
+
+// Editor-Profil für Element abrufen
+$profile = EditorConfig::getEditorProfile('starter_text', 'text');
+// => 'default'
+
+// Editor-Typ für Profil ermitteln
+$editorType = EditorConfig::getEditorTypeForProfile('default');
+// => 'tinymce' oder 'ckeditor5'
+```
+
+### ElementRegistry
+
+```php
+use KLXM\YFormContentBuilder\Config\ElementRegistry;
+
+// Alle bundled Elements
+$bundled = ElementRegistry::getBundledElements();
+// => ['section', 'headline', 'starter_text', ...]
+
+// Prüfen ob bundled
+if (ElementRegistry::isBundledElement('starter_text')) {
+    // ...
+}
+
+// Alle Element-Pfade
+$paths = ElementRegistry::getElementPaths();
+// => ['core' => '/path/to/elements', 'klxm_elements' => '/path/to/klxm/elements']
+
+// Elemente aus Pfad
+$elements = ElementRegistry::getElementsFromPath('klxm_elements');
+// => ['cards', 'hero_banner', ...]
+
+// Alle Elemente (bundled + extern)
+$all = ElementRegistry::getAllElements();
+
+// Element-Config laden
+$config = ElementRegistry::getElementConfig('starter_text');
+```
+
+### TemplateEngine
+
+```php
+use KLXM\YFormContentBuilder\TemplateEngine;
+
+// Template mit Framework-Dispatch rendern
+$html = TemplateEngine::render('wrapper', $data, 'bootstrap');
+// Lädt: elements/wrapper/templates/bootstrap.php
+
+// Fragment rendern
+$html = TemplateEngine::renderFragment('ycb_elements/wrapper', $data, 'uikit');
+
+// Prüfen ob Template existiert
+if (TemplateEngine::hasTemplate('cards', 'bootstrap')) {
+    // ...
+}
+
+// Verfügbare Frameworks
+$frameworks = TemplateEngine::getAvailableFrameworks();
+// => ['uikit', 'bootstrap', 'plain']
+```
 
 ### FieldRegistry
 

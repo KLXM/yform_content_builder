@@ -665,21 +665,43 @@ class Module
             return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Pfad nicht gefunden: ' . rex_escape($this->elementType) . '</div>' : '';
         }
         
-        // Erst Framework-spezifisches Template versuchen
-        $elementFile = $elementDir . '/templates/' . $this->framework . '.php';
+        $templateCandidates = array_values(array_unique([
+            $this->framework,
+            'plain',
+            'uikit',
+            'bootstrap',
+        ]));
 
-        // Fallback auf plain.php
-        if (!file_exists($elementFile)) {
-            $elementFile = $elementDir . '/templates/plain.php';
+        $elementFile = '';
+        foreach ($templateCandidates as $templateName) {
+            $candidate = $elementDir . '/templates/' . $templateName . '.php';
+            if (file_exists($candidate)) {
+                $elementFile = $candidate;
+                break;
+            }
         }
-        
+
+        if ($elementFile === '') {
+            $allTemplateFiles = glob($elementDir . '/templates/*.php');
+            if (is_array($allTemplateFiles)) {
+                sort($allTemplateFiles);
+                foreach ($allTemplateFiles as $file) {
+                    $basename = basename($file);
+                    if ($basename !== '' && $basename[0] !== '_') {
+                        $elementFile = $file;
+                        break;
+                    }
+                }
+            }
+        }
+
         // Fallback auf element.php (legacy)
-        if (!file_exists($elementFile)) {
+        if ($elementFile === '' && file_exists($elementDir . '/element.php')) {
             $elementFile = $elementDir . '/element.php';
         }
-        
-        if (!file_exists($elementFile)) {
-            return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Template nicht gefunden: ' . $elementFile . '</div>' : '';
+
+        if ($elementFile === '') {
+            return rex::isDebugMode() ? '<div class="alert alert-warning">Element-Template nicht gefunden: ' . rex_escape($this->elementType) . '</div>' : '';
         }
         
         Helper::loadElementI18n($elementDir);

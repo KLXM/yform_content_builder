@@ -30,6 +30,25 @@ The schema defines:
 
 In current element configs you will also see newer field types such as `cke5`, `tinymce`, `radio_image`, `color_swatches`, `be_table_select`, `yformpicker`, `smart_link`, `rich_headline`, `info`, `table_editor`.
 
+## 🧩 Terminologie im Gesamtsystem
+
+- **Core-Elemente**: Basis-Bausteine im Haupt-Addon `yform_content_builder`
+- **Starter-Elemente**: Demo-Bausteine im Haupt-Addon `yform_content_builder`
+- **Projekt-Elemente**: Produktive externe Bausteine in Addons wie `klxm_elements`
+- **Modul-Erstellung**: Bleibt zentral im Haupt-Addon auf `index.php?page=yform_content_builder/modules`
+
+### Legacy Editor & Migration
+
+For YForm value-based content builders, the following configuration fields control Legacy-HTML handling:
+
+- **`legacy_cke5_enabled`** (choice): Enable legacy HTML editing (fallback if no modern content exists).
+- **`legacy_editor_attributes`** (text): Free attribute string for legacy textarea (e.g., `class="form-control tiny-editor" data-profile="default" rows="14"`). Supports both CKE5 (`cke5-editor` class) and TinyMCE (`tiny-editor` class).
+- **`legacy_cke5_profile`** (text): CKE5 profile name (fallback if `legacy_editor_attributes` has no `data-profile`).
+- **`legacy_cke5_lang`** (text): CKE5 language (fallback if `legacy_editor_attributes` has no `data-lang`).
+- **`legacy_migration_hint`** (choice): Show migration prompt to modern editor.
+- **`legacy_migration_target`** (choice): Element type for HTML migration (e.g., `starter_text`). Auto-resolves invalid choices.
+- **`legacy_migration_field`** (text): Target field key in migration element (e.g., `text`, `content`, `body`).
+
 ### Conditional Visibility (`visible_if`)
 
 Every field definition can include `visible_if` rules to conditionally show/hide fields without writing custom JavaScript.
@@ -108,6 +127,161 @@ $headline = $elementData['headline'] ?? '';
 </div>
 ```
 
+## 🏗️ Configuration Architecture (v3.1.0+)
+
+### Config-Klassen (Framework-Abstraktion)
+
+**Vier neue Klassen ersetzen hartcodierte Optionen:**
+
+#### 1. FrameworkConfig
+Zentralisiert Framework-spezifische CSS-Klassen und Optionen.
+
+```php
+use KLXM\YFormContentBuilder\Config\FrameworkConfig;
+
+// Hintergrund-Optionen pro Framework
+FrameworkConfig::getBackgroundChoices('uikit');
+// => ['', 'uk-background-default', 'uk-background-muted', ...]
+
+FrameworkConfig::getBackgroundChoices('bootstrap');
+// => ['', 'bg-white', 'bg-light', 'bg-dark', ...]
+
+// Padding-Optionen
+FrameworkConfig::getPaddingChoices('bootstrap');
+// => ['', 'p-0', 'p-2', 'p-4', ...]
+
+// Container-Optionen
+FrameworkConfig::getContainerChoices('plain');
+// => ['container', 'container-narrow', 'container-full', ...]
+
+// Hex-Farben für Color-Swatches
+FrameworkConfig::getBackgroundColors('uikit');
+// => ['' => ['color' => 'transparent', 'label' => 'Keine'], ...]
+
+// CSS-Präfix
+FrameworkConfig::getCssPrefix('bootstrap');
+// => 'bs-'
+```
+
+**Registrierbar via Extension Point:**
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', 
+    function($ep) {
+        if ('custom' === $ep->getParam('framework')) {
+            return ['my-option' => 'Custom Option'];
+        }
+        return $ep->getSubject();
+    }
+);
+```
+
+#### 2. EditorConfig
+Verwaltet Editor-Profile pro Element/Feld (TinyMCE vs CKE5).
+
+```php
+use KLXM\YFormContentBuilder\Config\EditorConfig;
+
+// Profil pro Element
+EditorConfig::getEditorProfile('starter_text', 'text');
+// => 'default'
+
+// Editor-Typ für Profil
+EditorConfig::getEditorTypeForProfile('default');
+// => 'tinymce' oder 'ckeditor5'
+
+// Alle Elemente-Profile
+EditorConfig::getElementProfiles();
+// => ['starter_text' => 'default', 'starter_cards' => 'default', ...]
+```
+
+**Registrierbar via Extension Point:**
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_EDITOR_PROFILES',
+    function($ep) {
+        if ('my_element' === $ep->getParam('element')) {
+            return 'minimal'; // Custom profil
+        }
+        return $ep->getSubject() ?? 'default';
+    }
+);
+```
+
+#### 3. ElementRegistry
+Verwaltet Element-Pfade und Bundled-Elements.
+
+```php
+use KLXM\YFormContentBuilder\Config\ElementRegistry;
+
+// Alle bundled Elements
+ElementRegistry::getBundledElements();
+// => ['section', 'headline', 'starter_text', ...]
+
+// Prüfen ob bundled
+ElementRegistry::isBundledElement('starter_text');
+// => true
+
+// Alle Pfade (core, klxm_elements, custom)
+ElementRegistry::getElementPaths();
+// => ['core' => '/path/...', 'klxm_elements' => '/path/...']
+
+// Elemente aus Pfad
+ElementRegistry::getElementsFromPath('klxm_elements');
+// => ['cards', 'hero_banner', ...]
+
+// Alle verfügbaren Elemente
+ElementRegistry::getAllElements();
+// => [... alle bundled + extern ...]
+
+// Element-Config laden
+ElementRegistry::getElementConfig('starter_text');
+// => ['label' => 'Text', 'fields' => [...], ...]
+```
+
+**Registrierbar via Extension Point:**
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+    function($ep) {
+        $paths = $ep->getSubject() ?? [];
+        $paths['my_addon'] = rex_path::addon('my_addon', 'elements/');
+        return $paths;
+    }
+);
+```
+
+#### 4. TemplateEngine
+Framework-Dispatch für Templates.
+
+```php
+use KLXM\YFormContentBuilder\TemplateEngine;
+
+// Template mit Framework
+TemplateEngine::render('wrapper', $data, 'bootstrap');
+// → Lädt: elements/wrapper/templates/bootstrap.php (oder Fallback)
+
+// Fragment rendern
+TemplateEngine::renderFragment('ycb_elements/wrapper', $data, 'uikit');
+
+// Prüfen ob vorhanden
+if (TemplateEngine::hasTemplate('cards', 'tailwind')) {
+    // ...
+}
+
+// Verfügbare Frameworks
+TemplateEngine::getAvailableFrameworks();
+// => ['uikit', 'bootstrap', 'plain']
+```
+
+### Extension Points Übersicht
+
+| Extension Point | Parameter | Return | Zweck |
+|-----------------|-----------|--------|-------|
+| `YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS` | `framework`, `option_type` | `array` \| `string` | Framework-spezifische Optionen |
+| `YFORM_CONTENT_BUILDER_EDITOR_PROFILES` | `element`, `field` | `string` | Editor-Profile pro Element |
+| `YFORM_CONTENT_BUILDER_BUNDLED_ELEMENTS` | — | `array` | Bundled Element-Keys |
+| `YFORM_CONTENT_BUILDER_ELEMENT_PATHS` | — | `array` | Pfade zu Element-Verzeichnissen |
+
+Vollständige Dokumentation der Extension Points: [DEV.md](DEV.md)
+
 ## 🧠 System Prompt Context
 
 If you want to feed this context to an AI, you can copy the following block:
@@ -117,3 +291,4 @@ If you want to feed this context to an AI, you can copy the following block:
 > 2. **Config**: `config.php` returns a PHP array defining fields (text, textarea, be_media, repeater, etc.).
 > 3. **Templates**: `templates/bootstrap.php` is the default output. Use `$elementData['fieldname']` to access values.
 > 4. **Schema**: Follow the `element-config.schema.json` for field definitions.
+> 5. **Config Classes (v3.1.0+)**: FrameworkConfig, EditorConfig, ElementRegistry, TemplateEngine for framework-agnostic configuration.

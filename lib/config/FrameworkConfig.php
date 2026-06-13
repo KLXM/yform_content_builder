@@ -1,0 +1,265 @@
+<?php
+
+namespace KLXM\YFormContentBuilder\Config;
+
+use rex_addon;
+use rex_extension;
+
+/**
+ * Framework-agnostische Konfigurations-Verwaltung
+ * Nutzt Extension Points, um Framework-spezifische Optionen zu registrieren.
+ * Ermöglicht UIkit, Bootstrap, Plain und Custom-Frameworks ohne StarterConfig zu ändern.
+ */
+class FrameworkConfig
+{
+    private static array $cache = [];
+
+    /**
+     * Führt einen Extension Point mit Default-Subject aus.
+     *
+     * @template T
+     * @param string $name
+     * @param T $default
+     * @param array<string, mixed> $params
+     * @return T
+     */
+    private static function applyExtensionPoint(string $name, mixed $default, array $params = []): mixed
+    {
+        return rex_extension::registerPoint(new \rex_extension_point($name, $default, $params));
+    }
+
+    /**
+     * Liefert Hintergrund-Optionen für ein Framework
+     * Extension Point: YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS
+     *
+     * @param string $framework z.B. 'uikit', 'bootstrap', 'plain', 'custom'
+     * @return array<string, string> Assoziatives Array: klasse => label
+     */
+    public static function getBackgroundChoices(string $framework = 'uikit'): array
+    {
+        $cacheKey = "backgrounds_{$framework}";
+        
+        if (isset(self::$cache[$cacheKey])) {
+            return self::$cache[$cacheKey];
+        }
+
+        $defaults = [
+            'uikit' => [
+                '' => 'Keine',
+                'uk-background-default' => 'Default (Weiß)',
+                'uk-background-muted' => 'Muted (Grau)',
+                'uk-background-primary' => 'Primary',
+                'uk-background-secondary' => 'Secondary',
+            ],
+            'bootstrap' => [
+                '' => 'Keine',
+                'bg-white' => 'Weiß',
+                'bg-light' => 'Hell',
+                'bg-dark' => 'Dunkel',
+                'bg-primary' => 'Primary',
+                'bg-secondary' => 'Secondary',
+            ],
+            'plain' => [
+                '' => 'Keine',
+                'bg-white' => 'Weiß',
+                'bg-light-gray' => 'Hell',
+                'bg-dark' => 'Dunkel',
+            ],
+        ];
+
+        $defaultChoices = $defaults[$framework] ?? $defaults['uikit'];
+
+        if ('uikit' === $framework && rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\\DomainContext')) {
+            $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+            if (!empty($themeBackgrounds)) {
+                $defaultChoices = ['' => 'Keine'];
+                foreach ($themeBackgrounds as $class => $data) {
+                    $defaultChoices[$class] = $data['label'] ?? ucfirst(str_replace('uk-background-', '', $class));
+                }
+            }
+        }
+
+        $result = self::applyExtensionPoint('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', $defaultChoices, [
+            'framework' => $framework,
+            'option_type' => 'backgrounds',
+        ]);
+
+        self::$cache[$cacheKey] = $result;
+        return $result;
+    }
+
+    /**
+     * Liefert Padding-Optionen für ein Framework
+     */
+    public static function getPaddingChoices(string $framework = 'uikit'): array
+    {
+        $cacheKey = "paddings_{$framework}";
+        
+        if (isset(self::$cache[$cacheKey])) {
+            return self::$cache[$cacheKey];
+        }
+
+        $defaults = [
+            'uikit' => [
+                '' => 'Standard',
+                'uk-padding-remove' => 'Keine Füllung',
+                'uk-padding-small' => 'Klein',
+                'uk-padding' => 'Mittel',
+                'uk-padding-large' => 'Groß',
+            ],
+            'bootstrap' => [
+                '' => 'Standard',
+                'p-0' => 'Keine Füllung',
+                'p-2' => 'Klein',
+                'p-4' => 'Mittel',
+                'p-5' => 'Groß',
+            ],
+            'plain' => [
+                '' => 'Standard',
+                'no-padding' => 'Keine Füllung',
+                'padding-small' => 'Klein',
+                'padding-medium' => 'Mittel',
+                'padding-large' => 'Groß',
+            ],
+        ];
+
+        $defaultChoices = $defaults[$framework] ?? $defaults['uikit'];
+
+        $result = self::applyExtensionPoint('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', $defaultChoices, [
+            'framework' => $framework,
+            'option_type' => 'paddings',
+        ]);
+
+        self::$cache[$cacheKey] = $result;
+        return $result;
+    }
+
+    /**
+     * Liefert Container/Grid-Optionen für ein Framework
+     */
+    public static function getContainerChoices(string $framework = 'uikit'): array
+    {
+        $cacheKey = "containers_{$framework}";
+        
+        if (isset(self::$cache[$cacheKey])) {
+            return self::$cache[$cacheKey];
+        }
+
+        $defaults = [
+            'uikit' => [
+                'uk-container' => 'Standard',
+                'uk-container uk-container-xsmall' => 'Extra schmal',
+                'uk-container uk-container-small' => 'Schmal',
+                'uk-container uk-container-large' => 'Weit',
+                'uk-container uk-container-xlarge' => 'Extra weit',
+                'uk-container uk-container-expand' => 'Maximale Breite',
+                '' => 'Volle Breite (kein Container)',
+            ],
+            'bootstrap' => [
+                'container' => 'Standard',
+                'container-sm' => 'Klein',
+                'container-md' => 'Mittel',
+                'container-lg' => 'Groß',
+                'container-xl' => 'Extra groß',
+                'container-fluid' => 'Volle Breite',
+                '' => 'Kein Container',
+            ],
+            'plain' => [
+                'container' => 'Standard',
+                'container-narrow' => 'Schmal',
+                'container-wide' => 'Weit',
+                'container-full' => 'Volle Breite',
+                '' => 'Kein Container',
+            ],
+        ];
+
+        $defaultChoices = $defaults[$framework] ?? $defaults['uikit'];
+
+        $result = self::applyExtensionPoint('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', $defaultChoices, [
+            'framework' => $framework,
+            'option_type' => 'containers',
+        ]);
+
+        self::$cache[$cacheKey] = $result;
+        return $result;
+    }
+
+    /**
+     * Liefert Hintergrund-Farben für color_swatches (mit Hex-Werten)
+     */
+    public static function getBackgroundColors(string $framework = 'uikit'): array
+    {
+        $cacheKey = "background_colors_{$framework}";
+        
+        if (isset(self::$cache[$cacheKey])) {
+            return self::$cache[$cacheKey];
+        }
+
+        $defaults = [
+            'uikit' => [
+                '' => ['color' => 'transparent', 'label' => 'Keine'],
+                'uk-background-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
+                'uk-background-muted' => ['color' => '#f8f8f8', 'label' => 'Muted (Grau)'],
+                'uk-background-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
+                'uk-background-secondary' => ['color' => '#222222', 'label' => 'Secondary'],
+            ],
+            'bootstrap' => [
+                '' => ['color' => 'transparent', 'label' => 'Keine'],
+                'bg-white' => ['color' => '#ffffff', 'label' => 'Weiß'],
+                'bg-light' => ['color' => '#f8f9fa', 'label' => 'Hell'],
+                'bg-dark' => ['color' => '#212529', 'label' => 'Dunkel'],
+                'bg-primary' => ['color' => '#0d6efd', 'label' => 'Primary'],
+                'bg-secondary' => ['color' => '#6c757d', 'label' => 'Secondary'],
+            ],
+            'plain' => [
+                '' => ['color' => 'transparent', 'label' => 'Keine'],
+                'bg-white' => ['color' => '#ffffff', 'label' => 'Weiß'],
+                'bg-light-gray' => ['color' => '#f5f5f5', 'label' => 'Hell'],
+                'bg-dark' => ['color' => '#333333', 'label' => 'Dunkel'],
+            ],
+        ];
+
+        $defaultColors = $defaults[$framework] ?? $defaults['uikit'];
+
+        if ('uikit' === $framework && rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\\DomainContext')) {
+            $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+            if (!empty($themeBackgrounds)) {
+                $defaultColors = $themeBackgrounds;
+            }
+        }
+
+        $result = self::applyExtensionPoint('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', $defaultColors, [
+            'framework' => $framework,
+            'option_type' => 'background_colors',
+        ]);
+
+        self::$cache[$cacheKey] = $result;
+        return $result;
+    }
+
+    /**
+     * CSS-Klasse Prefix für diesen Framework
+     * z.B. 'uk-' für UIkit, 'bs-' für Bootstrap
+     */
+    public static function getCssPrefix(string $framework = 'uikit'): string
+    {
+        $prefixes = [
+            'uikit' => 'uk-',
+            'bootstrap' => 'bs-',
+            'plain' => '',
+        ];
+
+        return self::applyExtensionPoint('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', $prefixes[$framework] ?? 'uk-', [
+            'framework' => $framework,
+            'option_type' => 'css_prefix',
+        ]);
+    }
+
+    /**
+     * Reset-Methode für Tests
+     */
+    public static function clearCache(): void
+    {
+        self::$cache = [];
+    }
+}

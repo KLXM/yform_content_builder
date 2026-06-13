@@ -12,44 +12,14 @@ if (trim(strip_tags($text)) === '') {
     return;
 }
 
-$bgMap = [
-    'uk-background-default' => '#ffffff',
-    'uk-background-muted' => '#f7f7f7',
-    'uk-background-primary' => '#1e87f0',
-    'uk-background-secondary' => '#222222',
-];
-$paddingMap = [
-    'uk-padding-remove' => '0',
-    'uk-padding-small' => '18px 0',
-    'uk-padding' => '35px 0',
-    'uk-padding-large' => '55px 0',
-];
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
 
-$sectionStyle = '';
-if (isset($bgMap[$sectionBg])) {
-    $sectionStyle .= 'background:' . $bgMap[$sectionBg] . ';';
-}
-if (isset($paddingMap[$sectionPadding])) {
-    $sectionStyle .= 'padding:' . $paddingMap[$sectionPadding] . ';';
-}
+$sectionStyle = StarterConfig::mapBg($sectionBg, 'plain');
+$sectionStyle .= StarterConfig::mapPadding($sectionPadding, 'plain');
 if ($sectionLight) {
     $sectionStyle .= 'color:#fff;';
 }
-
-$containerStyle = 'max-width:1140px;margin:0 auto;padding:0 15px;';
-if ($containerWidth === '') {
-    $containerStyle = 'padding:0 15px;';
-} elseif (str_contains($containerWidth, 'xsmall')) {
-    $containerStyle = 'max-width:480px;margin:0 auto;padding:0 15px;';
-} elseif (str_contains($containerWidth, 'small')) {
-    $containerStyle = 'max-width:640px;margin:0 auto;padding:0 15px;';
-} elseif (str_contains($containerWidth, 'large')) {
-    $containerStyle = 'max-width:1320px;margin:0 auto;padding:0 15px;';
-} elseif (str_contains($containerWidth, 'xlarge')) {
-    $containerStyle = 'max-width:1600px;margin:0 auto;padding:0 15px;';
-} elseif (str_contains($containerWidth, 'expand')) {
-    $containerStyle = 'width:100%;padding:0 15px;';
-}
+$containerStyle = StarterConfig::mapContainer($containerWidth, 'plain');
 ?>
 <?php if ($enableSection): ?>
 <section<?= $sectionStyle !== '' ? ' style="' . rex_escape($sectionStyle) . '"' : '' ?>>

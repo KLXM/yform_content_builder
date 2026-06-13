@@ -4,7 +4,7 @@
  */
 
 // Zentrale Konfigurationsklasse
-$config = \KLXM\YFormContentBuilder\Config::class;
+$config = \KLXM\YFormContentBuilder\Starter\StarterConfig::class;
 $hasThemeBuilder = $config::hasThemeBuilder();
 
 // Dynamische Farboptionen

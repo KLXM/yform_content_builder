@@ -2,14 +2,15 @@
 
 Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexible, wiederverwendbare Content-Elemente für beliebige CSS-Frameworks.
 
-📖 [API-Dokumentation](API.md) · 🚀 [Tutorial](TUTORIAL.md) · 📋 [Changelog](CHANGELOG.md)
+📖 [API-Dokumentation](API.md) · 🚀 [Tutorial](TUTORIAL.md) · 💻 [Developer Guide](DEV.md) · 📋 [Changelog](CHANGELOG.md)
 
 ---
 
 ## ✨ Features
 
 ### Content-Elemente
-- **26+ fertige Elemente** sofort einsatzbereit: Section, Text & Bild, Accordion, Cards, Gallery, Hero, Kontaktformular, YForm-Liste, Forcal-Termine, Moving Tiles u. v. m.
+- **30+ fertige Elemente** über Core/Starter und externe Projekt-Elemente.
+- **Modular konfigurierbar** – `YFORM_CONTENT_BUILDER_ELEMENT_MODE` steuert, ob externe Projekt-Elemente zusätzlich geladen (`merge`) oder ausschließlich externe Elemente genutzt werden (`replace`).
 - **Repeater-System** – unbegrenzt wiederholbare Feldgruppen (Slider, Listen, Feature Grids …)
 - **Online/Offline pro Slice** *(YForm-Variante)* – Abschnitte deaktivieren ohne zu löschen
 
@@ -39,36 +40,101 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 
 ---
 
+## 🏗️ Architektur (v3.1.0+)
+
+### Addon-Strategie
+
+Das System trennt klar zwischen Haupt-Addon und externen Projekt-Addons:
+
+| Addon | Elemente | Framework | Zweck |
+|-------|----------|-----------|-------|
+| **yform_content_builder** | Core (4) + Starter Demo (6) | UIkit/Bootstrap/Plain | Foundation + Demo |
+| **Externe Projekt-Addons** | Projekt-Elemente | Addon-abhängig | Produktive projektspezifische Bausteine |
+
+**Begriffe im Gesamtsystem:**
+- **Core-Elemente**: Basis-Bausteine im Haupt-Addon (`yform_content_builder`)
+- **Starter-Elemente**: Demo-Bausteine im Haupt-Addon (`yform_content_builder`)
+- **Projekt-Elemente**: Produktive externe Bausteine in separaten Projekt-Addons
+
+**Element Mode konfigurieren:**
+```php
+// Backend > YForm Content Builder > Settings
+// oder in REDAXO-Instanz-Config:
+$addon_config['yform_content_builder']['element_mode'] = 'merge'; // 'merge' oder 'replace'
+```
+
+- `merge` (Default): Starter-Demo + externe Projekt-Elemente
+- `replace`: Nur externe Projekt-Elemente (Demo ausblenden)
+
+### Framework-Abstraktion
+
+Die **neuen Config-Klassen** (v3.1.0) ermöglichen Framework-Flexibilität:
+
+```
+┌─────────────────────────────────────┐
+│ Extension Points (registrierbar)    │
+├─────────────────────────────────────┤
+│ YFORM_CONTENT_BUILDER_FRAMEWORK_*   │
+│ YFORM_CONTENT_BUILDER_EDITOR_*      │
+│ YFORM_CONTENT_BUILDER_ELEMENT_*     │
+└──────────────┬──────────────────────┘
+               │
+        ┌──────▼────────────────┐
+        │  Config-Klassen       │
+        ├───────────────────────┤
+        │ • FrameworkConfig     │ ← Framework-Optionen (backgrounds, paddings, containers)
+        │ • EditorConfig        │ ← Editor-Profile pro Element
+        │ • ElementRegistry     │ ← Element-Verwaltung
+        │ • TemplateEngine      │ ← Framework-Dispatch
+        └───────────────────────┘
+```
+
+**Externe Frameworks hinzufügen (z.B. Bootstrap):**
+```php
+// In bootstrap_theme addon boot.php
+rex_extension::register('YFORM_CONTENT_BUILDER_FRAMEWORK_OPTIONS', 
+    function($ep) {
+        if ('bootstrap' === $ep->getParam('framework')) {
+            if ('backgrounds' === $ep->getParam('option_type')) {
+                return [
+                    '' => 'Keine',
+                    'bg-primary' => 'Primary',
+                    'bg-secondary' => 'Secondary',
+                ];
+            }
+        }
+        return $ep->getSubject();
+    }
+);
+```
+
+Vollständige Dokumentation: [Developer Guide](DEV.md)
+
+---
+
 ## 📦 Verfügbare Elemente
+
+### 🔷 Core-Elemente (immer verfügbar)
 
 | Element | Schlüssel | Beschreibung |
 |---------|-----------|--------------|
 | Section / Container | `section` | Visuelle Abschnitte mit Hintergrundfarbe/-bild, Auto-Close |
-| Text & Bild | `media_text` | Text-Bild-Kombinationen, 4 Layouts, CKE5 |
-| Accordion | `accordion` | Aufklappbare Inhaltsblöcke / Tab-Navigation |
 | Headline | `headline` | H1–H6, Farbe, Ausrichtung, optionaler Link |
 | Divider | `divider` | Trennlinien, 9 Styles inkl. animiertem Scroll-Chevron |
-| Cards Grid | `cards` | UIkit/Bootstrap-Grid mit Repeater, Farb- und Layout-Auswahl |
-| Slideshow | `slideshow` | Bild-/Video-Slideshow |
-| Gallery | `gallery` | Grid & Masonry, Mixed Media (Bilder + Videos) |
-| Hero Banner | `hero_banner` | Fullscreen-Banner mit Overlay und Call-to-Action |
-| Feature Grid | `feature_grid` | Icon-Feature-Liste im Grid |
-| Moving Tiles | `moving_tiles` | Parallax-Tiles mit alternierenden Layouts |
-| Testimonial | `testimonial` | Zitate mit Autor und Bild |
-| Timeline | `timeline` | Zeitstrahl-Element |
-| Downloads | `downloads` | Dateiliste aus dem Mediapool |
-| Countdown | `countdown` | Countdown bis zu einem Datum |
-| Table | `table` | Einfache Tabellen-Ausgabe |
-| YForm-Liste | `yform_list` | Datensatz-Listen aus YForm-Tabellen (über Profile) |
-| Kontakt-Picker | `contact_picker` | Einzelne Kontakte aus YForm-Profilen auswählen |
-| Forcal-Termine | `forcal_list` | Termine aus forcal (Addon vorausgesetzt) |
-| Kontaktformular | `doform2026` | PHPMailer-Formular mit Validierung und AJAX |
-| Starter Text | `starter_text` | Minimalistisches RichText-Element |
-| Starter Headline | `starter_headline` | Reduziertes Headline-Element |
-| Starter Media Split | `starter_media_split` | Medium und Text nebeneinander |
+| Accordion | `accordion` | Aufklappbare Inhaltsblöcke / Tab-Navigation |
+
+### ⭐ Starter-Elemente (Demo, im Haupt-Addon)
+
+| Element | Schlüssel | Beschreibung |
+|---------|-----------|--------------|
+| Starter Text | `starter_text` | Minimalistisches RichText-Element mit TinyMCE |
+| Starter Headline | `starter_headline` | Reduziertes Headline-Element mit Rich-Headline-Feldtyp |
+| Starter Media Split | `starter_media_split` | Medium und Text nebeneinander, flexibel konfigurierbar |
 | Starter Gallery | `starter_gallery` | Einfache Galerieliste |
-| Starter Cards | `starter_cards` | Karten-Liste (Repeater-basiert) |
+| Starter Cards | `starter_cards` | Karten-Liste (Repeater-basiert), mit Link-Optionen |
 | Starter Callout | `starter_callout` | Highlight-Box mit Titel, Text und Link |
+
+Die Modul-Erstellung bleibt zentral auf `index.php?page=yform_content_builder/modules`.
 
 ---
 
@@ -213,9 +279,14 @@ echo Helper::outputDatasetById('rex_pages', 42, 'content_builder', 'uikit');
 echo Helper::outputRaw($dataset->getValue('content_builder'), 'uikit');
 ```
 
-### Legacy-HTML Migration
+### Legacy-HTML Migration & Editor-Auswahl
 
-Wenn ältere Inhalte noch als HTML im Feld liegen, zeigt der Content Builder einen Hinweis zum Wechsel in den modernen Editor. Der Wechsel übernimmt den Inhalt direkt in ein `starter_text`-Element und kann sofort gespeichert werden.
+Wenn ältere Inhalte noch als HTML im Feld liegen, zeigt der Content Builder einen Hinweis zum Wechsel in den modernen Editor. Features:
+
+- **Editor-neutral**: Unterstützt **CKE5** und **TinyMCE** in der Legacy-Bearbeitung – konfigurierbar via `legacy_editor_attributes`.
+- **Flexible Migration**: Ziel-Element und Ziel-Feld sind frei konfigurierbar (`legacy_migration_target`, `legacy_migration_field`).
+- **Automatisches Speichern**: Der Wechsel speichert den Inhalt direkt nach dem Klick.
+- **Fallback-Logik**: Wenn Ziel-Element nicht verfügbar, wird automatisch auf `starter_text` oder erstes verfügbares Element ausgewichen.
 
 ### MediaPool-Schutz
 
@@ -238,21 +309,42 @@ In `config.php` kannst du dann z. B. konsistent mit `Helper::elementTranslator('
 
 ---
 
-## Entwickler-Hinweis: Element-Overrides (z. B. CSE)
+## 🏗️ Element-Management
 
-Wenn ein Projekt eigene Elemente aus einem separaten Addon bereitstellt (z. B. `cse_elements`), sollten die Core-Dateien von `yform_content_builder` nicht direkt angepasst werden.
+### Konfiguration: Replace vs. Merge
 
-Stattdessen über Extension Points arbeiten:
+In den Einstellungen des jeweiligen Projekt-Addons kann gewählt werden:
 
-- `YFORM_CONTENT_BUILDER_ELEMENT_PATHS` für zusätzliche/alternative Element-Pfade
-- `YFORM_CONTENT_BUILDER_ELEMENT_MODE` mit `replace` oder `merge`
+- **Replace**: Nur externe Projekt-Elemente laden. Starter/Core-Demo-Elemente aus dem Haupt-Addon werden nicht angezeigt.
+- **Merge** (Standard): Starter/Core-Elemente + externe Projekt-Elemente gemeinsam anzeigen.
 
-Empfehlung für unterscheidbare Menüs bei `merge`:
+Technisch über `YFORM_CONTENT_BUILDER_ELEMENT_MODE` Extension Point gesteuert.
 
-- Eigene Element-Keys mit Präfix (`cse_*`)
-- Sichtbares Label ebenfalls mit Präfix, z. B. `CSE Text`, `CSE Cards`
+### Entwickler-Hinweis: Eigene Element-Addons
 
-So bleiben Original-Elemente und Projekt-Elemente parallel wartbar und eindeutig unterscheidbar.
+Wenn du weitere Projekt-Elemente in ein separates Addon auslagern möchtest (z. B. `custom_elements`):
+
+```php
+// In deinem Addon boot.php
+rex_extension::register(
+    'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+    static function(rex_extension_point $ep) {
+        $ep->setResult([
+            rex_path::addon('custom_elements', 'elements'),
+        ]);
+    },
+    rex_extension::EARLY,
+);
+```
+
+- **Extension Points verfügbar**:
+  - `YFORM_CONTENT_BUILDER_ELEMENT_PATHS`: Zusätzliche Element-Pfade (Array von Pfad-Strings)
+  - `YFORM_CONTENT_BUILDER_ELEMENT_MODE`: Steuert, ob externe Elemente `merge` (zusätzlich) oder `replace` (nur externe) laden
+
+- **Best Practice**:
+  - Eigene Element-Keys mit Präfix (`custom_*`, `myproject_*`)
+  - Labels ebenfalls mit Präfix für Klarheit im Menü
+  - So bleiben Core-, Starter- und Projekt-Elemente eindeutig unterscheidbar
 
 ## Entwickler-Hinweis: Conditional Toggles (visible_if)
 
