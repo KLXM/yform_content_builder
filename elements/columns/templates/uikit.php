@@ -1,6 +1,6 @@
 <?php
 /**
- * Bootstrap Template for Columns Layout
+ * UIkit Template for Columns Layout
  * 
  * @var array $elementData
  * @var string $framework
@@ -9,15 +9,15 @@
 $layout = $elementData['col_layout'] ?? '50_50';
 $columnsData = $elementData['columns'] ?? [];
 
-$rowClass = 'row';
-$rowAttrs = '';
+$rowClass = 'uk-grid uk-grid-margin';
+$rowAttrs = ' data-uk-grid';
 $colClasses = [
-    '50_50' => ['col-sm-6', 'col-sm-6'],
-    '33_33_33' => ['col-sm-4', 'col-sm-4', 'col-sm-4'],
-    '25_75' => ['col-sm-3', 'col-sm-9'],
-    '75_25' => ['col-sm-9', 'col-sm-3'],
+    '50_50' => ['uk-width-1-2@m', 'uk-width-1-2@m'],
+    '33_33_33' => ['uk-width-1-3@m', 'uk-width-1-3@m', 'uk-width-1-3@m'],
+    '25_75' => ['uk-width-1-4@m', 'uk-width-3-4@m'],
+    '75_25' => ['uk-width-3-4@m', 'uk-width-1-4@m'],
 ];
-$classes = $colClasses[$layout] ?? ['col-sm-6', 'col-sm-6'];
+$classes = $colClasses[$layout] ?? ['uk-width-1-2@m', 'uk-width-1-2@m'];
 $styles = [];
 $numCols = count($classes);
 
