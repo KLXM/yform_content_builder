@@ -53,6 +53,7 @@ $replaceKeepCoreElements = array_values(array_unique(array_filter(array_map(
 ), static fn (string $value): bool => $value !== '')));
 
 $coreElementOptions = [];
+$missingReplaceKeepCoreElements = [];
 $coreElementsPath = rex_path::addon('yform_content_builder', 'elements/');
 if (is_dir($coreElementsPath)) {
     $dirs = scandir($coreElementsPath);
@@ -81,7 +82,10 @@ if (is_dir($coreElementsPath)) {
 }
 
 asort($coreElementOptions, SORT_NATURAL | SORT_FLAG_CASE);
-$replaceKeepCoreElements = array_values(array_intersect($replaceKeepCoreElements, array_keys($coreElementOptions)));
+$missingReplaceKeepCoreElements = array_values(array_diff($replaceKeepCoreElements, array_keys($coreElementOptions)));
+foreach ($missingReplaceKeepCoreElements as $missingElementKey) {
+    $coreElementOptions[$missingElementKey] = $missingElementKey . ' (nicht gefunden)';
+}
 
 // Formular bauen
 $content = '';
