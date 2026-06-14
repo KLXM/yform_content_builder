@@ -26,6 +26,7 @@
             if (!eventsInitialized) {
                 this.bindEvents();
                 this.fixTinyMCEInModals();
+                this.initModalStacking();
                 this.initDropdownZIndex();
                 eventsInitialized = true;
             }
@@ -216,6 +217,52 @@
             $(document).on('focusin', function(e) {
                 if ($(e.target).closest('.tox-tinymce, .tox-tinymce-aux, .moxman-window, .tam-assetmanager-root').length) {
                     e.stopImmediatePropagation();
+                }
+            });
+        },
+
+        initModalStacking: function() {
+            // Bootstrap 3 nested modals: keep z-index/backdrop/body-state stable
+            // and prevent the parent columns modal from being closed by child modal events.
+            if (window.__yfcbModalStackingInitialized) {
+                return;
+            }
+            window.__yfcbModalStackingInitialized = true;
+
+            $(document).on('show.bs.modal', '.modal', function() {
+                var $modal = $(this);
+
+                // Repeater/Settings child modals are often rendered inside the
+                // currently open nested editor modal. Move them to body so
+                // Bootstrap's modal stacking works reliably.
+                if (!$modal.parent().is('body')) {
+                    $modal.appendTo('body');
+                }
+
+                var zIndex = 1040 + (10 * $('body > .modal.in').length);
+                $modal.css('z-index', zIndex);
+
+                setTimeout(function() {
+                    $('.modal-backdrop').not('.yfcb-modal-stack').first()
+                        .css('z-index', zIndex - 1)
+                        .addClass('yfcb-modal-stack');
+                }, 0);
+            });
+
+            $(document).on('hidden.bs.modal', 'body > .modal', function() {
+                // Bootstrap removes modal-open on every hidden modal.
+                // Re-add it while at least one modal is still visible.
+                if ($('body > .modal.in').length > 0) {
+                    $('body').addClass('modal-open');
+                }
+            });
+
+            $(document).on('hide.bs.modal', '#nested-slice-edit-modal', function(e) {
+                var hasOpenChildModal = $('body > .modal.in').not('#nested-slice-edit-modal').length > 0;
+                if (hasOpenChildModal) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return false;
                 }
             });
         },
@@ -997,7 +1044,13 @@
                     $('body').append($modal);
                     
                     // Bind close event once
-                    $modal.on('hidden.bs.modal', function () {
+                    $modal.on('hidden.bs.modal', function (e) {
+                        // Child modals inside the nested editor bubble hidden.bs.modal.
+                        // Only react when the nested editor modal itself is closed.
+                        if (e.target !== this) {
+                            return;
+                        }
+
                         var $form = $modal.find('.slice-edit-form');
                         if ($form.length > 0) {
                             var $editingSlice = $modal.data('editing-slice');
