@@ -104,9 +104,12 @@ if ($framework === 'uikit') {
     $containerStyle = '';
     if ($enableContainer) {
         if ($framework === 'bootstrap') {
-            $containerClass = \KLXM\YFormContentBuilder\Starter\StarterConfig::mapContainer($containerWidth, 'bootstrap');
+            // Backend-Preview: nie fixe Bootstrap-Containerbreiten verwenden,
+            // sonst kann das Columns-Layout ueber den Editor hinausragen.
+            $containerClass = 'content-builder-backend-container';
         } else {
-            $containerStyle = \KLXM\YFormContentBuilder\Starter\StarterConfig::mapContainer($containerWidth, 'plain');
+            // Plain-Preview ebenfalls auf Editorbreite begrenzen.
+            $containerStyle = 'width:100%;max-width:100%;padding:0;box-sizing:border-box;';
         }
     }
 

@@ -9,7 +9,7 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 ## ✨ Features
 
 ### Content-Elemente
-- **30+ fertige Elemente** über Core/Starter und externe Projekt-Elemente.
+- **Elemente aus Core, Starter und externen Projekt-Addons**.
 - **Modular konfigurierbar** – `YFORM_CONTENT_BUILDER_ELEMENT_MODE` steuert, ob externe Projekt-Elemente zusätzlich geladen (`merge`) oder ausschließlich externe Elemente genutzt werden (`replace`).
 - **Repeater-System** – unbegrenzt wiederholbare Feldgruppen (Slider, Listen, Feature Grids …)
 - **Online/Offline pro Slice** *(YForm-Variante)* – Abschnitte deaktivieren ohne zu löschen
@@ -119,9 +119,8 @@ Vollständige Dokumentation: [Developer Guide](DEV.md)
 | Element | Schlüssel | Beschreibung |
 |---------|-----------|--------------|
 | Section / Container | `section` | Visuelle Abschnitte mit Hintergrundfarbe/-bild, Auto-Close |
-| Headline | `headline` | H1–H6, Farbe, Ausrichtung, optionaler Link |
+| Columns | `columns` | Mehrspaltige Container mit verschachtelten Elementen |
 | Divider | `divider` | Trennlinien, 9 Styles inkl. animiertem Scroll-Chevron |
-| Accordion | `accordion` | Aufklappbare Inhaltsblöcke / Tab-Navigation |
 
 ### ⭐ Starter-Elemente (Demo, im Haupt-Addon)
 
@@ -130,9 +129,7 @@ Vollständige Dokumentation: [Developer Guide](DEV.md)
 | Starter Text | `starter_text` | Minimalistisches RichText-Element mit TinyMCE |
 | Starter Headline | `starter_headline` | Reduziertes Headline-Element mit Rich-Headline-Feldtyp |
 | Starter Media Split | `starter_media_split` | Medium und Text nebeneinander, flexibel konfigurierbar |
-| Starter Gallery | `starter_gallery` | Einfache Galerieliste |
 | Starter Cards | `starter_cards` | Karten-Liste (Repeater-basiert), mit Link-Optionen |
-| Starter Callout | `starter_callout` | Highlight-Box mit Titel, Text und Link |
 | YForm-Liste | `yform_list` | Dynamische Liste auf Basis zentral konfigurierter YForm-Profile |
 | Forcal-Liste | `forcal_list` | Kommende Termine aus dem forcal-Addon als Cards/Liste/Kompakt |
 | Tabelle | `table` | Barrierefreie Tabelle mit Table-Editor und responsiver Ausgabe |
