@@ -1530,6 +1530,13 @@ body.modal-open {
     right: auto;
 }
 
+/* Nested toolbar opens on the left side of the slice -> dropdown must open to the right */
+.content-builder-column-slices .content-builder-slice > .slice-toolbar .dropdown-menu,
+.content-builder-column-slices .content-builder-slice > .slice-toolbar .dropdown-menu.pull-right {
+    left: 0;
+    right: auto;
+}
+
 /* Paste button blue highlight */
 .dropdown-menu li.paste-slice-item a.btn-paste-slice {
     display: block;
