@@ -52,6 +52,54 @@ foreach ($available_elements as $elementType => $config) {
     $groupedAvailableElements[$category][$elementType] = $config;
 }
 
+$normalizeCategorySortKey = static function (string $category): array {
+    $category = trim($category);
+    if ($category === '') {
+        return [9999, ''];
+    }
+
+    if (preg_match('/^\s*(\d{1,4})\s*(?:[:\-_.]{1,2}|::)?\s*(.*)$/u', $category, $matches) === 1) {
+        $priority = (int) $matches[1];
+        $label = trim((string) ($matches[2] ?? ''));
+        if ($label !== '') {
+            return [$priority, $label];
+        }
+    }
+
+    return [9999, $category];
+};
+
+$formatCategoryLabel = static function (string $category) use ($normalizeCategorySortKey): string {
+    [, $label] = $normalizeCategorySortKey($category);
+    return ucfirst(str_replace('_', ' ', $label));
+};
+
+uksort(
+    $groupedAvailableElements,
+    static function (string $leftCategory, string $rightCategory) use ($normalizeCategorySortKey): int {
+        $leftSortKey = $normalizeCategorySortKey($leftCategory);
+        $rightSortKey = $normalizeCategorySortKey($rightCategory);
+
+        if ($leftSortKey[0] !== $rightSortKey[0]) {
+            return $leftSortKey[0] <=> $rightSortKey[0];
+        }
+
+        return strcasecmp($leftSortKey[1], $rightSortKey[1]);
+    }
+);
+
+foreach ($groupedAvailableElements as &$elementsInCategory) {
+    uasort(
+        $elementsInCategory,
+        static function (array $leftConfig, array $rightConfig): int {
+            $leftLabel = trim((string) ($leftConfig['label'] ?? ''));
+            $rightLabel = trim((string) ($rightConfig['label'] ?? ''));
+            return strcasecmp($leftLabel, $rightLabel);
+        }
+    );
+}
+unset($elementsInCategory);
+
 $legacyEditorId = 'yform_cb_legacy_editor_' . uniqid();
 $legacyMigrateButtonId = 'yform_cb_legacy_migrate_' . uniqid();
 $legacyNoticeId = 'yform_cb_legacy_notice_' . uniqid();
@@ -342,7 +390,7 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                                         <?php if ($categoryIndex > 0): ?>
                                             <li role="separator" class="divider"></li>
                                         <?php endif; ?>
-                                        <li class="dropdown-header"><?= rex_escape(ucfirst(str_replace('_', ' ', (string) $category))) ?></li>
+                                        <li class="dropdown-header"><?= rex_escape($formatCategoryLabel((string) $category)) ?></li>
                                         <?php foreach ($elementsInCategory as $elementType => $config): ?>
                                             <li>
                                                 <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
@@ -460,7 +508,7 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                         <?php if ($categoryIndex > 0): ?>
                             <li role="separator" class="divider"></li>
                         <?php endif; ?>
-                        <li class="dropdown-header"><?= rex_escape(ucfirst(str_replace('_', ' ', (string) $category))) ?></li>
+                        <li class="dropdown-header"><?= rex_escape($formatCategoryLabel((string) $category)) ?></li>
                         <?php foreach ($elementsInCategory as $elementType => $config): ?>
                             <li>
                                 <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
