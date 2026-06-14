@@ -876,12 +876,63 @@ class ModuleBuilder
             $groupedAvailableElements[$category][$elementType] = $config;
         }
 
+        uksort(
+            $groupedAvailableElements,
+            static function (string $leftCategory, string $rightCategory): int {
+                $leftSortKey = ModuleBuilder::normalizeCategorySortKey($leftCategory);
+                $rightSortKey = ModuleBuilder::normalizeCategorySortKey($rightCategory);
+
+                if ($leftSortKey[0] !== $rightSortKey[0]) {
+                    return $leftSortKey[0] <=> $rightSortKey[0];
+                }
+
+                return strcasecmp($leftSortKey[1], $rightSortKey[1]);
+            }
+        );
+
+        foreach ($groupedAvailableElements as &$elementsInCategory) {
+            uasort(
+                $elementsInCategory,
+                static function (array $leftConfig, array $rightConfig): int {
+                    $leftLabel = trim((string) ($leftConfig['label'] ?? ''));
+                    $rightLabel = trim((string) ($rightConfig['label'] ?? ''));
+
+                    return strcasecmp($leftLabel, $rightLabel);
+                }
+            );
+        }
+        unset($elementsInCategory);
+
         return $groupedAvailableElements;
     }
 
     protected function formatCategoryLabel(string $category): string
     {
-        return ucfirst(str_replace('_', ' ', $category));
+        [, $label] = self::normalizeCategorySortKey($category);
+
+        return ucfirst(str_replace('_', ' ', $label));
+    }
+
+    /**
+     * @return array{0:int,1:string}
+     */
+    protected static function normalizeCategorySortKey(string $category): array
+    {
+        $category = trim($category);
+        if ($category === '') {
+            return [9999, ''];
+        }
+
+        if (preg_match('/^\s*(\d{1,4})\s*(?:[:\-_.]{1,2}|::)?\s*(.*)$/u', $category, $matches) === 1) {
+            $priority = (int) $matches[1];
+            $label = trim((string) ($matches[2] ?? ''));
+
+            if ($label !== '') {
+                return [$priority, $label];
+            }
+        }
+
+        return [9999, $category];
     }
 
     /**
