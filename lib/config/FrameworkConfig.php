@@ -46,6 +46,7 @@ class FrameworkConfig
         $defaults = [
             'uikit' => [
                 '' => 'Keine',
+                'uk-background-default' => 'Default (Weiß)',
                 'uk-background-transparent' => 'Transparent',
                 'uk-background-muted' => 'Muted (Grau)',
                 'uk-background-primary' => 'Primary',
@@ -53,6 +54,7 @@ class FrameworkConfig
             ],
             'bootstrap' => [
                 '' => 'Keine',
+                'uk-background-default' => 'Default (Weiß)',
                 'uk-background-transparent' => 'Transparent',
                 'uk-background-muted' => 'Muted (Grau)',
                 'uk-background-primary' => 'Primary',
@@ -60,6 +62,7 @@ class FrameworkConfig
             ],
             'plain' => [
                 '' => 'Keine',
+                'uk-background-default' => 'Default (Weiß)',
                 'uk-background-transparent' => 'Transparent',
                 'uk-background-muted' => 'Muted (Grau)',
                 'uk-background-primary' => 'Primary',
@@ -72,9 +75,33 @@ class FrameworkConfig
         if ('uikit' === $framework && rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\\DomainContext')) {
             $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
             if (!empty($themeBackgrounds)) {
-                $defaultChoices = ['' => 'Keine'];
+                $baseChoices = [
+                    '' => 'Keine',
+                    'uk-background-default' => 'Default (Weiß)',
+                    'uk-background-transparent' => 'Transparent',
+                    'uk-background-muted' => 'Muted (Grau)',
+                    'uk-background-primary' => 'Primary',
+                    'uk-background-secondary' => 'Secondary',
+                ];
+
+                $defaultChoices = $baseChoices;
                 foreach ($themeBackgrounds as $class => $data) {
-                    $defaultChoices[$class] = $data['label'] ?? ucfirst(str_replace('uk-background-', '', $class));
+                    if (!is_string($class) || trim($class) === '') {
+                        continue;
+                    }
+
+                    $label = null;
+                    if (is_array($data) && isset($data['label']) && is_string($data['label'])) {
+                        $label = $data['label'];
+                    } elseif (is_string($data)) {
+                        $label = $data;
+                    }
+
+                    if (!is_string($label) || trim($label) === '') {
+                        $label = ucfirst(str_replace('uk-background-', '', $class));
+                    }
+
+                    $defaultChoices[$class] = $label;
                 }
             }
         }
@@ -197,21 +224,24 @@ class FrameworkConfig
 
         $defaults = [
             'uikit' => [
-                '' => ['color' => 'transparent', 'label' => 'Keine'],
+                '' => ['color' => '#ffffff', 'label' => 'Keine'],
+                'uk-background-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
                 'uk-background-transparent' => ['color' => 'transparent', 'label' => 'Transparent'],
                 'uk-background-muted' => ['color' => '#f8f8f8', 'label' => 'Muted (Grau)'],
                 'uk-background-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
                 'uk-background-secondary' => ['color' => '#222222', 'label' => 'Secondary'],
             ],
             'bootstrap' => [
-                '' => ['color' => 'transparent', 'label' => 'Keine'],
+                '' => ['color' => '#ffffff', 'label' => 'Keine'],
+                'uk-background-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
                 'uk-background-transparent' => ['color' => 'transparent', 'label' => 'Transparent'],
                 'uk-background-muted' => ['color' => '#f8f9fa', 'label' => 'Muted (Grau)'],
                 'uk-background-primary' => ['color' => '#0d6efd', 'label' => 'Primary'],
                 'uk-background-secondary' => ['color' => '#6c757d', 'label' => 'Secondary'],
             ],
             'plain' => [
-                '' => ['color' => 'transparent', 'label' => 'Keine'],
+                '' => ['color' => '#ffffff', 'label' => 'Keine'],
+                'uk-background-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
                 'uk-background-transparent' => ['color' => 'transparent', 'label' => 'Transparent'],
                 'uk-background-muted' => ['color' => '#f5f5f5', 'label' => 'Muted (Grau)'],
                 'uk-background-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
@@ -224,7 +254,27 @@ class FrameworkConfig
         if ('uikit' === $framework && rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\\DomainContext')) {
             $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
             if (!empty($themeBackgrounds)) {
-                $defaultColors = $themeBackgrounds;
+                $baseColors = [
+                    '' => ['color' => '#ffffff', 'label' => 'Keine'],
+                    'uk-background-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
+                    'uk-background-transparent' => ['color' => 'transparent', 'label' => 'Transparent'],
+                    'uk-background-muted' => ['color' => '#f8f8f8', 'label' => 'Muted (Grau)'],
+                    'uk-background-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
+                    'uk-background-secondary' => ['color' => '#222222', 'label' => 'Secondary'],
+                ];
+
+                $defaultColors = $baseColors;
+                foreach ($themeBackgrounds as $class => $data) {
+                    if (!is_string($class) || trim($class) === '') {
+                        continue;
+                    }
+
+                    if (is_array($data)) {
+                        $color = (string) ($data['color'] ?? 'transparent');
+                        $label = (string) ($data['label'] ?? ucfirst(str_replace('uk-background-', '', $class)));
+                        $defaultColors[$class] = ['color' => $color, 'label' => $label];
+                    }
+                }
             }
         }
 

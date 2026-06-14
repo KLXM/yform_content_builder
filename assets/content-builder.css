@@ -147,6 +147,27 @@
     border: 2px solid #ddd;
 }
 
+/* Bootstrap helper classes for backend preview */
+.yform-content-builder .bg-light,
+.content-builder-slice .bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.yform-content-builder .bg-white,
+.content-builder-slice .bg-white {
+    background-color: #ffffff !important;
+}
+
+.yform-content-builder .bg-secondary,
+.content-builder-slice .bg-secondary {
+    background-color: #6c757d !important;
+}
+
+.yform-content-builder .bg-transparent,
+.content-builder-slice .bg-transparent {
+    background-color: transparent !important;
+}
+
 /* Elemente innerhalb einer Section: Eingerückt (via JS-Klasse) */
 .content-builder-slice.in-section {
     margin-left: 30px;
@@ -243,14 +264,16 @@
     background: rgba(60, 141, 188, 0.9);
     border-radius: 0 4px 0 4px;
     padding: 2px;
-    pointer-events: none;
+    pointer-events: auto;
+    visibility: hidden;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
 }
 
 .content-builder-slice:hover > .slice-toolbar {
     opacity: 1;
-    pointer-events: auto;
+    visibility: visible;
+    transition-delay: 0s;
 }
 
 .slice-toolbar .btn-group {
@@ -665,6 +688,8 @@
         text-align: right;
         opacity: 1;
         pointer-events: auto;
+        visibility: visible;
+        transition: none;
     }
     
     .slice-rendered {

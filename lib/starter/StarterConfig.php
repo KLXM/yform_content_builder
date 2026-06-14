@@ -104,7 +104,7 @@ class StarterConfig
                 'choices' => self::getBackgroundChoices(),
                 'choice_colors' => self::getBackgroundColors(),
                 'selectpicker' => true,
-                'default' => '',
+                'default' => 'uk-background-default',
                 'visible_if' => [
                     'enable_section' => [true, 1, '1'],
                 ],
@@ -313,17 +313,36 @@ class StarterConfig
      */
     public static function mapBg(string $ukKey, string $framework): string
     {
-        if ($ukKey === '') {
+        $normalizedKey = trim($ukKey);
+
+        $aliases = [
+            'none' => '',
+            'default' => 'uk-background-default',
+            'transparent' => 'uk-background-transparent',
+            'muted' => 'uk-background-muted',
+            'primary' => 'uk-background-primary',
+            'secondary' => 'uk-background-secondary',
+            'uk-section-default' => 'uk-background-default',
+            'uk-section-muted' => 'uk-background-muted',
+            'uk-section-primary' => 'uk-background-primary',
+            'uk-section-secondary' => 'uk-background-secondary',
+        ];
+
+        if (isset($aliases[$normalizedKey])) {
+            $normalizedKey = $aliases[$normalizedKey];
+        }
+
+        if ($normalizedKey === '') {
             return '';
         }
 
         if ($framework === 'uikit') {
-            return $ukKey;
+            return $normalizedKey;
         }
 
         $bsMap = [
-            'uk-background-transparent' => '',
             'uk-background-default'   => 'bg-white',
+            'uk-background-transparent' => 'bg-transparent',
             'uk-background-muted'     => 'bg-light',
             'uk-background-primary'   => 'bg-primary text-white',
             'uk-background-secondary' => 'bg-secondary text-white',
@@ -338,11 +357,11 @@ class StarterConfig
         ];
 
         if ($framework === 'bootstrap') {
-            return $bsMap[$ukKey] ?? '';
+            return $bsMap[$normalizedKey] ?? '';
         }
 
         // plain
-        return $plainMap[$ukKey] ?? '';
+        return $plainMap[$normalizedKey] ?? '';
     }
 
     /**
