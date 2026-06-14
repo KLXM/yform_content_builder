@@ -2171,17 +2171,17 @@
                         $toolbar = $slice.children('.slice-toolbar');
                     }
                     var $insertGroup = $toolbar.find('.btn-group-insert');
-                    
-                    if ($insertGroup.length === 0) {
-                        $insertGroup = self.createInsertButton(availableElements, index, false);
-                        var $sliceLabel = $toolbar.find('.slice-label');
-                        if ($sliceLabel.length) {
-                            $insertGroup.insertAfter($sliceLabel);
-                        } else {
-                            $toolbar.prepend($insertGroup);
-                        }
+
+                    if ($insertGroup.length > 0) {
+                        $insertGroup.remove();
+                    }
+
+                    $insertGroup = self.createInsertButton(availableElements, index, false);
+                    var $sliceLabel = $toolbar.find('.slice-label');
+                    if ($sliceLabel.length) {
+                        $insertGroup.insertAfter($sliceLabel);
                     } else {
-                        $insertGroup.find('.btn-insert-slice').attr('data-insert-after', index);
+                        $toolbar.prepend($insertGroup);
                     }
                 });
 
@@ -2195,17 +2195,17 @@
                             $toolbar = $slice.children('.slice-toolbar');
                         }
                         var $insertGroup = $toolbar.find('.btn-group-insert');
-                        
-                        if ($insertGroup.length === 0) {
-                            $insertGroup = self.createInsertButton(availableElements, index, true);
-                            var $sliceLabel = $toolbar.find('.slice-label');
-                            if ($sliceLabel.length) {
-                                $insertGroup.insertAfter($sliceLabel);
-                            } else {
-                                $toolbar.prepend($insertGroup);
-                            }
+
+                        if ($insertGroup.length > 0) {
+                            $insertGroup.remove();
+                        }
+
+                        $insertGroup = self.createInsertButton(availableElements, index, true);
+                        var $sliceLabel = $toolbar.find('.slice-label');
+                        if ($sliceLabel.length) {
+                            $insertGroup.insertAfter($sliceLabel);
                         } else {
-                            $insertGroup.find('.btn-insert-slice').attr('data-insert-after', index);
+                            $toolbar.prepend($insertGroup);
                         }
                     });
                 });
