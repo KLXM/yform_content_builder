@@ -150,6 +150,14 @@ if ($framework === 'uikit') {
                     <i class="fa fa-plus"></i> Element hinzufügen
                 </button>
                 <ul class="dropdown-menu">
+                    <?php if (rex_addon::get('yform_content_builder')->getConfig('enable_copy_paste')): ?>
+                        <li class="paste-slice-item" style="display: none;">
+                            <a href="#" class="btn-paste-slice" data-insert-after="end">
+                                <i class="fa fa-clipboard"></i> <strong>Element einfügen</strong>
+                            </a>
+                        </li>
+                        <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
+                    <?php endif; ?>
                     <?php $categoryIndex = 0; ?>
                     <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
                         <?php if ($categoryIndex > 0): ?>

@@ -33,6 +33,11 @@
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+            
+            // Paste-Buttons initial anzeigen, wenn Kopiertes vorhanden
+            if (localStorage.getItem('yform_cb_copied_slice')) {
+                $('.paste-slice-item').show();
+            }
         },
 
         /**
@@ -42,11 +47,27 @@
          */
         initDropdownZIndex: function() {
             $(document)
-                .on('show.bs.dropdown', '.slice-toolbar .btn-group-insert', function() {
+                .on('show.bs.dropdown', '.slice-toolbar .btn-group-insert, .column-add-slice, .content-builder-add', function() {
                     var $slice = $(this).closest('.content-builder-slice');
-                    $slice.css('z-index', 1000);
+                    if ($slice.length > 0) {
+                        $slice.css('z-index', 100000);
+                        $slice.find('> .slice-toolbar').css('z-index', 100001);
+                    }
+                    
+                    var $menu = $(this).find('.dropdown-menu').first();
+                    if ($menu.length > 0) {
+                        var $pasteItems = $menu.find('.paste-slice-item');
+                        if ($pasteItems.length > 0) {
+                            var $searchWrapper = $menu.find('.dropdown-search-wrapper').first();
+                            if ($searchWrapper.length > 0) {
+                                $searchWrapper.after($pasteItems);
+                            } else {
+                                $menu.prepend($pasteItems);
+                            }
+                        }
+                    }
                 })
-                .on('shown.bs.dropdown', '.slice-toolbar .btn-group-insert', function() {
+                .on('shown.bs.dropdown', '.slice-toolbar .btn-group-insert, .column-add-slice, .content-builder-add', function() {
                     var $menu = $(this).find('.dropdown-menu').first();
                     if ($menu.length > 0) {
                         var frozenWidth = $menu.outerWidth();
@@ -58,9 +79,12 @@
                         }
                     }
                 })
-                .on('hidden.bs.dropdown', '.slice-toolbar .btn-group-insert', function() {
+                .on('hidden.bs.dropdown', '.slice-toolbar .btn-group-insert, .column-add-slice, .content-builder-add', function() {
                     var $slice = $(this).closest('.content-builder-slice');
-                    $slice.css('z-index', 'auto');
+                    if ($slice.length > 0) {
+                        $slice.css('z-index', 'auto');
+                        $slice.find('> .slice-toolbar').css('z-index', '');
+                    }
 
                     var $menu = $(this).find('.dropdown-menu').first();
                     if ($menu.length > 0) {
@@ -271,6 +295,72 @@
                 e.stopPropagation();
                 var $slice = $(this).closest('.content-builder-slice');
                 self.toggleSliceOnline($slice);
+                return false;
+            });
+
+            // Slice kopieren
+            $(document).on('click', '.btn-slice-copy', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $slice = $(this).closest('.content-builder-slice');
+                var sliceType = $slice.data('slice-type');
+                var sliceData = self.getSliceData($slice);
+                var sliceToCopy = {
+                    type: sliceType,
+                    data: sliceData
+                };
+                
+                try {
+                    localStorage.setItem('yform_cb_copied_slice', JSON.stringify(sliceToCopy));
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(JSON.stringify(sliceToCopy));
+                    }
+                    alert('Element kopiert. Sie können es nun über die Plus-Menüs einfügen.');
+                    $('.paste-slice-item').show();
+                } catch (err) {
+                    console.error('Kopieren fehlgeschlagen:', err);
+                }
+                return false;
+            });
+
+            // Kopiertes Slice einfügen
+            $(document).on('click', '.btn-paste-slice', function(e) {
+                e.preventDefault();
+                var insertAfterVal = $(this).attr('data-insert-after');
+                var $container = $(this).closest('.content-builder-slice').parent();
+                if ($container.length === 0) {
+                    $container = $(this).closest('.yform-content-builder').find('.content-builder-slices');
+                }
+                
+                var copiedSliceRaw = localStorage.getItem('yform_cb_copied_slice');
+                if (!copiedSliceRaw) {
+                    alert('Kein kopiertes Element vorhanden.');
+                    return false;
+                }
+                
+                var copiedSlice = null;
+                try {
+                    copiedSlice = JSON.parse(copiedSliceRaw);
+                } catch (err) {
+                    alert('Fehler beim Lesen des kopierten Elements.');
+                    return false;
+                }
+                
+                if (copiedSlice && copiedSlice.type) {
+                    var position;
+                    if (insertAfterVal === undefined || insertAfterVal === 'end' || insertAfterVal === '') {
+                        position = $container.children('.content-builder-slice').length;
+                    } else {
+                        var insertAfter = parseInt(insertAfterVal);
+                        if (insertAfter === -1) {
+                            position = $container.children('.content-builder-slice').length;
+                        } else {
+                            position = insertAfter + 1;
+                        }
+                    }
+                    
+                    self.insertCopiedSliceAt($container, copiedSlice, position);
+                }
                 return false;
             });
 
@@ -1602,6 +1692,31 @@
             }
         },
 
+        resolveElementDefaults: function($container, elementType) {
+            // Defaults nur auf Top-Level-Slices anwenden. In verschachtelten
+            // Spalten sollen bestehende/individuelle Werte nicht durch globale
+            // Vorgaben beeinflusst werden.
+            if ($container.hasClass('content-builder-column-slices')) {
+                return {};
+            }
+
+            var elementDefaultsRaw = $container.closest('.yform-content-builder').attr('data-element-defaults') || '{}';
+            var elementDefaults = {};
+            try {
+                elementDefaults = JSON.parse(elementDefaultsRaw);
+            } catch (e) {
+                elementDefaults = {};
+            }
+
+            if (!elementDefaults || typeof elementDefaults !== 'object') {
+                return {};
+            }
+
+            var globalDefaults = elementDefaults['*'] || {};
+            var typeDefaults = elementDefaults[elementType] || {};
+            return Object.assign({}, globalDefaults, typeDefaults);
+        },
+
         addSlice: function($container, elementType, elementLabel) {
             var sliceId = 'slice_' + Date.now();
             var index = $container.children('.content-builder-slice').length;
@@ -1615,14 +1730,7 @@
                 ? '<button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="Offline/Online schalten"><i class="fa fa-eye"></i></button>'
                 : '';
 
-            // Element-Defaults aus dem Container lesen
-            var elementDefaultsRaw = $container.closest('.yform-content-builder').attr('data-element-defaults') || '{}';
-            var elementDefaults = {};
-            try { elementDefaults = JSON.parse(elementDefaultsRaw); } catch(e) {}
-            // '*' = globale Defaults, typ-spezifische Defaults überschreiben sie
-            var globalDefaults = elementDefaults['*'] || {};
-            var typeDefaults = elementDefaults[elementType] || {};
-            var sliceDefaults = Object.assign({}, globalDefaults, typeDefaults);
+            var sliceDefaults = this.resolveElementDefaults($container, elementType);
 
             // Icon aus available-elements lesen
             var availableElementsRaw = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
@@ -1654,6 +1762,12 @@
 
             $newSlice.find('.slice-toolbar').attr('data-element-name', elementLabel || elementType || '');
 
+            // Wenn Copy & Paste aktiviert ist, fügen wir den Copy-Button hinzu!
+            var isCopyPasteEnabled = $container.closest('.yform-content-builder').data('copy-paste') == 1;
+            if (isCopyPasteEnabled) {
+                $newSlice.find('.slice-toolbar .btn-slice-edit').after('<button type="button" class="btn btn-xs btn-default btn-slice-copy" title="Kopieren"><i class="fa fa-copy"></i></button>');
+            }
+
             if (Object.keys(sliceDefaults).length > 0) {
                 $newSlice.attr('data-slice-data', JSON.stringify(sliceDefaults));
             }
@@ -1681,14 +1795,7 @@
                 ? '<button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="Offline/Online schalten"><i class="fa fa-eye"></i></button>'
                 : '';
 
-            // Element-Defaults aus dem Container lesen
-            var elementDefaultsRaw2 = $container.closest('.yform-content-builder').attr('data-element-defaults') || '{}';
-            var elementDefaults2 = {};
-            try { elementDefaults2 = JSON.parse(elementDefaultsRaw2); } catch(e) {}
-            // '*' = globale Defaults, typ-spezifische Defaults überschreiben sie
-            var globalDefaults2 = elementDefaults2['*'] || {};
-            var typeDefaults2 = elementDefaults2[elementType] || {};
-            var sliceDefaults2 = Object.assign({}, globalDefaults2, typeDefaults2);
+            var sliceDefaults2 = this.resolveElementDefaults($container, elementType);
 
             // Icon aus available-elements lesen
             var availableElementsRaw2 = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
@@ -1720,6 +1827,12 @@
 
             $newSlice.find('.slice-toolbar').attr('data-element-name', elementLabel || elementType || '');
 
+            // Wenn Copy & Paste aktiviert ist, fügen wir den Copy-Button hinzu!
+            var isCopyPasteEnabled2 = $container.closest('.yform-content-builder').data('copy-paste') == 1;
+            if (isCopyPasteEnabled2) {
+                $newSlice.find('.slice-toolbar .btn-slice-edit').after('<button type="button" class="btn btn-xs btn-default btn-slice-copy" title="Kopieren"><i class="fa fa-copy"></i></button>');
+            }
+
             if (Object.keys(sliceDefaults2).length > 0) {
                 $newSlice.attr('data-slice-data', JSON.stringify(sliceDefaults2));
             }
@@ -1741,6 +1854,81 @@
             this.updateSectionClasses();
             this.updateInsertButtons();
             
+            this.scrollToSlice($newSlice);
+        },
+
+        insertCopiedSliceAt: function($container, copiedSlice, position) {
+            var self = this;
+            var sliceId = 'slice_' + Date.now();
+            var elementType = copiedSlice.type;
+            
+            // Section-Element?
+            var isSectionClass = (elementType === 'section') ? ' is-section' : '';
+            
+            var onlineToggleEnabled = $container.closest('.yform-content-builder').data('online-toggle') == 1;
+            var onlineBtnHtml = onlineToggleEnabled
+                ? '<button type="button" class="btn btn-xs btn-default btn-slice-toggle-online" title="Offline/Online schalten"><i class="fa fa-eye"></i></button>'
+                : '';
+
+            // Icon aus available-elements lesen
+            var availableElementsRaw = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
+            var availableElements = {};
+            try { availableElements = JSON.parse(availableElementsRaw); } catch(e) {}
+            var elementIcon = 'fa-cube';
+            var elementLabel = elementType;
+            if (Array.isArray(availableElements)) {
+                var found = availableElements.find(function(el) { return el && (el.type === elementType || el.key === elementType); });
+                if (found) {
+                    if (found.icon) elementIcon = found.icon;
+                    if (found.label) elementLabel = found.label;
+                }
+            } else if (availableElements[elementType]) {
+                if (availableElements[elementType].icon) elementIcon = availableElements[elementType].icon;
+                if (availableElements[elementType].label) elementLabel = availableElements[elementType].label;
+            }
+            var sliceLabelHtml = '<span class="slice-label"><i class="fa ' + elementIcon + '"></i>' + $('<span>').text(elementLabel || elementType).html() + '</span>';
+            
+            var $newSlice = $('<div class="content-builder-slice' + isSectionClass + '" data-slice-id="' + sliceId + '" data-slice-type="' + elementType + '" data-slice-index="' + position + '" data-slice-online="1">' +
+                '<div class="slice-toolbar">' +
+                    sliceLabelHtml +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-edit" title="Bearbeiten"><i class="fa fa-pencil"></i></button>' +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben"><i class="fa fa-arrow-up"></i></button>' +
+                    '<button type="button" class="btn btn-xs btn-default btn-slice-move-down" title="Nach unten"><i class="fa fa-arrow-down"></i></button>' +
+                    onlineBtnHtml +
+                    '<button type="button" class="btn btn-xs btn-danger btn-slice-delete" title="Löschen"><i class="fa fa-trash"></i></button>' +
+                '</div>' +
+                '<div class="slice-rendered"><div class="alert alert-info">Kopiertes Element: ' + (elementLabel || elementType) + ' - Wird geladen...</div></div>' +
+                '<div class="slice-edit-form" style="display: none;"></div>' +
+            '</div>');
+
+            $newSlice.find('.slice-toolbar').attr('data-element-name', elementLabel || elementType || '');
+            
+            // Wenn Copy & Paste aktiviert ist, fügen wir den Copy-Button hinzu!
+            var isCopyPasteEnabled = $container.closest('.yform-content-builder').data('copy-paste') == 1;
+            if (isCopyPasteEnabled) {
+                $newSlice.find('.slice-toolbar .btn-slice-edit').after('<button type="button" class="btn btn-xs btn-default btn-slice-copy" title="Kopieren"><i class="fa fa-copy"></i></button>');
+            }
+
+            if (copiedSlice.data) {
+                $newSlice.attr('data-slice-data', JSON.stringify(copiedSlice.data));
+            }
+            
+            var $slices = $container.children('.content-builder-slice');
+            
+            if (position >= $slices.length) {
+                $container.append($newSlice);
+            } else {
+                $newSlice.insertBefore($slices.eq(position));
+            }
+            
+            this.updateIndices();
+            this.updateSectionClasses();
+            this.updateInsertButtons();
+            
+            // Jetzt rendern wir das Element im Backend
+            this.renderSlice($newSlice, copiedSlice.data || {});
+            
+            this.updateHiddenField();
             this.scrollToSlice($newSlice);
         },
 
@@ -1978,6 +2166,24 @@
                         '</li>';
                 });
             });
+            
+            // Wenn Copy & Paste aktiviert ist, fügen wir eine Einfügen-Option hinzu
+            var isCopyPasteEnabled = false;
+            var $cb = $('.yform-content-builder').first();
+            if ($cb.length > 0 && $cb.attr('data-copy-paste') === '1') {
+                isCopyPasteEnabled = true;
+            }
+            if (isCopyPasteEnabled) {
+                var hasCopiedSlice = localStorage.getItem('yform_cb_copied_slice') !== null;
+                var displayStyle = hasCopiedSlice ? '' : ' style="display: none;"';
+                var pasteHtml = '<li class="paste-slice-item"' + displayStyle + '>' +
+                    '<a href="#" class="btn-paste-slice" data-insert-after="' + insertAfter + '">' +
+                    '<i class="fa fa-clipboard"></i> <strong>Element einfügen</strong>' +
+                    '</a>' +
+                    '</li>' +
+                    '<li role="separator" class="divider paste-slice-item"' + displayStyle + '></li>';
+                dropdownItems = pasteHtml + dropdownItems;
+            }
             
             var html = '<div class="btn-group btn-group-insert">' +
                 '<button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="Element einfügen">' +

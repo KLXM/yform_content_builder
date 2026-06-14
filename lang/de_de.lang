@@ -95,3 +95,8 @@ yform_content_builder_table_editor_header_row = Erste Zeile ist Kopfzeile
 yform_content_builder_table_editor_header_col = Erste Spalte ist Kopfspalte
 yform_content_builder_table_editor_add_row = Zeile +
 yform_content_builder_table_editor_add_col = Spalte +
+
+yform_content_builder_enable_copy_paste = Copy & Paste
+yform_content_builder_enable_copy_paste_label = Copy & Paste-Funktionalität für Slices aktivieren
+yform_content_builder_enable_copy_paste_notice = Aktiviert Buttons in der Slice-Toolbar zum Kopieren eines Slices in die Zwischenablage und ermöglicht das Einfügen an jeder Stelle.
+

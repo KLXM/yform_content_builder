@@ -21,7 +21,7 @@ body.rex-theme-dark {
 
     /* Slice Container */
     .content-builder-slice {
-        background: #2c3136;
+        background: transparent;
         border-color: #404448;
         color: #f2f2f2;
     }
@@ -66,7 +66,7 @@ body.rex-theme-dark {
 
     /* In-Section Elements */
     .content-builder-slice.in-section {
-        background: #35393d;
+        background: transparent;
         border-left-color: #4a90e2;
     }
 
@@ -1044,4 +1044,29 @@ body.rex-theme-dark {
             color: #f2f2f2 !important;
         }
     }
+}
+
+/* Paste button blue highlight */
+.dropdown-menu li.paste-slice-item a.btn-paste-slice {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 15px;
+    background-color: #3c8dbc !important;
+    color: #fff !important;
+    font-weight: bold;
+    border-radius: 0;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-menu li.paste-slice-item a.btn-paste-slice:hover,
+.dropdown-menu li.paste-slice-item a.btn-paste-slice:focus {
+    background-color: #2b6688 !important;
+    color: #fff !important;
+    text-decoration: none;
+}
+
+.dropdown-menu li.paste-slice-item a.btn-paste-slice i {
+    color: #fff !important;
+    margin-right: 8px;
 }

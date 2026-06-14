@@ -40,6 +40,7 @@ class ModuleBuilder
     protected string $legacyHtml = '';
     /** @var array<string, array<string, mixed>> */
     protected array $elementDefaults = [];
+    protected bool $enableCopyPaste = false;
 
     /** @param array<string, mixed> $options */
     public static function create(int $valueId = 1, mixed $rawValue = null, array $options = []): self
@@ -85,11 +86,6 @@ class ModuleBuilder
             $rawValue = self::loadRawValueFromCurrentSlice($instance->valueId);
         }
 
-        $instance->slices = $instance->normalizeSlices($rawValue);
-        if ($instance->slices === []) {
-            $initialOption = $options['initial_slices'] ?? ($options['initial_values'] ?? ($options['initial_value'] ?? null));
-            $instance->slices = $instance->normalizeInitialSlices($initialOption);
-        }
         // global_defaults als Alias oder als '*'-Key in element_defaults
         $globalDefaults = $options['global_defaults'] ?? [];
         $elementDefaultsInput = $options['element_defaults'] ?? [];
@@ -101,6 +97,16 @@ class ModuleBuilder
             }
         }
         $instance->elementDefaults = $instance->normalizeElementDefaults($elementDefaultsInput);
+
+        $instance->enableCopyPaste = array_key_exists('enable_copy_paste', $options)
+            ? (bool) $options['enable_copy_paste']
+            : (bool) rex_addon::get('yform_content_builder')->getConfig('enable_copy_paste', false);
+
+        $instance->slices = $instance->normalizeSlices($rawValue);
+        if ($instance->slices === []) {
+            $initialOption = $options['initial_slices'] ?? ($options['initial_values'] ?? ($options['initial_value'] ?? null));
+            $instance->slices = $instance->normalizeInitialSlices($initialOption);
+        }
         $instance->legacyMigrationTarget = $instance->resolveMigrationTarget($instance->legacyMigrationTarget);
 
         return $instance;
@@ -140,6 +146,7 @@ class ModuleBuilder
              data-framework="<?= rex_escape($this->framework) ?>"
              data-online-toggle="<?= $this->enableOnlineToggle ? '1' : '0' ?>"
              data-legacy-mode="<?= $legacyActive ? '1' : '0' ?>"
+               data-copy-paste="<?= $this->enableCopyPaste ? '1' : '0' ?>"
              data-available-elements='<?= rex_escape(json_encode($availableElements, JSON_UNESCAPED_UNICODE)) ?>'
              <?php if ($this->elementDefaults !== []): ?>data-element-defaults='<?= rex_escape(json_encode($this->elementDefaults, JSON_UNESCAPED_UNICODE)) ?>'<?php endif; ?>>
             <?php if ($this->label !== ''): ?>
@@ -308,6 +315,14 @@ class ModuleBuilder
                             <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
+                            <?php if ($this->enableCopyPaste): ?>
+                                <li class="paste-slice-item" style="display: none;">
+                                    <a href="#" class="btn-paste-slice" data-insert-after="end">
+                                        <i class="fa fa-clipboard"></i> <strong>Element einfügen</strong>
+                                    </a>
+                                </li>
+                                <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
+                            <?php endif; ?>
                             <?php $categoryIndex = 0; ?>
                             <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
                                 <?php if ($categoryIndex > 0): ?>
@@ -865,6 +880,14 @@ class ModuleBuilder
                         <i class="fa fa-plus"></i>
                     </button>
                     <ul class="dropdown-menu pull-right">
+                        <?php if ($this->enableCopyPaste): ?>
+                            <li class="paste-slice-item" style="display: none;">
+                                <a href="#" class="btn-paste-slice" data-insert-after="<?= $index ?>">
+                                    <i class="fa fa-clipboard"></i> <strong>Element einfügen</strong>
+                                </a>
+                            </li>
+                            <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
+                        <?php endif; ?>
                         <?php 
                         // Gesamtanzahl Elemente zählen
                         $totalElements = 0;
@@ -910,6 +933,11 @@ class ModuleBuilder
                 <button type="button" class="btn btn-xs btn-default btn-slice-edit" title="<?= rex_i18n::msg('yform_content_builder_element_edit') ?>">
                     <i class="fa fa-pencil"></i>
                 </button>
+                <?php if ($this->enableCopyPaste): ?>
+                    <button type="button" class="btn btn-xs btn-default btn-slice-copy" title="Kopieren">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                <?php endif; ?>
                 <button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="<?= rex_escape(Helper::t('yform_content_builder_element_move_up', 'Move up')) ?>">
                     <i class="fa fa-arrow-up"></i>
                 </button>

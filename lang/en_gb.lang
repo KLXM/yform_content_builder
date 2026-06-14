@@ -105,3 +105,8 @@ yform_content_builder_table_editor_header_row = First row is header row
 yform_content_builder_table_editor_header_col = First column is header column
 yform_content_builder_table_editor_add_row = Row +
 yform_content_builder_table_editor_add_col = Column +
+
+yform_content_builder_enable_copy_paste = Copy & Paste
+yform_content_builder_enable_copy_paste_label = Enable Copy & Paste functionality for slices
+yform_content_builder_enable_copy_paste_notice = Adds buttons in the slice toolbar to copy a slice to the clipboard and allows pasting it at any position.
+

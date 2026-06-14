@@ -72,7 +72,8 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
 <div class="form-group yform-element <?= $fieldClass ?>" 
      data-framework="<?= $framework ?>"
      data-online-toggle="<?= $enableOnlineToggle ? '1' : '0' ?>"
-    data-legacy-mode="<?= $legacy_is_active ? '1' : '0' ?>"
+     data-copy-paste="<?= $addon->getConfig('enable_copy_paste') ? '1' : '0' ?>"
+     data-legacy-mode="<?= $legacy_is_active ? '1' : '0' ?>"
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     
     <?php if ($label): ?>
@@ -328,6 +329,14 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                                     <i class="fa fa-plus"></i>
                                 </button>
                                 <ul class="dropdown-menu pull-right">
+                                    <?php if ($addon->getConfig('enable_copy_paste')): ?>
+                                        <li class="paste-slice-item" style="display: none;">
+                                            <a href="#" class="btn-paste-slice" data-insert-after="<?= $index ?>">
+                                                <i class="fa fa-clipboard"></i> <strong>Element einfügen</strong>
+                                            </a>
+                                        </li>
+                                        <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
+                                    <?php endif; ?>
                                     <?php $categoryIndex = 0; ?>
                                     <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
                                         <?php if ($categoryIndex > 0): ?>
@@ -360,6 +369,11 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                             <button type="button" class="btn btn-xs btn-default btn-slice-edit" title="<?= rex_i18n::msg('yform_content_builder_element_edit') ?>">
                                 <i class="fa fa-pencil"></i>
                             </button>
+                            <?php if ($addon->getConfig('enable_copy_paste')): ?>
+                            <button type="button" class="btn btn-xs btn-default btn-slice-copy" title="Kopieren">
+                                <i class="fa fa-copy"></i>
+                            </button>
+                            <?php endif; ?>
                             <button type="button" class="btn btn-xs btn-default btn-slice-move-up" title="Nach oben verschieben">
                                 <i class="fa fa-arrow-up"></i>
                             </button>
@@ -433,6 +447,14 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
+                    <?php if ($addon->getConfig('enable_copy_paste')): ?>
+                        <li class="paste-slice-item" style="display: none;">
+                            <a href="#" class="btn-paste-slice" data-insert-after="end">
+                                <i class="fa fa-clipboard"></i> <strong>Element einfügen</strong>
+                            </a>
+                        </li>
+                        <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
+                    <?php endif; ?>
                     <?php $categoryIndex = 0; ?>
                     <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
                         <?php if ($categoryIndex > 0): ?>
