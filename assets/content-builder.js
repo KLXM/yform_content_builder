@@ -34,6 +34,7 @@
             this.initMoveButtons();
             this.initGridViews();
             this.updateSectionClasses();
+            this.updateInsertButtons();
             
             // Paste-Buttons initial anzeigen, wenn Kopiertes vorhanden
             if (localStorage.getItem('yform_cb_copied_slice')) {
@@ -2151,6 +2152,70 @@
         
         updateInsertButtons: function() {
             var self = this;
+
+            function resolveElementMeta(availableElements, elementType) {
+                var meta = {
+                    label: String(elementType || ''),
+                    icon: 'fa-cube'
+                };
+
+                if (!availableElements) {
+                    return meta;
+                }
+
+                if (Array.isArray(availableElements)) {
+                    var found = availableElements.find(function(el) {
+                        return el && (el.type === elementType || el.key === elementType);
+                    });
+                    if (found) {
+                        if (found.label) {
+                            meta.label = String(found.label);
+                        }
+                        if (found.icon) {
+                            meta.icon = String(found.icon);
+                        }
+                    }
+                    return meta;
+                }
+
+                if (availableElements[elementType]) {
+                    if (availableElements[elementType].label) {
+                        meta.label = String(availableElements[elementType].label);
+                    }
+                    if (availableElements[elementType].icon) {
+                        meta.icon = String(availableElements[elementType].icon);
+                    }
+                }
+
+                return meta;
+            }
+
+            function ensureToolbarLabel($toolbar, $slice, availableElements) {
+                if (!$toolbar || $toolbar.length === 0) {
+                    return;
+                }
+
+                var $existingLabel = $toolbar.children('.slice-label').first();
+                if ($existingLabel.length > 0) {
+                    return;
+                }
+
+                var elementType = String($slice.attr('data-slice-type') || $slice.data('slice-type') || '');
+                var meta = resolveElementMeta(availableElements, elementType);
+                var $label = $('<span class="slice-label"></span>');
+                var $icon = $('<i></i>').addClass('fa ' + meta.icon);
+                var $text = $('<span></span>').text(meta.label || elementType);
+
+                $label.append($icon).append($text);
+                $toolbar.attr('data-element-name', meta.label || elementType);
+
+                var $firstButtonGroup = $toolbar.children('.btn-group').first();
+                if ($firstButtonGroup.length > 0) {
+                    $label.insertBefore($firstButtonGroup);
+                } else {
+                    $toolbar.prepend($label);
+                }
+            }
             
             $('.yform-content-builder').each(function() {
                 var $builder = $(this);
@@ -2170,6 +2235,7 @@
                     if ($toolbar.length === 0) {
                         $toolbar = $slice.children('.slice-toolbar');
                     }
+                    ensureToolbarLabel($toolbar, $slice, availableElements);
                     var $insertGroup = $toolbar.find('.btn-group-insert');
 
                     if ($insertGroup.length > 0) {
@@ -2194,6 +2260,7 @@
                         if ($toolbar.length === 0) {
                             $toolbar = $slice.children('.slice-toolbar');
                         }
+                        ensureToolbarLabel($toolbar, $slice, availableElements);
                         var $insertGroup = $toolbar.find('.btn-group-insert');
 
                         if ($insertGroup.length > 0) {
