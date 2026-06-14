@@ -1506,7 +1506,7 @@ body.modal-open {
 
 .content-builder-columns-row > .content-builder-column > .content-builder-column-slices {
     max-width: 100%;
-    overflow-x: hidden;
+    overflow: visible;
 }
 
 .content-builder-backend-container {
