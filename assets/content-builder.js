@@ -52,8 +52,9 @@
                 .on('show.bs.dropdown', '.slice-toolbar .btn-group-insert, .column-add-slice, .content-builder-add', function() {
                     var $slice = $(this).closest('.content-builder-slice');
                     if ($slice.length > 0) {
-                        $slice.css('z-index', 100000);
-                        $slice.find('> .slice-toolbar').css('z-index', 100001);
+                        // Keep dropdown above nearby slices, but below modals.
+                        $slice.css('z-index', 1030);
+                        $slice.find('> .slice-toolbar').css('z-index', 1031);
                     }
                     
                     var $menu = $(this).find('.dropdown-menu').first();
@@ -232,6 +233,11 @@
 
             $(document).on('show.bs.modal', '.modal', function() {
                 var $modal = $(this);
+
+                // Defensive reset: dropdown interactions may leave elevated z-index
+                // on slices/toolbars, which must never overlay modals.
+                $('.content-builder-slice').css('z-index', '');
+                $('.content-builder-slice > .slice-toolbar').css('z-index', '');
 
                 // Repeater/Settings child modals are often rendered inside the
                 // currently open nested editor modal. Move them to body so
