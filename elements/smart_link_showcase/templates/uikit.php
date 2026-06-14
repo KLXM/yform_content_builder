@@ -113,5 +113,4 @@ $wrapperClose->setVar('container_width', $containerWidth, false);
             </div>
         <?php endforeach; ?>
     </div>
-</div>
 <?= $wrapperClose->parse('ycb_elements/wrapper.php') ?>
