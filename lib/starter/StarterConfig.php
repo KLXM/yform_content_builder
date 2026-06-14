@@ -322,6 +322,7 @@ class StarterConfig
         }
 
         $bsMap = [
+            'uk-background-transparent' => '',
             'uk-background-default'   => 'bg-white',
             'uk-background-muted'     => 'bg-light',
             'uk-background-primary'   => 'bg-primary text-white',
@@ -329,6 +330,7 @@ class StarterConfig
         ];
 
         $plainMap = [
+            'uk-background-transparent' => '',
             'uk-background-default'   => 'background:#ffffff;',
             'uk-background-muted'     => 'background:#f7f7f7;',
             'uk-background-primary'   => 'background:#1e87f0;',

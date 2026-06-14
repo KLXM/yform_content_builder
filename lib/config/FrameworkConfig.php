@@ -46,24 +46,24 @@ class FrameworkConfig
         $defaults = [
             'uikit' => [
                 '' => 'Keine',
-                'uk-background-default' => 'Default (Weiß)',
+                'uk-background-transparent' => 'Transparent',
                 'uk-background-muted' => 'Muted (Grau)',
                 'uk-background-primary' => 'Primary',
                 'uk-background-secondary' => 'Secondary',
             ],
             'bootstrap' => [
                 '' => 'Keine',
-                'bg-white' => 'Weiß',
-                'bg-light' => 'Hell',
-                'bg-dark' => 'Dunkel',
-                'bg-primary' => 'Primary',
-                'bg-secondary' => 'Secondary',
+                'uk-background-transparent' => 'Transparent',
+                'uk-background-muted' => 'Muted (Grau)',
+                'uk-background-primary' => 'Primary',
+                'uk-background-secondary' => 'Secondary',
             ],
             'plain' => [
                 '' => 'Keine',
-                'bg-white' => 'Weiß',
-                'bg-light-gray' => 'Hell',
-                'bg-dark' => 'Dunkel',
+                'uk-background-transparent' => 'Transparent',
+                'uk-background-muted' => 'Muted (Grau)',
+                'uk-background-primary' => 'Primary',
+                'uk-background-secondary' => 'Secondary',
             ],
         ];
 
@@ -198,24 +198,24 @@ class FrameworkConfig
         $defaults = [
             'uikit' => [
                 '' => ['color' => 'transparent', 'label' => 'Keine'],
-                'uk-background-default' => ['color' => '#ffffff', 'label' => 'Default (Weiß)'],
+                'uk-background-transparent' => ['color' => 'transparent', 'label' => 'Transparent'],
                 'uk-background-muted' => ['color' => '#f8f8f8', 'label' => 'Muted (Grau)'],
                 'uk-background-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
                 'uk-background-secondary' => ['color' => '#222222', 'label' => 'Secondary'],
             ],
             'bootstrap' => [
                 '' => ['color' => 'transparent', 'label' => 'Keine'],
-                'bg-white' => ['color' => '#ffffff', 'label' => 'Weiß'],
-                'bg-light' => ['color' => '#f8f9fa', 'label' => 'Hell'],
-                'bg-dark' => ['color' => '#212529', 'label' => 'Dunkel'],
-                'bg-primary' => ['color' => '#0d6efd', 'label' => 'Primary'],
-                'bg-secondary' => ['color' => '#6c757d', 'label' => 'Secondary'],
+                'uk-background-transparent' => ['color' => 'transparent', 'label' => 'Transparent'],
+                'uk-background-muted' => ['color' => '#f8f9fa', 'label' => 'Muted (Grau)'],
+                'uk-background-primary' => ['color' => '#0d6efd', 'label' => 'Primary'],
+                'uk-background-secondary' => ['color' => '#6c757d', 'label' => 'Secondary'],
             ],
             'plain' => [
                 '' => ['color' => 'transparent', 'label' => 'Keine'],
-                'bg-white' => ['color' => '#ffffff', 'label' => 'Weiß'],
-                'bg-light-gray' => ['color' => '#f5f5f5', 'label' => 'Hell'],
-                'bg-dark' => ['color' => '#333333', 'label' => 'Dunkel'],
+                'uk-background-transparent' => ['color' => 'transparent', 'label' => 'Transparent'],
+                'uk-background-muted' => ['color' => '#f5f5f5', 'label' => 'Muted (Grau)'],
+                'uk-background-primary' => ['color' => '#1e87f0', 'label' => 'Primary'],
+                'uk-background-secondary' => ['color' => '#333333', 'label' => 'Secondary'],
             ],
         ];
 

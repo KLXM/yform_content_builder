@@ -12,7 +12,7 @@ if (!empty($themeOverride) && class_exists('UikitThemeBuilder\DomainContext')) {
 }
 
 $label = $elementData['label'] ?? '';
-$bgColor = $elementData['background_color'] ?? 'light';
+$bgColor = $elementData['background_color'] ?? 'none';
 $bgImage = $elementData['background_image'] ?? '';
 $paddingTop = $elementData['padding_top'] ?? 'medium';
 $paddingBottom = $elementData['padding_bottom'] ?? 'medium';
@@ -42,11 +42,13 @@ $paddingMap = [
 // Background-Klassen für UIkit
 $bgClasses = [
     'none' => '',
-    'light' => 'uk-section-muted',
-    'dark' => 'uk-section-secondary',
+    'transparent' => '',
+    'muted' => 'uk-section-muted',
     'primary' => 'uk-section-primary',
     'secondary' => 'uk-section-secondary',
-    'muted' => 'uk-section-muted',
+    // Legacy-Werte aus älteren Konfigurationen
+    'light' => 'uk-section-muted',
+    'dark' => 'uk-section-secondary',
     'white' => ''
 ];
 
@@ -72,6 +74,10 @@ if (!empty($bgImage)) {
     $classes[] = 'uk-background-cover uk-background-center-center';
 } elseif (isset($bgClasses[$bgColor]) && $bgClasses[$bgColor]) {
     $sectionBgClass = $bgClasses[$bgColor];
+    $classes[] = $sectionBgClass;
+} elseif (is_string($bgColor) && str_starts_with($bgColor, 'uk-')) {
+    // ThemeBuilder-Klassen (z.B. uk-background-*) direkt durchreichen
+    $sectionBgClass = $bgColor;
     $classes[] = $sectionBgClass;
 }
 

@@ -6,7 +6,7 @@
  */
 
 $label = $elementData['label'] ?? '';
-$bgColor = $elementData['background_color'] ?? 'light';
+$bgColor = $elementData['background_color'] ?? 'none';
 $bgImage = $elementData['background_image'] ?? '';
 $paddingTop = $elementData['padding_top'] ?? 'medium';
 $paddingBottom = $elementData['padding_bottom'] ?? 'medium';
@@ -20,7 +20,7 @@ $classes = ['cb-section'];
 // Background
 if (!empty($bgImage)) {
     $classes[] = 'cb-section-bg-image';
-} elseif ($bgColor && $bgColor !== 'none') {
+} elseif ($bgColor && $bgColor !== 'none' && $bgColor !== 'transparent') {
     $classes[] = 'cb-section-bg-' . $bgColor;
 }
 

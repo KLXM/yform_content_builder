@@ -27,7 +27,7 @@ class Module
     /** @var array<string, mixed> */
     protected array $data = [];
     protected mixed $rawValue = null;
-    protected string $framework = 'bootstrap';
+    protected string $framework = 'uikit';
     protected int $valueId = 1;
     
     /**
@@ -39,12 +39,15 @@ class Module
      * @param mixed $initialValues Optionale Initialwerte als Array oder JSON (werden nur genutzt wenn kein gespeicherter Wert vorhanden ist)
      * @return self
      */
-    public static function create(string $type, mixed $rawValue = null, string $framework = 'bootstrap', mixed $valueId = null, mixed $initialValues = null): self
+    public static function create(string $type, mixed $rawValue = null, string $framework = 'uikit', mixed $valueId = null, mixed $initialValues = null): self
     {
         $instance = new self();
         $instance->elementType = $type;
         $instance->rawValue = $rawValue;
         $instance->framework = $framework;
+        if ($instance->framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
+            $instance->framework = 'uikit';
+        }
         if (is_int($valueId) && $valueId > 0) {
             $instance->valueId = $valueId;
         } else {
@@ -87,7 +90,7 @@ class Module
      * @param mixed  $initialValues Optionale Initialwerte als Array oder JSON
      * @return self
      */
-    public static function createByValueId(string $type, int $valueId = 1, string $framework = 'bootstrap', mixed $initialValues = null): self
+    public static function createByValueId(string $type, int $valueId = 1, string $framework = 'uikit', mixed $initialValues = null): self
     {
         $normalizedValueId = (int) $valueId;
         if ($normalizedValueId <= 0) {

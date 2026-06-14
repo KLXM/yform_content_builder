@@ -6,7 +6,7 @@
  */
 
 $label = $elementData['label'] ?? '';
-$bgColor = $elementData['background_color'] ?? 'light';
+$bgColor = $elementData['background_color'] ?? 'none';
 $bgImage = $elementData['background_image'] ?? '';
 $paddingTop = $elementData['padding_top'] ?? 'medium';
 $paddingBottom = $elementData['padding_bottom'] ?? 'medium';
@@ -27,11 +27,13 @@ $paddingMap = [
 // Background-Klassen
 $bgClasses = [
     'none' => '',
-    'light' => 'bg-light',
-    'dark' => 'bg-dark text-white',
+    'transparent' => '',
+    'muted' => 'bg-light',
     'primary' => 'bg-primary text-white',
     'secondary' => 'bg-secondary text-white',
-    'muted' => 'bg-muted',
+    // Legacy-Werte aus älteren Konfigurationen
+    'light' => 'bg-light',
+    'dark' => 'bg-dark text-white',
     'white' => 'bg-white'
 ];
 

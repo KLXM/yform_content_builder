@@ -905,7 +905,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         $sliceType = rex_request::post('slice_type', 'string');
         $sliceData = rex_request::post('slice_data', 'array', []);
-        $framework = rex_request::post('framework', 'string', 'bootstrap');
+        $framework = rex_request::post('framework', 'string', 'uikit');
+        if ($framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
+            $framework = 'uikit';
+        }
         
         // Element-Pfad via getElementPath (unterstützt Overrides)
         $elementPath = $this->getElementPath($sliceType);
@@ -1020,7 +1023,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     {
         $rawValue = (string) $this->getValue();
         $value = $this->parseValue();
-        $framework = $this->getElement('framework', 'bootstrap');
+        $framework = (string) $this->getElement('framework', 'uikit');
+        if ($framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
+            $framework = 'uikit';
+        }
         $availableElements = $this->getAvailableElements();
 
         $legacyEnabled = $this->isLegacyModeEnabled();
@@ -1579,7 +1585,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         'tailwind' => 'Tailwind',
                         'plain' => 'Plain HTML'
                     ],
-                    'default' => 'bootstrap'
+                    'default' => 'uikit'
                 ],
                 'theme' => [
                     'type' => 'choice',

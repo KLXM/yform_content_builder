@@ -20,16 +20,34 @@ if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
 // Dynamische Optionen aus uikit_theme_builder
 $backgroundOptions = [
     'none' => 'Keine',
-    'light' => 'Hell (Grau)',
-    'dark' => 'Dunkel',
+    'transparent' => 'Transparent',
+    'muted' => 'Muted',
     'primary' => 'Primary',
     'secondary' => 'Secondary',
-    'muted' => 'Gedämpft',
-    'white' => 'Weiß',
 ];
 
 if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
-    $backgroundOptions = array_merge($backgroundOptions, \UikitThemeBuilder\DomainContext::getBackgroundOptions());
+    $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+    if (is_array($themeBackgrounds) && [] !== $themeBackgrounds) {
+        foreach ($themeBackgrounds as $class => $data) {
+            if (!is_string($class) || '' === trim($class)) {
+                continue;
+            }
+
+            $label = null;
+            if (is_array($data) && isset($data['label']) && is_string($data['label']) && '' !== trim($data['label'])) {
+                $label = $data['label'];
+            } elseif (is_string($data) && '' !== trim($data)) {
+                $label = $data;
+            }
+
+            if (!is_string($label) || '' === trim($label)) {
+                $label = ucfirst(str_replace(['uk-section-', 'uk-background-', '_', '-'], ['', '', ' ', ' '], $class));
+            }
+
+            $backgroundOptions[$class] = $label;
+        }
+    }
 }
 
 return [
@@ -51,7 +69,7 @@ return [
             'type' => 'choice',
             'label' => 'Hintergrundfarbe',
             'choices' => $backgroundOptions,
-            'default' => 'light'
+            'default' => 'none'
         ],
         
         'background_image' => [

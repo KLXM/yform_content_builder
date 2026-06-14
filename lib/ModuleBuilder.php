@@ -22,7 +22,7 @@ class ModuleBuilder
 {
     /** @var array<int, array<string, mixed>> */
     protected array $slices = [];
-    protected string $framework = 'bootstrap';
+    protected string $framework = 'uikit';
     protected int $valueId = 1;
     protected string $label = '';
     protected string $description = '';
@@ -48,7 +48,10 @@ class ModuleBuilder
     {
         $instance = new self();
         $instance->valueId = $valueId > 0 ? $valueId : 1;
-        $instance->framework = (string) ($options['framework'] ?? 'bootstrap');
+        $instance->framework = (string) ($options['framework'] ?? 'uikit');
+        if ($instance->framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
+            $instance->framework = 'uikit';
+        }
         $instance->label = trim((string) ($options['label'] ?? ''));
         $instance->description = trim((string) ($options['description'] ?? ''));
         $instance->allowedElements = $instance->normalizeAllowedElements($options['allowed_elements'] ?? []);
@@ -1018,25 +1021,11 @@ class ModuleBuilder
     protected function renderSectionPreview(array $elementData): string
     {
         $label = (string) ($elementData['label'] ?? Helper::t('yform_content_builder_section_unnamed', 'Unnamed'));
-        $bgColor = (string) ($elementData['background_color'] ?? 'light');
+        $bgColor = (string) ($elementData['background_color'] ?? 'none');
         $bgImage = (string) ($elementData['background_image'] ?? '');
         $customId = (string) ($elementData['custom_id'] ?? '');
-        $bgThumbnailClass = 'bg-' . ($bgColor !== '' ? $bgColor : 'light');
-        $bgThumbnailStyle = '';
-
-        if ($bgImage !== '') {
-            $resolvedImage = $bgImage;
-            if (is_numeric($bgImage)) {
-                $media = rex_media::get($bgImage);
-                if ($media instanceof rex_media) {
-                    $resolvedImage = $media->getFileName();
-                }
-            }
-
-            if ($resolvedImage !== '') {
-                $bgThumbnailStyle = ' style="background-image: url(' . rex_escape(rex_url::media($resolvedImage)) . ');"';
-            }
-        }
+        $bgThumbnailClass = 'bg-' . ($bgColor !== '' ? $bgColor : 'none');
+        $bgThumbnailStyle = $this->buildSectionThumbnailStyle($bgColor, $bgImage);
 
         $html = '<div class="section-backend-label">';
         $html .= '<i class="fa fa-object-group"></i>';
@@ -1056,6 +1045,59 @@ class ModuleBuilder
         $html .= '</div>';
 
         return $html;
+    }
+
+    protected function buildSectionThumbnailStyle(string $bgColor, string $bgImage): string
+    {
+        $resolvedImage = $bgImage;
+        if ($resolvedImage !== '' && is_numeric($resolvedImage)) {
+            $media = rex_media::get($resolvedImage);
+            if ($media instanceof rex_media) {
+                $resolvedImage = $media->getFileName();
+            }
+        }
+
+        if ($resolvedImage !== '') {
+            return ' style="background-image: url(' . rex_escape(rex_url::media($resolvedImage)) . ');"';
+        }
+
+        $colorValue = '';
+
+        if (class_exists('UikitThemeBuilder\\DomainContext')) {
+            $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+            if (is_array($themeBackgrounds) && isset($themeBackgrounds[$bgColor]) && is_array($themeBackgrounds[$bgColor])) {
+                $themeColor = $themeBackgrounds[$bgColor]['color'] ?? '';
+                if (is_string($themeColor) && $themeColor !== '') {
+                    $colorValue = $themeColor;
+                }
+            }
+        }
+
+        if ($colorValue === '') {
+            $colorMap = [
+                'none' => 'transparent',
+                'transparent' => 'transparent',
+                'light' => '#f5f5f5',
+                'dark' => '#333333',
+                'muted' => '#f8f8f8',
+                'primary' => '#1e87f0',
+                'secondary' => '#222222',
+                'white' => '#ffffff',
+                'uk-section-default' => '#ffffff',
+                'uk-section-muted' => '#f8f8f8',
+                'uk-section-primary' => '#1e87f0',
+                'uk-section-secondary' => '#222222',
+                'uk-background-default' => '#ffffff',
+                'uk-background-muted' => '#f8f8f8',
+                'uk-background-primary' => '#1e87f0',
+                'uk-background-secondary' => '#222222',
+                'uk-background-transparent' => 'transparent',
+            ];
+
+            $colorValue = $colorMap[$bgColor] ?? 'transparent';
+        }
+
+        return ' style="background-color: ' . rex_escape($colorValue) . ';"';
     }
 
     protected function resolveTemplateFile(string $sliceType): ?string

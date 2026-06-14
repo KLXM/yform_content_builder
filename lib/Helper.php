@@ -743,9 +743,9 @@ class Helper
                             <?php endif; ?>
                         </span>
                         <?php
-                        $bgColor = $elementData['background_color'] ?? 'light';
+                        $bgColor = $elementData['background_color'] ?? 'none';
                         $bgImage = $elementData['background_image'] ?? '';
-                        $bgThumbnailClass = 'bg-' . ($bgColor ?: 'light');
+                        $bgThumbnailClass = 'bg-' . ($bgColor ?: 'none');
                         $bgThumbnailStyle = '';
                         
                         if ($bgImage) {

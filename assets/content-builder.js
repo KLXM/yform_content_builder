@@ -1653,7 +1653,37 @@
             if (sliceType === 'section') {
                 var label = sliceData.label || 'Unbenannt';
                 var bgColor = sliceData.background_color || '';
+                var bgImage = sliceData.background_image || '';
                 var customId = sliceData.custom_id || '';
+                var bgThumbnailClass = 'bg-' + (bgColor || 'none');
+                var bgThumbnailStyle = '';
+
+                if (bgImage && !/^\d+$/.test(String(bgImage))) {
+                    var sectionBgUrl = '/media/' + encodeURIComponent(String(bgImage));
+                    bgThumbnailStyle = ' style="background-image: url(' + sectionBgUrl + ');"';
+                } else {
+                    var colorMap = {
+                        'none': 'transparent',
+                        'transparent': 'transparent',
+                        'light': '#f5f5f5',
+                        'dark': '#333333',
+                        'muted': '#f8f8f8',
+                        'primary': '#1e87f0',
+                        'secondary': '#222222',
+                        'white': '#ffffff',
+                        'uk-section-default': '#ffffff',
+                        'uk-section-muted': '#f8f8f8',
+                        'uk-section-primary': '#1e87f0',
+                        'uk-section-secondary': '#222222',
+                        'uk-background-default': '#ffffff',
+                        'uk-background-muted': '#f8f8f8',
+                        'uk-background-primary': '#1e87f0',
+                        'uk-background-secondary': '#222222',
+                        'uk-background-transparent': 'transparent'
+                    };
+                    var previewColor = colorMap[bgColor] || 'transparent';
+                    bgThumbnailStyle = ' style="background-color: ' + previewColor + ';"';
+                }
                 
                 var html = '<div class="section-backend-label">' +
                     '<i class="fa fa-object-group"></i>' +
@@ -1668,7 +1698,9 @@
                     html += '<span class="label label-info">#' + $('<div>').text(customId).html() + '</span>';
                 }
                 
-                html += '</span></div>';
+                html += '</span>' +
+                    '<span class="section-bg-thumbnail ' + $('<div>').text(bgThumbnailClass).html() + '"' + bgThumbnailStyle + '></span>' +
+                    '</div>';
                 
                 $slice.find('.slice-rendered').html(html).show();
                 return;

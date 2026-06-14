@@ -121,6 +121,11 @@
     background-color: #f5f5f5;
 }
 
+.section-bg-thumbnail.bg-none,
+.section-bg-thumbnail.bg-transparent {
+    background-color: transparent;
+}
+
 .section-bg-thumbnail.bg-dark {
     background-color: #333;
 }
