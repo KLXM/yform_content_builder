@@ -2225,11 +2225,30 @@
                     normalized = 'sonstiges';
                 }
 
+                normalized = normalized.replace(/^\s*\d{1,4}\s*(?:::\s*|[:\-_.]{1,2}\s*)/, '');
+
                 return normalized
                     .replace(/_/g, ' ')
                     .replace(/\b\w/g, function(ch) {
                         return ch.toUpperCase();
                     });
+            }
+
+            function getCategorySortKey(category) {
+                var normalized = String(category == null ? '' : category).trim();
+                if (normalized === '') {
+                    return { priority: 9999, label: '' };
+                }
+
+                var match = normalized.match(/^\s*(\d{1,4})\s*(?:::\s*|[:\-_.]{1,2}\s*)?(.*)$/);
+                if (match && match[2] && String(match[2]).trim() !== '') {
+                    return {
+                        priority: parseInt(match[1], 10),
+                        label: String(match[2]).trim().toLowerCase()
+                    };
+                }
+
+                return { priority: 9999, label: normalized.toLowerCase() };
             }
 
             var groupedElements = {};
@@ -2279,12 +2298,29 @@
                 });
             });
 
+            categoryOrder.sort(function(leftCategory, rightCategory) {
+                var leftKey = getCategorySortKey(leftCategory);
+                var rightKey = getCategorySortKey(rightCategory);
+
+                if (leftKey.priority !== rightKey.priority) {
+                    return leftKey.priority - rightKey.priority;
+                }
+
+                return leftKey.label.localeCompare(rightKey.label);
+            });
+
             categoryOrder.forEach(function(category, categoryIndex) {
                 if (categoryIndex > 0) {
                     dropdownItems += '<li role="separator" class="divider"></li>';
                 }
 
                 dropdownItems += '<li class="dropdown-header">' + esc(formatCategory(category)) + '</li>';
+
+                groupedElements[category].sort(function(leftEntry, rightEntry) {
+                    var leftLabel = String((leftEntry.config && leftEntry.config.label) ? leftEntry.config.label : leftEntry.elementType).toLowerCase();
+                    var rightLabel = String((rightEntry.config && rightEntry.config.label) ? rightEntry.config.label : rightEntry.elementType).toLowerCase();
+                    return leftLabel.localeCompare(rightLabel);
+                });
 
                 groupedElements[category].forEach(function(entry) {
                     var elementType = entry.elementType;
