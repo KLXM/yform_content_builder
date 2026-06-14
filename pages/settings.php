@@ -13,6 +13,14 @@ if (rex_post('save', 'bool')) {
     $addon->setConfig('enable_online_toggle', rex_post('enable_online_toggle', 'bool', false));
     $addon->setConfig('enable_copy_paste', rex_post('enable_copy_paste', 'bool', false));
     $addon->setConfig('enable_demo_elements', rex_post('enable_demo_elements', 'bool', true));
+
+    $replaceKeepCoreElements = rex_post('replace_keep_core_elements', 'array', []);
+    $replaceKeepCoreElements = array_values(array_unique(array_filter(array_map(
+        static fn ($value): string => trim((string) $value),
+        is_array($replaceKeepCoreElements) ? $replaceKeepCoreElements : []
+    ), static fn (string $value): bool => $value !== '')));
+    $addon->setConfig('replace_keep_core_elements', $replaceKeepCoreElements);
+
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
     // Theme Builder Cache zurücksetzen
@@ -34,6 +42,46 @@ $compactMode = $addon->getConfig('compact_mode', false);
 $enableOnlineToggle = $addon->getConfig('enable_online_toggle', false);
 $enableCopyPaste = $addon->getConfig('enable_copy_paste', false);
 $enableDemoElements = $addon->getConfig('enable_demo_elements', true);
+$replaceKeepCoreElements = $addon->getConfig('replace_keep_core_elements', []);
+if (!is_array($replaceKeepCoreElements)) {
+    $replaceKeepCoreElements = [];
+}
+
+$replaceKeepCoreElements = array_values(array_unique(array_filter(array_map(
+    static fn ($value): string => trim((string) $value),
+    $replaceKeepCoreElements
+), static fn (string $value): bool => $value !== '')));
+
+$coreElementOptions = [];
+$coreElementsPath = rex_path::addon('yform_content_builder', 'elements/');
+if (is_dir($coreElementsPath)) {
+    $dirs = scandir($coreElementsPath);
+    if (is_array($dirs)) {
+        foreach ($dirs as $dir) {
+            if ($dir === '.' || $dir === '..') {
+                continue;
+            }
+
+            $elementPath = $coreElementsPath . $dir;
+            $configPath = $elementPath . '/config.php';
+            if (!is_dir($elementPath) || !is_file($configPath)) {
+                continue;
+            }
+
+            \KLXM\YFormContentBuilder\Helper::loadElementI18n($elementPath);
+            $config = include $configPath;
+            $label = is_array($config) ? trim((string) ($config['label'] ?? '')) : '';
+            if ($label === '') {
+                $label = $dir;
+            }
+
+            $coreElementOptions[$dir] = $label;
+        }
+    }
+}
+
+asort($coreElementOptions, SORT_NATURAL | SORT_FLAG_CASE);
+$replaceKeepCoreElements = array_values(array_intersect($replaceKeepCoreElements, array_keys($coreElementOptions)));
 
 // Formular bauen
 $content = '';
@@ -80,6 +128,21 @@ $n = [];
 $n['label'] = '<label for="enable_demo_elements">' . rex_i18n::msg('yform_content_builder_enable_demo_elements') . '</label>';
 $n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_demo_elements" value="0"><input type="checkbox" id="enable_demo_elements" name="enable_demo_elements" value="1"' . ($enableDemoElements ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_enable_demo_elements_label') . '</label></div>';
 $n['note'] = rex_i18n::msg('yform_content_builder_enable_demo_elements_notice');
+$formElements[] = $n;
+
+// Replace-Modus: Core-Elemente trotzdem verfügbar
+$n = [];
+$n['label'] = '<label for="replace_keep_core_elements">' . rex_i18n::msg('yform_content_builder_replace_keep_core_elements') . '</label>';
+$n['field'] = '<input type="hidden" name="replace_keep_core_elements[]" value="">';
+$n['field'] .= '<select class="form-control" id="replace_keep_core_elements" name="replace_keep_core_elements[]" multiple size="8">';
+foreach ($coreElementOptions as $elementKey => $elementLabel) {
+    $selected = in_array($elementKey, $replaceKeepCoreElements, true) ? ' selected' : '';
+    $n['field'] .= '<option value="' . rex_escape($elementKey) . '"' . $selected . '>'
+        . rex_escape($elementLabel . ' (' . $elementKey . ')')
+        . '</option>';
+}
+$n['field'] .= '</select>';
+$n['note'] = rex_i18n::msg('yform_content_builder_replace_keep_core_elements_notice');
 $formElements[] = $n;
 
 $fragment = new rex_fragment();

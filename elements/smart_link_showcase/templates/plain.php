@@ -1,0 +1,68 @@
+<?php
+
+use KLXM\YFormContentBuilder\SmartLinkView;
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
+
+$headline = trim((string) ($elementData['headline'] ?? ''));
+$intro = trim((string) ($elementData['intro'] ?? ''));
+$items = $elementData['items'] ?? [];
+$showPreview = !empty($elementData['show_preview']);
+
+$sectionBg = (string) ($elementData['section_bg'] ?? '');
+$sectionPadding = (string) ($elementData['section_padding'] ?? '');
+$containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
+
+if ($items === []) {
+    return;
+}
+
+$sectionStyle = StarterConfig::mapBg($sectionBg, 'plain') . StarterConfig::mapPadding($sectionPadding, 'plain');
+if ($sectionLight) {
+    $sectionStyle .= 'color:#fff;';
+}
+$containerStyle = StarterConfig::mapContainer($containerWidth, 'plain');
+?>
+<?php if ($enableSection): ?><section<?= $sectionStyle !== '' ? ' style="' . rex_escape($sectionStyle) . '"' : '' ?>><?php endif; ?>
+<?php if ($enableContainer): ?><div style="<?= rex_escape($containerStyle) ?>"><?php endif; ?>
+
+<?php if ($headline !== ''): ?><h2><?= rex_escape($headline) ?></h2><?php endif; ?>
+<?php if ($intro !== ''): ?><p><?= nl2br(rex_escape($intro)) ?></p><?php endif; ?>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;">
+    <?php foreach ($items as $item): ?>
+    <?php
+    $title = trim((string) ($item['title'] ?? ''));
+    $text = trim((string) ($item['text'] ?? ''));
+    $resolved = SmartLinkView::resolveSingle($item['link'] ?? '', $title);
+    $previewData = SmartLinkView::resolvePreview($item['link'] ?? '');
+    if ($resolved === null) {
+        continue;
+    }
+    $typeMeta = SmartLinkView::getTypeMeta($resolved['type']);
+    $target = $resolved['is_external'] ? ' target="_blank" rel="noopener"' : '';
+    ?>
+    <article style="border:1px solid #ddd;border-radius:6px;overflow:hidden;">
+        <?php if ($showPreview && $previewData !== null): ?>
+            <?php if ($previewData['kind'] === 'video'): ?>
+            <video src="<?= rex_escape($previewData['src']) ?>" controls preload="metadata" style="width:100%;display:block;"></video>
+            <?php else: ?>
+            <img src="<?= rex_escape($previewData['src']) ?>" alt="" loading="lazy" style="width:100%;display:block;">
+            <?php endif; ?>
+        <?php endif; ?>
+        <div style="padding:.9rem;">
+            <div style="display:flex;justify-content:space-between;gap:.5rem;">
+                <strong><?= rex_escape($title !== '' ? $title : $resolved['label']) ?></strong>
+                <span style="font-size:.8rem;color:#666;"><?= rex_escape($typeMeta['label']) ?></span>
+            </div>
+            <?php if ($text !== ''): ?><p><?= nl2br(rex_escape($text)) ?></p><?php endif; ?>
+            <a href="<?= rex_escape($resolved['href']) ?>"<?= $target ?>><?= rex_escape($resolved['label']) ?></a>
+        </div>
+    </article>
+    <?php endforeach; ?>
+</div>
+
+<?php if ($enableContainer): ?></div><?php endif; ?>
+<?php if ($enableSection): ?></section><?php endif; ?>

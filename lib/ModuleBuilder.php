@@ -15,6 +15,7 @@ use rex_response;
 use rex_sql;
 use rex_url;
 use Throwable;
+use KLXM\YFormContentBuilder\Config\ElementModeResolver;
 use KLXM\YFormContentBuilder\Starter\StarterConfig as Config;
 
 class ModuleBuilder
@@ -702,31 +703,23 @@ class ModuleBuilder
     {
         /** @var array<string, array<string, mixed>> $elements */
         $elements = [];
-        /** @var array<int, string> $customPaths */
-        $customPaths = rex_extension::registerPoint(new \rex_extension_point(
-            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
-            []
-        ));
-
-        $elementMode = (string) rex_extension::registerPoint(new \rex_extension_point(
-            'YFORM_CONTENT_BUILDER_ELEMENT_MODE',
-            'replace'
-        ));
-
-        if (!in_array($elementMode, ['replace', 'merge'], true)) {
-            $elementMode = 'replace';
-        }
-
-        if (count($customPaths) === 0 && rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
-            $projectPath = rex_addon::get('project')->getPath('elements/');
-            if (is_dir($projectPath)) {
-                $customPaths[] = $projectPath;
-            }
-        }
+        $customPaths = ElementModeResolver::getCustomPaths();
+        $elementMode = ElementModeResolver::getElementMode();
 
         if ($customPaths !== [] && $elementMode === 'replace') {
             foreach ($customPaths as $customPath) {
                 $elements = array_replace($elements, $this->loadElementsFromBasePath((string) $customPath, 'custom'));
+            }
+
+            $replaceKeepCoreElements = ElementModeResolver::getReplaceKeepCoreElements();
+            if ($replaceKeepCoreElements !== []) {
+                $demoPath = rex_addon::get('yform_content_builder')->getPath('elements/');
+                if (is_dir($demoPath)) {
+                    $elements = array_replace(
+                        $elements,
+                        $this->loadElementsByKeysFromBasePath($demoPath, $replaceKeepCoreElements, 'demo')
+                    );
+                }
             }
 
             return $this->filterAllowedElements($elements);
@@ -790,6 +783,51 @@ class ModuleBuilder
             $config['type'] = $dir;
             $config['key'] = $dir;
             $elements[$dir] = $config;
+        }
+
+        return $elements;
+    }
+
+    /**
+     * @param array<int, string> $elementKeys
+     * @return array<string, array<string, mixed>>
+     */
+    protected function loadElementsByKeysFromBasePath(string $basePath, array $elementKeys, string $source): array
+    {
+        if (!is_dir($basePath)) {
+            return [];
+        }
+
+        $requestedKeys = array_flip(array_values(array_unique(array_filter(array_map(
+            static fn ($value) => trim((string) $value),
+            $elementKeys
+        ), static fn (string $value) => $value !== ''))));
+
+        if ($requestedKeys === []) {
+            return [];
+        }
+
+        /** @var array<string, array<string, mixed>> $elements */
+        $elements = [];
+        foreach (array_keys($requestedKeys) as $elementKey) {
+            $elementPath = rtrim($basePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $elementKey;
+            $configFile = $elementPath . '/config.php';
+
+            if (!is_dir($elementPath) || !is_file($configFile)) {
+                continue;
+            }
+
+            Helper::loadElementI18n($elementPath);
+            $config = include $configFile;
+            if (!is_array($config)) {
+                continue;
+            }
+
+            $config['_source'] = $source;
+            $config['_path'] = $elementPath;
+            $config['type'] = $elementKey;
+            $config['key'] = $elementKey;
+            $elements[$elementKey] = $config;
         }
 
         return $elements;

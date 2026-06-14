@@ -53,6 +53,11 @@ class ElementRegistry
             'starter_cards',
             'starter_callout',
             'columns',
+            'yform_list',
+            'forcal_list',
+            'table',
+            'smart_link_showcase',
+            'smart_links_multi_showcase',
         ];
 
         // Extension Point für Custom-Bundled-Elemente

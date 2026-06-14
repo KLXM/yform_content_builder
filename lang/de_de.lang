@@ -29,6 +29,8 @@ yform_content_builder_enable_online_toggle_notice = Wenn aktiv, erscheint in der
 yform_content_builder_enable_demo_elements = Mitgelieferte Demo-Elemente
 yform_content_builder_enable_demo_elements_label = Schlanke Demo-Elemente des Addons laden
 yform_content_builder_enable_demo_elements_notice = Wenn deaktiviert, werden keine mitgelieferten Demo-Elemente geladen. Es bleiben nur externe Elemente aus registrierten Pfaden (z. B. Projekt-/Addon-Elemente).
+yform_content_builder_replace_keep_core_elements = Core-Elemente trotz Replace-Modus
+yform_content_builder_replace_keep_core_elements_notice = Auswahl dieser Elemente bleibt auch dann verfügbar, wenn ein externes Addon den Content-Builder auf Replace stellt. Mehrfachauswahl mit Cmd/Ctrl möglich.
 
 yform_content_builder_element_add = Element hinzufügen
 yform_content_builder_element_edit = Bearbeiten

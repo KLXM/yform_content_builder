@@ -1,0 +1,95 @@
+<?php
+
+/** @var array<string,mixed> $elementData */
+
+use KLXM\YFormContentBuilder\ListRenderer;
+use KLXM\YFormContentBuilder\Starter\StarterConfig;
+
+if (!class_exists(ListRenderer::class)) {
+    return;
+}
+
+$result = ListRenderer::fetch($elementData);
+$headline = (string) ($elementData['headline'] ?? '');
+$description = (string) ($elementData['description'] ?? '');
+$showLinks = !isset($elementData['show_links']) || !empty($elementData['show_links']);
+$layout = (string) $result['layout'];
+$items = (array) $result['items'];
+$error = $result['error'];
+
+$sectionBg = (string) ($elementData['section_bg'] ?? '');
+$sectionPadding = (string) ($elementData['section_padding'] ?? '');
+$containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
+$sectionLight = !empty($elementData['section_light']);
+$enableSection = !isset($elementData['enable_section']) || !empty($elementData['enable_section']);
+$enableContainer = !isset($elementData['enable_container']) || !empty($elementData['enable_container']);
+$columns = max(1, (int) ($elementData['columns'] ?? 3));
+
+$sectionClass = trim(StarterConfig::mapBg($sectionBg, 'bootstrap') . ' ' . StarterConfig::mapPadding($sectionPadding, 'bootstrap'));
+if ($sectionLight) {
+    $sectionClass = trim($sectionClass . ' text-white');
+}
+$containerClass = trim(StarterConfig::mapContainer($containerWidth, 'bootstrap'));
+$col = (int) floor(12 / max(1, min(4, $columns)));
+if ($col < 3) {
+    $col = 3;
+}
+$tel = static fn(string $v): string => preg_replace('/[^+\d]/', '', $v) ?? '';
+?>
+<?php if ($enableSection): ?><section<?= $sectionClass !== '' ? ' class="' . rex_escape($sectionClass) . '"' : '' ?>><?php endif; ?>
+<?php if ($enableContainer): ?><div<?= $containerClass !== '' ? ' class="' . rex_escape($containerClass) . '"' : '' ?>><?php endif; ?>
+
+<?php if ($headline !== ''): ?><h2 class="mb-3"><?= rex_escape($headline) ?></h2><?php endif; ?>
+<?php if ($description !== ''): ?><p class="lead"><?= nl2br(rex_escape($description)) ?></p><?php endif; ?>
+
+<?php if ($error !== null): ?>
+<div class="alert alert-warning"><?= rex_escape((string) $error) ?></div>
+<?php elseif ($items === []): ?>
+<div class="alert alert-light">Keine Einträge.</div>
+<?php elseif ($layout === 'cards' || $layout === 'contact' || $layout === 'contact_compact'): ?>
+<div class="row g-3">
+    <?php foreach ($items as $it): ?>
+    <?php
+    $title = rex_escape((string) ($it['title'] ?? ''));
+    $teaser = rex_escape((string) ($it['teaser'] ?? ''));
+    $href = $showLinks ? (string) ($it['href'] ?? '') : '';
+    $img = ListRenderer::imgTag($it, 'card-img-top');
+    $contact = (array) ($it['contact'] ?? []);
+    $role = trim((string) ($contact['role'] ?? ''));
+    $phone = trim((string) ($contact['phone'] ?? ''));
+    $mobile = trim((string) ($contact['mobile'] ?? ''));
+    $email = trim((string) ($contact['email'] ?? ''));
+    ?>
+    <div class="col-12 col-md-6 col-lg-<?= rex_escape((string) $col) ?>">
+        <div class="card h-100">
+            <?= $img ?>
+            <div class="card-body">
+                <h3 class="h5 card-title"><?php if ($href !== ''): ?><a href="<?= rex_escape($href) ?>" class="text-decoration-none"><?= $title ?></a><?php else: ?><?= $title ?><?php endif; ?></h3>
+                <?php if ($teaser !== ''): ?><p class="card-text"><?= $teaser ?></p><?php endif; ?>
+                <?php if ($role !== ''): ?><div class="small text-muted"><?= rex_escape($role) ?></div><?php endif; ?>
+                <?php if ($phone !== ''): ?><div><a href="tel:<?= rex_escape($tel($phone)) ?>"><?= rex_escape($phone) ?></a></div><?php endif; ?>
+                <?php if ($mobile !== ''): ?><div><a href="tel:<?= rex_escape($tel($mobile)) ?>"><?= rex_escape($mobile) ?></a></div><?php endif; ?>
+                <?php if ($email !== ''): ?><div><a href="mailto:<?= rex_escape($email) ?>"><?= rex_escape($email) ?></a></div><?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+<?php else: ?>
+<ul class="list-group list-group-flush">
+    <?php foreach ($items as $it): ?>
+    <?php
+    $title = rex_escape((string) ($it['title'] ?? ''));
+    $teaser = rex_escape((string) ($it['teaser'] ?? ''));
+    $href = $showLinks ? (string) ($it['href'] ?? '') : '';
+    ?>
+    <li class="list-group-item px-0">
+        <h4 class="h6 mb-1"><?php if ($href !== ''): ?><a href="<?= rex_escape($href) ?>"><?= $title ?></a><?php else: ?><?= $title ?><?php endif; ?></h4>
+        <?php if ($teaser !== ''): ?><p class="mb-0"><?= $teaser ?></p><?php endif; ?>
+    </li>
+    <?php endforeach; ?>
+</ul>
+<?php endif; ?>
+
+<?php if ($enableContainer): ?></div><?php endif; ?>
+<?php if ($enableSection): ?></section><?php endif; ?>

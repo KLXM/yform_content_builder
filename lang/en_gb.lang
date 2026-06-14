@@ -29,6 +29,8 @@ yform_content_builder_enable_online_toggle_notice = When enabled, an eye button 
 yform_content_builder_enable_demo_elements = Bundled demo elements
 yform_content_builder_enable_demo_elements_label = Load minimal bundled demo elements
 yform_content_builder_enable_demo_elements_notice = If disabled, bundled demo elements are not loaded. Only external elements from registered paths remain available (e.g. project/addon elements).
+yform_content_builder_replace_keep_core_elements = Core elements despite replace mode
+yform_content_builder_replace_keep_core_elements_notice = Selected elements remain available even when an external addon sets the content builder to replace mode. Multi-select with Cmd/Ctrl.
 
 yform_content_builder_element_add = Add element
 yform_content_builder_element_edit = Edit

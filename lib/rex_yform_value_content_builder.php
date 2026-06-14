@@ -2,6 +2,7 @@
 
 use KLXM\YFormContentBuilder\Helper;
 use KLXM\YFormContentBuilder\ModalHelper;
+use KLXM\YFormContentBuilder\Config\ElementModeResolver;
 use KLXM\YFormContentBuilder\Starter\StarterConfig as Config;
 
 /**
@@ -1227,28 +1228,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         $enableDemoElements = (bool) $addon->getConfig('enable_demo_elements', true);
         $bundledDemoKeys = array_flip(Config::getBundledDemoElementKeys());
         $elements = [];
-        
-        // 1. Extension Point: Andere AddOns können Pfade registrieren
-        $customPaths = rex_extension::registerPoint(new rex_extension_point(
-            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
-            []
-        ));
-
-        $elementMode = (string) rex_extension::registerPoint(new rex_extension_point(
-            'YFORM_CONTENT_BUILDER_ELEMENT_MODE',
-            'replace'
-        ));
-        if (!in_array($elementMode, ['replace', 'merge'], true)) {
-            $elementMode = 'replace';
-        }
-        
-        // 2. Automatisch: project AddOn prüfen (wenn kein Extension Point)
-        if (empty($customPaths) && rex_addon::exists('project') && rex_addon::get('project')->isAvailable()) {
-            $projectPath = rex_addon::get('project')->getPath('elements/');
-            if (is_dir($projectPath)) {
-                $customPaths[] = $projectPath;
-            }
-        }
+        $customPaths = ElementModeResolver::getCustomPaths();
+        $elementMode = ElementModeResolver::getElementMode();
         
         // Bei mode=replace: nur Custom laden.
         // Bei mode=merge: Demo zuerst, dann Custom darüberlegen.
@@ -1280,6 +1261,14 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                         $elements[$dir] = $config;
                     }
                 }
+            }
+
+            $replaceKeepCoreElements = ElementModeResolver::getReplaceKeepCoreElements();
+            if ($replaceKeepCoreElements !== []) {
+                $elements = array_replace(
+                    $elements,
+                    $this->loadElementsByKeysFromBasePath($addon->getPath('elements/'), $replaceKeepCoreElements, 'demo')
+                );
             }
 
             return $elements;
@@ -1348,6 +1337,49 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             }
         }
         
+        return $elements;
+    }
+
+    /**
+     * @param array<int, string> $elementKeys
+     */
+    protected function loadElementsByKeysFromBasePath(string $basePath, array $elementKeys, string $source): array
+    {
+        if (!is_dir($basePath)) {
+            return [];
+        }
+
+        $requestedKeys = array_flip(array_values(array_unique(array_filter(array_map(
+            static fn ($value) => trim((string) $value),
+            $elementKeys
+        ), static fn (string $value) => $value !== ''))));
+
+        if ($requestedKeys === []) {
+            return [];
+        }
+
+        $elements = [];
+        foreach (array_keys($requestedKeys) as $elementKey) {
+            $elementPath = rtrim($basePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $elementKey;
+            $configFile = $elementPath . '/config.php';
+
+            if (!is_dir($elementPath) || !is_file($configFile)) {
+                continue;
+            }
+
+            Helper::loadElementI18n($elementPath);
+            $config = include $configFile;
+            if (!is_array($config)) {
+                continue;
+            }
+
+            $config['_source'] = $source;
+            $config['_path'] = $elementPath;
+            $config['type'] = $elementKey;
+            $config['key'] = $elementKey;
+            $elements[$elementKey] = $config;
+        }
+
         return $elements;
     }
 

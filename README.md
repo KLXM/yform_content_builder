@@ -133,6 +133,11 @@ Vollständige Dokumentation: [Developer Guide](DEV.md)
 | Starter Gallery | `starter_gallery` | Einfache Galerieliste |
 | Starter Cards | `starter_cards` | Karten-Liste (Repeater-basiert), mit Link-Optionen |
 | Starter Callout | `starter_callout` | Highlight-Box mit Titel, Text und Link |
+| YForm-Liste | `yform_list` | Dynamische Liste auf Basis zentral konfigurierter YForm-Profile |
+| Forcal-Liste | `forcal_list` | Kommende Termine aus dem forcal-Addon als Cards/Liste/Kompakt |
+| Tabelle | `table` | Barrierefreie Tabelle mit Table-Editor und responsiver Ausgabe |
+| Smart-Link Showcase | `smart_link_showcase` | Demo-Linkliste mit smart_link und Medienvorschau |
+| Smart-Links Multi Showcase | `smart_links_multi_showcase` | Mehrere Smart Links in einem Feld (multiple-Modus) |
 
 Die Modul-Erstellung bleibt zentral auf `index.php?page=yform_content_builder/modules`.
 
