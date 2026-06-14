@@ -34,7 +34,7 @@ $enableOnlineToggle = (bool) rex_addon::get('yform_content_builder')->getConfig(
 $backendRowClass = $rowClass . ' content-builder-columns-row';
 
 $sectionBg = (string) ($elementData['section_bg'] ?? '');
-$sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
+$sectionBgImage = (string) ($elementData['section_bg_image'] ?? $elementData['background_image'] ?? '');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionLight = !empty($elementData['section_light']);

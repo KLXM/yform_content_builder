@@ -1139,6 +1139,63 @@
                     var cleanedHtml = $response.html();
                     
                     $editForm.html(cleanedHtml);
+
+                    $editForm.find('input[id^="REX_MEDIA_"]').each(function() {
+                        var $input = $(this);
+                        var oldId = $input.attr('id') || '';
+
+                        if (oldId === '') {
+                            return;
+                        }
+
+                        if (typeof window.rexMediaCounter === 'undefined') {
+                            var maxCounter = 0;
+                            $('input[id^="REX_MEDIA_"]').each(function() {
+                                var match = $(this).attr('id').match(/REX_MEDIA_(\d+)/);
+                                if (match) {
+                                    maxCounter = Math.max(maxCounter, parseInt(match[1], 10));
+                                }
+                            });
+                            window.rexMediaCounter = maxCounter;
+                        }
+
+                        window.rexMediaCounter++;
+                        var newId = 'REX_MEDIA_' + window.rexMediaCounter;
+                        var oldCounter = oldId.replace('REX_MEDIA_', '');
+
+                        $input.attr('id', newId);
+                        $input.closest('.rex-js-widget-media').find('[data-input-id="' + oldId + '"]').attr('data-input-id', newId);
+                        $input.closest('.rex-js-widget-media').find('[data-target="#' + oldId + '"]').attr('data-target', '#' + newId);
+
+                        var $widget = $input.closest('.rex-js-widget-media');
+                        $widget.find('a[onclick*="openREXMedia"]').each(function() {
+                            var $link = $(this);
+                            var oldOnclick = $link.attr('onclick');
+                            if (oldOnclick) {
+                                $link.attr('onclick', oldOnclick.replace(
+                                    'openREXMedia(' + oldCounter,
+                                    'openREXMedia(' + window.rexMediaCounter
+                                ));
+                            }
+                        });
+                        $widget.find('a[onclick*="viewREXMedia"]').each(function() {
+                            var $link = $(this);
+                            var oldOnclick = $link.attr('onclick');
+                            if (oldOnclick) {
+                                $link.attr('onclick', oldOnclick.replace(
+                                    'viewREXMedia(' + oldCounter,
+                                    'viewREXMedia(' + window.rexMediaCounter
+                                ));
+                            }
+                        });
+                        $widget.find('a.btn-delete-cb-media').attr('data-input-id', newId);
+
+                        var $preview = $widget.find('.content-builder-media-preview');
+                        if ($preview.length) {
+                            $preview.attr('data-input-id', newId);
+                            $preview.attr('id', 'preview_' + newId);
+                        }
+                    });
                     
                     // Bootstrap Selectpicker initialisieren (für AJAX-geladene Inhalte)
                     // sanitize: false damit SVG/img src nicht entfernt wird

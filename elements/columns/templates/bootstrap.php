@@ -45,7 +45,7 @@ if ($isBackendEditMode) {
 
 // Frontend Output Rendering
 $sectionBg = (string) ($elementData['section_bg'] ?? '');
-$sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
+$sectionBgImage = (string) ($elementData['section_bg_image'] ?? $elementData['background_image'] ?? '');
 $sectionPadding = (string) ($elementData['section_padding'] ?? '');
 $containerWidth = (string) ($elementData['container_width'] ?? 'uk-container');
 $sectionLight = !empty($elementData['section_light']);
