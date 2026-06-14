@@ -354,6 +354,10 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                         $elementPath = $addon->getPath('elements/' . $sliceType);
                     }
 
+                    $sliceToolbarConfig = $available_elements[$sliceType] ?? [];
+                    $sliceToolbarLabel = (string) ($sliceToolbarConfig['label'] ?? $sliceType);
+                    $sliceToolbarIcon = (string) ($sliceToolbarConfig['icon'] ?? 'fa-cube');
+
                     $templateFile = '';
                     foreach ([$framework, 'plain', 'uikit', 'bootstrap'] as $templateName) {
                         $candidate = $elementPath . '/templates/' . $templateName . '.php';
@@ -371,7 +375,8 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                          data-slice-online="<?= $sliceOnline ? '1' : '0' ?>"
                          data-slice-data='<?= rex_escape(json_encode($elementData, JSON_UNESCAPED_UNICODE)) ?>'>
                         
-                        <div class="slice-toolbar">
+                        <div class="slice-toolbar" data-element-name="<?= rex_escape($sliceToolbarLabel) ?>">
+                            <span class="slice-label"><i class="fa <?= rex_escape($sliceToolbarIcon) ?>"></i><?= rex_escape($sliceToolbarLabel) ?></span>
                             <div class="btn-group btn-group-insert">
                                 <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" title="<?= rex_i18n::msg('yform_content_builder_element_add') ?>">
                                     <i class="fa fa-plus"></i>
