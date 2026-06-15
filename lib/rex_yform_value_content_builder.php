@@ -1235,17 +1235,12 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
     protected function buildLegacyMigrationJson(string $legacyHtml): string
     {
-        $availableElements = $this->getAvailableElements();
-        $migrationTarget = trim((string) $this->getElement('legacy_migration_target', self::LEGACY_DEFAULT_TARGET));
-        if ($migrationTarget === '' || !isset($availableElements[$migrationTarget])) {
-            $migrationTarget = isset($availableElements[self::LEGACY_DEFAULT_TARGET])
-                ? self::LEGACY_DEFAULT_TARGET
-                : (string) array_key_first($availableElements);
+        $configuredTarget = trim((string) $this->getElement('legacy_migration_target', self::LEGACY_DEFAULT_TARGET));
+        if ($configuredTarget === '') {
+            $configuredTarget = self::LEGACY_DEFAULT_TARGET;
         }
 
-        if ($migrationTarget === '') {
-            $migrationTarget = self::LEGACY_DEFAULT_TARGET;
-        }
+        $migrationTarget = $this->resolveMigrationTarget($configuredTarget);
 
         $migrationField = trim((string) $this->getElement('legacy_migration_field', 'text'));
         if ($migrationField === '') {
@@ -1263,6 +1258,24 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
 
         $json = json_encode([$slice], JSON_UNESCAPED_UNICODE);
         return is_string($json) ? $json : '[]';
+    }
+
+    protected function resolveMigrationTarget(string $target): string
+    {
+        $availableElements = $this->getAvailableElements();
+        if (isset($availableElements[$target])) {
+            return $target;
+        }
+
+        if (isset($availableElements[self::LEGACY_DEFAULT_TARGET])) {
+            return self::LEGACY_DEFAULT_TARGET;
+        }
+
+        foreach (array_keys($availableElements) as $elementKey) {
+            return (string) $elementKey;
+        }
+
+        return self::LEGACY_DEFAULT_TARGET;
     }
 
     protected function isLegacyHtmlString(string $value): bool
