@@ -124,6 +124,8 @@ $builderValue = $legacy_is_active ? [] : $value;
      data-online-toggle="<?= $enableOnlineToggle ? '1' : '0' ?>"
      data-copy-paste="<?= $addon->getConfig('enable_copy_paste') ? '1' : '0' ?>"
      data-legacy-mode="<?= $legacy_is_active ? '1' : '0' ?>"
+    data-legacy-migration-target="<?= rex_escape($legacy_migration_target) ?>"
+    data-legacy-migration-field="<?= rex_escape($legacy_migration_field) ?>"
     data-element-defaults='<?= rex_escape($element_defaults_json) ?>'
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     
@@ -139,10 +141,10 @@ $builderValue = $legacy_is_active ? [] : $value;
         <div class="panel panel-default content-builder-legacy-panel" style="margin-bottom: 12px;">
             <div class="panel-body">
                 <?php if ($legacy_migration_hint): ?>
-                    <div id="<?= $legacyNoticeId ?>" class="alert alert-info" style="margin-bottom: 12px; padding: 8px 12px;">
+                    <div id="<?= $legacyNoticeId ?>" class="alert alert-info yform-cb-legacy-notice" style="margin-bottom: 12px; padding: 8px 12px;">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
                             <span>Sie bearbeiten aktuell einen älteren Inhalt. Wechseln Sie jetzt zum modernen Content-Builder.</span>
-                            <button type="button" id="<?= $legacyMigrateButtonId ?>" class="btn btn-default btn-xs">
+                            <button type="button" id="<?= $legacyMigrateButtonId ?>" class="btn btn-default btn-xs yform-cb-legacy-migrate">
                                 <i class="fa fa-exchange"></i> Zum modernen Content-Builder wechseln
                             </button>
                         </div>
@@ -157,144 +159,6 @@ $builderValue = $legacy_is_active ? [] : $value;
                 </div>
             </div>
         </div>
-
-        <script nonce="<?= rex_response::getNonce() ?>">
-        (function() {
-            var editorId = '<?= $legacyEditorId ?>';
-            var migrateButtonId = '<?= $legacyMigrateButtonId ?>';
-            var migrateTarget = '<?= rex_escape($legacy_migration_target) ?>';
-            var migrateField = '<?= rex_escape($legacy_migration_field) ?>';
-            var $textarea = $('#' + editorId);
-            var $root = $textarea.closest('.yform-content-builder');
-            if ($root.length === 0) {
-                return;
-            }
-
-            var $hidden = $root.find('.content-builder-data').first();
-
-            if ($hidden.length === 0 || $textarea.length === 0) {
-                return;
-            }
-
-            function syncLegacyHtmlToHidden() {
-                $hidden.val($textarea.val() || '');
-            }
-
-            function bindTinyMceSync() {
-                if (typeof tinymce === 'undefined') {
-                    return false;
-                }
-
-                var editor = tinymce.get(editorId);
-                if (!editor) {
-                    return false;
-                }
-
-                var syncFromTinyMce = function() {
-                    var content = editor.getContent();
-                    $textarea.val(content);
-                    syncLegacyHtmlToHidden();
-                };
-
-                editor.on('input change keyup SetContent', syncFromTinyMce);
-                syncFromTinyMce();
-                return true;
-            }
-
-            $textarea.on('input change', syncLegacyHtmlToHidden);
-
-            if ($textarea.hasClass('tiny-editor') && typeof tiny_init === 'function') {
-                try {
-                    tiny_init($root);
-                } catch (e) {
-                    console.warn('Legacy TinyMCE init failed', e);
-                }
-
-                var tinyBindTries = 0;
-                var tinyBindTimer = setInterval(function() {
-                    tinyBindTries++;
-                    if (bindTinyMceSync() || tinyBindTries > 20) {
-                        clearInterval(tinyBindTimer);
-                    }
-                }, 150);
-            }
-
-            if ($textarea.hasClass('cke5-editor') && typeof cke5_init === 'function') {
-                try {
-                    cke5_init($textarea);
-                } catch (e) {
-                    console.warn('Legacy CKE5 init failed', e);
-                }
-            }
-
-            $(window).on('rex:cke5IsInit', function(event, editor, initializedEditorId) {
-                if (initializedEditorId !== editorId) {
-                    return;
-                }
-                editor.model.document.on('change:data', function() {
-                    $textarea.val(editor.getData());
-                    syncLegacyHtmlToHidden();
-                });
-            });
-
-            $('#' + migrateButtonId).on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                var html = $textarea.val() || '';
-                var data = {};
-                data[migrateField || 'text'] = html;
-                var availableElements = {};
-                try {
-                    availableElements = JSON.parse($root.attr('data-available-elements') || '{}');
-                } catch (error) {
-                    availableElements = {};
-                }
-
-                var targetType = migrateTarget || 'starter_text';
-                var targetLabel = targetType;
-                if (availableElements && availableElements[targetType] && availableElements[targetType].label) {
-                    targetLabel = availableElements[targetType].label;
-                }
-
-                var $legacyPanel = $root.find('.content-builder-legacy-panel').first();
-                var $modernBuilder = $root.find('.content-builder-modern').first();
-                var $slices = $modernBuilder.find('.content-builder-slices').first();
-
-                $root.attr('data-legacy-mode', '0');
-                $legacyPanel.hide();
-                $modernBuilder.show();
-
-                if ($slices.length > 0) {
-                    $slices.empty();
-                }
-
-                if (window.ContentBuilder && typeof window.ContentBuilder.addSlice === 'function' && $slices.length > 0) {
-                    window.ContentBuilder.addSlice($slices, targetType, targetLabel, data);
-                } else {
-                    $hidden.val(JSON.stringify([{ id: 'slice_' + Date.now(), type: targetType, online: true, data: data }]));
-                }
-
-                var notice = $('#<?= $legacyNoticeId ?>');
-                if (notice.length) {
-                    notice.removeClass('alert-info').addClass('alert-success');
-                    notice.find('span').first().text('In den modernen Content-Builder übernommen. Bitte jetzt normal speichern oder übernehmen.');
-                    $(this).prop('disabled', true);
-                }
-            });
-
-            $root.closest('form').on('submit', function() {
-                if ($textarea.hasClass('tiny-editor') && typeof tinymce !== 'undefined') {
-                    var tinyEditor = tinymce.get(editorId);
-                    if (tinyEditor) {
-                        $textarea.val(tinyEditor.getContent());
-                    }
-                }
-
-                syncLegacyHtmlToHidden();
-            });
-        })();
-        </script>
     <?php endif; ?>
 
     <div class="content-builder-modern"<?= $legacy_is_active ? ' style="display: none;"' : '' ?>>
