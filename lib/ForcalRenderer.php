@@ -5,6 +5,7 @@ namespace KLXM\YFormContentBuilder;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
+use forCal\Handler\forCalHandler;
 use rex;
 use rex_addon;
 use rex_clang;
@@ -100,21 +101,26 @@ final class ForcalRenderer
     {
         $cats = self::parseCategoryIds($elementData['categories'] ?? '');
 
-        $factory = \forCal\Factory\forCalEventsFactory::create()
-            ->from('now')
-            ->to('+24 months')
-            ->sortBy('start_date', 'asc');
+        $entries = forCalHandler::getEntries(
+            'today',
+            '+24 months',
+            false,
+            SORT_ASC,
+            [] !== $cats ? $cats : null,
+            null,
+            null,
+            null,
+            false,
+        );
 
-        if ([] !== $cats) {
-            $factory->inCategories($cats);
-        }
-
-        /** @var list<array<string,mixed>> $entries */
-        $entries = $factory->get();
         $items = [];
 
         foreach ($entries as $event) {
-            $item = self::makeItem($event, $teaserLength, $urlPattern, $imageField, $showImage);
+            if (!is_array($event) || !isset($event['entry']) || !$event['entry'] instanceof \stdClass) {
+                continue;
+            }
+
+            $item = self::makeItemFromLegacyEntry($event['entry'], $teaserLength, $urlPattern, $imageField, $showImage);
             if (null === $item) {
                 continue;
             }
@@ -140,23 +146,31 @@ final class ForcalRenderer
             return [];
         }
 
-        // Faktory-API liefert pro Wiederholung einen Eintrag im Result-Array.
-        // Wir holen alle Termine im Zeitraum und filtern auf die Entry-ID.
-        $factory = \forCal\Factory\forCalEventsFactory::create()
-            ->from('now')
-            ->to('+24 months')
-            ->sortBy('start_date', 'asc');
+        $entries = forCalHandler::getEntries(
+            'today',
+            '+24 months',
+            false,
+            SORT_ASC,
+            null,
+            null,
+            null,
+            null,
+            false,
+        );
 
-        /** @var list<array<string,mixed>> $entries */
-        $entries = $factory->get();
         $items = [];
 
         foreach ($entries as $event) {
-            $eid = (int) ($event['id'] ?? 0);
+            if (!is_array($event) || !isset($event['entry']) || !$event['entry'] instanceof \stdClass) {
+                continue;
+            }
+
+            $eid = (int) ($event['entry']->entry_id ?? 0);
             if ($eid !== $entryId) {
                 continue;
             }
-            $item = self::makeItem($event, $teaserLength, $urlPattern, $imageField, $showImage);
+
+            $item = self::makeItemFromLegacyEntry($event['entry'], $teaserLength, $urlPattern, $imageField, $showImage);
             if (null === $item) {
                 continue;
             }
@@ -167,6 +181,96 @@ final class ForcalRenderer
         }
 
         return $items;
+    }
+
+    /**
+     * @return array<string,mixed>|null
+     */
+    private static function makeItemFromLegacyEntry(\stdClass $entry, int $teaserLength, string $urlPattern, string $imageField = '', bool $showImage = false): ?array
+    {
+        $startDate = $entry->entry_start_date ?? null;
+        $endDate = $entry->entry_end_date ?? null;
+
+        if (!$startDate instanceof DateTimeInterface || !$endDate instanceof DateTimeInterface) {
+            return null;
+        }
+
+        $id = (int) ($entry->entry_id ?? 0);
+        $title = (string) ($entry->entry_name ?? '');
+        $teaserRaw = (string) ($entry->entry_teaser ?? '');
+        $textRaw = (string) ($entry->entry_text ?? '');
+        $teaserSource = $teaserRaw !== '' ? $teaserRaw : $textRaw;
+        $teaser = self::truncate(strip_tags($teaserSource), $teaserLength);
+        $color = (string) ($entry->category_color ?? '');
+        $venue = (string) ($entry->venue_name ?? '');
+        $startTime = (string) ($entry->entry_start_time ?? '');
+        $endTime = (string) ($entry->entry_end_time ?? '');
+        $fullTime = !empty($entry->full_time)
+            || $startTime === ''
+            || $startTime === '00:00:00';
+
+        $href = '';
+        if ($urlPattern !== '' && $id > 0) {
+            $href = str_replace('{id}', (string) $id, $urlPattern);
+        }
+
+        $image = '';
+        $imageUrl = '';
+        if ($showImage) {
+            $clang = rex_clang::getCurrentId();
+            $defaultCandidates = [
+                'image',
+                'lang_image_' . $clang,
+                'bild',
+                'header_image',
+                'teaser_image',
+                'media',
+                'preview',
+            ];
+            $candidates = $imageField !== '' ? [$imageField] : $defaultCandidates;
+            $expanded = [];
+            foreach ($candidates as $candidate) {
+                $expanded[] = $candidate;
+                if (!str_starts_with($candidate, 'entries_')) {
+                    $expanded[] = 'entries_' . $candidate;
+                }
+            }
+
+            foreach ($expanded as $key) {
+                $val = $entry->{$key} ?? null;
+                if (is_array($val)) {
+                    $val = reset($val);
+                }
+                if (is_string($val) && trim($val) !== '') {
+                    $image = trim($val);
+                    if (str_contains($image, ',')) {
+                        $image = trim(explode(',', $image)[0]);
+                    }
+                    break;
+                }
+            }
+
+            if ($image !== '') {
+                $imageUrl = rex_media_manager::getUrl('card', $image);
+            }
+        }
+
+        return [
+            'id' => $id,
+            'title' => $title,
+            'teaser' => $teaser,
+            'start' => DateTimeImmutable::createFromInterface($startDate),
+            'end' => DateTimeImmutable::createFromInterface($endDate),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'full_time' => $fullTime,
+            'venue' => $venue,
+            'category_color' => $color,
+            'href' => $href,
+            'image' => $image,
+            'image_url' => $imageUrl,
+            'sort_key' => $startDate->format('YmdHis'),
+        ];
     }
 
     /**

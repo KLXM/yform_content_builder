@@ -80,6 +80,9 @@ return [
                 'multiple' => true,
                 'notice' => 'Modus "Nach Kategorie": Mehrfachauswahl moeglich. Keine Auswahl = alle Kategorien.',
                 'default' => [],
+                'visible_if' => [
+                    'mode' => 'categories',
+                ],
             ],
             'repeat_entry' => [
                 'type' => 'choice',
@@ -87,6 +90,9 @@ return [
                 'choices' => $repeatChoices,
                 'notice' => 'Modus "Wiederkehrender Termin": waehlt einen Eintrag aus, dessen naechste Wiederholungen aufgelistet werden.',
                 'default' => '',
+                'visible_if' => [
+                    'mode' => 'repeat',
+                ],
             ],
             'headline' => [
                 'type' => 'text',
