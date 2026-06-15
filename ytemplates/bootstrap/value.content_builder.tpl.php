@@ -135,10 +135,12 @@ $builderValue = $legacy_is_active ? [] : $value;
         <p class="help-block"><?= $description ?></p>
     <?php endif; ?>
 
-    <div class="alert alert-info yform-cb-start-separator" style="margin-bottom: 12px; border-left: 4px solid #1b809e;">
-        <strong><i class="fa fa-cubes" aria-hidden="true"></i> Content-Builder-Bereich</strong><br>
-        <span>Ab hier beginnt der modulare Seiteninhalt.</span>
-    </div>
+    <?php if (!$legacy_is_active): ?>
+        <div class="alert alert-info yform-cb-start-separator" style="margin-bottom: 12px; border-left: 4px solid #1b809e;">
+            <strong><i class="fa fa-cubes" aria-hidden="true"></i> Content-Builder-Bereich</strong><br>
+            <span>Ab hier beginnt der modulare Seiteninhalt.</span>
+        </div>
+    <?php endif; ?>
     
     <?php if ($legacy_is_active): ?>
         <div class="panel panel-default content-builder-legacy-panel" style="margin-bottom: 12px;">
