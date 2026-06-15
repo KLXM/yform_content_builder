@@ -451,6 +451,83 @@ final class ForcalRenderer
     }
 
     /**
+     * Baut eine lineare Liste aus Separatoren und Items auf.
+     *
+     * @param list<array<string,mixed>> $items
+     * @return list<array<string,mixed>>
+     */
+    public static function buildSeparatedRows(array $items, string $groupBy): array
+    {
+        if (!in_array($groupBy, ['month', 'year', 'year_month'], true)) {
+            return array_map(
+                static fn (array $item): array => ['type' => 'item', 'item' => $item],
+                $items,
+            );
+        }
+
+        $rows = [];
+        $lastYear = '';
+        $lastMonth = '';
+
+        foreach ($items as $item) {
+            $start = $item['start'] ?? null;
+            if (!$start instanceof DateTimeInterface) {
+                $rows[] = ['type' => 'item', 'item' => $item];
+                continue;
+            }
+
+            $year = $start->format('Y');
+            $yearMonth = $start->format('Y-m');
+
+            if ('year' === $groupBy && $year !== $lastYear) {
+                $rows[] = [
+                    'type' => 'separator',
+                    'level' => 1,
+                    'label' => $year,
+                    'key' => $year,
+                ];
+                $lastYear = $year;
+            }
+
+            if ('month' === $groupBy && $yearMonth !== $lastMonth) {
+                $rows[] = [
+                    'type' => 'separator',
+                    'level' => 1,
+                    'label' => self::formatMonthYearLabel($start),
+                    'key' => $yearMonth,
+                ];
+                $lastMonth = $yearMonth;
+            }
+
+            if ('year_month' === $groupBy) {
+                if ($year !== $lastYear) {
+                    $rows[] = [
+                        'type' => 'separator',
+                        'level' => 1,
+                        'label' => $year,
+                        'key' => $year,
+                    ];
+                    $lastYear = $year;
+                    $lastMonth = '';
+                }
+                if ($yearMonth !== $lastMonth) {
+                    $rows[] = [
+                        'type' => 'separator',
+                        'level' => 2,
+                        'label' => self::formatMonthYearLabel($start),
+                        'key' => $yearMonth,
+                    ];
+                    $lastMonth = $yearMonth;
+                }
+            }
+
+            $rows[] = ['type' => 'item', 'item' => $item];
+        }
+
+        return $rows;
+    }
+
+    /**
      * @return array<int,string> id => Name
      */
     public static function getCategoryChoices(): array
@@ -593,5 +670,26 @@ final class ForcalRenderer
             'error' => $msg,
             'limit' => 0,
         ];
+    }
+
+    private static function formatMonthYearLabel(DateTimeInterface $date): string
+    {
+        $locale = str_replace('_', '-', (string) \rex_i18n::getLocale());
+        if (class_exists(\IntlDateFormatter::class)) {
+            $formatter = new \IntlDateFormatter(
+                $locale,
+                \IntlDateFormatter::NONE,
+                \IntlDateFormatter::NONE,
+                date_default_timezone_get(),
+                \IntlDateFormatter::GREGORIAN,
+                'LLLL yyyy',
+            );
+            $formatted = $formatter->format($date->getTimestamp());
+            if (is_string($formatted) && '' !== trim($formatted)) {
+                return $formatted;
+            }
+        }
+
+        return $date->format('m.Y');
     }
 }

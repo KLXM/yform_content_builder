@@ -20,6 +20,20 @@ $showCategoryColors = !empty($elementData['show_category_colors']);
 $layout = $result['layout'];
 $items = $result['items'];
 $error = $result['error'];
+$groupBy = (string) ($elementData['group_by'] ?? '');
+$groupHeadingTag = (string) ($elementData['group_heading_tag'] ?? 'h3');
+$groupHeadingStyle = (string) ($elementData['group_heading_style'] ?? 'plain');
+
+if (!in_array($groupHeadingTag, ['h2', 'h3', 'h4', 'h5', 'h6', 'div'], true)) {
+    $groupHeadingTag = 'h3';
+}
+
+$groupHeadingClass = '';
+if ($groupHeadingStyle !== '' && $groupHeadingStyle !== 'plain') {
+    $groupHeadingClass = $groupHeadingStyle;
+}
+
+$rows = ForcalRenderer::buildSeparatedRows((array) $items, $groupBy);
 
 $sectionBg = $elementData['section_bg'] ?? '';
 $sectionBgImage = (string) ($elementData['section_bg_image'] ?? '');
@@ -68,7 +82,16 @@ if ($error !== null) {
         . ' uk-child-width-1-' . rex_escape($columns) . '@m';
 
     echo '<div class="' . $colClass . '" uk-grid uk-height-match="target: > div > .uk-card">';
-    foreach ($items as $it) {
+    foreach ($rows as $row) {
+        if (($row['type'] ?? '') === 'separator') {
+            $sepLabel = rex_escape((string) ($row['label'] ?? ''));
+            $sepLevel = (int) ($row['level'] ?? 1);
+            $sepTag = $sepLevel === 2 && $groupHeadingTag !== 'div' ? 'h4' : $groupHeadingTag;
+            $sepClass = trim(($sepLevel === 2 ? 'uk-text-meta ' : '') . $groupHeadingClass . ' uk-margin-small-top uk-margin-small-bottom');
+            echo '<div class="uk-width-1-1"><' . $sepTag . ($sepClass !== '' ? ' class="' . rex_escape($sepClass) . '"' : '') . '>' . $sepLabel . '</' . $sepTag . '></div>';
+            continue;
+        }
+        $it = (array) ($row['item'] ?? []);
         $title = rex_escape((string) $it['title']);
         $teaser = rex_escape((string) $it['teaser']);
         $href = $showLinks ? (string) $it['href'] : '';
@@ -82,13 +105,19 @@ if ($error !== null) {
         $imgHtml = $imageUrl !== '' ? '<div class="uk-card-media-top"><img src="' . rex_escape($imageUrl) . '" alt="" loading="lazy"></div>' : '';
         $categoryHtml = '';
         if ($showCategoryBadge) {
-            $categoryStyle = $categoryColor !== '' ? ' style="background:' . rex_escape($categoryColor) . ';"' : '';
-            $categoryHtml = '<div class="uk-margin-small-top"><span class="uk-label"' . $categoryStyle . '>' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
+            $categoryStyle = ' style="border-radius:0 0 0 .4rem;padding:.3rem .62rem;font-size:.72rem;font-weight:600;letter-spacing:.02em;box-shadow:0 1px 3px rgba(0,0,0,.18);';
+            $categoryStyle .= $categoryColor !== '' ? 'background:' . rex_escape($categoryColor) . ';' : '';
+            $categoryStyle .= '"';
+            $categoryHtml = '<div style="position:absolute;top:0;right:0;z-index:2;"><span class="uk-label"' . $categoryStyle . '>' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
         }
 
-        echo '<div><div class="uk-card uk-card-default"' . ($showCategoryColors && $categoryColor !== '' ? ' style="border-top:4px solid ' . rex_escape($categoryColor) . ';"' : '') . '>' . $imgHtml . '<div class="uk-card-body">'
+        $cardStyle = 'position:relative;';
+        if ($showCategoryColors && $categoryColor !== '') {
+            $cardStyle .= 'border-top:4px solid ' . rex_escape($categoryColor) . ';';
+        }
+
+        echo '<div><div class="uk-card uk-card-default" style="' . $cardStyle . '">' . $categoryHtml . $imgHtml . '<div class="uk-card-body">'
             . '<div class="uk-text-meta uk-text-uppercase">' . $dateStr . '</div>'
-            . $categoryHtml
             . '<h3 class="uk-card-title uk-margin-small-top uk-margin-remove-bottom">' . $titleHtml . '</h3>'
             . ($teaser !== '' ? '<p class="uk-margin-small-top">' . $teaser . '</p>' : '')
             . '</div></div></div>';
@@ -96,7 +125,16 @@ if ($error !== null) {
     echo '</div>';
 } elseif ($layout === 'list') {
     echo '<ul class="uk-list uk-list-divider">';
-    foreach ($items as $it) {
+    foreach ($rows as $row) {
+        if (($row['type'] ?? '') === 'separator') {
+            $sepLabel = rex_escape((string) ($row['label'] ?? ''));
+            $sepLevel = (int) ($row['level'] ?? 1);
+            $sepTag = $sepLevel === 2 && $groupHeadingTag !== 'div' ? 'h5' : $groupHeadingTag;
+            $sepClass = trim(($sepLevel === 2 ? 'uk-text-meta ' : '') . $groupHeadingClass . ' uk-margin-small-top uk-margin-small-bottom');
+            echo '<li><' . $sepTag . ($sepClass !== '' ? ' class="' . rex_escape($sepClass) . '"' : '') . '>' . $sepLabel . '</' . $sepTag . '></li>';
+            continue;
+        }
+        $it = (array) ($row['item'] ?? []);
         $title = rex_escape((string) $it['title']);
         $teaser = rex_escape((string) $it['teaser']);
         $href = $showLinks ? (string) $it['href'] : '';
@@ -116,7 +154,16 @@ if ($error !== null) {
     echo '</ul>';
 } else {
     echo '<ul class="uk-list">';
-    foreach ($items as $it) {
+    foreach ($rows as $row) {
+        if (($row['type'] ?? '') === 'separator') {
+            $sepLabel = rex_escape((string) ($row['label'] ?? ''));
+            $sepLevel = (int) ($row['level'] ?? 1);
+            $sepTag = $sepLevel === 2 && $groupHeadingTag !== 'div' ? 'h6' : $groupHeadingTag;
+            $sepClass = trim(($sepLevel === 2 ? 'uk-text-meta ' : '') . $groupHeadingClass . ' uk-margin-small-top uk-margin-small-bottom');
+            echo '<li><' . $sepTag . ($sepClass !== '' ? ' class="' . rex_escape($sepClass) . '"' : '') . '>' . $sepLabel . '</' . $sepTag . '></li>';
+            continue;
+        }
+        $it = (array) ($row['item'] ?? []);
         $title = rex_escape((string) $it['title']);
         $href = $showLinks ? (string) $it['href'] : '';
         $dateStr = ForcalRenderer::formatDate($it);
@@ -131,7 +178,16 @@ if ($error !== null) {
                 $categoryHtml .= '<span class="uk-text-meta uk-margin-small-left">' . $categoryName . '</span>';
             }
         }
-        echo '<li><span class="uk-text-meta uk-margin-small-right">' . $dateStr . '</span>' . $categoryHtml . $titleHtml . '</li>';
+        $compactMeta = '<span class="uk-text-meta" style="min-width:8.25rem;display:inline-block;">' . $dateStr . '</span>';
+        if ($showCategoryColors && ($categoryName !== '' || $categoryColor !== '')) {
+            $dotColor = $categoryColor !== '' ? $categoryColor : '#6c757d';
+            $compactMeta .= '<span class="uk-margin-small-left uk-margin-small-right" style="display:inline-block;width:.48rem;height:.48rem;border-radius:50%;background:' . rex_escape($dotColor) . ';vertical-align:middle;"></span>';
+            if ($categoryName !== '') {
+                $compactMeta .= '<span class="uk-text-meta uk-margin-small-right">' . $categoryName . '</span>';
+            }
+        }
+
+        echo '<li style="padding:.45rem 0;border-bottom:1px solid rgba(0,0,0,.08);"><div class="uk-flex uk-flex-wrap uk-flex-middle">' . $compactMeta . '<span style="font-weight:600;">' . $titleHtml . '</span></div></li>';
     }
     echo '</ul>';
 }
