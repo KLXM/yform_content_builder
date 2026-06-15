@@ -116,6 +116,7 @@ foreach ($legacy_editor_attributes as $attrName => $attrValue) {
 }
 
 $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
+$builderValue = $legacy_is_active ? [] : $value;
 ?>
 
 <div class="form-group yform-element <?= $fieldClass ?>" 
@@ -135,7 +136,7 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
     <?php endif; ?>
     
     <?php if ($legacy_is_active): ?>
-        <div class="panel panel-default" style="margin-bottom: 12px;">
+        <div class="panel panel-default content-builder-legacy-panel" style="margin-bottom: 12px;">
             <div class="panel-body">
                 <?php if ($legacy_migration_hint): ?>
                     <div id="<?= $legacyNoticeId ?>" class="alert alert-info" style="margin-bottom: 12px; padding: 8px 12px;">
@@ -156,11 +157,6 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                 </div>
             </div>
         </div>
-
-        <input type="hidden"
-               name="FORM[<?= $this->params['form_name'] ?>][<?= $this->getId() ?>]"
-               class="content-builder-data"
-               value='<?= rex_escape($legacy_html) ?>'>
 
         <script nonce="<?= rex_response::getNonce() ?>">
         (function() {
@@ -241,56 +237,49 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                 });
             });
 
-            $('#' + migrateButtonId).on('click', function() {
+            $('#' + migrateButtonId).on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
                 var html = $textarea.val() || '';
                 var data = {};
                 data[migrateField || 'text'] = html;
-                var slice = {
-                    id: 'slice_' + Date.now(),
-                    type: migrateTarget || 'starter_text',
-                    online: true,
-                    data: data
-                };
+                var availableElements = {};
+                try {
+                    availableElements = JSON.parse($root.attr('data-available-elements') || '{}');
+                } catch (error) {
+                    availableElements = {};
+                }
 
-                $hidden.val(JSON.stringify([slice]));
+                var targetType = migrateTarget || 'starter_text';
+                var targetLabel = targetType;
+                if (availableElements && availableElements[targetType] && availableElements[targetType].label) {
+                    targetLabel = availableElements[targetType].label;
+                }
+
+                var $legacyPanel = $root.find('.content-builder-legacy-panel').first();
+                var $modernBuilder = $root.find('.content-builder-modern').first();
+                var $slices = $modernBuilder.find('.content-builder-slices').first();
+
+                $root.attr('data-legacy-mode', '0');
+                $legacyPanel.hide();
+                $modernBuilder.show();
+
+                if ($slices.length > 0) {
+                    $slices.empty();
+                }
+
+                if (window.ContentBuilder && typeof window.ContentBuilder.addSlice === 'function' && $slices.length > 0) {
+                    window.ContentBuilder.addSlice($slices, targetType, targetLabel, data);
+                } else {
+                    $hidden.val(JSON.stringify([{ id: 'slice_' + Date.now(), type: targetType, online: true, data: data }]));
+                }
 
                 var notice = $('#<?= $legacyNoticeId ?>');
                 if (notice.length) {
                     notice.removeClass('alert-info').addClass('alert-success');
-                    notice.find('span').first().text('In den modernen Content-Builder übernommen. Die Änderungen werden jetzt gespeichert.');
+                    notice.find('span').first().text('In den modernen Content-Builder übernommen. Bitte jetzt normal speichern oder übernehmen.');
                     $(this).prop('disabled', true);
-                }
-
-                // Nach Migration direkt "Übernehmen" auslösen, damit der Wechsel persistent wird.
-                var $form = $root.closest('form');
-                if ($form.length) {
-                    var formEl = $form.get(0);
-                    var applyButton = $form.find([
-                        'button.btn-apply[type="submit"]',
-                        'input.btn-apply[type="submit"]',
-                        'button.btn-save[type="submit"]',
-                        'input.btn-save[type="submit"]',
-                        'button[type="submit"][name="save"]',
-                        'input[type="submit"][name="save"]',
-                        'button[type="submit"]',
-                        'input[type="submit"]'
-                    ].join(', ')).first().get(0) || null;
-
-                    // Wichtig: In YForm/REDAXO bestimmt oft der Submitter-Button
-                    // den Save-Flow. Daher bevorzugt den echten Button klicken.
-                    if (applyButton && typeof applyButton.click === 'function') {
-                        applyButton.click();
-                        return;
-                    }
-
-                    if (formEl && typeof formEl.requestSubmit === 'function') {
-                        formEl.requestSubmit(applyButton || undefined);
-                        return;
-                    }
-
-                    if (formEl && typeof formEl.submit === 'function') {
-                        formEl.submit();
-                    }
                 }
             });
 
@@ -306,10 +295,12 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
             });
         })();
         </script>
-    <?php else: ?>
+    <?php endif; ?>
+
+    <div class="content-builder-modern"<?= $legacy_is_active ? ' style="display: none;"' : '' ?>>
         <div class="content-builder-slices">
-            <?php if (!empty($value)): ?>
-                <?php foreach ($value as $index => $slice): ?>
+            <?php if (!empty($builderValue)): ?>
+                <?php foreach ($builderValue as $index => $slice): ?>
                     <?php
                     $sliceId = $slice['id'] ?? 'slice_' . uniqid();
                     $sliceType = $slice['type'];
@@ -554,8 +545,8 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
         <input type="hidden" 
                name="FORM[<?= $this->params['form_name'] ?>][<?= $this->getId() ?>]" 
                class="content-builder-data" 
-               value='<?= rex_escape(json_encode($value, JSON_UNESCAPED_UNICODE)) ?>'>
-    <?php endif; ?>
+               value='<?= $legacy_is_active ? rex_escape($legacy_html) : rex_escape(json_encode($builderValue, JSON_UNESCAPED_UNICODE)) ?>'>
+    </div>
     
     <?php if ($notice): ?>
         <p class="help-block"><?= $notice ?></p>

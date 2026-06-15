@@ -2008,7 +2008,7 @@
             return Object.assign({}, globalDefaults, typeDefaults);
         },
 
-        addSlice: function($container, elementType, elementLabel) {
+        addSlice: function($container, elementType, elementLabel, initialData) {
             var sliceId = 'slice_' + Date.now();
             var index = $container.children('.content-builder-slice').length;
             
@@ -2022,6 +2022,9 @@
                 : '';
 
             var sliceDefaults = this.resolveElementDefaults($container, elementType);
+            if (initialData && typeof initialData === 'object') {
+                sliceDefaults = Object.assign({}, sliceDefaults, initialData);
+            }
 
             // Icon aus available-elements lesen
             var availableElementsRaw = $container.closest('.yform-content-builder').attr('data-available-elements') || '{}';
@@ -2064,6 +2067,7 @@
             }
             
             $container.append($newSlice);
+            this.updateHiddenField();
             
             // Direkt bearbeiten
             this.editSlice($newSlice);
@@ -2073,6 +2077,7 @@
             this.updateInsertButtons();
             
             this.scrollToSlice($newSlice);
+            return $newSlice;
         },
         
         insertSliceAt: function($container, elementType, elementLabel, position) {
@@ -3719,6 +3724,8 @@
             window.MediaBrowser.init();
         }
     }
+
+    window.ContentBuilder = ContentBuilder;
 
     // REDAXO Backend-Lifecycle: immer ueber rex:ready initialisieren
     $(document).on('rex:ready', function(event, container) {
