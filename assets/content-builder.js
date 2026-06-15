@@ -303,11 +303,26 @@
             $(document).on('shown.bs.modal', 'body > .modal', function() {
                 var $modal = $(this);
                 self.applyConditionalFieldVisibility($modal);
+                self.ensureEditorsReady($modal);
             });
 
-            $(document).on('shown.bs.tab', '.slice-edit-form a[data-toggle="tab"]', function() {
-                var $editForm = $(this).closest('.slice-edit-form');
-                self.applyConditionalFieldVisibility($editForm);
+            $(document).on('shown.bs.tab', '.slice-edit-form a[data-toggle="tab"], #nested-slice-edit-modal a[data-toggle="tab"], .yform-content-builder a[data-toggle="tab"]', function() {
+                var $tab = $(this);
+                var $editForm = $tab.closest('.slice-edit-form');
+                if ($editForm.length > 0) {
+                    self.applyConditionalFieldVisibility($editForm);
+                    self.ensureEditorsReady($editForm, $tab);
+                    return;
+                }
+
+                var $modal = $tab.closest('.modal');
+                if ($modal.length > 0) {
+                    self.applyConditionalFieldVisibility($modal);
+                    self.ensureEditorsReady($modal, $tab);
+                    return;
+                }
+
+                self.ensureEditorsReady($tab.closest('.yform-content-builder'), $tab);
             });
 
             // Robust tab switching click fallback for dynamically loaded Bootstrap tabs
@@ -1069,7 +1084,7 @@
                 }
                 
                 $modal.data('editing-slice', $slice);
-                var $editForm = $slice.find('.slice-edit-form');
+                var $editForm = $slice.children('.slice-edit-form');
                 $modal.find('.modal-body').empty().append($editForm);
                 $editForm.show();
                 
@@ -1095,7 +1110,7 @@
                 $slice.find('.slice-toolbar').hide();
                 
                 // Edit-Form anzeigen
-                var $editForm = $slice.find('.slice-edit-form');
+                var $editForm = $slice.children('.slice-edit-form');
                 
                 if ($editForm.children().length === 0) {
                     // Formular erstmal laden
@@ -1125,7 +1140,7 @@
             var sliceType = $slice.data('slice-type');
             var sliceData = this.getSliceData($slice);
             var isNested = $slice.closest('.content-builder-column-slices').length > 0;
-            var $editForm = isNested ? $('#nested-slice-edit-modal .slice-edit-form') : $slice.find('.slice-edit-form');
+            var $editForm = isNested ? $('#nested-slice-edit-modal .modal-body > .slice-edit-form') : $slice.children('.slice-edit-form');
             
             
             // YForm-Formular per AJAX laden
@@ -1296,6 +1311,127 @@
                     }, 300);
                 }
             });
+        },
+
+        resolveTabPane: function($scope, $tab) {
+            if (!$tab || $tab.length === 0) {
+                return $();
+            }
+
+            var target = $tab.attr('data-target') || $tab.attr('href') || '';
+            if (target === '' || target.charAt(0) !== '#') {
+                return $();
+            }
+
+            var $pane = $();
+            if ($scope && $scope.length > 0) {
+                $pane = $scope.find(target).first();
+            }
+
+            if ($pane.length === 0) {
+                $pane = $(target).first();
+            }
+
+            return $pane;
+        },
+
+        ensureEditorsReady: function($scope, $tab) {
+            var self = this;
+            var $context = ($scope && $scope.length > 0) ? $scope : $(document);
+            var $editorScope = $context;
+            var $tabPane = this.resolveTabPane($context, $tab);
+
+            if ($tabPane.length > 0) {
+                $editorScope = $tabPane;
+            }
+
+            setTimeout(function() {
+                var needsTinyInit = false;
+
+                $editorScope.find('textarea.tiny-editor:visible').each(function() {
+                    var $textarea = $(this);
+                    var textareaId = ($textarea.attr('id') || '').toString();
+                    var hasEditor = false;
+
+                    if (textareaId !== '' && typeof tinymce !== 'undefined' && tinymce.get(textareaId)) {
+                        hasEditor = true;
+                    }
+
+                    var $tinyContainer = $textarea.siblings('.tox-tinymce');
+                    if ($tinyContainer.length > 0) {
+                        hasEditor = true;
+                        $tinyContainer.css({
+                            display: 'block',
+                            visibility: 'visible',
+                            opacity: '1'
+                        });
+                    }
+
+                    if (!hasEditor) {
+                        needsTinyInit = true;
+                    }
+                });
+
+                if (needsTinyInit && typeof tiny_init === 'function') {
+                    try {
+                        tiny_init($editorScope);
+                    } catch (e) {
+                        console.error('tiny_init after tab switch failed:', e);
+                    }
+                }
+
+                $editorScope.find('textarea.cke5-editor:visible').each(function() {
+                    var $textarea = $(this);
+                    var textareaId = ($textarea.attr('id') || '').toString();
+                    var editor = null;
+
+                    if (typeof ckeditors !== 'undefined' && textareaId !== '' && ckeditors[textareaId]) {
+                        editor = ckeditors[textareaId];
+                    }
+
+                    if (!editor && typeof cke5_init === 'function') {
+                        try {
+                            cke5_init($textarea);
+                        } catch (e) {
+                            console.error('cke5_init after tab switch failed:', e);
+                        }
+                    } else if (editor && editor.ui && typeof editor.ui.update === 'function') {
+                        try {
+                            editor.ui.update();
+                        } catch (e) {
+                            // no-op: some editor builds don't expose ui.update reliably
+                        }
+                    }
+
+                    var $ckeContainer = $textarea.siblings('.ck-editor');
+                    if ($ckeContainer.length > 0) {
+                        $ckeContainer.css({
+                            display: 'block',
+                            visibility: 'visible',
+                            opacity: '1'
+                        });
+                    }
+                });
+
+                setTimeout(function() {
+                    $editorScope.find('textarea.tiny-editor').each(function() {
+                        var $tinyContainer = $(this).siblings('.tox-tinymce');
+                        if ($tinyContainer.length > 0 && !$tinyContainer.is(':visible')) {
+                            $tinyContainer.show();
+                        }
+                    });
+                }, 120);
+
+                if (typeof self.applyConditionalFieldVisibility === 'function') {
+                    self.applyConditionalFieldVisibility($context);
+                }
+
+                try {
+                    $(window).trigger('resize');
+                } catch (e) {
+                    // ignore
+                }
+            }, 40);
         },
 
         findConditionalSourceFields: function($scope, fieldName) {
@@ -1485,18 +1621,20 @@
         collectSliceDataFromForm: function($slice) {
             var self = this;
             var isNested = $slice.closest('.content-builder-column-slices').length > 0;
-            var $editForm = isNested ? $('#nested-slice-edit-modal .slice-edit-form') : $slice.find('.slice-edit-form');
+            var $editForm = isNested ? $('#nested-slice-edit-modal .modal-body > .slice-edit-form') : $slice.children('.slice-edit-form');
             var sliceData = {};
+            var sliceType = String($slice.data('slice-type') || '');
 
-            // Preserve columns data for columns layouts to prevent them from being cleared
-            var existingColumns = null;
+            // Preserve nested column-slice arrays only for the dedicated "columns" element.
+            // Other elements (e.g. cards) legitimately use a scalar "columns" setting.
+            var existingNestedColumns = null;
             var oldData = $slice.data('slice-data');
             if (oldData) {
                 if (typeof oldData === 'string') {
                     try { oldData = JSON.parse(oldData); } catch(e) {}
                 }
-                if (oldData && oldData.columns) {
-                    existingColumns = oldData.columns;
+                if (sliceType === 'columns' && oldData && oldData.columns && typeof oldData.columns === 'object') {
+                    existingNestedColumns = oldData.columns;
                 }
             }
 
@@ -1590,8 +1728,12 @@
                 }
             });
 
-            if (existingColumns) {
-                sliceData.columns = existingColumns;
+            if (
+                sliceType === 'columns' &&
+                existingNestedColumns !== null &&
+                (typeof sliceData.columns === 'undefined' || sliceData.columns === null)
+            ) {
+                sliceData.columns = existingNestedColumns;
             }
 
             $slice.attr('data-slice-data', JSON.stringify(sliceData));
@@ -1738,12 +1880,12 @@
             if (isNested) {
                 var $modal = $('#nested-slice-edit-modal');
                 this.destroyTinyMCEInContainer($modal);
-                var $editForm = $modal.find('.slice-edit-form');
+                var $editForm = $modal.find('.modal-body > .slice-edit-form');
                 $slice.append($editForm.hide());
                 $modal.modal('hide');
             } else {
                 this.destroyTinyMCEInContainer($slice);
-                $slice.find('.slice-edit-form').hide();
+                $slice.children('.slice-edit-form').hide();
                 $slice.find('.slice-rendered').show();
                 $slice.find('.slice-toolbar').show();
             }
