@@ -1003,7 +1003,19 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $this->setValue($postValue);
                 } elseif ($migrateLegacyOnSubmit && $this->isLegacyModeEnabled() && $this->isLegacyHtmlString($postValue)) {
-                    $this->setValue($this->buildLegacyMigrationJson($postValue));
+                    $migrationJson = $this->buildLegacyMigrationJson($postValue);
+                    if (is_string($migrationJson)) {
+                        $this->setValue($migrationJson);
+                    } else {
+                        $configuredTarget = trim((string) $this->getElement('legacy_migration_target', self::LEGACY_DEFAULT_TARGET));
+                        if ($configuredTarget === '') {
+                            $configuredTarget = self::LEGACY_DEFAULT_TARGET;
+                        }
+
+                        $this->setValue($postValue);
+                        $this->params['warning'][] = $fieldId;
+                        $this->params['warning_messages'][$fieldId] = 'Legacy-Inhalt konnte nicht migriert werden: Das konfigurierte Zielelement "' . $configuredTarget . '" ist in diesem Feld nicht verfügbar.';
+                    }
                 } elseif ($this->isLegacyModeEnabled() && $this->isLegacyHtmlString($postValue)) {
                     // Legacy-HTML explizit erlauben, damit bestehende Inhalte editierbar bleiben.
                     $this->setValue($postValue);
@@ -1048,20 +1060,9 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
 
         $migrationHintEnabled = $this->asBool($this->getElement('legacy_migration_hint', '1'));
-        $migrationTarget = trim((string) $this->getElement('legacy_migration_target', self::LEGACY_DEFAULT_TARGET));
+        $migrationTarget = trim((string) $this->getElement('legacy_migration_target', ''));
         if ($migrationTarget === '') {
             $migrationTarget = self::LEGACY_DEFAULT_TARGET;
-        }
-
-        if (!isset($availableElements[$migrationTarget])) {
-            if (isset($availableElements[self::LEGACY_DEFAULT_TARGET])) {
-                $migrationTarget = self::LEGACY_DEFAULT_TARGET;
-            } else {
-                foreach (array_keys($availableElements) as $elementKey) {
-                    $migrationTarget = (string) $elementKey;
-                    break;
-                }
-            }
         }
 
         $migrationField = trim((string) $this->getElement('legacy_migration_field', 'text'));
@@ -1233,14 +1234,18 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         return $this->asBool($this->getElement('legacy_cke5_enabled', '0'));
     }
 
-    protected function buildLegacyMigrationJson(string $legacyHtml): string
+    protected function buildLegacyMigrationJson(string $legacyHtml): ?string
     {
-        $configuredTarget = trim((string) $this->getElement('legacy_migration_target', self::LEGACY_DEFAULT_TARGET));
+        $configuredTarget = trim((string) $this->getElement('legacy_migration_target', ''));
+        $hasExplicitTarget = $configuredTarget !== '';
         if ($configuredTarget === '') {
             $configuredTarget = self::LEGACY_DEFAULT_TARGET;
         }
 
-        $migrationTarget = $this->resolveMigrationTarget($configuredTarget);
+        $migrationTarget = $this->resolveMigrationTarget($configuredTarget, !$hasExplicitTarget);
+        if ($migrationTarget === null) {
+            return null;
+        }
 
         $migrationField = trim((string) $this->getElement('legacy_migration_field', 'text'));
         if ($migrationField === '') {
@@ -1260,11 +1265,15 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         return is_string($json) ? $json : '[]';
     }
 
-    protected function resolveMigrationTarget(string $target): string
+    protected function resolveMigrationTarget(string $target, bool $allowFallback = true): ?string
     {
         $availableElements = $this->getAvailableElements();
         if (isset($availableElements[$target])) {
             return $target;
+        }
+
+        if (!$allowFallback) {
+            return null;
         }
 
         if (isset($availableElements[self::LEGACY_DEFAULT_TARGET])) {
