@@ -63,10 +63,6 @@ class ContentBuilderApi extends rex_api_function
                 $this->renderSlice();
                 break;
 
-            case 'convert_legacy_html':
-                $this->convertLegacyHtml();
-                break;
-
             case 'load_media_categories':
                 $this->loadMediaCategories();
                 break;
@@ -223,35 +219,6 @@ class ContentBuilderApi extends rex_api_function
         }
     }
 
-    protected function convertLegacyHtml(): void
-    {
-        $legacyHtml = (string) rex_request::post('legacy_html', 'string', '');
-        $sliceType = trim((string) rex_request::post('slice_type', 'string', 'starter_text'));
-        $sliceField = trim((string) rex_request::post('slice_field', 'string', 'text'));
-
-        if ($sliceType === '') {
-            $sliceType = 'starter_text';
-        }
-
-        if ($sliceField === '') {
-            $sliceField = 'text';
-        }
-
-        $slice = [
-            'id' => 'slice_' . uniqid('', true),
-            'type' => $sliceType,
-            'online' => true,
-            'data' => [
-                $sliceField => $legacyHtml,
-            ],
-        ];
-
-        rex_response::sendJson([
-            'success' => true,
-            'slice' => $slice,
-            'json' => json_encode([$slice], JSON_UNESCAPED_UNICODE),
-        ]);
-    }
 
     /**
      * Ermittelt den Pfad zu einem Element (mit Override-Support)

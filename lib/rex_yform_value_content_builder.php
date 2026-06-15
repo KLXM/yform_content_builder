@@ -989,9 +989,12 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     {
         $formName = $this->params['form_name'];
         $fieldId = $this->getId();
+        $migrationFlagField = $fieldId . '__legacy_migrate';
         
         if (isset($_POST['FORM'][$formName][$fieldId])) {
             $postValue = $_POST['FORM'][$formName][$fieldId];
+            $migrateLegacyOnSubmit = isset($_POST['FORM'][$formName][$migrationFlagField])
+                && $this->asBool($_POST['FORM'][$formName][$migrationFlagField]);
             
             // Wenn bereits JSON-String (aus Hidden Field), direkt verwenden
             if (is_string($postValue)) {
@@ -999,6 +1002,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $decoded = json_decode($postValue, true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $this->setValue($postValue);
+                } elseif ($migrateLegacyOnSubmit && $this->isLegacyModeEnabled() && $this->isLegacyHtmlString($postValue)) {
+                    $this->setValue($this->buildLegacyMigrationJson($postValue));
                 } elseif ($this->isLegacyModeEnabled() && $this->isLegacyHtmlString($postValue)) {
                     // Legacy-HTML explizit erlauben, damit bestehende Inhalte editierbar bleiben.
                     $this->setValue($postValue);
@@ -1226,6 +1231,38 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     protected function isLegacyModeEnabled(): bool
     {
         return $this->asBool($this->getElement('legacy_cke5_enabled', '0'));
+    }
+
+    protected function buildLegacyMigrationJson(string $legacyHtml): string
+    {
+        $availableElements = $this->getAvailableElements();
+        $migrationTarget = trim((string) $this->getElement('legacy_migration_target', self::LEGACY_DEFAULT_TARGET));
+        if ($migrationTarget === '' || !isset($availableElements[$migrationTarget])) {
+            $migrationTarget = isset($availableElements[self::LEGACY_DEFAULT_TARGET])
+                ? self::LEGACY_DEFAULT_TARGET
+                : (string) array_key_first($availableElements);
+        }
+
+        if ($migrationTarget === '') {
+            $migrationTarget = self::LEGACY_DEFAULT_TARGET;
+        }
+
+        $migrationField = trim((string) $this->getElement('legacy_migration_field', 'text'));
+        if ($migrationField === '') {
+            $migrationField = 'text';
+        }
+
+        $slice = [
+            'id' => 'slice_' . uniqid(),
+            'type' => $migrationTarget,
+            'online' => true,
+            'data' => [
+                $migrationField => $legacyHtml,
+            ],
+        ];
+
+        $json = json_encode([$slice], JSON_UNESCAPED_UNICODE);
+        return is_string($json) ? $json : '[]';
     }
 
     protected function isLegacyHtmlString(string $value): bool

@@ -85,94 +85,43 @@
             return $textarea.val() || '';
         },
 
-        getAvailableElementsMap: function($root) {
-            var availableElements = {};
-            try {
-                availableElements = JSON.parse($root.attr('data-available-elements') || '{}');
-            } catch (error) {
-                availableElements = {};
-            }
-
-            if (!availableElements || typeof availableElements !== 'object') {
-                return {};
-            }
-
-            return availableElements;
-        },
-
-        migrateLegacyContent: function($button) {
-            var self = this;
+        submitLegacyMigrationForm: function($button) {
             var $root = $button.closest('.yform-content-builder');
             var $textarea = $root.find('.yform-cb-legacy-editor').first();
-            var $hidden = $root.find('.content-builder-data').first();
-            var $legacyPanel = $root.find('.content-builder-legacy-panel').first();
-            var $modernBuilder = $root.find('.content-builder-modern').first();
-            var $slices = $modernBuilder.find('.content-builder-slices').first();
             var $notice = $root.find('.yform-cb-legacy-notice').first();
+            var $flag = $root.find('.yform-cb-legacy-migrate-flag').first();
+            var $form = $root.closest('form');
 
-            if ($root.length === 0 || $textarea.length === 0 || $hidden.length === 0) {
+            if ($root.length === 0 || $textarea.length === 0 || $flag.length === 0 || $form.length === 0) {
                 return;
             }
 
-            var html = self.getLegacyEditorHtml($textarea);
-            self.syncLegacyHiddenField($textarea);
+            this.getLegacyEditorHtml($textarea);
+            this.syncLegacyHiddenField($textarea);
+            $flag.val('1');
 
-            var targetType = ($root.attr('data-legacy-migration-target') || 'starter_text').trim() || 'starter_text';
-            var targetField = ($root.attr('data-legacy-migration-field') || 'text').trim() || 'text';
-            var availableElements = self.getAvailableElementsMap($root);
-            var targetLabel = targetType;
-
-            if (availableElements[targetType] && availableElements[targetType].label) {
-                targetLabel = availableElements[targetType].label;
+            if ($notice.length) {
+                $notice.removeClass('alert-info').addClass('alert-warning');
+                $notice.find('span').first().text('Die Umwandlung wird jetzt gespeichert. Danach wird das Formular erneut mit modernem Content-Builder geöffnet.');
             }
 
-            $button.prop('disabled', true);
+            $button.prop('disabled', true).addClass('disabled');
 
-            $.ajax({
-                url: self.getAjaxUrl(),
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    action: 'convert_legacy_html',
-                    legacy_html: html,
-                    slice_type: targetType,
-                    slice_field: targetField
-                },
-                success: function(response) {
-                    if (!response || response.success !== true || !response.slice) {
-                        alert('Die Konvertierung konnte nicht durchgeführt werden.');
-                        $button.prop('disabled', false);
-                        return;
-                    }
+            var submitter = $form.find('.btn-apply[type="submit"]').get(0)
+                || $form.find('.btn-save[type="submit"]').get(0)
+                || $form.find('button[type="submit"], input[type="submit"]').get(0);
 
-                    $root.attr('data-legacy-mode', '0');
-                    $legacyPanel.hide();
-                    $modernBuilder.show();
-                    $slices.empty();
+            if (submitter && typeof $form.get(0).requestSubmit === 'function') {
+                $form.get(0).requestSubmit(submitter);
+                return;
+            }
 
-                    if (window.ContentBuilder && typeof window.ContentBuilder.addSlice === 'function') {
-                        window.ContentBuilder.addSlice($slices, response.slice.type, targetLabel, response.slice.data || {});
-                    } else {
-                        $hidden.val(response.json || '[]');
-                    }
+            if (submitter) {
+                submitter.click();
+                return;
+            }
 
-                    if ($notice.length) {
-                        $notice.removeClass('alert-info').addClass('alert-success');
-                        $notice.find('span').first().text('In den modernen Content-Builder übernommen. Bitte jetzt normal speichern oder übernehmen.');
-                    }
-
-                    $button.prop('disabled', true);
-
-                    var $newSlice = $slices.children('.content-builder-slice').last();
-                    if ($newSlice.length > 0) {
-                        $newSlice.find('.btn-slice-edit').trigger('click');
-                    }
-                },
-                error: function() {
-                    alert('Die Konvertierung konnte nicht durchgeführt werden.');
-                    $button.prop('disabled', false);
-                }
-            });
+            $form.trigger('submit');
         },
 
         /**
@@ -435,7 +384,7 @@
             $(document).on('click', '.yform-cb-legacy-migrate', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                self.migrateLegacyContent($(this));
+                self.submitLegacyMigrationForm($(this));
                 return false;
             });
 

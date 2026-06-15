@@ -124,8 +124,6 @@ $builderValue = $legacy_is_active ? [] : $value;
      data-online-toggle="<?= $enableOnlineToggle ? '1' : '0' ?>"
      data-copy-paste="<?= $addon->getConfig('enable_copy_paste') ? '1' : '0' ?>"
      data-legacy-mode="<?= $legacy_is_active ? '1' : '0' ?>"
-    data-legacy-migration-target="<?= rex_escape($legacy_migration_target) ?>"
-    data-legacy-migration-field="<?= rex_escape($legacy_migration_field) ?>"
     data-element-defaults='<?= rex_escape($element_defaults_json) ?>'
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     
@@ -156,6 +154,10 @@ $builderValue = $legacy_is_active ? [] : $value;
                     <textarea
                         id="<?= $legacyEditorId ?>"
                         <?= $legacyEditorAttributeString !== '' ? $legacyEditorAttributeString : '' ?>><?= rex_escape($legacy_html) ?></textarea>
+                    <input type="hidden"
+                           name="FORM[<?= $this->params['form_name'] ?>][<?= $this->getId() ?>__legacy_migrate]"
+                           value="0"
+                           class="yform-cb-legacy-migrate-flag">
                 </div>
             </div>
         </div>
