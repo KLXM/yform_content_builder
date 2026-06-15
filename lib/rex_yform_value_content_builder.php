@@ -1252,13 +1252,14 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             $migrationField = 'text';
         }
 
+        $sliceData = $this->resolveSliceDefaults($migrationTarget);
+        $sliceData[$migrationField] = $legacyHtml;
+
         $slice = [
             'id' => 'slice_' . uniqid(),
             'type' => $migrationTarget,
             'online' => true,
-            'data' => [
-                $migrationField => $legacyHtml,
-            ],
+            'data' => $sliceData,
         ];
 
         $json = json_encode([$slice], JSON_UNESCAPED_UNICODE);
@@ -1285,6 +1286,29 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
 
         return self::LEGACY_DEFAULT_TARGET;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function resolveSliceDefaults(string $elementType): array
+    {
+        $defaults = $this->resolveElementDefaultsConfig();
+        if (!is_array($defaults)) {
+            return [];
+        }
+
+        $globalDefaults = [];
+        if (isset($defaults['*']) && is_array($defaults['*'])) {
+            $globalDefaults = $defaults['*'];
+        }
+
+        $typeDefaults = [];
+        if (isset($defaults[$elementType]) && is_array($defaults[$elementType])) {
+            $typeDefaults = $defaults[$elementType];
+        }
+
+        return array_merge($globalDefaults, $typeDefaults);
     }
 
     protected function isLegacyHtmlString(string $value): bool
