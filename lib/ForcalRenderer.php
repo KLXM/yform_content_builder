@@ -45,9 +45,9 @@ final class ForcalRenderer
             $layout = 'cards';
         }
 
-        $limit = (int) ($elementData['limit'] ?? 5);
+        $limit = (int) ($elementData['limit'] ?? 6);
         if ($limit < 1) {
-            $limit = 5;
+            $limit = 6;
         }
         if ($limit > self::MAX_LIMIT) {
             $limit = self::MAX_LIMIT;
@@ -100,14 +100,16 @@ final class ForcalRenderer
     private static function fetchByCategories(array $elementData, int $limit, int $teaserLength, string $urlPattern, string $imageField = '', bool $showImage = false): array
     {
         $cats = self::parseCategoryIds($elementData['categories'] ?? '');
+        [$start, $end] = self::resolveDateRange($elementData);
+        $venueId = self::resolveVenueId($elementData);
 
         $entries = forCalHandler::getEntries(
-            'today',
-            '+24 months',
+            $start,
+            $end,
             false,
             SORT_ASC,
             [] !== $cats ? $cats : null,
-            null,
+            $venueId,
             null,
             null,
             false,
@@ -146,9 +148,11 @@ final class ForcalRenderer
             return [];
         }
 
+        [$start, $end] = self::resolveDateRange($elementData);
+
         $entries = forCalHandler::getEntries(
-            'today',
-            '+24 months',
+            $start,
+            $end,
             false,
             SORT_ASC,
             null,
@@ -181,6 +185,46 @@ final class ForcalRenderer
         }
 
         return $items;
+    }
+
+    /**
+     * @param array<string,mixed> $elementData
+     * @return array{0:string,1:string}
+     */
+    private static function resolveDateRange(array $elementData): array
+    {
+        $startChoice = (string) ($elementData['start_date_choice'] ?? 'today');
+        $period = (string) ($elementData['period'] ?? 'quarter');
+
+        $start = new DateTimeImmutable('today');
+        if ($startChoice === 'yesterday') {
+            $start = $start->modify('-1 day');
+        }
+
+        $end = match ($period) {
+            'all' => '2100-01-01',
+            'halfayear' => $start->modify('+6 months')->format('Y-m-d H:i:s'),
+            default => $start->modify('+3 months')->format('Y-m-d H:i:s'),
+        };
+
+        if ($period === 'all') {
+            return ['1900-01-01 00:00:00', $end];
+        }
+
+        return [$start->format('Y-m-d H:i:s'), $end];
+    }
+
+    /**
+     * @param array<string,mixed> $elementData
+     */
+    private static function resolveVenueId(array $elementData): ?int
+    {
+        if (empty($elementData['filter_by_venue'])) {
+            return null;
+        }
+
+        $venueId = (int) ($elementData['venue_id'] ?? 0);
+        return $venueId > 0 ? $venueId : null;
     }
 
     /**
@@ -367,6 +411,7 @@ final class ForcalRenderer
             'id' => $id,
             'title' => $title,
             'teaser' => $teaser,
+            'category_name' => (string) ($event['category_name'] ?? ''),
             'start' => $start,
             'end' => $end,
             'start_time' => $startTime,
@@ -464,6 +509,40 @@ final class ForcalRenderer
             }
             $out[$id] = $name;
         }
+        return $out;
+    }
+
+    /**
+     * @return array<int,string>
+     */
+    public static function getVenueChoices(): array
+    {
+        if (!self::isAvailable() || !rex_addon::get('forcal')->getConfig('forcal_venues_enabled', true)) {
+            return [];
+        }
+
+        $clang = rex_clang::getCurrentId();
+        $sql = rex_sql::factory();
+
+        try {
+            $rows = $sql->getArray(
+                'SELECT id, name_' . $clang . ' AS name FROM ' . rex::getTable('forcal_venues')
+                . ' WHERE status = 1 ORDER BY name_' . $clang . ' ASC',
+            );
+        } catch (Throwable $e) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($rows as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+            $id = (int) ($row['id'] ?? 0);
+            if ($id <= 0 || $name === '') {
+                continue;
+            }
+            $out[$id] = $name;
+        }
+
         return $out;
     }
 

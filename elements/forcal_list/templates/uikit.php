@@ -16,6 +16,7 @@ $result = ForcalRenderer::fetch($elementData);
 $headline = (string) ($elementData['headline'] ?? '');
 $description = (string) ($elementData['description'] ?? '');
 $showLinks = !isset($elementData['show_links']) || !empty($elementData['show_links']);
+$showCategoryColors = !empty($elementData['show_category_colors']);
 $layout = $result['layout'];
 $items = $result['items'];
 $error = $result['error'];
@@ -73,12 +74,19 @@ if ($error !== null) {
         $href = $showLinks ? (string) $it['href'] : '';
         $dateStr = ForcalRenderer::formatDate($it);
         $imageUrl = (string) ($it['image_url'] ?? '');
+        $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
+        $categoryColor = (string) ($it['category_color'] ?? '');
 
         $titleHtml = $href !== '' ? '<a href="' . rex_escape($href) . '" class="uk-link-reset">' . $title . '</a>' : $title;
         $imgHtml = $imageUrl !== '' ? '<div class="uk-card-media-top"><img src="' . rex_escape($imageUrl) . '" alt="" loading="lazy"></div>' : '';
+        $categoryHtml = '';
+        if ($showCategoryColors && $categoryColor !== '') {
+            $categoryHtml = '<div class="uk-margin-small-top"><span class="uk-label" style="background:' . rex_escape($categoryColor) . ';">' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
+        }
 
-        echo '<div><div class="uk-card uk-card-default">' . $imgHtml . '<div class="uk-card-body">'
+        echo '<div><div class="uk-card uk-card-default"' . ($showCategoryColors && $categoryColor !== '' ? ' style="border-top:4px solid ' . rex_escape($categoryColor) . ';"' : '') . '>' . $imgHtml . '<div class="uk-card-body">'
             . '<div class="uk-text-meta uk-text-uppercase">' . $dateStr . '</div>'
+            . $categoryHtml
             . '<h3 class="uk-card-title uk-margin-small-top uk-margin-remove-bottom">' . $titleHtml . '</h3>'
             . ($teaser !== '' ? '<p class="uk-margin-small-top">' . $teaser . '</p>' : '')
             . '</div></div></div>';
@@ -91,8 +99,14 @@ if ($error !== null) {
         $teaser = rex_escape((string) $it['teaser']);
         $href = $showLinks ? (string) $it['href'] : '';
         $dateStr = ForcalRenderer::formatDate($it);
+        $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
+        $categoryColor = (string) ($it['category_color'] ?? '');
         $titleHtml = $href !== '' ? '<a href="' . rex_escape($href) . '">' . $title . '</a>' : $title;
-        echo '<li><div class="uk-text-meta">' . $dateStr . '</div><h4 class="uk-margin-remove">' . $titleHtml . '</h4>'
+        $categoryHtml = '';
+        if ($showCategoryColors && $categoryColor !== '') {
+            $categoryHtml = '<div class="uk-margin-small-top"><span class="uk-label" style="background:' . rex_escape($categoryColor) . ';">' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
+        }
+        echo '<li' . ($showCategoryColors && $categoryColor !== '' ? ' style="border-left:4px solid ' . rex_escape($categoryColor) . ';padding-left:1rem;"' : '') . '><div class="uk-text-meta">' . $dateStr . '</div>' . $categoryHtml . '<h4 class="uk-margin-remove">' . $titleHtml . '</h4>'
             . ($teaser !== '' ? '<p class="uk-margin-remove-top">' . $teaser . '</p>' : '')
             . '</li>';
     }
@@ -103,8 +117,17 @@ if ($error !== null) {
         $title = rex_escape((string) $it['title']);
         $href = $showLinks ? (string) $it['href'] : '';
         $dateStr = ForcalRenderer::formatDate($it);
+        $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
+        $categoryColor = (string) ($it['category_color'] ?? '');
         $titleHtml = $href !== '' ? '<a href="' . rex_escape($href) . '">' . $title . '</a>' : $title;
-        echo '<li><span class="uk-text-meta uk-margin-small-right">' . $dateStr . '</span>' . $titleHtml . '</li>';
+        $categoryHtml = '';
+        if ($showCategoryColors && $categoryColor !== '') {
+            $categoryHtml = '<span class="uk-margin-small-right" style="display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:' . rex_escape($categoryColor) . ';vertical-align:middle;"></span>';
+            if ($categoryName !== '') {
+                $categoryHtml .= '<span class="uk-text-meta uk-margin-small-left">' . $categoryName . '</span>';
+            }
+        }
+        echo '<li><span class="uk-text-meta uk-margin-small-right">' . $dateStr . '</span>' . $categoryHtml . $titleHtml . '</li>';
     }
     echo '</ul>';
 }

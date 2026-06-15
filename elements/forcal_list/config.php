@@ -32,10 +32,15 @@ foreach ($catChoices as $key => $label) {
     }
 }
 
+$venueChoices = ['' => '— Alle Orte —'];
+foreach (ForcalRenderer::getVenueChoices() as $id => $name) {
+    $venueChoices[(string) $id] = $name . ' (#' . $id . ')';
+}
+
 return [
     'label' => 'Forcal-Termine',
     'description' => 'Kommende Termine aus dem forcal-Kalender (nach Kategorie oder Serientermin)',
-    'version' => '1.13.0',
+    'version' => '1.15.0',
     'icon' => 'fa-calendar',
     'category' => 'data',
 
@@ -70,6 +75,7 @@ return [
                     'repeat' => 'Wiederkehrender Termin - naechste X Wiederholungen',
                 ],
                 'default' => 'categories',
+                'notice' => 'Zuerst die Art der Terminliste waehlen. Danach werden nur die passenden Optionen eingeblendet.',
             ],
             'categories' => [
                 'type' => 'choice',
@@ -92,6 +98,44 @@ return [
                 'default' => '',
                 'visible_if' => [
                     'mode' => 'repeat',
+                ],
+            ],
+            'period' => [
+                'type' => 'choice',
+                'label' => 'Zeitraum',
+                'choices' => [
+                    'quarter' => 'Vierteljahr',
+                    'halfayear' => 'Halbes Jahr',
+                    'all' => 'Gesamter Zeitraum',
+                ],
+                'default' => 'quarter',
+                'notice' => 'Begrenzt das Suchfenster fuer kommende Termine.',
+            ],
+            'start_date_choice' => [
+                'type' => 'choice',
+                'label' => 'Termine anzeigen',
+                'choices' => [
+                    'today' => 'Ab heute',
+                    'yesterday' => 'Ab gestern',
+                ],
+                'default' => 'today',
+            ],
+            'filter_by_venue' => [
+                'type' => 'checkbox',
+                'label' => 'Nach Ort filtern',
+                'default' => false,
+                'visible_if' => [
+                    'mode' => 'categories',
+                ],
+            ],
+            'venue_id' => [
+                'type' => 'choice',
+                'label' => 'Ort',
+                'choices' => $venueChoices,
+                'default' => '',
+                'visible_if' => [
+                    'mode' => 'categories',
+                    'filter_by_venue' => '1',
                 ],
             ],
             'headline' => [
@@ -146,11 +190,17 @@ return [
                 ],
                 'default' => 'cards',
             ],
+            'show_category_colors' => [
+                'type' => 'checkbox',
+                'label' => 'Kategoriefarben anzeigen',
+                'notice' => 'Zeigt Kategorie-Hinweise farblich passend zum gewaehlten Layout an.',
+                'default' => false,
+            ],
             'limit' => [
                 'type' => 'text',
                 'label' => 'Anzahl Termine',
-                'notice' => '1-' . ForcalRenderer::MAX_LIMIT . '. Default: 5.',
-                'default' => '5',
+                'notice' => '1-' . ForcalRenderer::MAX_LIMIT . '. Default: 6.',
+                'default' => '6',
             ],
             'show_image' => [
                 'type' => 'checkbox',

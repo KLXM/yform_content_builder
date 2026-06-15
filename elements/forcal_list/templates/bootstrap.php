@@ -13,6 +13,7 @@ $result = ForcalRenderer::fetch($elementData);
 $headline = (string) ($elementData['headline'] ?? '');
 $description = (string) ($elementData['description'] ?? '');
 $showLinks = !isset($elementData['show_links']) || !empty($elementData['show_links']);
+$showCategoryColors = !empty($elementData['show_category_colors']);
 $layout = (string) $result['layout'];
 $items = (array) $result['items'];
 $error = $result['error'];
@@ -54,12 +55,17 @@ if ($col < 3) {
     $href = $showLinks ? (string) ($it['href'] ?? '') : '';
     $dateStr = ForcalRenderer::formatDate($it);
     $imageUrl = (string) ($it['image_url'] ?? '');
+    $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
+    $categoryColor = (string) ($it['category_color'] ?? '');
     ?>
     <div class="col-12 col-md-6 col-lg-<?= rex_escape((string) $col) ?>">
-        <div class="card h-100">
+        <div class="card h-100"<?= $showCategoryColors && $categoryColor !== '' ? ' style="border-top:4px solid ' . rex_escape($categoryColor) . ';"' : '' ?>>
             <?php if ($imageUrl !== ''): ?><img class="card-img-top" src="<?= rex_escape($imageUrl) ?>" alt="" loading="lazy"><?php endif; ?>
             <div class="card-body">
                 <div class="text-muted small mb-1"><?= $dateStr ?></div>
+                <?php if ($showCategoryColors && $categoryColor !== ''): ?>
+                    <div class="mb-2"><span class="badge" style="background: <?= rex_escape($categoryColor) ?>;"><?= $categoryName !== '' ? $categoryName : 'Kategorie' ?></span></div>
+                <?php endif; ?>
                 <h3 class="h5 card-title"><?php if ($href !== ''): ?><a href="<?= rex_escape($href) ?>" class="text-decoration-none"><?= $title ?></a><?php else: ?><?= $title ?><?php endif; ?></h3>
                 <?php if ($teaser !== ''): ?><p class="card-text"><?= $teaser ?></p><?php endif; ?>
             </div>
@@ -75,9 +81,14 @@ if ($col < 3) {
     $teaser = rex_escape((string) ($it['teaser'] ?? ''));
     $href = $showLinks ? (string) ($it['href'] ?? '') : '';
     $dateStr = ForcalRenderer::formatDate($it);
+    $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
+    $categoryColor = (string) ($it['category_color'] ?? '');
     ?>
-    <li class="list-group-item px-0">
+    <li class="list-group-item px-0"<?= $showCategoryColors && $categoryColor !== '' ? ' style="border-left:4px solid ' . rex_escape($categoryColor) . ';padding-left:1rem !important;"' : '' ?>>
         <div class="text-muted small"><?= $dateStr ?></div>
+        <?php if ($showCategoryColors && $categoryColor !== ''): ?>
+            <div class="small mb-1"><span class="badge" style="background: <?= rex_escape($categoryColor) ?>;"><?= $categoryName !== '' ? $categoryName : 'Kategorie' ?></span></div>
+        <?php endif; ?>
         <h4 class="h6 mb-1"><?php if ($href !== ''): ?><a href="<?= rex_escape($href) ?>"><?= $title ?></a><?php else: ?><?= $title ?><?php endif; ?></h4>
         <?php if ($teaser !== ''): ?><p class="mb-0"><?= $teaser ?></p><?php endif; ?>
     </li>
@@ -90,8 +101,10 @@ if ($col < 3) {
     $title = rex_escape((string) ($it['title'] ?? ''));
     $href = $showLinks ? (string) ($it['href'] ?? '') : '';
     $dateStr = ForcalRenderer::formatDate($it);
+    $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
+    $categoryColor = (string) ($it['category_color'] ?? '');
     ?>
-    <li class="mb-2"><small class="text-muted me-2"><?= $dateStr ?></small><?php if ($href !== ''): ?><a href="<?= rex_escape($href) ?>"><?= $title ?></a><?php else: ?><?= $title ?><?php endif; ?></li>
+    <li class="mb-2"><small class="text-muted me-2"><?= $dateStr ?></small><?php if ($showCategoryColors && $categoryColor !== ''): ?><span class="me-2 align-middle" style="display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:<?= rex_escape($categoryColor) ?>;"></span><?php endif; ?><?php if ($href !== ''): ?><a href="<?= rex_escape($href) ?>"><?= $title ?></a><?php else: ?><?= $title ?><?php endif; ?><?php if ($showCategoryColors && $categoryColor !== '' && $categoryName !== ''): ?><small class="text-muted ms-2"><?= $categoryName ?></small><?php endif; ?></li>
     <?php endforeach; ?>
 </ul>
 <?php endif; ?>
