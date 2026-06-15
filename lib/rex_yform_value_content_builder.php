@@ -1000,8 +1000,17 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             if (is_string($postValue)) {
                 // Validiere dass es gültiges JSON ist
                 $decoded = json_decode($postValue, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $this->setValue($postValue);
+                if (json_last_error() === JSON_ERROR_NONE && $this->isValidBuilderPayload($postValue, $decoded)) {
+                    $existingValue = trim((string) $this->getValue());
+
+                    // Sicherheitsnetz: Leeres Slice-Array darf einen bestehenden Inhalt
+                    // nicht unbeabsichtigt überschreiben (Race/Sync-Fehler im Backend).
+                    if (is_array($decoded) && $decoded === [] && $existingValue !== '' && !$migrateLegacyOnSubmit) {
+                        $this->params['warning'][] = $fieldId;
+                        $this->params['warning_messages'][$fieldId] = 'Leerer Content-Builder-Stand wurde erkannt. Der bestehende Inhalt wurde aus Sicherheitsgründen beibehalten.';
+                    } else {
+                        $this->setValue($postValue);
+                    }
                 } elseif ($migrateLegacyOnSubmit && $this->isLegacyModeEnabled() && $this->isLegacyHtmlString($postValue)) {
                     $migrationJson = $this->buildLegacyMigrationJson($postValue);
                     if (is_string($migrationJson)) {
@@ -1028,7 +1037,12 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             } else {
                 // Falls als Array, zu JSON konvertieren
                 $jsonValue = json_encode($postValue, JSON_UNESCAPED_UNICODE);
-                $this->setValue($jsonValue);
+                if (is_string($jsonValue)) {
+                    $this->setValue($jsonValue);
+                } else {
+                    $this->params['warning'][] = $fieldId;
+                    $this->params['warning_messages'][$fieldId] = 'Content-Builder konnte nicht verarbeitet werden. Der bestehende Inhalt wurde unverändert beibehalten.';
+                }
             }
             
             $this->params['value_pool']['email'][$this->getName()] = $this->getValue();
@@ -1331,6 +1345,22 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
 
         return trim(strip_tags($trimmed)) !== '';
+    }
+
+    protected function isValidBuilderPayload(string $rawPayload, mixed $decodedPayload): bool
+    {
+        $trimmed = trim($rawPayload);
+        if ($trimmed === '') {
+            return false;
+        }
+
+        if (!is_array($decodedPayload)) {
+            return false;
+        }
+
+        // Builder speichert seine Slices als JSON-Array. Andere JSON-Typen akzeptieren wir
+        // absichtlich nicht, um versehentliche Datenverluste zu verhindern.
+        return str_starts_with($trimmed, '[');
     }
 
     protected function asBool(mixed $value): bool
