@@ -1002,10 +1002,11 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                 $decoded = json_decode($postValue, true);
                 if (json_last_error() === JSON_ERROR_NONE && $this->isValidBuilderPayload($postValue, $decoded)) {
                     $existingValue = trim((string) $this->getValue());
+                    $hasMeaningfulExistingContent = $this->hasMeaningfulExistingContent($existingValue);
 
                     // Sicherheitsnetz: Leeres Slice-Array darf einen bestehenden Inhalt
                     // nicht unbeabsichtigt überschreiben (Race/Sync-Fehler im Backend).
-                    if (is_array($decoded) && $decoded === [] && $existingValue !== '' && !$migrateLegacyOnSubmit) {
+                    if (is_array($decoded) && $decoded === [] && $hasMeaningfulExistingContent && !$migrateLegacyOnSubmit) {
                         $this->params['warning'][] = $fieldId;
                         $this->params['warning_messages'][$fieldId] = 'Leerer Content-Builder-Stand wurde erkannt. Der bestehende Inhalt wurde aus Sicherheitsgründen beibehalten.';
                     } else {
@@ -1361,6 +1362,30 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         // Builder speichert seine Slices als JSON-Array. Andere JSON-Typen akzeptieren wir
         // absichtlich nicht, um versehentliche Datenverluste zu verhindern.
         return str_starts_with($trimmed, '[');
+    }
+
+    protected function hasMeaningfulExistingContent(string $rawValue): bool
+    {
+        $trimmed = trim($rawValue);
+        if ($trimmed === '') {
+            return false;
+        }
+
+        $decoded = json_decode($trimmed, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            if (is_array($decoded)) {
+                return $decoded !== [];
+            }
+
+            // JSON-Skalare sind für Builder-Inhalte nicht relevant.
+            return false;
+        }
+
+        if ($this->isLegacyHtmlString($trimmed)) {
+            return trim(strip_tags($trimmed)) !== '';
+        }
+
+        return true;
     }
 
     protected function asBool(mixed $value): bool
