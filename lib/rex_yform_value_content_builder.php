@@ -1020,7 +1020,10 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     // Legacy-HTML explizit erlauben, damit bestehende Inhalte editierbar bleiben.
                     $this->setValue($postValue);
                 } else {
-                    $this->setValue('');
+                    // Niemals still auf leer setzen, wenn der Builder-POST fehlerhaft ist.
+                    // Sonst werden bestehende Inhalte beim Speichern ungewollt gelöscht.
+                    $this->params['warning'][] = $fieldId;
+                    $this->params['warning_messages'][$fieldId] = 'Content-Builder konnte nicht verarbeitet werden. Der bestehende Inhalt wurde unverändert beibehalten.';
                 }
             } else {
                 // Falls als Array, zu JSON konvertieren
