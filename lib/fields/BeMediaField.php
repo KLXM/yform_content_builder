@@ -56,7 +56,8 @@ class BeMediaField extends FieldAbstract
         echo 'name="' . rex_escape($fieldName) . '" ';
         echo 'id="' . $inputId . '" ';
         echo 'value="' . rex_escape($value) . '" ';
-        echo 'data-media-id="' . $mediaCounter . '" />';
+        echo 'data-media-id="' . $mediaCounter . '" ';
+        echo 'readonly />';
         echo '<span class="input-group-btn">';
 
         $openMediaParams = $types ? ", '&types=" . rex_escape($types) . "'" : '';
