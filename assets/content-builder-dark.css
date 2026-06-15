@@ -89,6 +89,20 @@ body.rex-theme-dark {
         border-top-color: #4a90e2;
     }
 
+    #nested-slice-edit-modal .modal-body {
+        max-height: calc(100vh - 220px);
+        overflow-y: auto;
+    }
+
+    .slice-form-actions {
+        background: #35393d;
+    }
+
+    #nested-slice-edit-modal .slice-form-actions {
+        border-color: #404448;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+
     .slice-edit-form .form-group:last-child {
         border-top-color: #404448;
     }

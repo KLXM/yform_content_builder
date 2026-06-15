@@ -157,7 +157,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             }
         }
         
-        echo '<div class="form-group">';
+        echo '<div class="form-group slice-form-actions">';
         echo '<div class="btn-group pull-right">';
         echo '<button type="button" class="btn btn-success btn-slice-save"><i class="fa fa-check"></i> Übernehmen</button>';
         echo '<button type="button" class="btn btn-danger btn-slice-cancel" data-confirm="Bearbeitung abbrechen? Alle Änderungen gehen verloren."><i class="fa fa-times"></i> Abbrechen</button>';

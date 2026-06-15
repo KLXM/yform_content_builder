@@ -5,11 +5,15 @@ $enableSection = (bool) $this->getVar('enable_section', true);
 $enableContainer = (bool) $this->getVar('enable_container', true);
 $containerWidth = trim((string) $this->getVar('container_width', 'uk-container'));
 $sectionBg = trim((string) $this->getVar('section_bg', ''));
+$isContentEditPreview = 'content/edit' === rex_request('page', 'string', '');
 
 if ('close' === $mode) {
     $sectionBgImage = trim((string) $this->getVar('section_bg_image', ''));
     $bgMediaExt = strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION));
-    $hasBackgroundVideo = '' !== $sectionBgImage && in_array($bgMediaExt, ['mp4', 'webm', 'ogg'], true);
+    $hasBackgroundVideo = '' !== $sectionBgImage
+        && in_array($bgMediaExt, ['mp4', 'webm', 'ogg'], true)
+        && !$isContentEditPreview
+        && file_exists(rex_path::media($sectionBgImage));
 
     if ($enableContainer && '' !== $containerWidth) {
         echo '</div>';
@@ -66,7 +70,7 @@ if ($enableSection && '' !== $sectionBgImage) {
     $bgMediaExt = strtolower(pathinfo($sectionBgImage, PATHINFO_EXTENSION));
     $videoExtensions = ['mp4', 'webm', 'ogg'];
 
-    if (in_array($bgMediaExt, $videoExtensions, true)) {
+    if (!$isContentEditPreview && in_array($bgMediaExt, $videoExtensions, true) && file_exists(rex_path::media($sectionBgImage))) {
         $hasBackgroundVideo = true;
         $sectionClasses[] = 'uk-cover-container';
         $sectionClasses[] = 'uk-position-relative';

@@ -826,6 +826,33 @@
     clear: both;
 }
 
+#nested-slice-edit-modal .modal-body {
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
+.slice-form-actions {
+    background: #f9f9f9;
+}
+
+.slice-form-actions .btn-group.pull-right {
+    float: right;
+}
+
+#nested-slice-edit-modal .slice-form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+#nested-slice-edit-modal .slice-form-actions .btn-group.pull-right {
+    float: none;
+}
+
 .btn-add-repeater {
     width: 100%;
     margin-top: 10px;
