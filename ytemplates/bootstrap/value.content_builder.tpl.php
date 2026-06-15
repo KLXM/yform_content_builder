@@ -117,6 +117,7 @@ foreach ($legacy_editor_attributes as $attrName => $attrValue) {
 
 $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
 $builderValue = $legacy_is_active ? [] : $value;
+$modernHiddenStyle = $legacy_is_active ? ' style="display: none;"' : '';
 ?>
 
 <div class="form-group yform-element <?= $fieldClass ?>" 
@@ -170,8 +171,7 @@ $builderValue = $legacy_is_active ? [] : $value;
         </div>
     <?php endif; ?>
 
-    <div class="content-builder-modern"<?= $legacy_is_active ? ' style="display: none;"' : '' ?>>
-        <div class="content-builder-slices">
+    <div class="content-builder-slices"<?= $modernHiddenStyle ?>>
             <?php if (!empty($builderValue)): ?>
                 <?php foreach ($builderValue as $index => $slice): ?>
                     <?php
@@ -368,9 +368,9 @@ $builderValue = $legacy_is_active ? [] : $value;
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
-        </div>
-        
-        <div class="content-builder-add">
+    </div>
+
+    <div class="content-builder-add"<?= $modernHiddenStyle ?>>
             <div class="btn-group btn-block">
                 <button type="button" class="btn btn-default btn-block dropdown-toggle" data-toggle="dropdown">
                     <i class="fa fa-plus"></i> <?= rex_i18n::msg('yform_content_builder_element_add') ?>
@@ -413,13 +413,12 @@ $builderValue = $legacy_is_active ? [] : $value;
                     <?php endforeach; ?>
                 </ul>
             </div>
-        </div>
-        
-        <input type="hidden" 
-               name="FORM[<?= $this->params['form_name'] ?>][<?= $this->getId() ?>]" 
-               class="content-builder-data" 
-               value='<?= $legacy_is_active ? rex_escape($legacy_html) : rex_escape(json_encode($builderValue, JSON_UNESCAPED_UNICODE)) ?>'>
     </div>
+
+        <input type="hidden" 
+            name="FORM[<?= $this->params['form_name'] ?>][<?= $this->getId() ?>]" 
+            class="content-builder-data" 
+            value='<?= $legacy_is_active ? rex_escape($legacy_html) : rex_escape(json_encode($builderValue, JSON_UNESCAPED_UNICODE)) ?>'>
     
     <?php if ($notice): ?>
         <p class="help-block"><?= $notice ?></p>

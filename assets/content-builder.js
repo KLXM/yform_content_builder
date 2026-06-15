@@ -2401,11 +2401,21 @@
             return baseData;
         },
 
+        getTopLevelSlicesContainer: function($builder) {
+            var $wrappedContainer = $builder.find('> .content-builder-modern > .content-builder-slices').first();
+            if ($wrappedContainer.length > 0) {
+                return $wrappedContainer;
+            }
+
+            return $builder.children('.content-builder-slices').first();
+        },
+
         updateIndices: function() {
             // Top-level slices indexen
             $('.yform-content-builder').each(function() {
                 var $builder = $(this);
-                $builder.children('.content-builder-slices').children('.content-builder-slice').each(function(index) {
+                var $topLevelSlices = ContentBuilder.getTopLevelSlicesContainer($builder);
+                $topLevelSlices.children('.content-builder-slice').each(function(index) {
                     $(this).attr('data-slice-index', index);
                     $(this).find('> .slice-toolbar .btn-insert-slice').attr('data-insert-after', index);
                 });
@@ -2500,7 +2510,8 @@
                 $builder.find('.content-builder-insert-between').remove();
                 
                 // Top-level slices
-                $builder.children('.content-builder-slices').children('.content-builder-slice').each(function(index) {
+                var $topLevelSlices = self.getTopLevelSlicesContainer($builder);
+                $topLevelSlices.children('.content-builder-slice').each(function(index) {
                     var $slice = $(this);
                     var $toolbar = $slice.find('> .slice-toolbar');
                     if ($toolbar.length === 0) {
@@ -2731,8 +2742,10 @@
                 }
 
                 var slices = [];
-                
-                $container.children('.content-builder-slices').children('.content-builder-slice').each(function() {
+
+                var $topLevelSlices = ContentBuilder.getTopLevelSlicesContainer($container);
+
+                $topLevelSlices.children('.content-builder-slice').each(function() {
                     var $slice = $(this);
                     var online = $slice.attr('data-slice-online');
                     // Default: online (true) wenn Attribut nicht gesetzt
