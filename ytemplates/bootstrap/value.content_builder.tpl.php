@@ -19,6 +19,7 @@
  * @var bool $legacy_migration_hint
  * @var string $legacy_migration_target
  * @var string $legacy_migration_field
+ * @var string $element_defaults_json
  */
 
 $fieldClass = 'yform-content-builder';
@@ -122,6 +123,7 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
      data-online-toggle="<?= $enableOnlineToggle ? '1' : '0' ?>"
      data-copy-paste="<?= $addon->getConfig('enable_copy_paste') ? '1' : '0' ?>"
      data-legacy-mode="<?= $legacy_is_active ? '1' : '0' ?>"
+    data-element-defaults='<?= rex_escape($element_defaults_json) ?>'
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
     
     <?php if ($label): ?>

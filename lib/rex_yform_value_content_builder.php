@@ -1065,6 +1065,11 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         }
 
         $legacyEditorAttributes = $this->resolveLegacyEditorAttributes($legacyProfile, $legacyLang);
+        $elementDefaults = $this->resolveElementDefaultsConfig();
+        $elementDefaultsJson = json_encode($elementDefaults, JSON_UNESCAPED_UNICODE);
+        if (!is_string($elementDefaultsJson) || $elementDefaultsJson === '') {
+            $elementDefaultsJson = '{}';
+        }
         
         return [
             'value' => $value,
@@ -1087,7 +1092,43 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'legacy_migration_hint' => $migrationHintEnabled,
             'legacy_migration_target' => $migrationTarget,
             'legacy_migration_field' => $migrationField,
+            'element_defaults_json' => $elementDefaultsJson,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function resolveElementDefaultsConfig(): array
+    {
+        $defaults = [];
+
+        $rawJson = trim((string) $this->getElement('element_defaults_json', ''));
+        if ($rawJson !== '') {
+            $decoded = json_decode($rawJson, true);
+            if (is_array($decoded)) {
+                $defaults = $decoded;
+            }
+        }
+
+        $sectionDefault = trim((string) $this->getElement('default_enable_section', ''));
+        $containerDefault = trim((string) $this->getElement('default_enable_container', ''));
+
+        if ($sectionDefault === '0' || $sectionDefault === '1' || $containerDefault === '0' || $containerDefault === '1') {
+            if (!isset($defaults['*']) || !is_array($defaults['*'])) {
+                $defaults['*'] = [];
+            }
+
+            if ($sectionDefault === '0' || $sectionDefault === '1') {
+                $defaults['*']['enable_section'] = $sectionDefault;
+            }
+
+            if ($containerDefault === '0' || $containerDefault === '1') {
+                $defaults['*']['enable_container'] = $containerDefault;
+            }
+        }
+
+        return $defaults;
     }
 
     /**
@@ -1601,6 +1642,34 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     'multiple' => true,
                     'expanded' => false,
                     'default' => '',
+                ],
+                'default_enable_section' => [
+                    'type' => 'choice',
+                    'label' => 'Standard: Sektion aktiv',
+                    'choices' => [
+                        '' => 'Element-Default verwenden',
+                        '1' => 'Ja (aktiv)',
+                        '0' => 'Nein (deaktiviert)',
+                    ],
+                    'default' => '',
+                    'notice' => 'Gilt global für neue Elemente über enable_section. Überschreibt nicht gespeicherte Inhalte.',
+                ],
+                'default_enable_container' => [
+                    'type' => 'choice',
+                    'label' => 'Standard: Container aktiv',
+                    'choices' => [
+                        '' => 'Element-Default verwenden',
+                        '1' => 'Ja (aktiv)',
+                        '0' => 'Nein (deaktiviert)',
+                    ],
+                    'default' => '',
+                    'notice' => 'Gilt global für neue Elemente über enable_container. Überschreibt nicht gespeicherte Inhalte.',
+                ],
+                'element_defaults_json' => [
+                    'type' => 'textarea',
+                    'label' => 'Erweiterte Element-Defaults (JSON)',
+                    'default' => '',
+                    'notice' => 'Optionales JSON für Startwerte pro Elementtyp. Beispiel: {"*":{"enable_section":"0","enable_container":"0"},"cards":{"container_width":"uk-container-small"}}',
                 ],
                 'legacy_cke5_enabled' => [
                     'type' => 'choice',
