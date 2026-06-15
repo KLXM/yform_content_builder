@@ -204,6 +204,9 @@ final class ForcalRenderer
         $end = match ($period) {
             'all' => '2100-01-01',
             'halfayear' => $start->modify('+6 months')->format('Y-m-d H:i:s'),
+            'year' => $start->modify('+1 year')->format('Y-m-d H:i:s'),
+            'twoyears' => $start->modify('+2 years')->format('Y-m-d H:i:s'),
+            'threeyears' => $start->modify('+3 years')->format('Y-m-d H:i:s'),
             default => $start->modify('+3 months')->format('Y-m-d H:i:s'),
         };
 

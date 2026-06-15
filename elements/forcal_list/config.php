@@ -106,6 +106,9 @@ return [
                 'choices' => [
                     'quarter' => 'Vierteljahr',
                     'halfayear' => 'Halbes Jahr',
+                    'year' => '1 Jahr (ab jetzt)',
+                    'twoyears' => '2 Jahre (ab jetzt)',
+                    'threeyears' => '3 Jahre (ab jetzt)',
                     'all' => 'Gesamter Zeitraum',
                 ],
                 'default' => 'quarter',
