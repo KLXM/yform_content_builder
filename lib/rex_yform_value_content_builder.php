@@ -1882,7 +1882,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         if (!is_array($data) || empty($data)) {
             if (trim($value) !== '') {
-                return '<span class="label label-warning">Legacy HTML</span>';
+                return '<span class="label label-warning">classic</span>';
             }
             return '<em>-- Keine Elemente --</em>';
         }
