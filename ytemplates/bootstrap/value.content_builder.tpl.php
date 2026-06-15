@@ -276,13 +276,15 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                         'input[type="submit"]'
                     ].join(', ')).first().get(0) || null;
 
-                    if (formEl && typeof formEl.requestSubmit === 'function') {
-                        formEl.requestSubmit(applyButton || undefined);
+                    // Wichtig: In YForm/REDAXO bestimmt oft der Submitter-Button
+                    // den Save-Flow. Daher bevorzugt den echten Button klicken.
+                    if (applyButton && typeof applyButton.click === 'function') {
+                        applyButton.click();
                         return;
                     }
 
-                    if (applyButton && typeof applyButton.click === 'function') {
-                        applyButton.click();
+                    if (formEl && typeof formEl.requestSubmit === 'function') {
+                        formEl.requestSubmit(applyButton || undefined);
                         return;
                     }
 
