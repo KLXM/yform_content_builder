@@ -303,6 +303,7 @@ final class ForcalRenderer
             'id' => $id,
             'title' => $title,
             'teaser' => $teaser,
+            'category_name' => (string) ($entry->category_name ?? ''),
             'start' => DateTimeImmutable::createFromInterface($startDate),
             'end' => DateTimeImmutable::createFromInterface($endDate),
             'start_time' => $startTime,

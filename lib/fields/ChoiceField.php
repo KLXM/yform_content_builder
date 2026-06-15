@@ -25,6 +25,7 @@ class ChoiceField extends FieldAbstract
         $choices = $fieldConfig['choices'] ?? [];
         $default = $fieldConfig['default'] ?? '';
         $notice = $fieldConfig['notice'] ?? null;
+        $isMultiple = !empty($fieldConfig['multiple']);
         
         // Selectpicker ist standardmäßig aktiviert
         $useSelectpicker = $fieldConfig['selectpicker'] ?? true;
@@ -48,6 +49,20 @@ class ChoiceField extends FieldAbstract
             $value = $default;
         }
 
+        if ($isMultiple) {
+            if (!is_array($value)) {
+                if (is_string($value) && trim($value) !== '') {
+                    $value = preg_split('/\s*,\s*/', trim($value)) ?: [];
+                } elseif ($value === null || $value === '') {
+                    $value = [];
+                } else {
+                    $value = [(string) $value];
+                }
+            }
+
+            $value = array_values(array_map(static fn ($item): string => (string) $item, $value));
+        }
+
         // Farbdaten und Icons für Selectpicker
         $choiceColors = $fieldConfig['choice_colors'] ?? [];
         $choiceIcons = $fieldConfig['choice_icons'] ?? [];
@@ -60,13 +75,30 @@ class ChoiceField extends FieldAbstract
         $this->openFormGroup();
         $this->renderLabel($label);
 
-        echo '<select class="' . $selectClass . '" name="' . rex_escape($fieldName) . '">';
+        $fieldNameAttr = $fieldName;
+        $multipleAttr = '';
+        $sizeAttr = '';
+        $liveSearchAttr = '';
+
+        if ($isMultiple) {
+            $fieldNameAttr .= '[]';
+            $multipleAttr = ' multiple="multiple"';
+            $sizeAttr = ' size="6"';
+        }
+
+        if ($useSelectpicker) {
+            $liveSearchAttr = ' data-live-search="true" data-actions-box="true"';
+        }
+
+        echo '<select class="' . $selectClass . '" name="' . rex_escape($fieldNameAttr) . '"' . $multipleAttr . $sizeAttr . $liveSearchAttr . '>';
         
         foreach ($choices as $choiceValue => $choiceLabel) {
             if (is_array($choiceLabel)) {
                 echo '<optgroup label="' . rex_escape($choiceValue) . '">';
                 foreach ($choiceLabel as $subValue => $subLabel) {
-                    $selected = ($value == $subValue) ? ' selected' : '';
+                    $selected = $isMultiple
+                        ? (in_array((string) $subValue, $value, true) ? ' selected' : '')
+                        : ((string) $value === (string) $subValue ? ' selected' : '');
                     $dataContent = '';
                     if ($useSelectpicker && isset($choiceIcons[$subValue])) {
                         $iconHtml = $choiceIcons[$subValue];
@@ -87,7 +119,9 @@ class ChoiceField extends FieldAbstract
                 }
                 echo '</optgroup>';
             } else {
-                $selected = ($value == $choiceValue) ? ' selected' : '';
+                $selected = $isMultiple
+                    ? (in_array((string) $choiceValue, $value, true) ? ' selected' : '')
+                    : ((string) $value === (string) $choiceValue ? ' selected' : '');
                 $dataContent = '';
                 if ($useSelectpicker && isset($choiceIcons[$choiceValue])) {
                     $iconHtml = $choiceIcons[$choiceValue];

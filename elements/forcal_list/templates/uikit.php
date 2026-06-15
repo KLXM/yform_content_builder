@@ -76,12 +76,14 @@ if ($error !== null) {
         $imageUrl = (string) ($it['image_url'] ?? '');
         $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
         $categoryColor = (string) ($it['category_color'] ?? '');
+        $showCategoryBadge = $showCategoryColors && ($categoryName !== '' || $categoryColor !== '');
 
         $titleHtml = $href !== '' ? '<a href="' . rex_escape($href) . '" class="uk-link-reset">' . $title . '</a>' : $title;
         $imgHtml = $imageUrl !== '' ? '<div class="uk-card-media-top"><img src="' . rex_escape($imageUrl) . '" alt="" loading="lazy"></div>' : '';
         $categoryHtml = '';
-        if ($showCategoryColors && $categoryColor !== '') {
-            $categoryHtml = '<div class="uk-margin-small-top"><span class="uk-label" style="background:' . rex_escape($categoryColor) . ';">' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
+        if ($showCategoryBadge) {
+            $categoryStyle = $categoryColor !== '' ? ' style="background:' . rex_escape($categoryColor) . ';"' : '';
+            $categoryHtml = '<div class="uk-margin-small-top"><span class="uk-label"' . $categoryStyle . '>' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
         }
 
         echo '<div><div class="uk-card uk-card-default"' . ($showCategoryColors && $categoryColor !== '' ? ' style="border-top:4px solid ' . rex_escape($categoryColor) . ';"' : '') . '>' . $imgHtml . '<div class="uk-card-body">'
@@ -103,8 +105,9 @@ if ($error !== null) {
         $categoryColor = (string) ($it['category_color'] ?? '');
         $titleHtml = $href !== '' ? '<a href="' . rex_escape($href) . '">' . $title . '</a>' : $title;
         $categoryHtml = '';
-        if ($showCategoryColors && $categoryColor !== '') {
-            $categoryHtml = '<div class="uk-margin-small-top"><span class="uk-label" style="background:' . rex_escape($categoryColor) . ';">' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
+        if ($showCategoryColors && ($categoryName !== '' || $categoryColor !== '')) {
+            $categoryStyle = $categoryColor !== '' ? ' style="background:' . rex_escape($categoryColor) . ';"' : '';
+            $categoryHtml = '<div class="uk-margin-small-top"><span class="uk-label"' . $categoryStyle . '>' . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
         }
         echo '<li' . ($showCategoryColors && $categoryColor !== '' ? ' style="border-left:4px solid ' . rex_escape($categoryColor) . ';padding-left:1rem;"' : '') . '><div class="uk-text-meta">' . $dateStr . '</div>' . $categoryHtml . '<h4 class="uk-margin-remove">' . $titleHtml . '</h4>'
             . ($teaser !== '' ? '<p class="uk-margin-remove-top">' . $teaser . '</p>' : '')
@@ -121,8 +124,9 @@ if ($error !== null) {
         $categoryColor = (string) ($it['category_color'] ?? '');
         $titleHtml = $href !== '' ? '<a href="' . rex_escape($href) . '">' . $title . '</a>' : $title;
         $categoryHtml = '';
-        if ($showCategoryColors && $categoryColor !== '') {
-            $categoryHtml = '<span class="uk-margin-small-right" style="display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:' . rex_escape($categoryColor) . ';vertical-align:middle;"></span>';
+        if ($showCategoryColors && ($categoryName !== '' || $categoryColor !== '')) {
+            $dotColor = $categoryColor !== '' ? $categoryColor : '#6c757d';
+            $categoryHtml = '<span class="uk-margin-small-right" style="display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:' . rex_escape($dotColor) . ';vertical-align:middle;"></span>';
             if ($categoryName !== '') {
                 $categoryHtml .= '<span class="uk-text-meta uk-margin-small-left">' . $categoryName . '</span>';
             }

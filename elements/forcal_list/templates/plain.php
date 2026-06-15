@@ -42,7 +42,7 @@ $containerStyle = StarterConfig::mapContainer($containerWidth, 'plain');
 <?php elseif ($items === []): ?>
 <p>Keine kommenden Termine.</p>
 <?php elseif ($layout === 'cards'): ?>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:1rem;">
     <?php foreach ($items as $it): ?>
     <?php
     $title = rex_escape((string) ($it['title'] ?? ''));
@@ -53,8 +53,10 @@ $containerStyle = StarterConfig::mapContainer($containerWidth, 'plain');
     $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
     $categoryColor = (string) ($it['category_color'] ?? '');
     $categoryHtml = '';
-    if ($showCategoryColors && $categoryColor !== '') {
-        $categoryHtml = '<div style="margin:.35rem 0 .15rem 0;"><span style="display:inline-block;background:' . rex_escape($categoryColor) . ';color:#fff;border-radius:999px;padding:.2rem .55rem;font-size:.75rem;line-height:1;">'
+    if ($showCategoryColors && ($categoryName !== '' || $categoryColor !== '')) {
+        $badgeStyle = 'display:inline-block;color:#fff;border-radius:999px;padding:.2rem .55rem;font-size:.75rem;line-height:1;';
+        $badgeStyle .= $categoryColor !== '' ? 'background:' . rex_escape($categoryColor) . ';' : 'background:#6c757d;';
+        $categoryHtml = '<div style="margin:.35rem 0 .15rem 0;"><span style="' . $badgeStyle . '">'
             . ($categoryName !== '' ? $categoryName : 'Kategorie') . '</span></div>';
     }
     ?>
@@ -80,8 +82,9 @@ $containerStyle = StarterConfig::mapContainer($containerWidth, 'plain');
     $categoryName = rex_escape((string) ($it['category_name'] ?? ''));
     $categoryColor = (string) ($it['category_color'] ?? '');
     $categoryHtml = '';
-    if ($showCategoryColors && $categoryColor !== '') {
-        $categoryHtml = '<span style="display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:' . rex_escape($categoryColor) . ';margin-right:.45rem;vertical-align:middle;"></span>';
+    if ($showCategoryColors && ($categoryName !== '' || $categoryColor !== '')) {
+        $dotColor = $categoryColor !== '' ? $categoryColor : '#6c757d';
+        $categoryHtml = '<span style="display:inline-block;width:.7rem;height:.7rem;border-radius:50%;background:' . rex_escape($dotColor) . ';margin-right:.45rem;vertical-align:middle;"></span>';
         if ($categoryName !== '') {
             $categoryHtml .= '<span style="font-size:.85rem;color:#555;">' . $categoryName . '</span>';
         }
