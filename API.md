@@ -166,6 +166,41 @@ echo Module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
 ?>
 ```
 
+### C. YForm-Feldparameter (value: content_builder)
+
+Beim Einsatz als YForm-Wertfeld `content_builder` können projektweite Standardwerte direkt in der Felddefinition gesetzt werden.
+
+| Parameter | Typ | Beschreibung |
+|--------|-----|--------------|
+| `default_enable_section` | choice (`'', '1', '0'`) | Globaler Standard für `enable_section` bei neu angelegten Elementen |
+| `default_enable_container` | choice (`'', '1', '0'`) | Globaler Standard für `enable_container` bei neu angelegten Elementen |
+| `element_defaults_json` | textarea (JSON) | Erweiterte Defaults pro Elementtyp (inkl. Wildcard `*`) |
+
+Beispiel für `element_defaults_json`:
+
+```json
+{
+    "*": {
+        "enable_section": "0",
+        "enable_container": "0"
+    },
+    "cards": {
+        "container_width": "uk-container-small"
+    }
+}
+```
+
+Priorität bei der Auflösung:
+
+1. `element_defaults_json` als Basis
+2. `default_enable_section` und `default_enable_container` überschreiben `*` gezielt, wenn gesetzt
+3. Typspezifische Defaults im JSON (z. B. `cards`) bleiben erhalten
+
+Wichtig:
+
+- Defaults greifen nur für neu angelegte Elemente.
+- Bereits gespeicherte Inhalte bleiben unverändert.
+
 ---
 
 ## Frameworks & Templates

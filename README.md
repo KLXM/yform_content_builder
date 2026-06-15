@@ -265,6 +265,33 @@ echo $contentBuilder->renderOutput();
 > **`element_defaults`** – Voreinstellungen pro Element-Typ für jeden neu hinzugefügten Slice. Der Wildcard-Key `'*'` gilt für **alle** Typen; typ-spezifische Einträge überschreiben ihn. Alternativ: `global_defaults` als eigenständige Option. Bereits gespeicherte Inhalte werden **nie** überschrieben.  
 > Es müssen nur Felder angegeben werden, die vom jeweiligen Element-Standard abweichen. Beide Optionen können frei kombiniert werden.
 
+### Projektweite Defaults im YForm-Feld (ohne Modulcode)
+
+Für das YForm-Wertfeld `content_builder` können Standardwerte direkt in der Felddefinition gesetzt werden.
+
+Neue Feldoptionen:
+
+- `default_enable_section` – globale Voreinstellung für `enable_section` bei neuen Elementen
+- `default_enable_container` – globale Voreinstellung für `enable_container` bei neuen Elementen
+- `element_defaults_json` – optionale, erweiterte JSON-Defaults pro Elementtyp
+
+Typischer Projektfall: Sektion und Container standardmäßig deaktivieren.
+
+```json
+{
+    "*": {
+        "enable_section": "0",
+        "enable_container": "0"
+    }
+}
+```
+
+Hinweise:
+
+- Die beiden einfachen Schalter (`default_enable_section`, `default_enable_container`) sind der schnellste Weg für projektweite Defaults.
+- `element_defaults_json` ist für Feintuning je Elementtyp gedacht.
+- Gespeicherte Inhalte werden nie rückwirkend überschrieben. Die Defaults gelten nur für neu hinzugefügte Elemente.
+
 ### Frontend-Ausgabe (YForm-Feld)
 
 ```php

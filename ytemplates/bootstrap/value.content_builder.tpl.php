@@ -265,7 +265,16 @@ $legacyEditorAttributeString = implode(' ', $legacyEditorAttributeParts);
                 var $form = $root.closest('form');
                 if ($form.length) {
                     var formEl = $form.get(0);
-                    var applyButton = $form.find('button.btn-apply[type="submit"], input.btn-apply[type="submit"]').first().get(0) || null;
+                    var applyButton = $form.find([
+                        'button.btn-apply[type="submit"]',
+                        'input.btn-apply[type="submit"]',
+                        'button.btn-save[type="submit"]',
+                        'input.btn-save[type="submit"]',
+                        'button[type="submit"][name="save"]',
+                        'input[type="submit"][name="save"]',
+                        'button[type="submit"]',
+                        'input[type="submit"]'
+                    ].join(', ')).first().get(0) || null;
 
                     if (formEl && typeof formEl.requestSubmit === 'function') {
                         formEl.requestSubmit(applyButton || undefined);

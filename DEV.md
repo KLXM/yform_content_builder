@@ -60,6 +60,28 @@ Rendering (TemplateEngine → Framework-Dispatch)
 Frontend Output
 ```
 
+### YForm-Defaults für neue Elemente
+
+Der YForm-Werttyp `content_builder` unterstützt projektweite Defaults direkt über Feldparameter.
+
+Relevante Parameter in `getDefinitions()`:
+
+- `default_enable_section`
+- `default_enable_container`
+- `element_defaults_json`
+
+Interne Auflösung (Runtime):
+
+1. `element_defaults_json` wird als Array geladen.
+2. Falls `default_enable_section`/`default_enable_container` gesetzt sind, werden diese in `*` gemergt.
+3. Ergebnis wird als JSON in `data-element-defaults` am Root-Container ausgegeben.
+4. Die JS-Logik (`resolveElementDefaults`) merged `*` + typ-spezifische Defaults beim Anlegen eines neuen Slices.
+
+Wichtig:
+
+- Gilt nur beim Erzeugen neuer Elemente.
+- Keine rückwirkende Mutation bereits gespeicherter Slice-Daten.
+
 ---
 
 ## Extension Points Referenz
