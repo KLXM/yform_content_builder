@@ -3874,9 +3874,4 @@
         }
     });
 
-    // Initialen Lauf an rex:ready angleichen
-    $(function() {
-        $(document).trigger('rex:ready', [$(document)]);
-    });
-
 })(jQuery);
