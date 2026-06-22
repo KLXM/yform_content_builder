@@ -102,6 +102,20 @@ class ThemeProviderBridge
         return is_array($result) ? $result : [];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public static function getCardStyleOptions(string $framework = 'uikit'): array
+    {
+        $result = rex_extension::registerPoint(new \rex_extension_point(
+            'YFORM_CONTENT_BUILDER_THEME_CARD_STYLE_OPTIONS',
+            [],
+            ['framework' => $framework]
+        ));
+
+        return is_array($result) ? $result : [];
+    }
+
     public static function normalizeFramework(string $framework): string
     {
         $result = rex_extension::registerPoint(new \rex_extension_point(

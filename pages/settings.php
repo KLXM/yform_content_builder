@@ -9,9 +9,45 @@ $addon = rex_addon::get('yform_content_builder');
 $themeProviderChoices = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::getThemeChoices();
 $hasThemeProvider = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::isProviderAvailable() || $themeProviderChoices !== [];
 
+$availableYformTables = [];
+if (rex_addon::get('yform')->isAvailable() && class_exists(rex_yform_manager_table::class)) {
+    try {
+        foreach (rex_yform_manager_table::getAll() as $table) {
+            $tableName = (string) $table->getTableName();
+            if ($tableName === '') {
+                continue;
+            }
+
+            $availableYformTables[$tableName] = (string) $table->getName();
+        }
+    } catch (Throwable) {
+        // ignore
+    }
+}
+
+ksort($availableYformTables, SORT_NATURAL | SORT_FLAG_CASE);
+
 // Formular verarbeiten
 if (rex_post('save', 'bool')) {
     $addon->setConfig('theme', rex_post('theme', 'string', ''));
+
+    $postedTableThemes = rex_post('table_themes', 'array', []);
+    $tableThemes = [];
+    if (is_array($postedTableThemes)) {
+        foreach ($postedTableThemes as $tableName => $themeName) {
+            $tableName = trim((string) $tableName);
+            if ($tableName === '' || !array_key_exists($tableName, $availableYformTables)) {
+                continue;
+            }
+
+            $themeName = trim((string) $themeName);
+            if ($themeName !== '') {
+                $tableThemes[$tableName] = $themeName;
+            }
+        }
+    }
+    $addon->setConfig('table_themes', $tableThemes);
+
     $addon->setConfig('compact_mode', rex_post('compact_mode', 'bool', false));
     $addon->setConfig('enable_online_toggle', rex_post('enable_online_toggle', 'bool', false));
     $addon->setConfig('enable_copy_paste', rex_post('enable_copy_paste', 'bool', false));
@@ -40,6 +76,11 @@ if ($themeProviderChoices !== []) {
 }
 
 $currentTheme = $addon->getConfig('theme', '');
+$tableThemes = $addon->getConfig('table_themes', []);
+if (!is_array($tableThemes)) {
+    $tableThemes = [];
+}
+
 $compactMode = $addon->getConfig('compact_mode', false);
 $enableOnlineToggle = $addon->getConfig('enable_online_toggle', false);
 $enableCopyPaste = $addon->getConfig('enable_copy_paste', false);
@@ -117,6 +158,36 @@ if ($hasThemeProvider) {
     $n['field'] .= '</select>';
     $n['note'] = rex_i18n::msg('yform_content_builder_theme_notice');
     $formElements[] = $n;
+
+    if ($availableYformTables !== []) {
+        $tableThemeField = '<div class="table-responsive">';
+        $tableThemeField .= '<table class="table table-striped table-hover" style="margin-bottom:0;">';
+        $tableThemeField .= '<thead><tr>';
+        $tableThemeField .= '<th>' . rex_i18n::msg('yform_content_builder_theme_table_column') . '</th>';
+        $tableThemeField .= '<th>' . rex_i18n::msg('yform_content_builder_theme_theme_column') . '</th>';
+        $tableThemeField .= '</tr></thead><tbody>';
+
+        foreach ($availableYformTables as $tableName => $tableLabel) {
+            $currentTableTheme = trim((string) ($tableThemes[$tableName] ?? ''));
+            $tableThemeField .= '<tr>';
+            $tableThemeField .= '<td><strong>' . rex_escape($tableLabel) . '</strong><br><code>' . rex_escape($tableName) . '</code></td>';
+            $tableThemeField .= '<td><select class="form-control" name="table_themes[' . rex_escape($tableName) . ']">';
+            foreach ($themes as $value => $label) {
+                $selected = ($value === $currentTableTheme) ? ' selected' : '';
+                $tableThemeField .= '<option value="' . rex_escape($value) . '"' . $selected . '>' . rex_escape($label) . '</option>';
+            }
+            $tableThemeField .= '</select></td>';
+            $tableThemeField .= '</tr>';
+        }
+
+        $tableThemeField .= '</tbody></table></div>';
+
+        $n = [];
+        $n['label'] = '<label>' . rex_i18n::msg('yform_content_builder_theme_per_table') . '</label>';
+        $n['field'] = $tableThemeField;
+        $n['note'] = rex_i18n::msg('yform_content_builder_theme_per_table_notice');
+        $formElements[] = $n;
+    }
 }
 
 // Kompaktmodus-Toggle

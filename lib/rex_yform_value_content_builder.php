@@ -35,6 +35,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     
     public function enterObject()
     {
+        $this->applyThemeContext();
+
         // AJAX-Anfragen behandeln - wenn AJAX, wird hier beendet
         if ($this->handleAjaxRequests()) {
             return; // AJAX wurde behandelt, normal processing stoppen
@@ -69,6 +71,43 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         if (isset($_POST['FORM']) && isset($_POST['FORM'][$this->params['form_name']]['send'])) {
             $this->processFormData();
         }
+    }
+
+    private function applyThemeContext(): void
+    {
+        $addon = rex_addon::get('yform_content_builder');
+
+        $tableTheme = $this->resolveThemeForCurrentTable($addon);
+        $fallbackTheme = trim((string) $addon->getConfig('theme', ''));
+        $theme = $tableTheme !== '' ? $tableTheme : $fallbackTheme;
+
+        ThemeProviderBridge::resetThemeContext();
+        if ($theme !== '') {
+            ThemeProviderBridge::setTheme($theme);
+        }
+    }
+
+    private function resolveThemeForCurrentTable(rex_addon $addon): string
+    {
+        $tableName = trim((string) $this->getParam('main_table', ''));
+        if ($tableName === '') {
+            $tableName = trim((string) $this->getParam('table_name', ''));
+        }
+
+        if ($tableName === '') {
+            return '';
+        }
+
+        $rawMapping = $addon->getConfig('table_themes', []);
+        if (!is_array($rawMapping)) {
+            return '';
+        }
+
+        if (!array_key_exists($tableName, $rawMapping)) {
+            return '';
+        }
+
+        return trim((string) $rawMapping[$tableName]);
     }
 
     private function handleAjaxRequests(): bool
@@ -1798,33 +1837,12 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'default' => 'uikit'
         ];
         
-        // Theme-Auswahl (nur wenn ein Theme-Provider verfügbar ist)
-        $themeField = null;
-        $themeChoices = ThemeProviderBridge::getThemeChoices();
-        if (ThemeProviderBridge::isProviderAvailable() || $themeChoices !== []) {
-            $themeChoices = ['' => '-- Domain-Standard --'];
-            $themeChoices = array_merge($themeChoices, ThemeProviderBridge::getThemeChoices());
-            
-            $themeField = [
-                'type' => 'choice',
-                'label' => 'Theme',
-                'choices' => $themeChoices,
-                'default' => '',
-                'notice' => 'Theme für dieses Feld. Leer = automatisch nach Domain.'
-            ];
-        }
-        
         // Basis-Felder
         $values = [
             'name' => ['type' => 'name', 'label' => rex_i18n::msg('yform_values_defaults_name')],
             'label' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_label')],
             'framework' => $frameworkField,
         ];
-        
-        // Theme-Feld hinzufügen, wenn verfügbar
-        if ($themeField !== null) {
-            $values['theme'] = $themeField;
-        }
         
         // Weitere Felder
         $values += [
