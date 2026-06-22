@@ -16,6 +16,7 @@ use rex_sql;
 use rex_url;
 use Throwable;
 use KLXM\YFormContentBuilder\Config\ElementModeResolver;
+use KLXM\YFormContentBuilder\Config\ThemeProviderBridge;
 use KLXM\YFormContentBuilder\Starter\StarterConfig as Config;
 
 class ModuleBuilder
@@ -50,10 +51,7 @@ class ModuleBuilder
     {
         $instance = new self();
         $instance->valueId = $valueId > 0 ? $valueId : 1;
-        $instance->framework = (string) ($options['framework'] ?? 'uikit');
-        if ($instance->framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-            $instance->framework = 'uikit';
-        }
+        $instance->framework = ThemeProviderBridge::normalizeFramework((string) ($options['framework'] ?? 'uikit'));
         $instance->label = trim((string) ($options['label'] ?? ''));
         $instance->description = trim((string) ($options['description'] ?? ''));
         $instance->allowedElements = $instance->normalizeAllowedElements($options['allowed_elements'] ?? []);
@@ -1146,8 +1144,8 @@ class ModuleBuilder
 
         $colorValue = '';
 
-        if (class_exists('UikitThemeBuilder\\DomainContext')) {
-            $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+        $themeBackgrounds = ThemeProviderBridge::getBackgroundOptions($this->framework);
+        if ($themeBackgrounds !== []) {
             if (is_array($themeBackgrounds) && isset($themeBackgrounds[$bgColor]) && is_array($themeBackgrounds[$bgColor])) {
                 $themeColor = $themeBackgrounds[$bgColor]['color'] ?? '';
                 if (is_string($themeColor) && $themeColor !== '') {

@@ -17,9 +17,9 @@ yform_content_builder_mode_merge = Merge (Demo + Custom)
 yform_content_builder_mode_replace = Replace (nur Custom)
 yform_content_builder_theme_settings = Theme Builder Integration
 yform_content_builder_theme = Theme
-yform_content_builder_theme_notice = Wähle ein Theme aus dem UIkit Theme Builder, das für die Farbauswahl im Backend verwendet werden soll.
-yform_content_builder_theme_info = Das ausgewählte Theme bestimmt, welche Farben in den Farbauswahl-Feldern (Card-Farbe, Hintergrund, etc.) angezeigt werden. Im Frontend wird weiterhin das Theme der jeweiligen Domain verwendet.
-yform_content_builder_theme_builder_missing = Das Addon "uikit_theme_builder" ist nicht installiert oder aktiviert. Die Theme-Integration ist daher nicht verfügbar.
+yform_content_builder_theme_notice = Wähle ein Theme aus einem registrierten Theme-Provider. Das Theme wird für Farbauswahl und Vorschau im Backend verwendet.
+yform_content_builder_theme_info = Das ausgewählte Theme bestimmt, welche Farben in den Farbauswahl-Feldern angezeigt werden. Der konkrete Provider wird über Extension Points bereitgestellt.
+yform_content_builder_theme_builder_missing = Es ist kein Theme-Provider registriert. Die Theme-Integration ist daher nicht verfügbar.
 yform_content_builder_settings_saved = Einstellungen wurden gespeichert.
 
 yform_content_builder_compact_mode = Kompaktmodus

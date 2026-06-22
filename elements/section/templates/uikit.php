@@ -5,10 +5,10 @@
  * @var string $closeType 'open', 'close', or null
  */
 
-// Theme Override: Falls gesetzt, DomainContext anpassen
+// Theme Override: Falls gesetzt, Theme-Provider Kontext anpassen
 $themeOverride = $elementData['theme_override'] ?? '';
-if (!empty($themeOverride) && class_exists('UikitThemeBuilder\DomainContext')) {
-    \UikitThemeBuilder\DomainContext::setTheme($themeOverride);
+if (!empty($themeOverride)) {
+    \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::setTheme((string) $themeOverride);
 }
 
 $label = $elementData['label'] ?? '';

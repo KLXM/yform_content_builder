@@ -6,6 +6,9 @@
 
 $addon = rex_addon::get('yform_content_builder');
 
+$themeProviderChoices = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::getThemeChoices();
+$hasThemeProvider = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::isProviderAvailable() || $themeProviderChoices !== [];
+
 // Formular verarbeiten
 if (rex_post('save', 'bool')) {
     $addon->setConfig('theme', rex_post('theme', 'string', ''));
@@ -23,18 +26,17 @@ if (rex_post('save', 'bool')) {
 
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
-    // Theme Builder Cache zurücksetzen (nur wenn verfügbar)
-    if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
-        \UikitThemeBuilder\DomainContext::resetContext();
-        \UikitThemeBuilder\DomainContext::setTheme($addon->getConfig('theme'));
+    // Theme-Provider Kontext aktualisieren
+    if ($hasThemeProvider) {
+        \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::resetThemeContext();
+        \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::setTheme((string) $addon->getConfig('theme', ''));
     }
 }
 
 // Verfügbare Themes laden
 $themes = ['' => '-- Kein Theme (Domain-Context verwenden) --'];
-if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
-    $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
-    $themes = array_merge($themes, $availableThemes);
+if ($themeProviderChoices !== []) {
+    $themes = array_merge($themes, $themeProviderChoices);
 }
 
 $currentTheme = $addon->getConfig('theme', '');
@@ -103,8 +105,8 @@ $n['field'] = '<p class="form-control-static"><span class="label label-' . ($cur
 $n['note'] = 'Wird per Extension Point YFORM_CONTENT_BUILDER_ELEMENT_MODE definiert. Aktuell: <code>' . rex_escape($currentMode) . '</code>';
 $formElements[] = $n;
 
-// Theme-Auswahl (nur wenn UIkit Theme Builder verfügbar)
-if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
+// Theme-Auswahl (nur wenn Theme-Provider verfügbar)
+if ($hasThemeProvider) {
     $n = [];
     $n['label'] = '<label for="theme">' . rex_i18n::msg('yform_content_builder_theme') . '</label>';
     $n['field'] = '<select class="form-control" id="theme" name="theme">';
@@ -183,13 +185,13 @@ $fragment->setVar('title', rex_i18n::msg('yform_content_builder_settings'), fals
 $fragment->setVar('body', '<form action="' . rex_url::currentBackendPage() . '" method="post">' . $content . '</form>', false);
 echo $fragment->parse('core/page/section.php');
 
-// Info-Box für UIkit Theme Builder
-if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
+// Info-Box für Theme-Provider
+if ($hasThemeProvider) {
     $infoContent = '<p><i class="fa fa-info-circle"></i> ' . rex_i18n::msg('yform_content_builder_theme_info') . '</p>';
     
     $fragment = new rex_fragment();
     $fragment->setVar('class', 'info', false);
-    $fragment->setVar('title', 'UIkit Theme Builder', false);
+    $fragment->setVar('title', rex_i18n::msg('yform_content_builder_theme_settings'), false);
     $fragment->setVar('body', $infoContent, false);
     echo $fragment->parse('core/page/section.php');
 }

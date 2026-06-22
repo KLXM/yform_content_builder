@@ -17,9 +17,9 @@ $colorOptions = [
     'danger' => 'Danger',
 ];
 
-// ThemeBuilder Farben nur als Strings hinzufügen
-if ($hasThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
-    $themeColors = \UikitThemeBuilder\DomainContext::getTextColorOptions();
+// Theme-Provider Farben nur als Strings hinzufügen
+if ($hasThemeBuilder) {
+    $themeColors = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::getTextColorOptions('uikit');
     if (is_array($themeColors)) {
         foreach ($themeColors as $key => $value) {
             // Nur hinzufügen wenn Wert ein String ist, nicht array

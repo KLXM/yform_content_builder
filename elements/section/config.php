@@ -6,18 +6,19 @@
  * Das nächste Section-Element oder das Ende schließt automatisch.
  */
 
-// Prüfen ob uikit_theme_builder verfügbar ist
-$hasUikitThemeBuilder = rex_addon::get('uikit_theme_builder')->isAvailable();
+// Prüfen ob Theme-Provider verfügbar ist
+$hasThemeProvider = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::isProviderAvailable()
+    || \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::getThemeChoices() !== [];
 
-// Theme-Auswahl Optionen (nur wenn Theme Builder verfügbar)
+// Theme-Auswahl Optionen (nur wenn Theme-Provider verfügbar)
 $themeChoices = [];
-if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
+if ($hasThemeProvider) {
     $themeChoices = ['' => '-- Automatisch (Domain) --'];
-    $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
+    $availableThemes = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::getThemeChoices();
     $themeChoices = array_merge($themeChoices, $availableThemes);
 }
 
-// Dynamische Optionen aus uikit_theme_builder
+// Dynamische Optionen aus Theme-Provider
 $backgroundOptions = [
     'none' => 'Keine',
     'transparent' => 'Transparent',
@@ -26,8 +27,8 @@ $backgroundOptions = [
     'secondary' => 'Secondary',
 ];
 
-if ($hasUikitThemeBuilder && class_exists('UikitThemeBuilder\DomainContext')) {
-    $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+if ($hasThemeProvider) {
+    $themeBackgrounds = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::getBackgroundOptions('uikit');
     if (is_array($themeBackgrounds) && [] !== $themeBackgrounds) {
         foreach ($themeBackgrounds as $class => $data) {
             if (!is_string($class) || '' === trim($class)) {

@@ -90,13 +90,11 @@ if ($enableSection && '' !== $sectionBgImage) {
 if ($enableSection && !$hasBackgroundVideo && '' === $sectionBgImage && rex::isBackend() && '' !== $sectionBg && 'uk-background-transparent' !== $sectionBg) {
     $previewColor = '';
 
-    if (class_exists('UikitThemeBuilder\\DomainContext')) {
-        $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
-        if (is_array($themeBackgrounds) && isset($themeBackgrounds[$sectionBg]) && is_array($themeBackgrounds[$sectionBg])) {
-            $themeColor = $themeBackgrounds[$sectionBg]['color'] ?? '';
-            if (is_string($themeColor) && '' !== trim($themeColor)) {
-                $previewColor = trim($themeColor);
-            }
+    $themeBackgrounds = \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::getBackgroundOptions('uikit');
+    if (is_array($themeBackgrounds) && isset($themeBackgrounds[$sectionBg]) && is_array($themeBackgrounds[$sectionBg])) {
+        $themeColor = $themeBackgrounds[$sectionBg]['color'] ?? '';
+        if (is_string($themeColor) && '' !== trim($themeColor)) {
+            $previewColor = trim($themeColor);
         }
     }
 

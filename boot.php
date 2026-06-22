@@ -10,6 +10,7 @@ require_once rex_path::addon('yform_content_builder', 'lib/config/FrameworkConfi
 require_once rex_path::addon('yform_content_builder', 'lib/config/EditorConfig.php');
 require_once rex_path::addon('yform_content_builder', 'lib/config/ElementRegistry.php');
 require_once rex_path::addon('yform_content_builder', 'lib/config/ElementModeResolver.php');
+require_once rex_path::addon('yform_content_builder', 'lib/config/ThemeProviderBridge.php');
 
 // API-Klassen registrieren (namespaced, via rex_api_function::register)
 rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\Api\ContentBuilderApi::class);
@@ -19,13 +20,12 @@ if (rex_addon::get('yform')->isAvailable()) {
     rex_extension::register('MEDIA_IS_IN_USE', [\KLXM\YFormContentBuilder\MediaInUse::class, 'isMediaInUse']);
 }
 
-// Theme Builder Integration - Theme für Backend setzen
-if (rex::isBackend() && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-    $configuredTheme = rex_addon::get('yform_content_builder')->getConfig('theme');
-    if ($configuredTheme && class_exists('UikitThemeBuilder\DomainContext')) {
-        // Cache zurücksetzen und Theme setzen
-        \UikitThemeBuilder\DomainContext::resetContext();
-        \UikitThemeBuilder\DomainContext::setTheme($configuredTheme);
+// Theme-Provider Integration: konfiguriertes Backend-Theme anwenden
+if (rex::isBackend()) {
+    $configuredTheme = (string) rex_addon::get('yform_content_builder')->getConfig('theme', '');
+    if ($configuredTheme !== '') {
+        \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::resetThemeContext();
+        \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::setTheme($configuredTheme);
     }
 }
 

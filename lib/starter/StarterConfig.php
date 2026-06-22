@@ -2,9 +2,9 @@
 
 namespace KLXM\YFormContentBuilder\Starter;
 
-use rex_addon;
 use KLXM\YFormContentBuilder\Config\FrameworkConfig;
 use KLXM\YFormContentBuilder\Config\ElementRegistry;
+use KLXM\YFormContentBuilder\Config\ThemeProviderBridge;
 
 /**
  * Konfigurationshelfer ausschließlich für die mitgelieferten Starter/Demo-Elemente.
@@ -49,8 +49,8 @@ class StarterConfig
     public static function hasThemeBuilder(): bool
     {
         if (self::$hasUikitThemeBuilder === null) {
-            self::$hasUikitThemeBuilder = rex_addon::get('uikit_theme_builder')->isAvailable() 
-                && class_exists('UikitThemeBuilder\DomainContext');
+            self::$hasUikitThemeBuilder = ThemeProviderBridge::isProviderAvailable()
+                || ThemeProviderBridge::getThemeChoices() !== [];
         }
         return self::$hasUikitThemeBuilder;
     }

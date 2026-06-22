@@ -2,6 +2,7 @@
 
 namespace KLXM\YFormContentBuilder;
 
+use KLXM\YFormContentBuilder\Config\ThemeProviderBridge;
 use KLXM\YFormContentBuilder\Fields\FieldRegistry;
 use rex;
 use rex_addon;
@@ -44,10 +45,7 @@ class Module
         $instance = new self();
         $instance->elementType = $type;
         $instance->rawValue = $rawValue;
-        $instance->framework = $framework;
-        if ($instance->framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-            $instance->framework = 'uikit';
-        }
+        $instance->framework = ThemeProviderBridge::normalizeFramework($framework);
         if (is_int($valueId) && $valueId > 0) {
             $instance->valueId = $valueId;
         } else {

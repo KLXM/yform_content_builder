@@ -3,6 +3,7 @@
 use KLXM\YFormContentBuilder\Helper;
 use KLXM\YFormContentBuilder\ModalHelper;
 use KLXM\YFormContentBuilder\Config\ElementModeResolver;
+use KLXM\YFormContentBuilder\Config\ThemeProviderBridge;
 use KLXM\YFormContentBuilder\Starter\StarterConfig as Config;
 
 /**
@@ -906,9 +907,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         $sliceType = rex_request::post('slice_type', 'string');
         $sliceData = rex_request::post('slice_data', 'array', []);
         $framework = rex_request::post('framework', 'string', 'uikit');
-        if ($framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-            $framework = 'uikit';
-        }
+        $framework = ThemeProviderBridge::normalizeFramework($framework);
         
         // Element-Pfad via getElementPath (unterstützt Overrides)
         $elementPath = $this->getElementPath($sliceType);
@@ -1059,9 +1058,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         $rawValue = (string) $this->getValue();
         $value = $this->parseValue();
         $framework = (string) $this->getElement('framework', 'uikit');
-        if ($framework === 'bootstrap' && rex_addon::get('uikit_theme_builder')->isAvailable()) {
-            $framework = 'uikit';
-        }
+        $framework = ThemeProviderBridge::normalizeFramework($framework);
         $availableElements = $this->getAvailableElements();
 
         $legacyEnabled = $this->isLegacyModeEnabled();
@@ -1801,12 +1798,12 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'default' => 'uikit'
         ];
         
-        // Theme-Auswahl (nur wenn UIkit Theme Builder verfügbar)
+        // Theme-Auswahl (nur wenn ein Theme-Provider verfügbar ist)
         $themeField = null;
-        if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
+        $themeChoices = ThemeProviderBridge::getThemeChoices();
+        if (ThemeProviderBridge::isProviderAvailable() || $themeChoices !== []) {
             $themeChoices = ['' => '-- Domain-Standard --'];
-            $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
-            $themeChoices = array_merge($themeChoices, $availableThemes);
+            $themeChoices = array_merge($themeChoices, ThemeProviderBridge::getThemeChoices());
             
             $themeField = [
                 'type' => 'choice',

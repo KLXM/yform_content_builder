@@ -1448,6 +1448,115 @@ rex_extension::register('YFORM_CONTENT_BUILDER_EDITOR_PROFILES', function($ep) {
 });
 ```
 
+### Theme-Provider Hooks ⭐ *NEU (v3.2.0)*
+
+Diese Hooks entkoppeln Theme-Integration vollständig vom Content Builder. Jeder Provider (z. B. UIkit, Bootstrap, Design-System-Addon) kann sie registrieren.
+
+#### YFORM_CONTENT_BUILDER_THEME_PROVIDER_AVAILABLE
+
+Signalisiert, dass ein Theme-Provider aktiv ist.
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_PROVIDER_AVAILABLE', static function(rex_extension_point $ep): bool {
+    return true;
+});
+```
+
+#### YFORM_CONTENT_BUILDER_THEME_CHOICES
+
+Liefert auswählbare Themes als Array `theme_key => label`.
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_CHOICES', static function(rex_extension_point $ep): array {
+    return [
+        'default' => 'Default',
+        'dark' => 'Dark',
+    ];
+});
+```
+
+#### YFORM_CONTENT_BUILDER_THEME_CONTEXT_RESET
+
+Setzt den Theme-Kontext zurück, bevor ein neues Theme angewendet wird.
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_CONTEXT_RESET', static function(rex_extension_point $ep) {
+    // Provider-interner Reset
+    return $ep->getSubject();
+});
+```
+
+#### YFORM_CONTENT_BUILDER_THEME_CONTEXT_SET
+
+Setzt den Theme-Kontext auf den übergebenen Theme-Key (`$ep->getSubject()`).
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_CONTEXT_SET', static function(rex_extension_point $ep) {
+    $theme = (string) $ep->getSubject();
+    if ($theme !== '') {
+        // Provider-interne Aktivierung
+    }
+    return $ep->getSubject();
+});
+```
+
+#### YFORM_CONTENT_BUILDER_THEME_BACKGROUND_OPTIONS
+
+Liefert Theme-Hintergrundoptionen (für `section_bg`, Color-Preview etc.).
+
+Parameter:
+
+- `framework` (string), z. B. `uikit`
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_BACKGROUND_OPTIONS', static function(rex_extension_point $ep): array {
+    if ((string) $ep->getParam('framework', 'uikit') !== 'uikit') {
+        return (array) $ep->getSubject();
+    }
+
+    return [
+        'uk-background-default' => ['label' => 'Default', 'color' => '#ffffff'],
+        'uk-background-primary' => ['label' => 'Primary', 'color' => '#1e87f0'],
+    ];
+});
+```
+
+#### YFORM_CONTENT_BUILDER_THEME_TEXT_COLOR_OPTIONS
+
+Liefert Textfarben für Elemente wie Divider.
+
+Parameter:
+
+- `framework` (string), z. B. `uikit`
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_TEXT_COLOR_OPTIONS', static function(rex_extension_point $ep): array {
+    if ((string) $ep->getParam('framework', 'uikit') !== 'uikit') {
+        return (array) $ep->getSubject();
+    }
+
+    return [
+        'uk-text-primary' => 'Primary',
+        'uk-text-secondary' => 'Secondary',
+    ];
+});
+```
+
+#### YFORM_CONTENT_BUILDER_FRAMEWORK_NORMALIZE
+
+Erlaubt Provider-spezifische Framework-Normalisierung (z. B. `bootstrap` => `uikit`).
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_FRAMEWORK_NORMALIZE', static function(rex_extension_point $ep): string {
+    $framework = trim((string) $ep->getSubject());
+    if ($framework === 'bootstrap') {
+        return 'uikit';
+    }
+
+    return $framework;
+});
+```
+
 ---
 
 ## Helper-Klassen ⭐ *ERWEITERT (v3.1.0)*

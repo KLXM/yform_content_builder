@@ -36,11 +36,105 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 - **YForm-Listen-Profile** – No-Code-Ausgabe aus beliebigen YForm-Tabellen (News, Produkte, Events …)
 - **MediaPool In-Use-Check** – verwendet Medien in `content_builder`-Feldern und schützt sie vor versehentlichem Löschen
 - **Forcal-Termine** – Veranstaltungen aus dem forcal-Addon direkt im Content Builder
-- **uikit_theme_builder** – dynamische Farben aus dem DomainContext
+- **Theme-Provider über Extension Points (EP)** – Farben, Themes und Kontext, z. B. aus `uikit_theme_builder`
+
+### Theme-Provider per Extension Points (EP)
+
+Der Content Builder nutzt für Theme-Funktionen ausschließlich Extension Points (EP).
+
+Verfügbare Extension Points (EP):
+
+- `YFORM_CONTENT_BUILDER_THEME_PROVIDER_AVAILABLE`
+- `YFORM_CONTENT_BUILDER_THEME_CHOICES`
+- `YFORM_CONTENT_BUILDER_THEME_CONTEXT_RESET`
+- `YFORM_CONTENT_BUILDER_THEME_CONTEXT_SET`
+- `YFORM_CONTENT_BUILDER_THEME_BACKGROUND_OPTIONS`
+- `YFORM_CONTENT_BUILDER_THEME_TEXT_COLOR_OPTIONS`
+- `YFORM_CONTENT_BUILDER_FRAMEWORK_NORMALIZE`
+
+Damit kann jedes Addon Theme-Daten liefern und den Theme-Kontext steuern. (Der Begriff „Hook“ wird teils synonym verwendet.)
+
+Beispiel: Theme-Provider registrieren (`boot.php` eines Provider-Addons):
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_PROVIDER_AVAILABLE', static function (rex_extension_point $ep): bool {
+    return true;
+});
+
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_CHOICES', static function (rex_extension_point $ep): array {
+    return [
+        'default' => 'Default',
+        'dark' => 'Dark',
+        'brand_a' => 'Brand A',
+    ];
+});
+
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_CONTEXT_RESET', static function (rex_extension_point $ep) {
+    // Provider-internen Theme-Kontext zurücksetzen
+    return $ep->getSubject();
+});
+
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_CONTEXT_SET', static function (rex_extension_point $ep) {
+    $themeName = trim((string) $ep->getSubject());
+    if ($themeName !== '') {
+        // Provider-internes Theme aktivieren
+        // z. B. DomainContext::setTheme($themeName)
+    }
+    return $ep->getSubject();
+});
+```
+
+Beispiel: Theme-Hintergründe für UI-Auswahl und Preview liefern:
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_BACKGROUND_OPTIONS', static function (rex_extension_point $ep): array {
+    $framework = (string) $ep->getParam('framework', 'uikit');
+    if ($framework !== 'uikit') {
+        return (array) $ep->getSubject();
+    }
+
+    return [
+        'uk-background-default' => ['label' => 'Default', 'color' => '#ffffff'],
+        'uk-background-muted' => ['label' => 'Muted', 'color' => '#f8f8f8'],
+        'uk-background-primary' => ['label' => 'Primary', 'color' => '#1e87f0'],
+        'uk-background-secondary' => ['label' => 'Secondary', 'color' => '#222222'],
+    ];
+});
+```
+
+Beispiel: Textfarben (z. B. für Divider) liefern:
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_THEME_TEXT_COLOR_OPTIONS', static function (rex_extension_point $ep): array {
+    $framework = (string) $ep->getParam('framework', 'uikit');
+    if ($framework !== 'uikit') {
+        return (array) $ep->getSubject();
+    }
+
+    return [
+        'uk-text-primary' => 'Primary',
+        'uk-text-secondary' => 'Secondary',
+        'uk-text-muted' => 'Muted',
+    ];
+});
+```
+
+Beispiel: Framework-Normalisierung (optional):
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_FRAMEWORK_NORMALIZE', static function (rex_extension_point $ep): string {
+    $framework = trim((string) $ep->getSubject());
+    if ($framework === 'bootstrap') {
+        return 'uikit';
+    }
+
+    return $framework;
+});
+```
 
 ---
 
-## 🏗️ Architektur (v3.1.0+)
+## 🏗️ Architektur
 
 ### Addon-Strategie
 
@@ -68,7 +162,7 @@ $addon_config['yform_content_builder']['element_mode'] = 'merge'; // 'merge' ode
 
 ### Framework-Abstraktion
 
-Die **neuen Config-Klassen** (v3.1.0) ermöglichen Framework-Flexibilität:
+Die **Config-Klassen** ermöglichen Framework-Flexibilität:
 
 ```
 ┌─────────────────────────────────────┐
@@ -273,7 +367,7 @@ echo $contentBuilder->renderOutput();
 
 Für das YForm-Wertfeld `content_builder` können Standardwerte direkt in der Felddefinition gesetzt werden.
 
-Neue Feldoptionen:
+Feldoptionen:
 
 - `default_enable_section` – globale Voreinstellung für `enable_section` bei neuen Elementen
 - `default_enable_container` – globale Voreinstellung für `enable_container` bei neuen Elementen
@@ -467,7 +561,7 @@ Damit koennen Element-Configs ohne Zusatz-JS kontextunabhaengig gesteuert werden
 
 1. Addon in `/redaxo/src/addons/yform_content_builder/` entpacken
 2. Im REDAXO-Backend unter **Addons** installieren und aktivieren
-3. Optional: Neue Module via **YForm Content Builder → Module** generieren
+3. Optional: Module via **YForm Content Builder → Module** generieren
 
 ---
 

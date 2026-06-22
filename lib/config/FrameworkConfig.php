@@ -2,7 +2,6 @@
 
 namespace KLXM\YFormContentBuilder\Config;
 
-use rex_addon;
 use rex_extension;
 
 /**
@@ -72,8 +71,8 @@ class FrameworkConfig
 
         $defaultChoices = $defaults[$framework] ?? $defaults['uikit'];
 
-        if ('uikit' === $framework && rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\\DomainContext')) {
-            $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+        if ('uikit' === $framework) {
+            $themeBackgrounds = ThemeProviderBridge::getBackgroundOptions($framework);
             if (!empty($themeBackgrounds)) {
                 $baseChoices = [
                     '' => 'Keine',
@@ -251,8 +250,8 @@ class FrameworkConfig
 
         $defaultColors = $defaults[$framework] ?? $defaults['uikit'];
 
-        if ('uikit' === $framework && rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\\DomainContext')) {
-            $themeBackgrounds = \UikitThemeBuilder\DomainContext::getBackgroundOptions();
+        if ('uikit' === $framework) {
+            $themeBackgrounds = ThemeProviderBridge::getBackgroundOptions($framework);
             if (!empty($themeBackgrounds)) {
                 $baseColors = [
                     '' => ['color' => '#ffffff', 'label' => 'Keine'],
