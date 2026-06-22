@@ -1,7 +1,8 @@
 package: yform_content_builder
 version: '3.1.0'
-author: 'KLXM Crossmedia / Thomas Skerbis'
+author: 'Friends of REDAXO'
 supportpage: 'https://klxm.de'
+license: MIT
 
 requires:
     packages:

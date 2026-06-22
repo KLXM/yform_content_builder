@@ -10,6 +10,7 @@
     
     // Flag um doppelte Initialisierung zu verhindern
     var eventsInitialized = false;
+    var persistGuardInitialized = false;
     
     // API-URL für AJAX-Requests (rex_api_function)
     var apiUrl = '/redaxo/index.php?rex-api-call=content_builder';
@@ -35,6 +36,7 @@
             this.initGridViews();
             this.updateSectionClasses();
             this.updateInsertButtons();
+            this.initPersistIndicators();
             
             // Paste-Buttons initial anzeigen, wenn Kopiertes vorhanden
             if (localStorage.getItem('yform_cb_copied_slice')) {
@@ -42,6 +44,92 @@
             }
 
             this.syncAllLegacyHiddenFields();
+        },
+
+        initPersistIndicators: function() {
+            var self = this;
+
+            $('.yform-content-builder').each(function() {
+                var $builder = $(this);
+                var $hiddenField = $builder.find('.content-builder-data').first();
+
+                if ($hiddenField.length === 0) {
+                    return;
+                }
+
+                var baseline = $builder.attr('data-cb-persist-baseline');
+                var currentValue = String($hiddenField.val() || '');
+
+                if (typeof baseline === 'undefined') {
+                    baseline = currentValue;
+                    $builder.attr('data-cb-persist-baseline', baseline);
+                    $builder.attr('data-cb-persist-dirty', '0');
+                    self.setPersistState($builder, 'clean');
+                    return;
+                }
+
+                if ($builder.attr('data-cb-persist-dirty') === '1' || String(baseline) !== currentValue) {
+                    $builder.attr('data-cb-persist-dirty', '1');
+                    self.setPersistState($builder, 'dirty');
+                } else {
+                    self.setPersistState($builder, 'clean');
+                }
+            });
+
+            this.initPersistLeaveGuard();
+        },
+
+        setPersistState: function($builder, state) {
+            var $status = $builder.find('.yform-cb-persist-status').first();
+            if ($status.length === 0) {
+                return;
+            }
+
+            var safeState = String(state || 'clean');
+            var text = 'Alle Änderungen sind im Datensatz gespeichert.';
+
+            $status.removeClass('is-clean is-dirty is-saving');
+
+            if (safeState === 'dirty') {
+                $status.addClass('is-dirty');
+                text = 'Ungespeicherte Änderungen im Content Builder.';
+            } else if (safeState === 'saving') {
+                $status.addClass('is-saving');
+                text = 'Datensatz wird gespeichert...';
+            } else {
+                $status.addClass('is-clean');
+            }
+
+            $status.attr('data-cb-persist-status', safeState);
+            $status.find('.yform-cb-persist-text').text(text);
+        },
+
+        markPersistDirty: function($slice) {
+            var $builder = $slice.closest('.yform-content-builder');
+            if ($builder.length === 0) {
+                return;
+            }
+
+            $builder.attr('data-cb-persist-dirty', '1');
+            this.setPersistState($builder, 'dirty');
+        },
+
+        initPersistLeaveGuard: function() {
+            if (persistGuardInitialized) {
+                return;
+            }
+            persistGuardInitialized = true;
+
+            $(window).on('beforeunload.yfcbPersistGuard', function(event) {
+                var hasDirtyBuilder = $('.yform-content-builder[data-cb-persist-dirty="1"]').length > 0;
+                if (!hasDirtyBuilder) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.returnValue = '';
+                return '';
+            });
         },
 
         syncLegacyHiddenField: function($textarea) {
@@ -389,6 +477,11 @@
             });
 
             $(document).on('submit', 'form', function() {
+                var $form = $(this);
+                $form.find('.yform-content-builder').each(function() {
+                    ContentBuilder.setPersistState($(this), 'saving');
+                });
+
                 $(this).find('.yform-cb-legacy-editor').each(function() {
                     self.getLegacyEditorHtml($(this));
                     self.syncLegacyHiddenField($(this));
@@ -1727,6 +1820,7 @@
             
             // Hidden Field updaten
             this.updateHiddenField();
+            this.markPersistDirty($slice);
             
             // Section-Klassen aktualisieren (falls Section gespeichert wurde)
             this.updateSectionClasses();
@@ -2814,7 +2908,16 @@
                     });
                 });
                 
-                $container.find('.content-builder-data').val(JSON.stringify(slices));
+                var newValue = JSON.stringify(slices);
+                var $hiddenField = $container.find('.content-builder-data').first();
+                var previousValue = String($hiddenField.val() || '');
+
+                $hiddenField.val(newValue);
+
+                if (newValue !== previousValue) {
+                    $container.attr('data-cb-persist-dirty', '1');
+                    ContentBuilder.setPersistState($container, 'dirty');
+                }
             });
         },
 

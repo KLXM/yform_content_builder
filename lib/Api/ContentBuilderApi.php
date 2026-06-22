@@ -173,10 +173,11 @@ class ContentBuilderApi extends rex_api_function
             );
         }
 
-        echo '<div class="form-group">';
-        echo '<div class="btn-group pull-right">';
-        echo '<button type="button" class="btn btn-success btn-slice-save"><i class="fa fa-check"></i> Übernehmen</button>';
-        echo '<button type="button" class="btn btn-danger btn-slice-cancel" data-confirm="Bearbeitung abbrechen? Alle Änderungen gehen verloren."><i class="fa fa-times"></i> Abbrechen</button>';
+        echo '<div class="form-group slice-form-actions">';
+        echo '<div class="slice-form-actions-note"><i class="fa fa-info-circle"></i> Diese Aktion übernimmt nur dieses Element in den Builder.</div>';
+        echo '<div class="btn-group pull-right cb-slice-action-group">';
+        echo '<button type="button" class="btn btn-success btn-slice-save cb-btn-apply"><i class="fa fa-check"></i> Element übernehmen</button>';
+        echo '<button type="button" class="btn btn-danger btn-slice-cancel cb-btn-cancel" data-confirm="Bearbeitung abbrechen? Alle Änderungen gehen verloren."><i class="fa fa-times"></i> Bearbeitung verwerfen</button>';
         echo '</div>';
         echo '<div class="clearfix"></div>';
         echo '</div>';

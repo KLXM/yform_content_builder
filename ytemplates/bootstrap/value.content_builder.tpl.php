@@ -141,6 +141,17 @@ $modernHiddenStyle = $legacy_is_active ? ' style="display: none;"' : '';
             <strong><i class="fa fa-cubes" aria-hidden="true"></i> Content-Builder-Bereich</strong><br>
             <span>Ab hier beginnt der modulare Seiteninhalt.</span>
         </div>
+
+        <div class="yform-cb-persist-status is-clean" data-cb-persist-status="clean" style="margin-bottom: 12px;">
+            <div class="yform-cb-persist-row">
+                <span class="yform-cb-persist-dot" aria-hidden="true"></span>
+                <strong class="yform-cb-persist-text">Alle Änderungen sind im Datensatz gespeichert.</strong>
+            </div>
+            <div class="yform-cb-persist-hint">
+                <i class="fa fa-info-circle" aria-hidden="true"></i>
+                <span>Element übernehmen speichert nur das aktuelle Element im Builder. Dauerhaft gespeichert wird erst beim Speichern des gesamten Formulars.</span>
+            </div>
+        </div>
     <?php endif; ?>
     
     <?php if ($legacy_is_active): ?>
