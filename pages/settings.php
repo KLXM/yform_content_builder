@@ -23,8 +23,8 @@ if (rex_post('save', 'bool')) {
 
     echo rex_view::success(rex_i18n::msg('yform_content_builder_settings_saved'));
     
-    // Theme Builder Cache zurücksetzen
-    if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\DomainContext')) {
+    // Theme Builder Cache zurücksetzen (nur wenn verfügbar)
+    if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
         \UikitThemeBuilder\DomainContext::resetContext();
         \UikitThemeBuilder\DomainContext::setTheme($addon->getConfig('theme'));
     }
@@ -32,7 +32,7 @@ if (rex_post('save', 'bool')) {
 
 // Verfügbare Themes laden
 $themes = ['' => '-- Kein Theme (Domain-Context verwenden) --'];
-if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\DomainContext')) {
+if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
     $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
     $themes = array_merge($themes, $availableThemes);
 }
@@ -94,17 +94,28 @@ $content .= '<legend>' . rex_i18n::msg('yform_content_builder_general_settings')
 
 $formElements = [];
 
-// Theme-Auswahl
+// Aktiver Modus anzeigen (merge oder replace)
+$currentMode = \KLXM\YFormContentBuilder\Config\ElementModeResolver::getElementMode();
+$modeLabel = $currentMode === 'merge' ? rex_i18n::msg('yform_content_builder_mode_merge', 'Merge (Demo + Custom)') : rex_i18n::msg('yform_content_builder_mode_replace', 'Replace (nur Custom)');
 $n = [];
-$n['label'] = '<label for="theme">' . rex_i18n::msg('yform_content_builder_theme') . '</label>';
-$n['field'] = '<select class="form-control" id="theme" name="theme">';
-foreach ($themes as $value => $label) {
-    $selected = ($value === $currentTheme) ? ' selected' : '';
-    $n['field'] .= '<option value="' . rex_escape($value) . '"' . $selected . '>' . rex_escape($label) . '</option>';
-}
-$n['field'] .= '</select>';
-$n['note'] = rex_i18n::msg('yform_content_builder_theme_notice');
+$n['label'] = '<label>' . rex_i18n::msg('yform_content_builder_mode') . '</label>';
+$n['field'] = '<p class="form-control-static"><span class="label label-' . ($currentMode === 'merge' ? 'info' : 'warning') . '">' . rex_escape($modeLabel) . '</span></p>';
+$n['note'] = 'Wird per Extension Point YFORM_CONTENT_BUILDER_ELEMENT_MODE definiert. Aktuell: <code>' . rex_escape($currentMode) . '</code>';
 $formElements[] = $n;
+
+// Theme-Auswahl (nur wenn UIkit Theme Builder verfügbar)
+if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
+    $n = [];
+    $n['label'] = '<label for="theme">' . rex_i18n::msg('yform_content_builder_theme') . '</label>';
+    $n['field'] = '<select class="form-control" id="theme" name="theme">';
+    foreach ($themes as $value => $label) {
+        $selected = ($value === $currentTheme) ? ' selected' : '';
+        $n['field'] .= '<option value="' . rex_escape($value) . '"' . $selected . '>' . rex_escape($label) . '</option>';
+    }
+    $n['field'] .= '</select>';
+    $n['note'] = rex_i18n::msg('yform_content_builder_theme_notice');
+    $formElements[] = $n;
+}
 
 // Kompaktmodus-Toggle
 $n = [];
@@ -172,17 +183,15 @@ $fragment->setVar('title', rex_i18n::msg('yform_content_builder_settings'), fals
 $fragment->setVar('body', '<form action="' . rex_url::currentBackendPage() . '" method="post">' . $content . '</form>', false);
 echo $fragment->parse('core/page/section.php');
 
-// Info-Box
+// Info-Box für UIkit Theme Builder
 if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
     $infoContent = '<p><i class="fa fa-info-circle"></i> ' . rex_i18n::msg('yform_content_builder_theme_info') . '</p>';
     
     $fragment = new rex_fragment();
     $fragment->setVar('class', 'info', false);
-    $fragment->setVar('title', 'Info', false);
+    $fragment->setVar('title', 'UIkit Theme Builder', false);
     $fragment->setVar('body', $infoContent, false);
     echo $fragment->parse('core/page/section.php');
-} else {
-    echo rex_view::warning(rex_i18n::msg('yform_content_builder_theme_builder_missing'));
 }
 
 // =============================================================================

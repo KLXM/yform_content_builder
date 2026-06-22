@@ -104,7 +104,9 @@ $contentBuilder = Module::createWithValue(1, $currentValue, [
     'label' => 'Seiteninhalt',
     'description' => 'Fügen Sie Content-Elemente hinzu',
     // Optional: Nur bestimmte Elemente erlauben
-    // 'allowed_elements' => ['headline', 'text', 'gallery', 'hero']
+    // 'allowed_elements' => ['headline', 'text', 'gallery', 'hero'],
+    // Optional: Selbst-Verschachtelung je Elementtyp verhindern
+    // 'prevent_self_nesting' => ['columns']
 ]);
 
 // Editor ausgeben
@@ -166,6 +168,15 @@ echo Module::create('gallery', 'REX_VALUE[1]', 'uikit')->renderOutput();
 ?>
 ```
 
+### Modul-Optionen (Auszug)
+
+| Option | Typ | Beschreibung |
+|--------|-----|--------------|
+| `allowed_elements` | array/string | Whitelist der erlaubten Element-Keys |
+| `prevent_self_nesting` | array/string | Verhindert Selbst-Verschachtelung für ausgewählte Elementtypen (CSV oder Array) |
+| `framework` | string | Preview/Render-Framework (`bootstrap`, `uikit`, `plain`, ...) |
+| `label` / `description` | string | UI-Texte für den Editor |
+
 ### C. YForm-Feldparameter (value: content_builder)
 
 Beim Einsatz als YForm-Wertfeld `content_builder` können projektweite Standardwerte direkt in der Felddefinition gesetzt werden.
@@ -174,6 +185,7 @@ Beim Einsatz als YForm-Wertfeld `content_builder` können projektweite Standardw
 |--------|-----|--------------|
 | `default_enable_section` | choice (`'', '1', '0'`) | Globaler Standard für `enable_section` bei neu angelegten Elementen |
 | `default_enable_container` | choice (`'', '1', '0'`) | Globaler Standard für `enable_container` bei neu angelegten Elementen |
+| `prevent_self_nesting` | choice (multiple) | Verhindert Selbst-Verschachtelung für ausgewählte Elemente |
 | `element_defaults_json` | textarea (JSON) | Erweiterte Defaults pro Elementtyp (inkl. Wildcard `*`) |
 
 Beispiel für `element_defaults_json`:
@@ -200,6 +212,27 @@ Wichtig:
 
 - Defaults greifen nur für neu angelegte Elemente.
 - Bereits gespeicherte Inhalte bleiben unverändert.
+
+### D. Selbst-Verschachtelung steuern
+
+Self-Nesting kann auf drei Ebenen gesetzt werden:
+
+1. Element-Config (`elements/<key>/config.php`)
+    - `prevent_self_nesting` (bevorzugt)
+    - oder `allow_self_nesting` (invers)
+2. Modul-Option `prevent_self_nesting`
+3. YForm-Feldoption `prevent_self_nesting`
+
+Priorität:
+
+1. Modul-Option
+2. YForm-Feldoption
+3. Element-Config
+
+Hinweis:
+
+- Die Regel gilt für Einfügen/Erstellen neuer Slices.
+- Bereits vorhandene Inhalte werden nicht automatisch umgebaut.
 
 ---
 

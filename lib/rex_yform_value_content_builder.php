@@ -1788,135 +1788,152 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         // Alle verfügbaren Elemente für Multiselect sammeln
         $elementChoices = $this->buildElementChoices();
         
-        // Theme-Auswahl (wenn UIkit Theme Builder verfügbar)
-        $themeChoices = ['' => '-- Domain-Standard --'];
-        if (rex_addon::get('uikit_theme_builder')->isAvailable() && class_exists('UikitThemeBuilder\DomainContext')) {
+        // Framework-Einstellung
+        $frameworkField = [
+            'type' => 'choice',
+            'label' => 'Framework',
+            'choices' => [
+                'bootstrap' => 'Bootstrap',
+                'uikit' => 'UIkit',
+                'tailwind' => 'Tailwind',
+                'plain' => 'Plain HTML'
+            ],
+            'default' => 'uikit'
+        ];
+        
+        // Theme-Auswahl (nur wenn UIkit Theme Builder verfügbar)
+        $themeField = null;
+        if (rex_addon::get('uikit_theme_builder')->isAvailable()) {
+            $themeChoices = ['' => '-- Domain-Standard --'];
             $availableThemes = \UikitThemeBuilder\DomainContext::getAvailableThemes();
             $themeChoices = array_merge($themeChoices, $availableThemes);
+            
+            $themeField = [
+                'type' => 'choice',
+                'label' => 'Theme',
+                'choices' => $themeChoices,
+                'default' => '',
+                'notice' => 'Theme für dieses Feld. Leer = automatisch nach Domain.'
+            ];
         }
+        
+        // Basis-Felder
+        $values = [
+            'name' => ['type' => 'name', 'label' => rex_i18n::msg('yform_values_defaults_name')],
+            'label' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_label')],
+            'framework' => $frameworkField,
+        ];
+        
+        // Theme-Feld hinzufügen, wenn verfügbar
+        if ($themeField !== null) {
+            $values['theme'] = $themeField;
+        }
+        
+        // Weitere Felder
+        $values += [
+            'allowed_elements' => [
+                'type' => 'choice',
+                'label' => 'Erlaubte Elemente (leer = alle)',
+                'choices' => $elementChoices,
+                'multiple' => true,
+                'expanded' => false,
+                'default' => '',
+            ],
+            'prevent_self_nesting' => [
+                'type' => 'choice',
+                'label' => 'Selbst-Verschachtelung verhindern',
+                'choices' => $elementChoices,
+                'multiple' => true,
+                'expanded' => false,
+                'default' => '',
+                'notice' => 'Ausgewählte Elemente können nicht in sich selbst eingefügt werden (z.B. columns).',
+            ],
+            'default_enable_section' => [
+                'type' => 'choice',
+                'label' => 'Standard: Sektion aktiv',
+                'choices' => [
+                    '' => 'Element-Default verwenden',
+                    '1' => 'Ja (aktiv)',
+                    '0' => 'Nein (deaktiviert)',
+                ],
+                'default' => '',
+                'notice' => 'Gilt global für neue Elemente über enable_section. Überschreibt nicht gespeicherte Inhalte.',
+            ],
+            'default_enable_container' => [
+                'type' => 'choice',
+                'label' => 'Standard: Container aktiv',
+                'choices' => [
+                    '' => 'Element-Default verwenden',
+                    '1' => 'Ja (aktiv)',
+                    '0' => 'Nein (deaktiviert)',
+                ],
+                'default' => '',
+                'notice' => 'Gilt global für neue Elemente über enable_container. Überschreibt nicht gespeicherte Inhalte.',
+            ],
+            'element_defaults_json' => [
+                'type' => 'textarea',
+                'label' => 'Erweiterte Element-Defaults (JSON)',
+                'default' => '',
+                'notice' => 'Optionales JSON für Startwerte pro Elementtyp. Beispiel: {"*":{"enable_section":"0","enable_container":"0"},"cards":{"container_width":"uk-container-small"}}',
+            ],
+            'legacy_cke5_enabled' => [
+                'type' => 'choice',
+                'label' => 'Legacy-HTML mit CKE5 editierbar',
+                'choices' => [
+                    '0' => 'Nein',
+                    '1' => 'Ja',
+                ],
+                'default' => '0',
+                'notice' => 'Erlaubt die Bearbeitung alter HTML-Inhalte mit CKE5, statt sie als leer zu behandeln.',
+            ],
+            'legacy_cke5_profile' => [
+                'type' => 'text',
+                'label' => 'Legacy CKE5 Profil',
+                'default' => self::LEGACY_DEFAULT_PROFILE,
+                'notice' => 'Fallback für data-profile, wenn legacy_editor_attributes kein data-profile enthält.',
+            ],
+            'legacy_cke5_lang' => [
+                'type' => 'text',
+                'label' => 'Legacy CKE5 Sprache',
+                'default' => self::LEGACY_DEFAULT_LANG,
+                'notice' => 'Fallback für data-lang, wenn legacy_editor_attributes kein data-lang enthält.',
+            ],
+            'legacy_editor_attributes' => [
+                'type' => 'text',
+                'label' => 'Legacy Editor Attribute',
+                'default' => 'class="' . self::LEGACY_DEFAULT_EDITOR_CLASSES . '" data-profile="' . self::LEGACY_DEFAULT_PROFILE . '" data-lang="' . self::LEGACY_DEFAULT_LANG . '" rows="14"',
+                'notice' => 'Freier Attribute-String wie bei textarea. Beispiel CKE5: class="form-control cke5-editor yform-cb-legacy-editor" data-profile="default" data-lang="de" rows="14". Beispiel TinyMCE: class="form-control tiny-editor yform-cb-legacy-editor" data-profile="default" rows="14".',
+            ],
+            'legacy_migration_hint' => [
+                'type' => 'choice',
+                'label' => 'Migrations-Hinweis anzeigen',
+                'choices' => [
+                    '0' => 'Nein',
+                    '1' => 'Ja',
+                ],
+                'default' => '1',
+            ],
+            'legacy_migration_target' => [
+                'type' => 'choice',
+                'label' => 'Legacy-Migration Zielelement',
+                'choices' => $elementChoices,
+                'default' => self::LEGACY_DEFAULT_TARGET,
+                'notice' => 'Element-Typ, in den Legacy-HTML beim Wechsel in den modernen Builder übernommen wird.',
+            ],
+            'legacy_migration_field' => [
+                'type' => 'text',
+                'label' => 'Legacy-Migration Zielfeld (Key)',
+                'default' => 'text',
+                'notice' => 'Feldname im Zielelement, z. B. text, content oder body.',
+            ],
+            'description' => ['type' => 'text', 'label' => 'Beschreibung'],
+            'notice' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_notice')],
+        ];
         
         return [
             'type' => 'value',
             'name' => 'content_builder',
-            'values' => [
-                'name' => ['type' => 'name', 'label' => rex_i18n::msg('yform_values_defaults_name')],
-                'label' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_label')],
-                'framework' => [
-                    'type' => 'choice',
-                    'label' => 'Framework',
-                    'choices' => [
-                        'bootstrap' => 'Bootstrap',
-                        'uikit' => 'UIkit',
-                        'tailwind' => 'Tailwind',
-                        'plain' => 'Plain HTML'
-                    ],
-                    'default' => 'uikit'
-                ],
-                'theme' => [
-                    'type' => 'choice',
-                    'label' => 'Theme',
-                    'choices' => $themeChoices,
-                    'default' => '',
-                    'notice' => 'Theme für dieses Feld. Leer = automatisch nach Domain.'
-                ],
-                'allowed_elements' => [
-                    'type' => 'choice',
-                    'label' => 'Erlaubte Elemente (leer = alle)',
-                    'choices' => $elementChoices,
-                    'multiple' => true,
-                    'expanded' => false,
-                    'default' => '',
-                ],
-                'prevent_self_nesting' => [
-                    'type' => 'choice',
-                    'label' => 'Selbst-Verschachtelung verhindern',
-                    'choices' => $elementChoices,
-                    'multiple' => true,
-                    'expanded' => false,
-                    'default' => '',
-                    'notice' => 'Ausgewählte Elemente können nicht in sich selbst eingefügt werden (z.B. columns).',
-                ],
-                'default_enable_section' => [
-                    'type' => 'choice',
-                    'label' => 'Standard: Sektion aktiv',
-                    'choices' => [
-                        '' => 'Element-Default verwenden',
-                        '1' => 'Ja (aktiv)',
-                        '0' => 'Nein (deaktiviert)',
-                    ],
-                    'default' => '',
-                    'notice' => 'Gilt global für neue Elemente über enable_section. Überschreibt nicht gespeicherte Inhalte.',
-                ],
-                'default_enable_container' => [
-                    'type' => 'choice',
-                    'label' => 'Standard: Container aktiv',
-                    'choices' => [
-                        '' => 'Element-Default verwenden',
-                        '1' => 'Ja (aktiv)',
-                        '0' => 'Nein (deaktiviert)',
-                    ],
-                    'default' => '',
-                    'notice' => 'Gilt global für neue Elemente über enable_container. Überschreibt nicht gespeicherte Inhalte.',
-                ],
-                'element_defaults_json' => [
-                    'type' => 'textarea',
-                    'label' => 'Erweiterte Element-Defaults (JSON)',
-                    'default' => '',
-                    'notice' => 'Optionales JSON für Startwerte pro Elementtyp. Beispiel: {"*":{"enable_section":"0","enable_container":"0"},"cards":{"container_width":"uk-container-small"}}',
-                ],
-                'legacy_cke5_enabled' => [
-                    'type' => 'choice',
-                    'label' => 'Legacy-HTML mit CKE5 editierbar',
-                    'choices' => [
-                        '0' => 'Nein',
-                        '1' => 'Ja',
-                    ],
-                    'default' => '0',
-                    'notice' => 'Erlaubt die Bearbeitung alter HTML-Inhalte mit CKE5, statt sie als leer zu behandeln.',
-                ],
-                'legacy_cke5_profile' => [
-                    'type' => 'text',
-                    'label' => 'Legacy CKE5 Profil',
-                    'default' => self::LEGACY_DEFAULT_PROFILE,
-                    'notice' => 'Fallback für data-profile, wenn legacy_editor_attributes kein data-profile enthält.',
-                ],
-                'legacy_cke5_lang' => [
-                    'type' => 'text',
-                    'label' => 'Legacy CKE5 Sprache',
-                    'default' => self::LEGACY_DEFAULT_LANG,
-                    'notice' => 'Fallback für data-lang, wenn legacy_editor_attributes kein data-lang enthält.',
-                ],
-                'legacy_editor_attributes' => [
-                    'type' => 'text',
-                    'label' => 'Legacy Editor Attribute',
-                    'default' => 'class="' . self::LEGACY_DEFAULT_EDITOR_CLASSES . '" data-profile="' . self::LEGACY_DEFAULT_PROFILE . '" data-lang="' . self::LEGACY_DEFAULT_LANG . '" rows="14"',
-                    'notice' => 'Freier Attribute-String wie bei textarea. Beispiel CKE5: class="form-control cke5-editor yform-cb-legacy-editor" data-profile="default" data-lang="de" rows="14". Beispiel TinyMCE: class="form-control tiny-editor yform-cb-legacy-editor" data-profile="default" rows="14".',
-                ],
-                'legacy_migration_hint' => [
-                    'type' => 'choice',
-                    'label' => 'Migrations-Hinweis anzeigen',
-                    'choices' => [
-                        '0' => 'Nein',
-                        '1' => 'Ja',
-                    ],
-                    'default' => '1',
-                ],
-                'legacy_migration_target' => [
-                    'type' => 'choice',
-                    'label' => 'Legacy-Migration Zielelement',
-                    'choices' => $elementChoices,
-                    'default' => self::LEGACY_DEFAULT_TARGET,
-                    'notice' => 'Element-Typ, in den Legacy-HTML beim Wechsel in den modernen Builder übernommen wird.',
-                ],
-                'legacy_migration_field' => [
-                    'type' => 'text',
-                    'label' => 'Legacy-Migration Zielfeld (Key)',
-                    'default' => 'text',
-                    'notice' => 'Feldname im Zielelement, z. B. text, content oder body.',
-                ],
-                'description' => ['type' => 'text', 'label' => 'Beschreibung'],
-                'notice' => ['type' => 'text', 'label' => rex_i18n::msg('yform_values_defaults_notice')],
-            ],
+            'values' => $values,
             'description' => 'Slice-based Content Builder',
             'db_type' => ['text'],
         ];
