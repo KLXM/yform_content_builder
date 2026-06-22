@@ -82,6 +82,30 @@ Wichtig:
 - Gilt nur beim Erzeugen neuer Elemente.
 - Keine rückwirkende Mutation bereits gespeicherter Slice-Daten.
 
+### Nesting-Steuerung (Self-Nesting)
+
+Die Self-Nesting-Regel (Element X darf nicht in X eingefügt werden) kann auf drei Ebenen gesetzt werden.
+
+1. Element-Config (`elements/<key>/config.php`)
+    - `prevent_self_nesting` (`bool`)
+    - oder `allow_self_nesting` (`bool`, invers)
+2. Modul-Instanz (`Module::createWithValue(..., ['prevent_self_nesting' => ...])`)
+    - CSV (`'columns,hero'`) oder Array (`['columns', 'hero']`)
+3. YForm-Feldtyp `content_builder`
+    - Feldoption `prevent_self_nesting` (Mehrfachauswahl)
+
+Priorität zur Laufzeit:
+
+1. Modul-Option
+2. YForm-Option
+3. Element-Config
+
+Hinweise zur Implementierung:
+
+- Die UI-Filterung (Dropdowns/Insert-Buttons) läuft in PHP-Renderer und JS konsistent über dieselbe Regel.
+- Die Modul-Option wird in `ModuleBuilder::getAvailableElements()` als Override auf die geladenen Element-Configs angewendet.
+- Die YForm-Option wird in `rex_yform_value_content_builder::getAvailableElements()` analog als Override angewendet.
+
 ---
 
 ## Extension Points Referenz

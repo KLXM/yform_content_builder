@@ -49,6 +49,68 @@ class Helper
     }
 
     /**
+     * Prüft, ob ein Element sich selbst nicht verschachteln darf.
+     *
+     * Unterstützte Config-Schlüssel im Element:
+     * - prevent_self_nesting (bool|string|int)
+     * - allow_self_nesting (bool|string|int), invers ausgewertet
+     *
+     * Standard ohne Config: Selbstverschachtelung ist erlaubt.
+     *
+     * @param string $parentType Typ des aktuellen Parent-Elements
+     * @param string $candidateType Typ des einzufügenden Elements
+     * @param array<string, array<string, mixed>> $availableElements Verfügbare Element-Configs
+     */
+    public static function isSelfNestingBlocked(string $parentType, string $candidateType, array $availableElements): bool
+    {
+        if ($parentType === '' || $candidateType === '' || $parentType !== $candidateType) {
+            return false;
+        }
+
+        $config = $availableElements[$candidateType] ?? null;
+        if (!is_array($config)) {
+            return false;
+        }
+
+        if (array_key_exists('prevent_self_nesting', $config)) {
+            return self::toBoolFlag($config['prevent_self_nesting']);
+        }
+
+        if (array_key_exists('allow_self_nesting', $config)) {
+            return !self::toBoolFlag($config['allow_self_nesting'], true);
+        }
+
+        return false;
+    }
+
+    /**
+     * Normalisiert bool-ähnliche Config-Werte.
+     */
+    protected static function toBoolFlag(mixed $value, bool $default = false): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (int) $value === 1;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+                return true;
+            }
+
+            if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+                return false;
+            }
+        }
+
+        return $default;
+    }
+
+    /**
      * Einheitliches i18n-Muster fuer Element-Configs.
      *
      * @return \Closure(string, string): string
@@ -680,7 +742,7 @@ class Helper
                             <?php endif; ?>
                             <li class="dropdown-header"><?= rex_escape(ucfirst(str_replace('_', ' ', (string) $category))) ?></li>
                             <?php foreach ($elementsInCategory as $elementType => $config): ?>
-                                <?php if ($sliceType !== 'columns' || $elementType !== 'columns'): // Avoid nested columns ?>
+                                <?php if (!self::isSelfNestingBlocked((string) $sliceType, (string) $elementType, $available_elements)): ?>
                                 <li>
                                     <?php $elementDescription = (string) ($config['description'] ?? ''); ?>
                                     <a href="#" class="btn-insert-slice" 

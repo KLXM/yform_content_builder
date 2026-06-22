@@ -190,6 +190,10 @@ $contentBuilder = Module::createWithValue(1, null, [
     'label'       => 'Seiteninhalt',
     'description' => 'Fügen Sie Content-Elemente hinzu',
     // 'allowed_elements' => ['headline', 'gallery', 'section'],
+    // Selbstverschachtelung für ausgewählte Elemente verhindern:
+    // 'prevent_self_nesting' => 'columns,mein_element',
+    // oder als Array:
+    // 'prevent_self_nesting' => ['columns', 'mein_element'],
 ]);
 
 echo $contentBuilder->getEditor();
@@ -274,6 +278,7 @@ Neue Feldoptionen:
 - `default_enable_section` – globale Voreinstellung für `enable_section` bei neuen Elementen
 - `default_enable_container` – globale Voreinstellung für `enable_container` bei neuen Elementen
 - `element_defaults_json` – optionale, erweiterte JSON-Defaults pro Elementtyp
+- `prevent_self_nesting` – Elemente wählen, die nicht in sich selbst verschachtelt werden dürfen
 
 Typischer Projektfall: Sektion und Container standardmäßig deaktivieren.
 
@@ -291,6 +296,26 @@ Hinweise:
 - Die beiden einfachen Schalter (`default_enable_section`, `default_enable_container`) sind der schnellste Weg für projektweite Defaults.
 - `element_defaults_json` ist für Feintuning je Elementtyp gedacht.
 - Gespeicherte Inhalte werden nie rückwirkend überschrieben. Die Defaults gelten nur für neu hinzugefügte Elemente.
+
+### Nesting-Regeln (Element, Modul, YForm)
+
+Selbstverschachtelung kann auf drei Ebenen gesteuert werden:
+
+- **Element-Config (`elements/<key>/config.php`)**
+    - `allow_self_nesting` (`true|false`)
+    - oder `prevent_self_nesting` (`true|false`)
+- **Modul-Editor (`Module::createWithValue`)**
+    - Option `prevent_self_nesting` als CSV oder Array von Element-Keys
+- **YForm-Feldtyp `content_builder`**
+    - Feldoption `prevent_self_nesting` als Mehrfachauswahl
+
+Priorität:
+
+1. Modul-Option `prevent_self_nesting`
+2. YForm-Option `prevent_self_nesting`
+3. Element-Config (`allow_self_nesting` / `prevent_self_nesting`)
+
+Ohne gesetzte Regel bleibt Selbstverschachtelung erlaubt.
 
 ### Frontend-Ausgabe (YForm-Feld)
 

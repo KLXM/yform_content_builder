@@ -28,6 +28,8 @@ class ModuleBuilder
     protected string $description = '';
     /** @var array<int, string> */
     protected array $allowedElements = [];
+    /** @var array<int, string> */
+    protected array $preventSelfNestingElements = [];
     protected bool $enableOnlineToggle = false;
     protected bool $legacyCke5Enabled = false;
     protected string $legacyCke5Profile = 'default';
@@ -55,6 +57,7 @@ class ModuleBuilder
         $instance->label = trim((string) ($options['label'] ?? ''));
         $instance->description = trim((string) ($options['description'] ?? ''));
         $instance->allowedElements = $instance->normalizeAllowedElements($options['allowed_elements'] ?? []);
+        $instance->preventSelfNestingElements = $instance->normalizeElementKeyList($options['prevent_self_nesting'] ?? []);
         $instance->enableOnlineToggle = array_key_exists('enable_online_toggle', $options)
             ? (bool) $options['enable_online_toggle']
             : (bool) rex_addon::get('yform_content_builder')->getConfig('enable_online_toggle', false);
@@ -685,6 +688,14 @@ class ModuleBuilder
     /** @return array<int, string> */
     protected function normalizeAllowedElements(mixed $allowedElements): array
     {
+        return $this->normalizeElementKeyList($allowedElements);
+    }
+
+    /** @return array<int, string> */
+    protected function normalizeElementKeyList(mixed $value): array
+    {
+        $allowedElements = $value;
+
         if (is_string($allowedElements)) {
             $decoded = json_decode($allowedElements, true);
             if (is_array($decoded)) {
@@ -725,7 +736,7 @@ class ModuleBuilder
                 }
             }
 
-            return $this->filterAllowedElements($elements);
+            return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($elements));
         }
 
         $demoPath = rex_addon::get('yform_content_builder')->getPath('elements/');
@@ -739,7 +750,28 @@ class ModuleBuilder
             }
         }
 
-        return $this->filterAllowedElements($elements);
+        return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($elements));
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $elements
+     * @return array<string, array<string, mixed>>
+     */
+    protected function applyPreventSelfNestingOverrides(array $elements): array
+    {
+        if ($this->preventSelfNestingElements === []) {
+            return $elements;
+        }
+
+        foreach ($this->preventSelfNestingElements as $elementKey) {
+            if (!isset($elements[$elementKey]) || !is_array($elements[$elementKey])) {
+                continue;
+            }
+
+            $elements[$elementKey]['prevent_self_nesting'] = true;
+        }
+
+        return $elements;
     }
 
     /** @return array<string, array<string, mixed>> */

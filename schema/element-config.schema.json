@@ -30,6 +30,16 @@
       "description": "Font Awesome or REDAXO icon class",
       "examples": ["fa-images", "fa-text-height", "rex-icon rex-icon-module"]
     },
+    "allow_self_nesting": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this element may be inserted inside itself"
+    },
+    "prevent_self_nesting": {
+      "type": "boolean",
+      "default": false,
+      "description": "Block inserting the same element type into itself"
+    },
     "fields": {
       "type": "array",
       "minItems": 1,

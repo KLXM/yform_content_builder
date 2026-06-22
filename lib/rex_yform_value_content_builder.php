@@ -1407,6 +1407,32 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
     }
 
     /**
+     * @return array<int, string>
+     */
+    protected function normalizeElementKeyList(mixed $value): array
+    {
+        $list = $value;
+
+        if (is_string($list)) {
+            $decoded = json_decode($list, true);
+            if (is_array($decoded)) {
+                $list = $decoded;
+            } else {
+                $list = array_map('trim', explode(',', $list));
+            }
+        }
+
+        if (!is_array($list)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn ($item): string => trim((string) $item),
+            $list
+        ), static fn (string $item): bool => $item !== '')));
+    }
+
+    /**
      * Lädt ALLE verfügbaren Elemente (für Definition/Config)
      * Ohne Filter durch allowed_elements
      */
@@ -1607,10 +1633,27 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         
         // Prüfen ob allowed_elements gesetzt ist
         $allowedElements = $this->getElement('allowed_elements');
+        $preventSelfNestingElements = $this->normalizeElementKeyList($this->getElement('prevent_self_nesting'));
+
+        $applyPreventSelfNesting = static function (array $elements, array $elementKeys): array {
+            if ($elementKeys === []) {
+                return $elements;
+            }
+
+            foreach ($elementKeys as $elementKey) {
+                if (!isset($elements[$elementKey]) || !is_array($elements[$elementKey])) {
+                    continue;
+                }
+
+                $elements[$elementKey]['prevent_self_nesting'] = true;
+            }
+
+            return $elements;
+        };
         
         // Wenn allowed_elements leer ist oder nicht gesetzt: alle Elemente zurückgeben
         if (empty($allowedElements)) {
-            return $allElements;
+            return $applyPreventSelfNesting($allElements, $preventSelfNestingElements);
         }
         
         // allowed_elements kann als JSON-String gespeichert sein
@@ -1630,13 +1673,13 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
         if (is_array($allowedElements) && !empty($allowedElements)) {
             $filtered = array_intersect_key($allElements, array_flip($allowedElements));
             if ($filtered !== []) {
-                return $filtered;
+                return $applyPreventSelfNesting($filtered, $preventSelfNestingElements);
             }
 
-            return $allElements;
+            return $applyPreventSelfNesting($allElements, $preventSelfNestingElements);
         }
         
-        return $allElements;
+        return $applyPreventSelfNesting($allElements, $preventSelfNestingElements);
     }
 
     protected function getElementPath(string $elementType): ?string
@@ -1783,6 +1826,15 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
                     'multiple' => true,
                     'expanded' => false,
                     'default' => '',
+                ],
+                'prevent_self_nesting' => [
+                    'type' => 'choice',
+                    'label' => 'Selbst-Verschachtelung verhindern',
+                    'choices' => $elementChoices,
+                    'multiple' => true,
+                    'expanded' => false,
+                    'default' => '',
+                    'notice' => 'Ausgewählte Elemente können nicht in sich selbst eingefügt werden (z.B. columns).',
                 ],
                 'default_enable_section' => [
                     'type' => 'choice',

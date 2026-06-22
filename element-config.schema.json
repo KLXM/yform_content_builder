@@ -25,6 +25,14 @@
       "description": "Category for grouping elements",
       "default": "content"
     },
+    "allow_self_nesting": {
+      "type": "boolean",
+      "description": "Whether the element may be inserted inside the same element type"
+    },
+    "prevent_self_nesting": {
+      "type": "boolean",
+      "description": "Whether inserting the same element type into itself is blocked"
+    },
     "fields": {
       "type": "object",
       "description": "Field definitions for the element",

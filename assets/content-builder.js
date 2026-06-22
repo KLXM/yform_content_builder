@@ -2375,7 +2375,10 @@
             }
 
             // Falls dieses Element Spalten (geschachtelte Elemente) hat, diese dynamisch sammeln
-            var $cols = $slice.find('.content-builder-column-slices');
+            var $cols = $slice.find('.content-builder-column-slices').filter(function() {
+                // Nur Spalten-Container des aktuellen Slice erfassen, nicht die von verschachtelten Columns.
+                return $(this).closest('.content-builder-slice').is($slice);
+            });
             if ($cols.length > 0) {
                 baseData.columns = [];
                 $cols.each(function() {
@@ -2524,7 +2527,11 @@
                         $insertGroup.remove();
                     }
 
-                    $insertGroup = self.createInsertButton(availableElements, index, false);
+                    $insertGroup = self.createInsertButton(
+                        availableElements,
+                        index,
+                        String($slice.data('slice-type') || '')
+                    );
                     var $sliceLabel = $toolbar.find('.slice-label');
                     if ($sliceLabel.length) {
                         $insertGroup.insertAfter($sliceLabel);
@@ -2549,7 +2556,11 @@
                             $insertGroup.remove();
                         }
 
-                        $insertGroup = self.createInsertButton(availableElements, index, true);
+                        $insertGroup = self.createInsertButton(
+                            availableElements,
+                            index,
+                            String($slice.data('slice-type') || '')
+                        );
                         var $sliceLabel = $toolbar.find('.slice-label');
                         if ($sliceLabel.length) {
                             $insertGroup.insertAfter($sliceLabel);
@@ -2561,7 +2572,7 @@
             });
         },
         
-        createInsertButton: function(availableElements, insertAfter, excludeColumns) {
+        createInsertButton: function(availableElements, insertAfter, currentSliceType) {
             var dropdownItems = '';
 
             function esc(value) {
@@ -2600,6 +2611,49 @@
                 return { priority: 9999, label: normalized.toLowerCase() };
             }
 
+            function toBoolFlag(value, defaultValue) {
+                if (typeof value === 'boolean') {
+                    return value;
+                }
+
+                if (typeof value === 'number') {
+                    return value === 1;
+                }
+
+                if (typeof value === 'string') {
+                    var normalized = value.trim().toLowerCase();
+                    if (normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on') {
+                        return true;
+                    }
+
+                    if (normalized === '0' || normalized === 'false' || normalized === 'no' || normalized === 'off') {
+                        return false;
+                    }
+                }
+
+                return !!defaultValue;
+            }
+
+            function isSelfNestingBlocked(currentType, elementType, config) {
+                if (!currentType || !elementType || String(currentType) !== String(elementType)) {
+                    return false;
+                }
+
+                if (!config || typeof config !== 'object') {
+                    return false;
+                }
+
+                if (Object.prototype.hasOwnProperty.call(config, 'prevent_self_nesting')) {
+                    return toBoolFlag(config.prevent_self_nesting, false);
+                }
+
+                if (Object.prototype.hasOwnProperty.call(config, 'allow_self_nesting')) {
+                    return !toBoolFlag(config.allow_self_nesting, true);
+                }
+
+                return false;
+            }
+
             var groupedElements = {};
             var categoryOrder = [];
             
@@ -2627,10 +2681,12 @@
 
             elementsList.forEach(function(item) {
                 var elementType = item.elementType;
-                if (excludeColumns && elementType === 'columns') {
+                var config = item.config;
+
+                if (isSelfNestingBlocked(currentSliceType, elementType, config)) {
                     return;
                 }
-                var config = item.config;
+
                 var category = (config && config.category) ? String(config.category) : '';
                 if (category.trim() === '') {
                     category = 'sonstiges';

@@ -24,9 +24,34 @@ Since `config.php` files are PHP, direct JSON schema validation isn't native wit
 
 The schema defines:
 - **Root Properties**: `label`, `description`, `icon`, `fields`.
-- **Optional Root Properties**: `field_groups`, `settings_modal`, `category`, `version`.
+- **Optional Root Properties**: `field_groups`, `settings_modal`, `category`, `version`, `allow_self_nesting`, `prevent_self_nesting`.
 - **Field Types**: `text`, `textarea`, `choice`, `checkbox`, `ckeditor5`, `be_media`, `be_media_enhanced`, `be_link`, `repeater`.
 - **Recursive Definitions**: `repeater` fields can contain other fields.
+
+### Nesting-Flags in Element-Configs
+
+Elemente können ihr Selbstverschachtelungs-Verhalten direkt in `config.php` definieren:
+
+- `allow_self_nesting` (`boolean`) – explizit erlauben/verbieten
+- `prevent_self_nesting` (`boolean`) – explizit verhindern
+
+Empfehlung:
+
+- Verwende bevorzugt `prevent_self_nesting` für klare Semantik.
+- `allow_self_nesting` bleibt für rückwärtskompatible Konfigurationen verfügbar.
+
+Beispiel:
+
+```php
+return [
+    'label' => 'Spalten-Layout',
+    'icon' => 'fa-columns',
+    'prevent_self_nesting' => true,
+    'fields' => [
+        // ...
+    ],
+];
+```
 
 In current element configs you will also see newer field types such as `cke5`, `tinymce`, `radio_image`, `color_swatches`, `be_table_select`, `yformpicker`, `smart_link`, `rich_headline`, `info`, `table_editor`.
 

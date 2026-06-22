@@ -168,7 +168,7 @@ if ($framework === 'uikit') {
                         <?php endif; ?>
                         <li class="dropdown-header"><?= rex_escape(ucfirst(str_replace('_', ' ', (string) $category))) ?></li>
                         <?php foreach ($elementsInCategory as $elementType => $config): ?>
-                            <?php if ($elementType !== 'columns'): // Avoid nested columns ?>
+                            <?php if (!\KLXM\YFormContentBuilder\Helper::isSelfNestingBlocked('columns', (string) $elementType, $available_elements)): ?>
                                 <li>
                                     <a href="#" class="btn-add-nested-slice" 
                                        data-element-type="<?= rex_escape($elementType) ?>"

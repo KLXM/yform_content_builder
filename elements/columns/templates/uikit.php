@@ -13,7 +13,13 @@ $rowClass = 'uk-grid uk-grid-margin';
 $rowAttrs = ' data-uk-grid';
 $colClasses = [
     '50_50' => ['uk-width-1-2@m', 'uk-width-1-2@m'],
+    '66_33' => ['uk-width-2-3@m', 'uk-width-1-3@m'],
+    '33_66' => ['uk-width-1-3@m', 'uk-width-2-3@m'],
     '33_33_33' => ['uk-width-1-3@m', 'uk-width-1-3@m', 'uk-width-1-3@m'],
+    '25_50_25' => ['uk-width-1-4@m', 'uk-width-1-2@m', 'uk-width-1-4@m'],
+    '50_25_25' => ['uk-width-1-2@m', 'uk-width-1-4@m', 'uk-width-1-4@m'],
+    '25_25_50' => ['uk-width-1-4@m', 'uk-width-1-4@m', 'uk-width-1-2@m'],
+    '25_25_25_25' => ['uk-width-1-4@m', 'uk-width-1-4@m', 'uk-width-1-4@m', 'uk-width-1-4@m'],
     '25_75' => ['uk-width-1-4@m', 'uk-width-3-4@m'],
     '75_25' => ['uk-width-3-4@m', 'uk-width-1-4@m'],
 ];

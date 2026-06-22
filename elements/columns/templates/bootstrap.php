@@ -13,7 +13,13 @@ $rowClass = 'row';
 $rowAttrs = '';
 $colClasses = [
     '50_50' => ['col-sm-6', 'col-sm-6'],
+    '66_33' => ['col-sm-8', 'col-sm-4'],
+    '33_66' => ['col-sm-4', 'col-sm-8'],
     '33_33_33' => ['col-sm-4', 'col-sm-4', 'col-sm-4'],
+    '25_50_25' => ['col-sm-3', 'col-sm-6', 'col-sm-3'],
+    '50_25_25' => ['col-sm-6', 'col-sm-3', 'col-sm-3'],
+    '25_25_50' => ['col-sm-3', 'col-sm-3', 'col-sm-6'],
+    '25_25_25_25' => ['col-sm-3', 'col-sm-3', 'col-sm-3', 'col-sm-3'],
     '25_75' => ['col-sm-3', 'col-sm-9'],
     '75_25' => ['col-sm-9', 'col-sm-3'],
 ];

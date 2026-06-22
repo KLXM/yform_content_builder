@@ -30,6 +30,14 @@ class Svg
         return '<img src="' . rex_escape(self::iconUrl($name)) . '" style="' . $style . '" alt="">';
     }
 
+    /**
+     * Erzeugt img-Tag aus einer beliebigen Data-URI (z.B. generierte SVGs).
+     */
+    public static function dataImg(string $dataUri, string $style = 'width:32px;height:18px;vertical-align:middle;margin-right:6px;'): string
+    {
+        return '<img src="' . rex_escape($dataUri) . '" style="' . $style . '" alt="">';
+    }
+
 
     private int $width = 100;
     private int $height = 80;
@@ -161,6 +169,58 @@ class Svg
     }
 
     /**
+     * Generiert ein simples Spalten-Layout-Icon aus Prozentwerten.
+     *
+     * @param array<int, float|int> $ratios
+     */
+    public function columnsLayout(array $ratios): string
+    {
+        $normalized = [];
+        foreach ($ratios as $ratio) {
+            $value = max(0.0, (float) $ratio);
+            if ($value > 0) {
+                $normalized[] = $value;
+            }
+        }
+
+        if ($normalized === []) {
+            $normalized = [50.0, 50.0];
+        }
+
+        $sum = array_sum($normalized);
+        if ($sum <= 0) {
+            $normalized = [50.0, 50.0];
+            $sum = 100.0;
+        }
+
+        $gap = 2.0;
+        $innerWidth = 92.0;
+        $x = 4.0;
+        $columns = '';
+        $count = count($normalized);
+        $totalGap = ($count - 1) * $gap;
+        $available = max(1.0, $innerWidth - $totalGap);
+
+        foreach ($normalized as $index => $ratio) {
+            $width = $available * ($ratio / $sum);
+            if ($index === $count - 1) {
+                // Letzte Spalte auf Restbreite ausrichten, um Rundungsfehler zu vermeiden.
+                $width = (4.0 + $innerWidth) - $x;
+            }
+
+            $columns .= '<rect x="' . round($x, 3) . '" y="4" width="' . round($width, 3) . '" height="24" fill="' . $this->mediaColor . '" rx="1.5"/>';
+            $x += $width + $gap;
+        }
+
+        return $this->toBase64(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32" width="100" height="32">'
+            . '<rect width="100" height="32" fill="' . $this->bgColor . '" stroke="' . $this->strokeColor . '" stroke-width="1.5"/>'
+            . $columns
+            . '</svg>'
+        );
+    }
+
+    /**
      * Full Width Card
      */
     public function fullWidth(): string
@@ -244,5 +304,33 @@ class Svg
                 'label' => '4 Spalten'
             ]
         ];
+    }
+
+    /**
+     * Liefert Choice-Icons (img-HTML) für Spalten-Layouts.
+     *
+     * @param array<int, string> $layoutKeys
+     * @return array<string, string>
+     */
+    public static function getColumnLayoutChoiceIcons(array $layoutKeys): array
+    {
+        $icons = [];
+        $svg = self::factory();
+
+        foreach ($layoutKeys as $layoutKey) {
+            $parts = array_values(array_filter(array_map('trim', explode('_', (string) $layoutKey)), static fn (string $part): bool => $part !== ''));
+            if ($parts === []) {
+                continue;
+            }
+
+            $ratios = [];
+            foreach ($parts as $part) {
+                $ratios[] = (float) str_replace(',', '.', $part);
+            }
+
+            $icons[$layoutKey] = self::dataImg($svg->columnsLayout($ratios));
+        }
+
+        return $icons;
     }
 }
