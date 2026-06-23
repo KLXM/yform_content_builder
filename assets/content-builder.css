@@ -1816,3 +1816,37 @@ body.modal-open {
     color: #fff !important;
     margin-right: 8px;
 }
+
+/* Element-Suche Styling */
+.dropdown-menu li.yform-cb-search-item {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.yform-cb-search-item .yform-cb-search-wrapper {
+    padding: 3px 8px;
+}
+
+.dropdown-menu li.yform-cb-search-item:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.yform-cb-element-search-input {
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.yform-cb-element-search-input:focus {
+    outline: none;
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+}

@@ -108,4 +108,7 @@ yform_content_builder_table_editor_add_col = Spalte +
 yform_content_builder_enable_copy_paste = Copy & Paste
 yform_content_builder_enable_copy_paste_label = Copy & Paste-Funktionalität für Slices aktivieren
 yform_content_builder_enable_copy_paste_notice = Aktiviert Buttons in der Slice-Toolbar zum Kopieren eines Slices in die Zwischenablage und ermöglicht das Einfügen an jeder Stelle.
-
+yform_content_builder_enable_element_search = Element-Suche
+yform_content_builder_enable_element_search_label = Live-Suche für Element-Palette aktivieren
+yform_content_builder_enable_element_search_notice = Wenn aktiv, wird eine Live-Suche angezeigt, wenn 5 oder mehr Elemente verfügbar sind. Die Suche wird unterhalb des kopierten Elements oder am Anfang der Element-Liste platziert.
+yform_content_builder_element_search_placeholder = Element durchsuchen...

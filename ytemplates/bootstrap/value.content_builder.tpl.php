@@ -123,12 +123,10 @@ $modernHiddenStyle = $legacy_is_active ? ' style="display: none;"' : '';
 <div class="form-group yform-element <?= $fieldClass ?>" 
      data-framework="<?= $framework ?>"
      data-online-toggle="<?= $enableOnlineToggle ? '1' : '0' ?>"
-     data-copy-paste="<?= $addon->getConfig('enable_copy_paste') ? '1' : '0' ?>"
+     data-element-search="<?= $addon->getConfig('enable_element_search') ? '1' : '0' ?>"
      data-legacy-mode="<?= $legacy_is_active ? '1' : '0' ?>"
-    data-element-defaults='<?= rex_escape($element_defaults_json) ?>'
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
-    
-    <?php if ($label): ?>
+                    $enableSearch = $addon->getConfig('enable_element_search');
         <label class="control-label" for="<?= $field_id ?>"><?= $label ?></label>
     <?php endif; ?>
     
@@ -278,6 +276,25 @@ $modernHiddenStyle = $legacy_is_active ? ' style="display: none;"' : '';
                                         </li>
                                         <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
                                     <?php endif; ?>
+                                    <?php 
+                                    $totalElementsSlice = 0;
+                                    foreach ($groupedAvailableElements as $elementsInCategory) {
+                                        $totalElementsSlice += count($elementsInCategory);
+                                    }
+                                    $enableSearchSlice = $addon->getConfig('enable_element_search');
+                                    ?>
+                                    <?php if ($enableSearchSlice && $totalElementsSlice >= 5): 
+                                    ?>
+                                        <li class="yform-cb-search-item">
+                                            <div class="yform-cb-search-wrapper">
+                                                <input type="text" 
+                                                       class="yform-cb-element-search-input form-control input-sm" 
+                                                       placeholder="<?= rex_i18n::msg('yform_content_builder_element_search_placeholder') ?>"
+                                                       style="margin: 0; width: 100%;">
+                                            </div>
+                                        </li>
+                                        <li role="separator" class="divider"></li>
+                                    <?php endif; ?>
                                     <?php $categoryIndex = 0; ?>
                                     <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
                                         <?php if ($categoryIndex > 0): ?>
@@ -395,6 +412,27 @@ $modernHiddenStyle = $legacy_is_active ? ' style="display: none;"' : '';
                             </a>
                         </li>
                         <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
+                    <?php endif; ?>
+                    <?php 
+                    $totalElements = 0;
+                    foreach ($groupedAvailableElements as $elementsInCategory) {
+                        $totalElements += count($elementsInCategory);
+                    }
+                    // DEBUG: Check if search is enabled
+                    $enableSearch = $addon->getConfig('enable_element_search');
+                    ?>
+                    <!-- DEBUG: enable_element_search = <?= var_export($enableSearch, true) ?>, totalElements = <?= $totalElements ?> -->
+                    <?php if ($enableSearch && $totalElements >= 5): 
+                    ?>
+                        <li class="yform-cb-search-item">
+                            <div class="yform-cb-search-wrapper">
+                                <input type="text" 
+                                       class="yform-cb-element-search-input form-control input-sm" 
+                                       placeholder="<?= rex_i18n::msg('yform_content_builder_element_search_placeholder') ?>"
+                                       style="margin: 0; width: 100%;">
+                            </div>
+                        </li>
+                        <li role="separator" class="divider"></li>
                     <?php endif; ?>
                     <?php $categoryIndex = 0; ?>
                     <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>

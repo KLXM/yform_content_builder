@@ -151,7 +151,8 @@ class ModuleBuilder
              data-framework="<?= rex_escape($this->framework) ?>"
              data-online-toggle="<?= $this->enableOnlineToggle ? '1' : '0' ?>"
              data-legacy-mode="<?= $legacyActive ? '1' : '0' ?>"
-               data-copy-paste="<?= $this->enableCopyPaste ? '1' : '0' ?>"
+             data-copy-paste="<?= $this->enableCopyPaste ? '1' : '0' ?>"
+             data-element-search="<?= (rex_addon::get('yform_content_builder')?->getConfig('enable_element_search', false)) ? '1' : '0' ?>"
              data-available-elements='<?= rex_escape(json_encode($availableElements, JSON_UNESCAPED_UNICODE)) ?>'
              <?php if ($this->elementDefaults !== []): ?>data-element-defaults='<?= rex_escape(json_encode($this->elementDefaults, JSON_UNESCAPED_UNICODE)) ?>'<?php endif; ?>>
             <?php if ($this->label !== ''): ?>
@@ -327,6 +328,24 @@ class ModuleBuilder
                                     </a>
                                 </li>
                                 <li role="separator" class="divider paste-slice-item" style="display: none;"></li>
+                            <?php endif; ?>
+                            <?php 
+                            $totalElementsMain = 0;
+                            foreach ($groupedAvailableElements as $elementsInCategory) {
+                                $totalElementsMain += count($elementsInCategory);
+                            }
+                            $enableSearchMain = rex_addon::get('yform_content_builder')?->getConfig('enable_element_search', false);
+                            ?>
+                            <?php if ($enableSearchMain && $totalElementsMain >= 5): ?>
+                                <li class="yform-cb-search-item">
+                                    <div class="yform-cb-search-wrapper">
+                                        <input type="text" 
+                                               class="yform-cb-element-search-input form-control input-sm" 
+                                               placeholder="<?= rex_i18n::msg('yform_content_builder_element_search_placeholder') ?>"
+                                               style="margin: 0; width: 100%;">
+                                    </div>
+                                </li>
+                                <li role="separator" class="divider"></li>
                             <?php endif; ?>
                             <?php $categoryIndex = 0; ?>
                             <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>
@@ -1016,12 +1035,19 @@ class ModuleBuilder
                         foreach ($groupedAvailableElements as $elementsInCategory) {
                             $totalElements += count($elementsInCategory);
                         }
-                        // Suchfeld anzeigen wenn mehr als 5 Elemente
-                        if ($totalElements > 5): 
+                        // Suchbox anzeigen wenn aktiviert und mehr als 5 Elemente
+                        $enableSearch = rex_addon::get('yform_content_builder')?->getConfig('enable_element_search', false);
+                        if ($enableSearch && $totalElements >= 5): 
                         ?>
-                        <li class="dropdown-search-wrapper">
-                            <input type="text" class="form-control dropdown-search" placeholder="<?= rex_i18n::msg('search') ?>" />
-                        </li>
+                            <li class="yform-cb-search-item">
+                                <div class="yform-cb-search-wrapper">
+                                    <input type="text" 
+                                           class="yform-cb-element-search-input form-control input-sm" 
+                                           placeholder="<?= rex_i18n::msg('yform_content_builder_element_search_placeholder') ?>"
+                                           style="margin: 0; width: 100%;">
+                                </div>
+                            </li>
+                            <li role="separator" class="divider"></li>
                         <?php endif; ?>
                         <?php $categoryIndex = 0; ?>
                         <?php foreach ($groupedAvailableElements as $category => $elementsInCategory): ?>

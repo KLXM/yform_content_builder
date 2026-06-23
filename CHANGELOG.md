@@ -6,6 +6,32 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [3.2.0] – 2026-06-23
+
+### ✨ Neu
+
+- **Optionale Element-Suche im Element-Picker**:
+  - Neue Einstellung im Backend: Suche kann in den Addon-Einstellungen aktiviert/deaktiviert werden.
+  - Suchfeld wird nur angezeigt, wenn mindestens 5 Elemente verfügbar sind.
+  - Live-Filterung der Elementliste während der Eingabe.
+
+### 🔧 Verbesserungen
+
+- **Konsistente Verfügbarkeit in allen Editor-Kontexten**:
+  - Unterstützung in YForm-Manager-Dropdowns.
+  - Unterstützung im Modul-Kontext über ModuleBuilder (Haupt-Dropdown und Slice-Toolbars).
+  - Einheitliches Markup und Styling für Suchfeld-Container.
+
+### 🧹 Wartung
+
+- Debug-Ausgaben aus den Templates entfernt.
+- Veraltete JavaScript-Reste im Dropdown-Handling bereinigt.
+
+## [3.1.0] 
+- Spalten? ... Jupp
+- Elemente entfernt und nur noch starter und defaults werden mitgeliefert. 
+
+
 ## [3.0.0] – 2026-06-13
 
 ### 🏗️ Architektur-Umbruch
@@ -63,17 +89,13 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ## [2.1.1] – 2026-06-05
 
-### Verbesserungen
 
 - **Conditional Toggles (`visible_if`) robuster dokumentiert**:
   - README enthaelt jetzt klare Regeln und Beispiele fuer die Nutzung in Element-Konfigurationen.
   - Unterstuetzte Quellfeld-Typen sind explizit beschrieben: `checkbox`, `radio`, `select` (single) und `select` (multiple).
-  - Beispielregeln fuer Einzelwert- und Mehrfachwert-Pruefungen (`string` und `array`) ergaenzt.
 - **CSE-Workflow sauber beschrieben**:
   - Doku beschreibt die gemeinsame Conditional-Logik fuer YForm- und Modul-Editoren.
   - Fokus auf Feld-basiertes Ein-/Ausblenden statt separater Sonderlogik.
-
-## [2.1.0] – 2026-05-30
 
 ### Neu
 

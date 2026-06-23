@@ -1132,6 +1132,8 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             $elementDefaultsJson = '{}';
         }
         
+        $addon = rex_addon::get('yform_content_builder');
+        
         return [
             'value' => $value,
             'field_type' => 'content_builder',
@@ -1144,6 +1146,7 @@ class rex_yform_value_content_builder extends rex_yform_value_abstract
             'description' => $this->getElement('description', ''),
             'framework' => $framework,
             'available_elements' => $availableElements,
+            'addon' => $addon,
             'legacy_mode_enabled' => $legacyEnabled,
             'legacy_is_active' => $legacyActive,
             'legacy_html' => $legacyActive ? $rawValue : '',

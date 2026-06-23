@@ -118,4 +118,7 @@ yform_content_builder_table_editor_add_col = Column +
 yform_content_builder_enable_copy_paste = Copy & Paste
 yform_content_builder_enable_copy_paste_label = Enable Copy & Paste functionality for slices
 yform_content_builder_enable_copy_paste_notice = Adds buttons in the slice toolbar to copy a slice to the clipboard and allows pasting it at any position.
-
+yform_content_builder_enable_element_search = Element Search
+yform_content_builder_enable_element_search_label = Enable live search for element palette
+yform_content_builder_enable_element_search_notice = When active, a live search is displayed if 5 or more elements are available. The search will be placed below the pasted element or at the beginning of the element list.
+yform_content_builder_element_search_placeholder = Search elements...

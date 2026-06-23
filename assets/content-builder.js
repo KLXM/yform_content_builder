@@ -229,15 +229,6 @@
                     
                     var $menu = $(this).find('.dropdown-menu').first();
                     if ($menu.length > 0) {
-                        var $pasteItems = $menu.find('.paste-slice-item');
-                        if ($pasteItems.length > 0) {
-                            var $searchWrapper = $menu.find('.dropdown-search-wrapper').first();
-                            if ($searchWrapper.length > 0) {
-                                $searchWrapper.after($pasteItems);
-                            } else {
-                                $menu.prepend($pasteItems);
-                            }
-                        }
                     }
                 })
                 .on('shown.bs.dropdown', '.slice-toolbar .btn-group-insert, .column-add-slice, .content-builder-add', function() {
@@ -268,94 +259,6 @@
                         });
                     }
                 });
-            
-            // Live-Suche im Element-Dropdown
-            $(document)
-                .on('input keyup', '.dropdown-menu .dropdown-search', function(e) {
-                    var searchText = $(this).val().trim().toLowerCase();
-                    var $menu = $(this).closest('.dropdown-menu');
-                    var frozenWidth = $menu.data('yfcbFrozenWidth');
-                    if (!frozenWidth) {
-                        frozenWidth = $menu.outerWidth();
-                        if (frozenWidth && frozenWidth > 0) {
-                            $menu.data('yfcbFrozenWidth', frozenWidth);
-                            $menu.css({
-                                width: frozenWidth + 'px',
-                                minWidth: frozenWidth + 'px'
-                            });
-                        }
-                    }
-                    var $items = $menu.find('.element-item');
-                    var $headers = $menu.find('.dropdown-header');
-                    var $dividers = $menu.find('[role="separator"]');
-                    
-                    if (searchText === '') {
-                        // Alle Items zeigen
-                        $items.show();
-                        $headers.show();
-                        $dividers.show();
-                    } else {
-                        // Items filtern
-                        var visibleCount = 0;
-                        var lastCategory = null;
-                        
-                        $items.each(function() {
-                            var $item = $(this);
-                            var itemText = $item.data('element-search-text');
-                            
-                            if (itemText.indexOf(searchText) !== -1) {
-                                $item.show();
-                                visibleCount++;
-                            } else {
-                                $item.hide();
-                            }
-                        });
-                        
-                        // Headers und Dividers smart anzeigen
-                        var itemIndex = 0;
-                        $items.each(function() {
-                            var $item = $(this);
-                            if ($item.is(':visible')) {
-                                // Header vor diesem Item suchen
-                                var $header = $item.prevAll('.dropdown-header').first();
-                                if ($header.length > 0) {
-                                    $header.show();
-                                }
-                                itemIndex++;
-                            }
-                        });
-                        
-                        // Alle unsichtbaren Headers verstecken
-                        $headers.each(function() {
-                            var $header = $(this);
-                            var $nextItems = $header.nextUntil('.divider, .dropdown-header').filter('.element-item:visible');
-                            if ($nextItems.length === 0) {
-                                $header.hide();
-                            }
-                        });
-                        
-                        // Dividers intelligent anzeigen
-                        $dividers.each(function() {
-                            var $divider = $(this);
-                            var $nextHeader = $divider.nextAll('.dropdown-header').first();
-                            var $nextItems = $divider.nextUntil('.divider').filter('.element-item:visible');
-                            
-                            if ($nextItems.length > 0 && $nextHeader.length > 0) {
-                                var $prevHeader = $divider.prevAll('.dropdown-header').first();
-                                var $prevItems = $divider.prevUntil('.divider').filter('.element-item:visible');
-                                
-                                // Divider nur zeigen wenn davor und danach Items vorhanden sind
-                                if ($prevItems.length > 0) {
-                                    $divider.show();
-                                } else {
-                                    $divider.hide();
-                                }
-                            } else {
-                                $divider.hide();
-                            }
-                        });
-                    }
-                });
         },
 
         initElementMenuTooltips: function() {
@@ -378,6 +281,101 @@
                         }
                     });
                 });
+            
+            // Element-Suche im Dropdown
+            this.initElementSearch();
+        },
+        
+        initElementSearch: function() {
+            $(document).on('input keyup', '.yform-cb-element-search-input', function(e) {
+                var $searchInput = $(this);
+                var searchText = $searchInput.val().trim().toLowerCase();
+                var $menu = $searchInput.closest('.dropdown-menu');
+                
+                if ($menu.length === 0) {
+                    return;
+                }
+                
+                var $elementLinks = $menu.find('.btn-add-slice, .btn-insert-slice');
+                var $headers = $menu.find('.dropdown-header');
+                var $dividers = $menu.find('[role="separator"]').not('.paste-slice-item');
+                
+                if (searchText === '') {
+                    // Alle Items zeigen
+                    $elementLinks.closest('li').show();
+                    $headers.closest('li').show();
+                    $dividers.closest('li').show();
+                } else {
+                    // Items filtern
+                    $elementLinks.each(function() {
+                        var $link = $(this);
+                        var linkText = $link.text().toLowerCase();
+                        var $li = $link.closest('li');
+                        
+                        if (linkText.indexOf(searchText) !== -1) {
+                            $li.show();
+                        } else {
+                            $li.hide();
+                        }
+                    });
+                    
+                    // Headers basierend auf sichtbaren Items anzeigen/verstecken
+                    $headers.each(function() {
+                        var $header = $(this);
+                        var $headerLi = $header.closest('li');
+                        var $nextLis = $headerLi.nextUntil('[role="separator"]');
+                        var visibleCount = 0;
+                        
+                        $nextLis.each(function() {
+                            if ($(this).find('.btn-add-slice, .btn-insert-slice').length > 0 && $(this).is(':visible')) {
+                                visibleCount++;
+                            }
+                        });
+                        
+                        if (visibleCount > 0) {
+                            $headerLi.show();
+                        } else {
+                            $headerLi.hide();
+                        }
+                    });
+                    
+                    // Dividers anzeigen, wenn danach sichtbare Items kommen
+                    $dividers.each(function() {
+                        var $divider = $(this);
+                        var $dividerLi = $divider.closest('li');
+                        var $nextLis = $dividerLi.nextUntil('[role="separator"]');
+                        var visibleAfter = false;
+                        
+                        $nextLis.each(function() {
+                            if ($(this).is(':visible')) {
+                                visibleAfter = true;
+                                return false;
+                            }
+                        });
+                        
+                        if (visibleAfter) {
+                            // Check if there's something visible before
+                            var $prevLis = $dividerLi.prevUntil('[role="separator"]');
+                            var visibleBefore = false;
+                            
+                            $prevLis.each(function() {
+                                if ($(this).is(':visible')) {
+                                    visibleBefore = true;
+                                    return false;
+                                }
+                            });
+                            
+                            if (visibleBefore) {
+                                $dividerLi.show();
+                            } else {
+                                $dividerLi.hide();
+                            }
+                        } else {
+                            $dividerLi.hide();
+                        }
+                    });
+                }
+            });
         },
         
         /**
@@ -2846,10 +2844,15 @@
             
             // Wenn Copy & Paste aktiviert ist, fügen wir eine Einfügen-Option hinzu
             var isCopyPasteEnabled = false;
+            var isElementSearchEnabled = false;
             var $cb = $('.yform-content-builder').first();
             if ($cb.length > 0 && $cb.attr('data-copy-paste') === '1') {
                 isCopyPasteEnabled = true;
             }
+            if ($cb.length > 0 && $cb.attr('data-element-search') === '1') {
+                isElementSearchEnabled = true;
+            }
+            
             if (isCopyPasteEnabled) {
                 var hasCopiedSlice = localStorage.getItem('yform_cb_copied_slice') !== null;
                 var displayStyle = hasCopiedSlice ? '' : ' style="display: none;"';
@@ -2860,6 +2863,26 @@
                     '</li>' +
                     '<li role="separator" class="divider paste-slice-item"' + displayStyle + '></li>';
                 dropdownItems = pasteHtml + dropdownItems;
+            }
+            
+            // Suchbox einfügen wenn aktiviert und genug Elemente vorhanden
+            var elementCount = 0;
+            for (var type in availableElements) {
+                if (availableElements.hasOwnProperty(type)) {
+                    elementCount++;
+                }
+            }
+            if (isElementSearchEnabled && elementCount >= 5) {
+                var searchHtml = '<li class="yform-cb-search-item">' +
+                    '<div class="yform-cb-search-wrapper">' +
+                    '<input type="text" ' +
+                    'class="yform-cb-element-search-input form-control input-sm" ' +
+                    'placeholder="Element durchsuchen..." ' +
+                    'style="margin: 0; width: 100%;">' +
+                    '</div>' +
+                    '</li>' +
+                    '<li role="separator" class="divider"></li>';
+                dropdownItems = searchHtml + dropdownItems;
             }
             
             var html = '<div class="btn-group btn-group-insert">' +

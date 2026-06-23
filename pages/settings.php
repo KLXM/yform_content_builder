@@ -51,6 +51,7 @@ if (rex_post('save', 'bool')) {
     $addon->setConfig('compact_mode', rex_post('compact_mode', 'bool', false));
     $addon->setConfig('enable_online_toggle', rex_post('enable_online_toggle', 'bool', false));
     $addon->setConfig('enable_copy_paste', rex_post('enable_copy_paste', 'bool', false));
+    $addon->setConfig('enable_element_search', rex_post('enable_element_search', 'bool', false));
     $addon->setConfig('enable_demo_elements', rex_post('enable_demo_elements', 'bool', true));
 
     $replaceKeepCoreElements = rex_post('replace_keep_core_elements', 'array', []);
@@ -84,6 +85,7 @@ if (!is_array($tableThemes)) {
 $compactMode = $addon->getConfig('compact_mode', false);
 $enableOnlineToggle = $addon->getConfig('enable_online_toggle', false);
 $enableCopyPaste = $addon->getConfig('enable_copy_paste', false);
+$enableElementSearch = $addon->getConfig('enable_element_search', false);
 $enableDemoElements = $addon->getConfig('enable_demo_elements', true);
 $replaceKeepCoreElements = $addon->getConfig('replace_keep_core_elements', []);
 if (!is_array($replaceKeepCoreElements)) {
@@ -209,6 +211,13 @@ $n = [];
 $n['label'] = '<label for="enable_copy_paste">' . rex_i18n::msg('yform_content_builder_enable_copy_paste') . '</label>';
 $n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_copy_paste" value="0"><input type="checkbox" id="enable_copy_paste" name="enable_copy_paste" value="1"' . ($enableCopyPaste ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_enable_copy_paste_label') . '</label></div>';
 $n['note'] = rex_i18n::msg('yform_content_builder_enable_copy_paste_notice');
+$formElements[] = $n;
+
+// Element Search Toggle
+$n = [];
+$n['label'] = '<label for="enable_element_search">' . rex_i18n::msg('yform_content_builder_enable_element_search') . '</label>';
+$n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_element_search" value="0"><input type="checkbox" id="enable_element_search" name="enable_element_search" value="1"' . ($enableElementSearch ? ' checked' : '') . '> ' . rex_i18n::msg('yform_content_builder_enable_element_search_label') . '</label></div>';
+$n['note'] = rex_i18n::msg('yform_content_builder_enable_element_search_notice');
 $formElements[] = $n;
 
 // Demo-Elemente Toggle
