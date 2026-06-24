@@ -126,7 +126,7 @@ $modernHiddenStyle = $legacy_is_active ? ' style="display: none;"' : '';
      data-element-search="<?= $addon->getConfig('enable_element_search') ? '1' : '0' ?>"
      data-legacy-mode="<?= $legacy_is_active ? '1' : '0' ?>"
      data-available-elements='<?= rex_escape(json_encode($available_elements, JSON_UNESCAPED_UNICODE)) ?>'>
-                    $enableSearch = $addon->getConfig('enable_element_search');
+    <?php if ($label): ?>
         <label class="control-label" for="<?= $field_id ?>"><?= $label ?></label>
     <?php endif; ?>
     
