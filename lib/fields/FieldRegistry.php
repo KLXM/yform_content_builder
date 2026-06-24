@@ -103,6 +103,17 @@ class FieldRegistry
             }
 
             $col = isset($fieldConfig['col']) ? (int)$fieldConfig['col'] : null;
+            $visibleIf = $fieldConfig['visible_if'] ?? null;
+            $hasVisibleIf = is_array($visibleIf) && [] !== $visibleIf;
+            $encodedVisibleIf = null;
+
+            if ($hasVisibleIf) {
+                $encodedVisibleIf = json_encode($visibleIf, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                if (!is_string($encodedVisibleIf) || $encodedVisibleIf === '') {
+                    $hasVisibleIf = false;
+                    $encodedVisibleIf = null;
+                }
+            }
 
             // Row öffnen wenn das erste col-Feld kommt
             if ($col !== null && !$rowOpen) {
@@ -116,14 +127,26 @@ class FieldRegistry
                 $rowOpen = false;
             }
 
+            $renderConfig = $fieldConfig;
+
+            if ($col !== null && $hasVisibleIf && $encodedVisibleIf !== null) {
+                echo '<div class="yfcb-conditional-field" data-yfcb-visible-if="' . rex_escape($encodedVisibleIf) . '">';
+                $renderConfig['__visible_if_wrapped'] = true;
+            }
+
             if ($col !== null) {
                 echo '<div class="col-sm-' . $col . '" style="padding-left:5px;padding-right:5px;">';
             }
 
-            $renderFn($fieldName, $fieldConfig);
+            $renderFn($fieldName, $renderConfig);
 
             if ($col !== null) {
                 echo '</div>';
+
+                if ($col !== null && $hasVisibleIf && $encodedVisibleIf !== null) {
+                    echo '</div>';
+                }
+
                 $colSum += $col;
                 // Row schließen wenn Spalten voll (≥12)
                 if ($colSum >= 12) {
@@ -145,7 +168,7 @@ class FieldRegistry
     public static function renderField(string $fieldName, array $fieldConfig, array $sliceData): void
     {
         $visibleIf = $fieldConfig['visible_if'] ?? null;
-        $hasVisibleIf = is_array($visibleIf) && [] !== $visibleIf;
+        $hasVisibleIf = is_array($visibleIf) && [] !== $visibleIf && empty($fieldConfig['__visible_if_wrapped']);
 
         if ($hasVisibleIf) {
             $encodedVisibleIf = json_encode($visibleIf, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
