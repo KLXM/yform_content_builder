@@ -16,6 +16,23 @@
     var apiUrl = '/redaxo/index.php?rex-api-call=content_builder';
 
     var ContentBuilder = {
+
+        getAvailableElementsFromBuilder: function($builder) {
+            var availableElementsRaw = ($builder && $builder.attr('data-available-elements')) || '{}';
+            var availableElements = {};
+
+            try {
+                availableElements = JSON.parse(availableElementsRaw);
+            } catch (e) {
+                availableElements = {};
+            }
+
+            if (!availableElements || typeof availableElements !== 'object') {
+                availableElements = {};
+            }
+
+            return availableElements;
+        },
         
         // Getter für die API-URL (für AJAX-Requests)
         getAjaxUrl: function() {
@@ -2595,7 +2612,7 @@
             
             $('.yform-content-builder').each(function() {
                 var $builder = $(this);
-                var availableElements = $builder.data('available-elements');
+                var availableElements = self.getAvailableElementsFromBuilder($builder);
                 
                 if (!availableElements) {
                     return;
@@ -2622,7 +2639,8 @@
                     $insertGroup = self.createInsertButton(
                         availableElements,
                         index,
-                        String($slice.data('slice-type') || '')
+                        String($slice.data('slice-type') || ''),
+                        $builder
                     );
                     var $sliceLabel = $toolbar.find('.slice-label');
                     if ($sliceLabel.length) {
@@ -2651,7 +2669,8 @@
                         $insertGroup = self.createInsertButton(
                             availableElements,
                             index,
-                            String($slice.data('slice-type') || '')
+                            String($slice.data('slice-type') || ''),
+                            $builder
                         );
                         var $sliceLabel = $toolbar.find('.slice-label');
                         if ($sliceLabel.length) {
@@ -2664,7 +2683,7 @@
             });
         },
         
-        createInsertButton: function(availableElements, insertAfter, currentSliceType) {
+        createInsertButton: function(availableElements, insertAfter, currentSliceType, $builder) {
             var dropdownItems = '';
 
             function esc(value) {
@@ -2845,7 +2864,7 @@
             // Wenn Copy & Paste aktiviert ist, fügen wir eine Einfügen-Option hinzu
             var isCopyPasteEnabled = false;
             var isElementSearchEnabled = false;
-            var $cb = $('.yform-content-builder').first();
+            var $cb = ($builder && $builder.length) ? $builder : $('.yform-content-builder').first();
             if ($cb.length > 0 && $cb.attr('data-copy-paste') === '1') {
                 isCopyPasteEnabled = true;
             }
@@ -2866,12 +2885,7 @@
             }
             
             // Suchbox einfügen wenn aktiviert und genug Elemente vorhanden
-            var elementCount = 0;
-            for (var type in availableElements) {
-                if (availableElements.hasOwnProperty(type)) {
-                    elementCount++;
-                }
-            }
+            var elementCount = Array.isArray(elementsList) ? elementsList.length : 0;
             if (isElementSearchEnabled && elementCount >= 5) {
                 var searchHtml = '<li class="yform-cb-search-item">' +
                     '<div class="yform-cb-search-wrapper">' +

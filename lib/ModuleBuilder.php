@@ -753,7 +753,7 @@ class ModuleBuilder
                 }
             }
 
-            return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($elements));
+            return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($this->filterHiddenElements($elements)));
         }
 
         $demoPath = rex_addon::get('yform_content_builder')->getPath('elements/');
@@ -767,7 +767,39 @@ class ModuleBuilder
             }
         }
 
-        return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($elements));
+        return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($this->filterHiddenElements($elements)));
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $elements
+     * @return array<string, array<string, mixed>>
+     */
+    protected function filterHiddenElements(array $elements): array
+    {
+        return array_filter(
+            $elements,
+            static function (mixed $config): bool {
+                if (!is_array($config)) {
+                    return false;
+                }
+
+                $hidden = $config['hidden'] ?? false;
+
+                if (is_bool($hidden)) {
+                    return !$hidden;
+                }
+
+                if (is_int($hidden)) {
+                    return $hidden !== 1;
+                }
+
+                if (is_string($hidden)) {
+                    return !in_array(strtolower(trim($hidden)), ['1', 'true', 'yes', 'on'], true);
+                }
+
+                return true;
+            }
+        );
     }
 
     /**
