@@ -1063,8 +1063,18 @@ Scope:
 
 Das Verhalten ist über den Modus steuerbar:
 
-- `replace` (Standard): nur eigene Elemente
-- `merge`: Demo-Elemente + eigene Elemente
+- `merge`: externe Elemente aus registrierten Pfaden + mitgelieferte Elemente
+- `replace`: externe Elemente aus registrierten Pfaden, mitgelieferte Elemente ausgeblendet
+
+Wichtig zur Priorität:
+
+- Wenn mindestens ein registriertes Provider-Addon `replace` signalisiert, gilt effektiv `replace`.
+- `merge` ist nur effektiv, wenn kein Provider `replace` signalisiert.
+
+Ausnahmen im Replace-Modus:
+
+- Über die Addon-Settings `replace_keep_core_elements` können einzelne mitgelieferte Elemente weiterhin freigegeben werden.
+- Diese Ausnahmen bleiben auch sichtbar, wenn das eigene Addon in der AddOn-Quellauswahl ausgeblendet ist.
 
 Bei Namensgleichheit gewinnt im `merge`-Modus immer das eigene Element.
 
@@ -1382,10 +1392,14 @@ rex_extension::register('YFORM_CONTENT_BUILDER_BUNDLED_ELEMENTS', function($ep) 
 
 ### YFORM_CONTENT_BUILDER_ELEMENT_MODE
 
-Steuert, wie Demo- und Custom-Elemente kombiniert werden.
+Steuert, ob mitgelieferte Elemente zusätzlich zu externen Pfaden geladen werden.
 
-- `replace` (Default): Nur registrierte Custom-Pfade
-- `merge`: Demo-Elemente plus Custom-Pfade
+- `replace`: Registrierte externe Pfade, mitgelieferte Elemente aus
+- `merge`: Registrierte externe Pfade plus mitgelieferte Elemente
+
+Priorität:
+
+- Sobald mindestens ein registrierter Provider `replace` meldet, ist der effektive Modus `replace`.
 
 ```php
 rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function(): string {

@@ -605,20 +605,28 @@ rex_extension::register(
 ### Element-Mode steuern (merge vs replace)
 
 ```php
-// In REDAXO-Instance boot.php oder Settings UI
-rex_addon::get('yform_content_builder')->setConfig('element_mode', 'merge');
-// oder 'replace' für nur externe Elemente
+// In Provider-Addons via Extension Point
+rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function (): string {
+    return 'merge'; // oder 'replace'
+});
 ```
 
-**merge** (Default):
-- Bundled Elemente (core + starter) verfügbar
-- + externe Elemente aus registrierten Pfaden
-- Use Case: Entwicklung mit Demo-Elementen
+**merge:**
+- Externe Elemente aus registrierten Pfaden
+- Plus mitgelieferte Elemente aus dem Haupt-Addon
+- Use Case: Entwicklung mit mitgelieferten Start-/Core-Elementen und externen Elementen
 
 **replace**:
-- Nur externe Elemente
-- Bundled Elemente ausgeblendet
-- Use Case: Produktive Instanz mit nur Projekt-Elementen
+- Externe Elemente aus registrierten Pfaden
+- Mitgelieferte Elemente ausgeblendet
+- Use Case: Produktive Instanz mit externen Projekt-Elementen
+
+**Priorität:**
+- Wenn mindestens ein registriertes Provider-Addon `replace` signalisiert, gilt effektiv `replace`.
+
+**Ausnahmen im Replace-Modus:**
+- Über die Setting-Whitelist `replace_keep_core_elements` können einzelne mitgelieferte Elemente gezielt freigegeben werden.
+- Diese Ausnahmen bleiben auch sichtbar, wenn das eigene Addon in der AddOn-Quellauswahl nicht aktiv ist.
 
 ---
 

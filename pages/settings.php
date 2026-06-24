@@ -183,7 +183,7 @@ if ($currentMode === 'replace') {
 $n = [];
 $n['label'] = '<label>' . rex_i18n::msg('yform_content_builder_mode') . '</label>';
 $n['field'] = '<p class="form-control-static"><span class="label label-' . ($currentMode === 'merge' ? 'info' : 'warning') . '">' . rex_escape($modeLabel) . '</span></p>';
-$n['note'] = 'Wird per Extension Point YFORM_CONTENT_BUILDER_ELEMENT_MODE definiert. Aktuell: <code>' . rex_escape($currentMode) . '</code>';
+$n['note'] = 'Wird per Extension Point YFORM_CONTENT_BUILDER_ELEMENT_MODE definiert. Aktuell: <code>' . rex_escape($currentMode) . '</code>. Bei Konflikten hat <code>replace</code> Vorrang vor <code>merge</code>.';
 $formElements[] = $n;
 
 // Theme-Auswahl (nur wenn Theme-Provider verfügbar)

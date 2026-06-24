@@ -255,7 +255,7 @@ ElementRegistry::getElementsFromPath('klxm_elements');
 
 // Alle verfügbaren Elemente
 ElementRegistry::getAllElements();
-// => [... alle bundled + extern ...]
+// => [... externe + ggf. mitgelieferte (abhängig vom effektiven Modus) ...]
 
 // Element-Config laden
 ElementRegistry::getElementConfig('starter_text');
@@ -304,6 +304,13 @@ TemplateEngine::getAvailableFrameworks();
 | `YFORM_CONTENT_BUILDER_EDITOR_PROFILES` | `element`, `field` | `string` | Editor-Profile pro Element |
 | `YFORM_CONTENT_BUILDER_BUNDLED_ELEMENTS` | — | `array` | Bundled Element-Keys |
 | `YFORM_CONTENT_BUILDER_ELEMENT_PATHS` | — | `array` | Pfade zu Element-Verzeichnissen |
+
+Hinweise zur Mode-Semantik:
+
+- `replace` blendet mitgelieferte Elemente aus, externe Pfade bleiben aktiv.
+- `merge` lädt externe Pfade plus mitgelieferte Elemente.
+- Wenn ein registrierter Provider `replace` signalisiert, gilt effektiv `replace`.
+- Einzelne mitgelieferte Elemente können über die Settings-Whitelist `replace_keep_core_elements` als Ausnahme freigegeben werden.
 
 Vollständige Dokumentation der Extension Points: [DEV.md](DEV.md)
 

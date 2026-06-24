@@ -10,7 +10,7 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 
 ### Content-Elemente
 - **Elemente aus Core, Starter und externen Projekt-Addons**.
-- **Modular konfigurierbar** – `YFORM_CONTENT_BUILDER_ELEMENT_MODE` steuert, ob externe Projekt-Elemente zusätzlich geladen (`merge`) oder ausschließlich externe Elemente genutzt werden (`replace`).
+- **Modular konfigurierbar** – externe Element-Pfade werden per Extension Point registriert; `YFORM_CONTENT_BUILDER_ELEMENT_MODE` steuert, ob mitgelieferte Elemente zusätzlich geladen werden (`merge`) oder ausgeblendet bleiben (`replace`).
 - **Repeater-System** – unbegrenzt wiederholbare Feldgruppen (Slider, Listen, Feature Grids …)
 - **Online/Offline pro Slice** *(YForm-Variante)* – Abschnitte deaktivieren ohne zu löschen
 
@@ -152,13 +152,17 @@ Das System trennt klar zwischen Haupt-Addon und externen Projekt-Addons:
 
 **Element Mode konfigurieren:**
 ```php
-// Backend > YForm Content Builder > Settings
-// oder in REDAXO-Instanz-Config:
-$addon_config['yform_content_builder']['element_mode'] = 'merge'; // 'merge' oder 'replace'
+// In Provider-Addons per Extension Point:
+rex_extension::register('YFORM_CONTENT_BUILDER_ELEMENT_MODE', static function (): string {
+    return 'merge'; // oder 'replace'
+});
 ```
 
-- `merge` (Default): Starter-Demo + externe Projekt-Elemente
-- `replace`: Nur externe Projekt-Elemente (Demo ausblenden)
+- `merge`: Externe Projekt-Elemente + mitgelieferte Elemente
+- `replace`: Externe Projekt-Elemente, mitgelieferte Elemente ausgeblendet
+- **Priorität:** Wenn mindestens ein registriertes Provider-Addon `replace` signalisiert, gilt effektiv `replace`.
+- **Ausnahmen im Replace-Modus:** Über „Core-Elemente trotz Replace-Modus“ können einzelne mitgelieferte Elemente gezielt freigegeben werden.
+- **Globale Quellwahl:** In den Settings steuert „Verfügbare Element-AddOns“, aus welchen AddOn-Quellen Elemente angezeigt werden.
 
 ### Framework-Abstraktion
 

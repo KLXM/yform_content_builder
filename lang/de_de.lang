@@ -15,6 +15,7 @@ yform_content_builder_general_settings = Allgemeine Einstellungen
 yform_content_builder_mode = Element-Modus
 yform_content_builder_mode_merge = Merge (Demo + Custom)
 yform_content_builder_mode_replace = Replace (mitgelieferte Elemente aus)
+yform_content_builder_mode_notice = Wird per Extension Point YFORM_CONTENT_BUILDER_ELEMENT_MODE definiert. Bei Konflikten hat replace Vorrang vor merge.
 yform_content_builder_theme_settings = Theme Builder Integration
 yform_content_builder_theme = Theme
 yform_content_builder_theme_notice = Wähle ein Theme aus einem registrierten Theme-Provider. Das Theme wird für Farbauswahl und Vorschau im Backend verwendet.
