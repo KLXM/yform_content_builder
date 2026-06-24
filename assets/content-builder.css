@@ -6,11 +6,17 @@
 /* Container */
 .yform-content-builder {
     position: relative;
+    background: transparent;
+    border: 8px solid rgba(255, 255, 255, 0.4);
+    box-sizing: border-box;
+    background-clip: padding-box;
 }
 
 .content-builder-slices {
     min-height: 100px;
     margin-bottom: 15px;
+    background: transparent;
+    padding: 0;
 }
 
 /* Einzelnes Slice */
@@ -19,7 +25,7 @@
     margin-bottom: 20px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    background: transparent;
+    background: #fff;
     transition: all 0.2s ease;
 }
 

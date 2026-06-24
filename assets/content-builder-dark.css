@@ -17,11 +17,17 @@ body.rex-theme-dark {
     /* Hauptcontainer */
     .yform-content-builder {
         background-color: transparent;
+        border-color: rgba(16, 20, 25, 0.55);
+    }
+
+    .content-builder-slices {
+        background: transparent;
+        padding: 0;
     }
 
     /* Slice Container */
     .content-builder-slice {
-        background: transparent;
+        background: #2a2d31;
         border-color: #404448;
         color: #f2f2f2;
     }
@@ -639,9 +645,22 @@ body.rex-theme-dark {
 
 @media (prefers-color-scheme: dark) {
     body:not(.rex-theme-light) {
+        .yform-content-builder {
+            background-color: transparent;
+            border-color: rgba(16, 20, 25, 0.55);
+        }
+
+        .content-builder-slices {
+            background: transparent;
+            padding: 0;
+        }
+
+        .content-builder-slice {
+            background: #2a2d31;
+        }
+
         /* Slice Container */
         .content-builder-slice {
-            background: #2c3136;
             border-color: #404448;
             color: #f2f2f2;
         }
