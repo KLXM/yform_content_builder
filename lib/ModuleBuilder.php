@@ -735,37 +735,26 @@ class ModuleBuilder
         /** @var array<string, array<string, mixed>> $elements */
         $elements = [];
         $customPaths = ElementModeResolver::getCustomPaths();
-        $elementMode = ElementModeResolver::getElementMode();
-
-        if ($customPaths !== [] && $elementMode === 'replace') {
-            foreach ($customPaths as $customPath) {
-                $elements = array_replace($elements, $this->loadElementsFromBasePath((string) $customPath, 'custom'));
-            }
-
-            $replaceKeepCoreElements = ElementModeResolver::getReplaceKeepCoreElements();
-            if ($replaceKeepCoreElements !== []) {
-                $demoPath = rex_addon::get('yform_content_builder')->getPath('elements/');
-                if (is_dir($demoPath)) {
-                    $elements = array_replace(
-                        $elements,
-                        $this->loadElementsByKeysFromBasePath($demoPath, $replaceKeepCoreElements, 'demo')
-                    );
-                }
-            }
-
-            return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($this->filterHiddenElements($elements)));
-        }
 
         $demoPath = rex_addon::get('yform_content_builder')->getPath('elements/');
-        if (is_dir($demoPath)) {
+        $enableDemoElements = (bool) rex_addon::get('yform_content_builder')->getConfig('enable_demo_elements', true);
+        if (ElementModeResolver::shouldLoadBundledElements() && $enableDemoElements && is_dir($demoPath)) {
             $elements = array_replace($elements, $this->loadElementsFromBasePath($demoPath, 'demo'));
         }
 
-        if ($customPaths !== [] && $elementMode === 'merge') {
-            foreach ($customPaths as $customPath) {
-                $elements = array_replace($elements, $this->loadElementsFromBasePath((string) $customPath, 'custom'));
-            }
+        foreach ($customPaths as $customPath) {
+            $elements = array_replace($elements, $this->loadElementsFromBasePath((string) $customPath, 'custom'));
         }
+
+        $replaceKeepCoreElements = ElementModeResolver::getReplaceKeepCoreElements();
+        if ($replaceKeepCoreElements !== [] && is_dir($demoPath)) {
+            $elements = array_replace(
+                $elements,
+                $this->loadElementsByKeysFromBasePath($demoPath, $replaceKeepCoreElements, 'demo')
+            );
+        }
+
+        $elements = ElementModeResolver::filterElementsByEnabledAddons($elements);
 
         return $this->applyPreventSelfNestingOverrides($this->filterAllowedElements($this->filterHiddenElements($elements)));
     }
@@ -864,6 +853,7 @@ class ModuleBuilder
 
             $config['_source'] = $source;
             $config['_path'] = $elementPath;
+            $config['_addon'] = ElementModeResolver::resolveAddonKeyByPath($basePath, $source);
             $config['type'] = $dir;
             $config['key'] = $dir;
             $elements[$dir] = $config;
@@ -909,6 +899,7 @@ class ModuleBuilder
 
             $config['_source'] = $source;
             $config['_path'] = $elementPath;
+            $config['_addon'] = ElementModeResolver::resolveAddonKeyByPath($basePath, $source);
             $config['type'] = $elementKey;
             $config['key'] = $elementKey;
             $elements[$elementKey] = $config;

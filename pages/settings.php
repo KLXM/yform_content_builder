@@ -54,6 +54,21 @@ if (rex_post('save', 'bool')) {
     $addon->setConfig('enable_element_search', rex_post('enable_element_search', 'bool', false));
     $addon->setConfig('enable_demo_elements', rex_post('enable_demo_elements', 'bool', true));
 
+    $enabledElementAddons = rex_post('enabled_element_addons', 'array', []);
+    $enabledElementAddons = array_values(array_unique(array_filter(array_map(
+        static fn ($value): string => trim((string) $value),
+        is_array($enabledElementAddons) ? $enabledElementAddons : []
+    ), static fn (string $value): bool => $value !== '')));
+
+    if (\KLXM\YFormContentBuilder\Config\ElementModeResolver::getElementMode() === 'replace') {
+        $enabledElementAddons = array_values(array_filter(
+            $enabledElementAddons,
+            static fn (string $addonKey): bool => $addonKey !== 'yform_content_builder'
+        ));
+    }
+
+    $addon->setConfig('enabled_element_addons', $enabledElementAddons);
+
     $replaceKeepCoreElements = rex_post('replace_keep_core_elements', 'array', []);
     $replaceKeepCoreElements = array_values(array_unique(array_filter(array_map(
         static fn ($value): string => trim((string) $value),
@@ -87,18 +102,41 @@ $enableOnlineToggle = $addon->getConfig('enable_online_toggle', false);
 $enableCopyPaste = $addon->getConfig('enable_copy_paste', false);
 $enableElementSearch = $addon->getConfig('enable_element_search', false);
 $enableDemoElements = $addon->getConfig('enable_demo_elements', true);
+$enabledElementAddons = $addon->getConfig('enabled_element_addons', []);
+if (!is_array($enabledElementAddons)) {
+    $enabledElementAddons = [];
+}
+
 $replaceKeepCoreElements = $addon->getConfig('replace_keep_core_elements', []);
 if (!is_array($replaceKeepCoreElements)) {
     $replaceKeepCoreElements = [];
 }
+
+$enabledElementAddons = array_values(array_unique(array_filter(array_map(
+    static fn ($value): string => trim((string) $value),
+    $enabledElementAddons
+), static fn (string $value): bool => $value !== '')));
 
 $replaceKeepCoreElements = array_values(array_unique(array_filter(array_map(
     static fn ($value): string => trim((string) $value),
     $replaceKeepCoreElements
 ), static fn (string $value): bool => $value !== '')));
 
+$customElementPaths = \KLXM\YFormContentBuilder\Config\ElementModeResolver::getCustomPaths();
+$addonChoices = \KLXM\YFormContentBuilder\Config\ElementModeResolver::getAddonChoices($customElementPaths);
+
+$ownAddonChoices = [];
+$otherAddonChoices = [];
+foreach ($addonChoices as $addonKey => $addonLabel) {
+    if ($addonKey === 'yform_content_builder') {
+        $ownAddonChoices[$addonKey] = $addonLabel;
+    } else {
+        $otherAddonChoices[$addonKey] = $addonLabel;
+    }
+}
+asort($otherAddonChoices, SORT_NATURAL | SORT_FLAG_CASE);
+
 $coreElementOptions = [];
-$missingReplaceKeepCoreElements = [];
 $coreElementsPath = rex_path::addon('yform_content_builder', 'elements/');
 if (is_dir($coreElementsPath)) {
     $dirs = scandir($coreElementsPath);
@@ -125,12 +163,7 @@ if (is_dir($coreElementsPath)) {
         }
     }
 }
-
 asort($coreElementOptions, SORT_NATURAL | SORT_FLAG_CASE);
-$missingReplaceKeepCoreElements = array_values(array_diff($replaceKeepCoreElements, array_keys($coreElementOptions)));
-foreach ($missingReplaceKeepCoreElements as $missingElementKey) {
-    $coreElementOptions[$missingElementKey] = $missingElementKey . ' (nicht gefunden)';
-}
 
 // Formular bauen
 $content = '';
@@ -142,6 +175,11 @@ $formElements = [];
 // Aktiver Modus anzeigen (merge oder replace)
 $currentMode = \KLXM\YFormContentBuilder\Config\ElementModeResolver::getElementMode();
 $modeLabel = $currentMode === 'merge' ? rex_i18n::msg('yform_content_builder_mode_merge', 'Merge (Demo + Custom)') : rex_i18n::msg('yform_content_builder_mode_replace', 'Replace (nur Custom)');
+
+if ($currentMode === 'replace') {
+    $ownAddonChoices = [];
+}
+
 $n = [];
 $n['label'] = '<label>' . rex_i18n::msg('yform_content_builder_mode') . '</label>';
 $n['field'] = '<p class="form-control-static"><span class="label label-' . ($currentMode === 'merge' ? 'info' : 'warning') . '">' . rex_escape($modeLabel) . '</span></p>';
@@ -227,7 +265,35 @@ $n['field'] = '<div class="checkbox"><label><input type="hidden" name="enable_de
 $n['note'] = rex_i18n::msg('yform_content_builder_enable_demo_elements_notice');
 $formElements[] = $n;
 
-// Replace-Modus: Core-Elemente trotzdem verfügbar
+// AddOn-Auswahl: Welche Elementquellen sind global aktiviert?
+$n = [];
+$n['label'] = '<label for="enabled_element_addons">' . rex_i18n::msg('yform_content_builder_enabled_element_addons') . '</label>';
+$n['field'] = '<input type="hidden" name="enabled_element_addons[]" value="">';
+$n['field'] .= '<select class="form-control" id="enabled_element_addons" name="enabled_element_addons[]" multiple size="10">';
+
+if ($ownAddonChoices !== []) {
+    $n['field'] .= '<optgroup label="' . rex_escape(rex_i18n::msg('yform_content_builder_enabled_element_addons_group_own')) . '">';
+    foreach ($ownAddonChoices as $addonKey => $addonLabel) {
+        $selected = $enabledElementAddons === [] || in_array($addonKey, $enabledElementAddons, true) ? ' selected' : '';
+        $n['field'] .= '<option value="' . rex_escape($addonKey) . '"' . $selected . '>' . rex_escape($addonLabel) . '</option>';
+    }
+    $n['field'] .= '</optgroup>';
+}
+
+if ($otherAddonChoices !== []) {
+    $n['field'] .= '<optgroup label="' . rex_escape(rex_i18n::msg('yform_content_builder_enabled_element_addons_group_other')) . '">';
+    foreach ($otherAddonChoices as $addonKey => $addonLabel) {
+        $selected = $enabledElementAddons === [] || in_array($addonKey, $enabledElementAddons, true) ? ' selected' : '';
+        $n['field'] .= '<option value="' . rex_escape($addonKey) . '"' . $selected . '>' . rex_escape($addonLabel) . '</option>';
+    }
+    $n['field'] .= '</optgroup>';
+}
+
+$n['field'] .= '</select>';
+$n['note'] = rex_i18n::msg('yform_content_builder_enabled_element_addons_notice');
+$formElements[] = $n;
+
+// Ausnahmen: einzelne Haupt-Addon-Elemente auch im Replace-Modus erlauben
 $n = [];
 $n['label'] = '<label for="replace_keep_core_elements">' . rex_i18n::msg('yform_content_builder_replace_keep_core_elements') . '</label>';
 $n['field'] = '<input type="hidden" name="replace_keep_core_elements[]" value="">';
