@@ -62,6 +62,24 @@ In current element configs you will also see newer field types such as `cke5`, `
 - **Projekt-Elemente**: Produktive externe Bausteine in Addons wie `klxm_elements`
 - **Modul-Erstellung**: Bleibt zentral im Haupt-Addon auf `index.php?page=yform_content_builder/modules`
 
+## 🖼️ Media-Output-Konvention
+
+Für Bildausgaben in Templates gilt:
+
+- Verwende virtuelle Typen: `cb_<preset>__<width>`
+- Erzeuge Typen ausschließlich über `MediaTypeRegistry::buildVirtualType(...)`
+- Führe keine neuen statischen Typnamen wie `card_16_9_w1200` ein
+
+Beispiel:
+
+```php
+<?php
+$type = \KLXM\YFormContentBuilder\Config\MediaTypeRegistry::buildVirtualType('starter_cards_16_9', 1200);
+echo rex_media_manager::getUrl($type, $image);
+```
+
+Externe Addons erweitern Presets über den Extension Point `YFORM_CONTENT_BUILDER_MEDIA_TYPE_PRESETS`.
+
 ### Legacy Editor & Migration
 
 For YForm value-based content builders, the following configuration fields control Legacy-HTML handling:

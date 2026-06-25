@@ -111,9 +111,10 @@ class SmartLinkView
         }
 
         if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'], true)) {
+            $previewType = \KLXM\YFormContentBuilder\Config\MediaTypeRegistry::buildVirtualType('starter_cards_16_9', 800);
             return [
                 'kind' => 'image',
-                'src' => rex_media_manager::getUrl('card_16_9_w800', $value),
+                'src' => rex_media_manager::getUrl($previewType, $value),
             ];
         }
 

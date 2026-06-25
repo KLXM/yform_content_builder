@@ -178,6 +178,26 @@ $photo = $elementData['photo'] ?? '';
 
 🎉 **Glückwunsch!** Dein Element ist fertig programmiert.
 
+### Schritt 3.1: Bilder über virtuelle Media-Manager-Typen ausgeben
+
+Für Pixelbilder sollte die Ausgabe über virtuelle Typen laufen, nicht über statische Typnamen.
+
+Beispiel im Template:
+
+```php
+<?php
+use KLXM\YFormContentBuilder\Config\MediaTypeRegistry;
+
+$photoUrl = '';
+if ($photo !== '') {
+    $type = MediaTypeRegistry::buildVirtualType('starter_cards_1_1', 800);
+    $photoUrl = rex_media_manager::getUrl($type, $photo);
+}
+?>
+```
+
+So bleibt die Verarbeitung zentral über den `content_builder`-Effekt und ist kompatibel zur optionalen Format-Negotiation.
+
 ---
 
 ## Schritt 4: Element nutzen (Variante A: Im Modul)

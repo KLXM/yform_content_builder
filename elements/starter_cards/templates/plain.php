@@ -1,9 +1,12 @@
 <?php
 use KLXM\YFormContentBuilder\Starter\StarterConfig;
+use KLXM\YFormContentBuilder\Config\MediaTypeRegistry;
 
 $headline        = (string) ($elementData['headline'] ?? '');
 $items           = $elementData['items'] ?? [];
 $cardStyle       = (string) ($elementData['card_style'] ?? 'default');
+$imageRatio      = (string) ($elementData['image_ratio'] ?? '16_9');
+$imageRatioMobile = (string) ($elementData['image_ratio_mobile'] ?? '');
 $columns         = max(1, min(6, (int) ($elementData['columns'] ?? 3)));
 $gap             = (string) ($elementData['gap'] ?? 'medium');
 $sectionBg       = (string) ($elementData['section_bg'] ?? '');
@@ -35,6 +38,28 @@ $cardStyleMap = [
     'transparent' => '',
 ];
 $cardStyleAttr = $cardStyleMap[$cardStyle] ?? 'border:1px solid #ddd;background:#fff;';
+$estimateContainerMaxPx = static function (string $container): int {
+    if (str_contains($container, 'xsmall')) {
+        return 640;
+    }
+    if (str_contains($container, 'small')) {
+        return 900;
+    }
+    if (str_contains($container, 'xlarge')) {
+        return 1600;
+    }
+    if (str_contains($container, 'large')) {
+        return 1400;
+    }
+    if (str_contains($container, 'expand') || $container === '') {
+        return 1920;
+    }
+
+    return 1200;
+};
+$containerMaxPx = $estimateContainerMaxPx($containerWidth);
+$desktopPx = (int) max(220, round($containerMaxPx / max(1, $columns)));
+$mobileArtDirectionActive = $imageRatioMobile !== '' && $imageRatioMobile !== $imageRatio;
 
 $resolveLink = static function (array $item): array {
     $type   = (string) ($item['link_type'] ?? '');
@@ -53,6 +78,27 @@ $resolveLink = static function (array $item): array {
     }
     return ['href' => '', 'target' => '', 'text' => $text];
 };
+
+/** @return array{src:string,srcset:string} */
+$resolveImage = static function (string $image, string $ratio): array {
+    if ($image === '') {
+        return ['src' => '', 'srcset' => ''];
+    }
+
+    if (!rex_addon::get('media_manager')->isAvailable()) {
+        return ['src' => rex_url::media($image), 'srcset' => ''];
+    }
+
+    $preset = 'starter_cards_' . $ratio;
+    $widths = [400, 800, 1200, 1600];
+    $src = rex_media_manager::getUrl(MediaTypeRegistry::buildVirtualType($preset, 1200), $image);
+    $srcset = [];
+    foreach ($widths as $w) {
+        $srcset[] = rex_media_manager::getUrl(MediaTypeRegistry::buildVirtualType($preset, $w), $image) . ' ' . $w . 'w';
+    }
+
+    return ['src' => $src, 'srcset' => implode(', ', $srcset)];
+};
 ?>
 <?php if ($enableSection): ?><section<?= $sectionStyle !== '' ? ' style="' . rex_escape($sectionStyle) . '"' : '' ?>><?php endif; ?>
 <?php if ($enableContainer): ?><div style="<?= rex_escape($containerStyle) ?>"><?php endif; ?>
@@ -65,11 +111,31 @@ $resolveLink = static function (array $item): array {
         $link      = $resolveLink($item);
         $fallback  = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Karte ' . ($index + 1);
         $imageAlt  = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
+        $imageInfo = $resolveImage((string) ($item['image'] ?? ''), $imageRatio);
+        $imageInfoMobile = $mobileArtDirectionActive
+            ? $resolveImage((string) ($item['image'] ?? ''), $imageRatioMobile)
+            : ['src' => '', 'srcset' => ''];
         ?>
         <li>
             <article style="height:100%;<?= rex_escape($cardStyleAttr) ?>">
-                <?php if (!empty($item['image'])): ?>
-                    <img src="<?= rex_url::media((string) $item['image']) ?>" alt="<?= rex_escape($imageAlt) ?>" loading="lazy" style="max-width:100%;height:auto;display:block;">
+                <?php if ($imageInfo['src'] !== ''): ?>
+                    <picture>
+                        <?php if ($mobileArtDirectionActive && $imageInfoMobile['src'] !== ''): ?>
+                            <source
+                                media="(max-width: 767px)"
+                                <?= $imageInfoMobile['srcset'] !== '' ? 'srcset="' . rex_escape($imageInfoMobile['srcset']) . '"' : 'srcset="' . rex_escape($imageInfoMobile['src']) . '"' ?>
+                                sizes="100vw"
+                            >
+                        <?php endif; ?>
+                        <img
+                            src="<?= rex_escape($imageInfo['src']) ?>"
+                            <?= $imageInfo['srcset'] !== '' ? 'srcset="' . rex_escape($imageInfo['srcset']) . '"' : '' ?>
+                            sizes="(min-width: 1200px) <?= $desktopPx ?>px, 100vw"
+                            alt="<?= rex_escape($imageAlt) ?>"
+                            loading="lazy"
+                            style="max-width:100%;height:auto;display:block;"
+                        >
+                    </picture>
                 <?php endif; ?>
                 <div style="padding:12px;">
                     <?php if ($itemTitle !== ''): ?><h4 style="margin:0 0 8px;"><?= rex_escape($itemTitle) ?></h4><?php endif; ?>

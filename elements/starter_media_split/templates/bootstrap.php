@@ -51,14 +51,16 @@ if ($containerWidth === '') {
 ?>
 <section<?= $sectionStyle !== '' ? ' style="' . rex_escape($sectionStyle) . '"' : '' ?>>
     <?php if ($containerClass !== ''): ?><div class="<?= $containerClass ?>"><?php endif; ?>
-        <div class="row" style="display:flex; flex-wrap:wrap; align-items:center;">
+        <div class="row">
             <?php if ($position === 'left'): ?>
-                <div class="col-sm-6" style="margin-bottom:15px;">
+                <div class="col-sm-6">
                     <?php if ($mediaFile !== ''): ?>
                         <?php if ($isVideo): ?>
-                            <video controls playsinline aria-label="<?= rex_escape($mediaLabel !== '' ? $mediaLabel : 'Video') ?>" style="max-width:100%; height:auto;">
-                                <source src="<?= rex_url::media($mediaFile) ?>" type="video/<?= rex_escape($ext) ?>">
-                            </video>
+                            <div class="embed-responsive embed-responsive-16by9">
+                                <video controls playsinline aria-label="<?= rex_escape($mediaLabel !== '' ? $mediaLabel : 'Video') ?>" class="embed-responsive-item">
+                                    <source src="<?= rex_url::media($mediaFile) ?>" type="video/<?= rex_escape($ext) ?>">
+                                </video>
+                            </div>
                         <?php else: ?>
                             <img src="<?= rex_url::media($mediaFile) ?>" alt="<?= rex_escape($mediaLabel) ?>" class="img-responsive" loading="lazy">
                         <?php endif; ?>
@@ -70,12 +72,14 @@ if ($containerWidth === '') {
                 <?php if ($text !== ''): ?><div><?= $text ?></div><?php endif; ?>
             </div>
             <?php if ($position === 'right'): ?>
-                <div class="col-sm-6" style="margin-top:15px;">
+                <div class="col-sm-6">
                     <?php if ($mediaFile !== ''): ?>
                         <?php if ($isVideo): ?>
-                            <video controls playsinline aria-label="<?= rex_escape($mediaLabel !== '' ? $mediaLabel : 'Video') ?>" style="max-width:100%; height:auto;">
-                                <source src="<?= rex_url::media($mediaFile) ?>" type="video/<?= rex_escape($ext) ?>">
-                            </video>
+                            <div class="embed-responsive embed-responsive-16by9">
+                                <video controls playsinline aria-label="<?= rex_escape($mediaLabel !== '' ? $mediaLabel : 'Video') ?>" class="embed-responsive-item">
+                                    <source src="<?= rex_url::media($mediaFile) ?>" type="video/<?= rex_escape($ext) ?>">
+                                </video>
+                            </div>
                         <?php else: ?>
                             <img src="<?= rex_url::media($mediaFile) ?>" alt="<?= rex_escape($mediaLabel) ?>" class="img-responsive" loading="lazy">
                         <?php endif; ?>

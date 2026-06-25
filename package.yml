@@ -7,6 +7,7 @@ license: MIT
 requires:
     packages:
         yform: '>=4.0'
+        focuspoint: '>=4.0'
     redaxo: '^5.15'
     php:
         version: '^8.1'
@@ -22,6 +23,9 @@ page:
         modules:
             title: 'translate:yform_content_builder_modules'
             icon: rex-icon fa-code
+        media_types_preview:
+            title: 'translate:yform_content_builder_media_types_preview'
+            icon: rex-icon fa-image
         settings:
             title: 'translate:yform_content_builder_settings'
             icon: rex-icon fa-cog

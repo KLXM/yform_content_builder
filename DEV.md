@@ -9,6 +9,120 @@ Umfassender Guide für die Entwicklung mit dem Framework-agnostischen Content Bu
 - **Projekt-Elemente**: Produktive externe Bausteine in Addons wie `klxm_elements`
 - **Modul-Erstellung**: Bleibt zentral auf `index.php?page=yform_content_builder/modules`
 
+## MediaManager-Verantwortung
+
+- `yform_content_builder` legt nur den Basistyp `content_builder` an.
+- Alle konkreten Ausgaben laufen über virtuelle Typen im Format `cb_<preset>__<width>`.
+- Die Auflösung erfolgt zentral über `MEDIA_MANAGER_FILTERSET` in `MediaManagerFilterset::apply()`.
+- Externe Addons registrieren Presets über `YFORM_CONTENT_BUILDER_MEDIA_TYPE_PRESETS` statt eigene statische MM-Typen in `install.php` anzulegen.
+- Wenn `media_negotiator` verfügbar ist, wird `negotiator` als letzter Effekt ergänzt; der Cache-Key wird über `MEDIA_MANAGER_INIT` erweitert.
+
+### Wie virtuelle Bildtypen funktionieren
+
+1. Templates erzeugen keine statischen MM-Typnamen mehr, sondern virtuelle Typen im Schema `cb_<preset>__<width>`.
+2. `MediaTypeRegistry::parseVirtualType()` zerlegt den Typ in Preset + Zielbreite.
+3. `MediaManagerFilterset::apply()` liest das passende Preset und mappt auf den Effekt `content_builder`.
+4. Der Effekt erhält `ratio`, `mode` und normalisierte `width` als Parameter.
+5. Optional wird `negotiator` als letzter Effekt angehängt.
+
+Kurzbeispiel:
+
+- Virtueller Typ: `cb_klxm_card_16_9__900`
+- Auflösung: Preset `klxm_card_16_9`, Width `900`
+- Normalisierung: z. B. auf `1200`, falls nur `[400,800,1200,1600]` erlaubt
+- Effektkette: `content_builder` (+ optional `negotiator`)
+
+### Preset-Kontrakt
+
+Ein Preset hat folgende Struktur:
+
+```php
+[
+    'ratio' => '16_9'|'21_9'|'4_3'|'1_1'|'3_2'|'3_4'|'original',
+    'mode' => 'focuspoint'|'resize',
+    'widths' => [400, 800, 1200, 1600],
+    'default_width' => 1200,
+]
+```
+
+Empfehlungen:
+
+- Ratio-Crops immer mit `mode = focuspoint`.
+- `original` nur mit `mode = resize`.
+- Preset-Namen addonspezifisch prefixen, z. B. `klxm_card_16_9`.
+
+### Presets registrieren (einfacher Weg, ohne direkten Extension-Point-Code)
+
+Wenn du den Umgang mit Extension Points vermeiden willst, nutze direkt die Registry-Methoden:
+
+```php
+use KLXM\YFormContentBuilder\Config\MediaTypeRegistry;
+
+if (rex_addon::get('yform_content_builder')->isAvailable()) {
+    MediaTypeRegistry::registerPresets([
+        'klxm_card_16_9' => [
+            'ratio' => '16_9',
+            'mode' => 'focuspoint',
+            'widths' => [400, 800, 1200, 1600],
+            'default_width' => 1200,
+        ],
+        'klxm_card_original' => [
+            'ratio' => 'original',
+            'mode' => 'resize',
+            'widths' => [400, 800, 1200],
+            'default_width' => 1200,
+        ],
+    ]);
+}
+```
+
+Einzelnes Preset:
+
+```php
+MediaTypeRegistry::registerPreset('klxm_teaser_4_3', [
+    'ratio' => '4_3',
+    'mode' => 'focuspoint',
+    'widths' => [400, 800, 1200],
+    'default_width' => 800,
+]);
+```
+
+### Presets registrieren (klassisch per Extension Point)
+
+Für dynamische Anpassungen oder projektweite Merges ist der Extension Point verfügbar:
+
+```php
+rex_extension::register('YFORM_CONTENT_BUILDER_MEDIA_TYPE_PRESETS', static function (rex_extension_point $ep): array {
+    $presets = $ep->getSubject();
+
+    $presets['klxm_card_16_9'] = [
+        'ratio' => '16_9',
+        'mode' => 'focuspoint',
+        'widths' => [400, 800, 1200, 1600],
+        'default_width' => 1200,
+    ];
+
+    return $presets;
+});
+```
+
+Hinweis:
+
+- Die Registry-Methode ist für Addon-Entwickler der schnellste Einstieg.
+- Der Extension Point ist sinnvoll, wenn du bestehende Presets anderer Addons gezielt verändern/erweitern möchtest.
+
+## Element-CSS pro Framework
+
+- Framework-basierte Templates sollen zuerst native Bootstrap/UIKit-Klassen verwenden.
+- Eigenes CSS nur, wenn Funktion/Optik nicht sinnvoll nativ abbildbar ist.
+- Element-spezifisches CSS liegt im Elementordner, z. B.:
+    - `elements/<element>/assets/uikit.css`
+    - `elements/<element>/assets/bootstrap.css`
+    - optional `elements/<element>/assets/common.css`
+- Das Backend lädt gemergtes Element-CSS automatisch über die API-Action `get_element_css`.
+- Das Frontend bindet der Integrator bewusst selbst ein:
+    - `/index.php?rex-api-call=content_builder&action=get_element_css&framework=uikit`
+
 ## 📚 Inhaltsverzeichnis
 
 1. [Architektur-Übersicht](#architektur-übersicht)

@@ -9,7 +9,7 @@ return [
     'label' => 'Cards',
     'icon' => 'fa fa-th-large',
     'description' => 'Karten mit Bild, Titel, Text, internem oder externem Link und wählbarem Card-Stil.',
-    'version' => '1.14.0',
+    'version' => '1.15.0',
     'category' => 'standards',
     'field_groups' => [
         'content_tab' => [
@@ -20,7 +20,7 @@ return [
         'layout_tab' => [
             'label' => 'Layout',
             'icon' => 'fa-columns',
-            'fields' => array_merge(['card_style'], $config::getGridFieldNames()),
+            'fields' => array_merge(['image_ratio', 'image_ratio_mobile', 'card_style'], $config::getGridFieldNames()),
         ],
         'section_tab' => [
             'label' => 'Sektion',
@@ -45,6 +45,31 @@ return [
                 'transparent' => 'Transparent',
             ],
             'default' => 'default',
+        ],
+        'image_ratio' => [
+            'type' => 'choice',
+            'label' => 'Bildformat',
+            'choices' => [
+                '16_9' => '16:9 (Standard)',
+                '21_9' => '21:9 (Cinema)',
+                '4_3' => '4:3',
+                '1_1' => '1:1',
+                'original' => 'Original (kein Crop)',
+            ],
+            'default' => '16_9',
+        ],
+        'image_ratio_mobile' => [
+            'type' => 'choice',
+            'label' => 'Bildformat mobil (optional, Art Direction)',
+            'choices' => [
+                '' => 'Wie Desktop',
+                '16_9' => '16:9',
+                '21_9' => '21:9 (Cinema)',
+                '4_3' => '4:3',
+                '1_1' => '1:1',
+                'original' => 'Original (kein Crop)',
+            ],
+            'default' => '',
         ],
         'items' => [
             'type' => 'repeater',

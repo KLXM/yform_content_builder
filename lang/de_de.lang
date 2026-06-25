@@ -5,6 +5,27 @@ yform_content_builder_overview = Übersicht
 
 yform_content_builder_modules = Module
 yform_content_builder_modules_description = Generiere automatisch REDAXO-Module für Content Builder Elemente
+yform_content_builder_media_types_preview = Virtuelle Bildtypen
+yform_content_builder_media_types_preview_intro = Wähle ein Bild aus dem Medienpool und vergleiche die erzeugten Varianten je virtuellem Bildtyp.
+yform_content_builder_media_types_preview_select_image = Bild aus dem Medienpool
+yform_content_builder_media_types_preview_show = Vorschau aktualisieren
+yform_content_builder_media_types_preview_no_image = Bitte ein Bild auswählen, um die virtuellen Bildtypen zu sehen.
+yform_content_builder_media_types_preview_invalid_image = Die ausgewählte Datei wurde im Medienpool nicht gefunden.
+yform_content_builder_media_types_preview_no_presets = Es wurden keine Presets registriert.
+yform_content_builder_media_types_preview_columns = Spalten
+yform_content_builder_media_types_preview_original = Original
+yform_content_builder_media_types_preview_ratio = Ratio
+yform_content_builder_media_types_preview_mode = Modus
+yform_content_builder_media_types_preview_type = Virtueller Typ
+yform_content_builder_media_types_preview_width = Breite
+yform_content_builder_media_types_preview_note = Hinweis: Die Liste enthält auch Presets aus anderen Addons, die sich per Extension Point registrieren.
+yform_content_builder_media_types_preview_install_button = Focuspoint-Ratio-Typen installieren (optional)
+yform_content_builder_media_types_preview_install_hint = Erstellt nur kanonische Ratio-Typen (z. B. 16:9, 4:3) für Focuspoint-Previews, keine Breitenmatrix.
+yform_content_builder_media_types_preview_install_with_texts = Titel/Beschreibung für Focuspoint-Auswahl setzen
+yform_content_builder_media_types_preview_install_requires = Für die Installation müssen media_manager und focuspoint verfügbar sein.
+yform_content_builder_media_types_preview_install_no_ratios = Es wurden keine focuspoint-basierten Ratio-Presets gefunden.
+yform_content_builder_media_types_preview_install_success = Focuspoint-Ratio-Typen verarbeitet. Neu: %s, aktualisiert: %s, Effekte gesetzt: %s.
+yform_content_builder_media_types_preview_install_error = Installation fehlgeschlagen: %s
 
 yform_content_builder_settings = Einstellungen
 yform_content_builder_docs = Dokumentation

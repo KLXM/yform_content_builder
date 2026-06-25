@@ -5,6 +5,27 @@ yform_content_builder_overview = Overview
 
 yform_content_builder_modules = Modules
 yform_content_builder_modules_description = Auto-generate REDAXO modules for Content Builder elements
+yform_content_builder_media_types_preview = Virtual image types
+yform_content_builder_media_types_preview_intro = Select a media pool image and compare generated variants per virtual image type.
+yform_content_builder_media_types_preview_select_image = Media pool image
+yform_content_builder_media_types_preview_show = Refresh preview
+yform_content_builder_media_types_preview_no_image = Please select an image to see virtual image types.
+yform_content_builder_media_types_preview_invalid_image = The selected file was not found in the media pool.
+yform_content_builder_media_types_preview_no_presets = No presets are currently registered.
+yform_content_builder_media_types_preview_columns = Columns
+yform_content_builder_media_types_preview_original = Original
+yform_content_builder_media_types_preview_ratio = Ratio
+yform_content_builder_media_types_preview_mode = Mode
+yform_content_builder_media_types_preview_type = Virtual type
+yform_content_builder_media_types_preview_width = Width
+yform_content_builder_media_types_preview_note = Note: The list also includes presets registered by other addons via extension point.
+yform_content_builder_media_types_preview_install_button = Install focuspoint ratio types (optional)
+yform_content_builder_media_types_preview_install_hint = Creates only canonical ratio types (e.g. 16:9, 4:3) for focuspoint previews, no width matrix.
+yform_content_builder_media_types_preview_install_with_texts = Set title/description for focuspoint selection
+yform_content_builder_media_types_preview_install_requires = Installation requires both media_manager and focuspoint addons.
+yform_content_builder_media_types_preview_install_no_ratios = No focuspoint-based ratio presets were found.
+yform_content_builder_media_types_preview_install_success = Focuspoint ratio types processed. Created: %s, updated: %s, effects written: %s.
+yform_content_builder_media_types_preview_install_error = Installation failed: %s
 
 yform_content_builder_settings = Settings
 yform_content_builder_docs = Documentation

@@ -6,6 +6,28 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [3.2.1] – 2026-06-25
+
+### 🏗️ Media Manager Architektur
+
+- Auf ein zentrales Typmodell umgestellt:
+  - DB-Typ `content_builder` als Basistyp.
+  - Virtuelle Ableitungen im Format `cb_<preset>__<width>`.
+- Neue zentrale Preset-Verwaltung in `MediaTypeRegistry`.
+- Laufzeit-Auflösung der virtuellen Typen über `MEDIA_MANAGER_FILTERSET`.
+- Optionale Integration von `media_negotiator`:
+  - `negotiator` wird nur bei Verfügbarkeit angehängt.
+  - Reihenfolge bleibt stabil: `content_builder` zuerst, `negotiator` zuletzt.
+  - Cache-Key-Anpassung über `MEDIA_MANAGER_INIT` für format-/quality-sichere Caches.
+
+### 🔒 Abhängigkeiten
+
+- `focuspoint` als Pflichtabhängigkeit für ratio-basierte Crops gesetzt.
+
+### 🔧 Kompatibilität
+
+- Alias-Typen wie `content_slideshow` und `yform_content_builder_preview` bleiben als virtuelle Preset-Mappings erhalten.
+
 ## [3.2.0] – 2026-06-23
 
 ### ✨ Neu

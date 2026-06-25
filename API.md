@@ -8,6 +8,7 @@ Diese Dokumentation beschreibt die API des YForm Content Builders, wie man eigen
 - [Modul-Integration](#modul-integration)
 - [Frontend-Output API](#frontend-output-api)
 - [Frameworks & Templates](#frameworks--templates)
+- [Media-Manager-Typen](#media-manager-typen)
 - [Feldtypen-System](#feldtypen-system)
 - [Feld-Konfiguration](#feld-konfiguration)
   - [Gemeinsame Optionen](#gemeinsame-optionen-alle-felder)
@@ -41,6 +42,7 @@ Der Content Builder nutzt eine dedizierte `rex_api_function` für alle AJAX-Requ
 | `load_media_categories` | POST | Lädt Medienpool-Kategorien | - |
 | `load_media_list` | POST | Lädt Medienliste einer Kategorie | `category_id`, `type` |
 | `get_media_preview` | POST | Erzeugt Media-Preview HTML | `media_file`, `types` |
+| `get_element_css` | GET | Liefert gemergtes Element-CSS | `framework`, `elements` |
 
 ### Beispiel: Element-Formular laden
 
@@ -79,6 +81,26 @@ $.ajax({
     }
 });
 ```
+
+### Beispiel: Gemergtes Element-CSS laden
+
+Frontend (manuell einbinden):
+
+```html
+<link rel="stylesheet" href="/index.php?rex-api-call=content_builder&action=get_element_css&framework=uikit">
+```
+
+Optional nur für bestimmte Elemente:
+
+```html
+<link rel="stylesheet" href="/index.php?rex-api-call=content_builder&action=get_element_css&framework=bootstrap&elements=starter_cards,starter_media_split">
+```
+
+Hinweise:
+
+- Das Backend bindet diese CSS-Ausgabe automatisch ein.
+- Im Frontend bleibt die Einbindung bewusst bei der integrativen Seite bzw. beim Projekt.
+- Gesucht werden pro Element in dieser Reihenfolge: `assets/<framework>.css`, `templates/<framework>.css`, `assets/common.css`, `templates/common.css`.
 
 ---
 
@@ -233,6 +255,58 @@ Hinweis:
 
 - Die Regel gilt für Einfügen/Erstellen neuer Slices.
 - Bereits vorhandene Inhalte werden nicht automatisch umgebaut.
+
+---
+
+## Media-Manager-Typen
+
+Der Builder nutzt ein zentrales virtuelles Typschema:
+
+- Basistyp in der DB: `content_builder`
+- Virtuelles Format: `cb_<preset>__<width>`
+- Beispiel: `cb_starter_cards_16_9__800`
+
+### Typ erzeugen
+
+```php
+<?php
+$type = \KLXM\YFormContentBuilder\Config\MediaTypeRegistry::buildVirtualType('starter_cards_16_9', 1200);
+$url = rex_media_manager::getUrl($type, $file);
+```
+
+### Presets registrieren (externes Addon)
+
+```php
+rex_extension::register(
+    'YFORM_CONTENT_BUILDER_MEDIA_TYPE_PRESETS',
+    static function (rex_extension_point $ep): array {
+        $presets = (array) $ep->getSubject();
+
+        $presets['myaddon_card_1_1'] = [
+            'ratio' => '1_1',
+            'mode' => 'focuspoint',
+            'widths' => [200, 400, 600, 800],
+            'default_width' => 400,
+        ];
+
+        return $presets;
+    },
+    rex_extension::EARLY
+);
+```
+
+### Effektreihenfolge
+
+1. `content_builder` (Resize/Crop mit Ratio-Logik)
+2. optional `negotiator` (Format-Aushandlung)
+
+`negotiator` muss immer zuletzt kommen.
+
+### Wichtige Hinweise
+
+- Statische Typen wie `card_16_9_w1200` sollen nicht mehr neu eingeführt werden.
+- Für ratio-basierte Presets ist das Addon `focuspoint` erforderlich.
+- Bei aktivem `media_negotiator` wird der Cache-Key um Format-/Qualitätsparameter ergänzt.
 
 ---
 
@@ -1663,6 +1737,36 @@ if (TemplateEngine::hasTemplate('cards', 'bootstrap')) {
 $frameworks = TemplateEngine::getAvailableFrameworks();
 // => ['uikit', 'bootstrap', 'plain']
 ```
+
+### MediaManagerHelper
+
+```php
+use KLXM\YFormContentBuilder\MediaManagerHelper;
+
+$mm = MediaManagerHelper::factory();
+
+$mm->addType('example_16_9', 'Beispieltyp 16:9')
+   ->addEffect('example_16_9', 'resize', [
+       'width' => 1200,
+       'height' => 1200,
+       'style' => 'maximum',
+       'allow_enlarge' => 'not_enlarge',
+   ], 1)
+   ->addEffect('example_16_9', 'crop', [
+       'width' => 1200,
+       'height' => 675,
+       'hpos' => 'center',
+       'vpos' => 'middle',
+       'offset_width' => '',
+       'offset_height' => '',
+   ], 2)
+   ->install();
+```
+
+Empfehlung:
+
+- Jedes Addon legt nur die tatsächlich selbst verwendeten MediaManager-Typen in seiner eigenen `install.php` an.
+- Typenbeschreibungen sollten den Addon-Bezug klar enthalten, z. B. `YForm Content Builder: ...` oder `KLXM Elements: ...`.
 
 ### FieldRegistry
 

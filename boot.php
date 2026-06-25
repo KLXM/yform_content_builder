@@ -10,14 +10,28 @@ require_once rex_path::addon('yform_content_builder', 'lib/config/FrameworkConfi
 require_once rex_path::addon('yform_content_builder', 'lib/config/EditorConfig.php');
 require_once rex_path::addon('yform_content_builder', 'lib/config/ElementRegistry.php');
 require_once rex_path::addon('yform_content_builder', 'lib/config/ElementModeResolver.php');
+require_once rex_path::addon('yform_content_builder', 'lib/config/MediaTypeRegistry.php');
 require_once rex_path::addon('yform_content_builder', 'lib/config/ThemeProviderBridge.php');
+require_once rex_path::addon('yform_content_builder', 'lib/MediaNegotiatorBridge.php');
 
 // API-Klassen registrieren (namespaced, via rex_api_function::register)
 rex_api_function::register('content_builder', \KLXM\YFormContentBuilder\Api\ContentBuilderApi::class);
 rex_api_function::register('yform_list_columns', \KLXM\YFormContentBuilder\Api\ListColumnsApi::class);
 
 if (rex_addon::get('yform')->isAvailable()) {
-    rex_extension::register('MEDIA_IS_IN_USE', [\KLXM\YFormContentBuilder\MediaInUse::class, 'isMediaInUse']);
+    rex_extension::register('MEDIA_IS_IN_USE', static function (rex_extension_point $ep) {
+        return \KLXM\YFormContentBuilder\MediaInUse::isMediaInUse($ep);
+    });
+}
+
+if (rex_addon::get('media_manager')->isAvailable()) {
+    rex_media_manager::addEffect(rex_effect_content_builder::class);
+    rex_extension::register('MEDIA_MANAGER_FILTERSET', static function (rex_extension_point $ep): array {
+        return \KLXM\YFormContentBuilder\MediaManagerFilterset::apply($ep);
+    }, rex_extension::EARLY);
+    rex_extension::register('MEDIA_MANAGER_INIT', static function (rex_extension_point $ep): void {
+        \KLXM\YFormContentBuilder\MediaNegotiatorBridge::adjustCachePath($ep);
+    }, rex_extension::EARLY);
 }
 
 // Theme-Provider Integration: konfiguriertes Backend-Theme anwenden
@@ -27,6 +41,41 @@ if (rex::isBackend()) {
         \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::resetThemeContext();
         \KLXM\YFormContentBuilder\Config\ThemeProviderBridge::setTheme($configuredTheme);
     }
+}
+
+if (rex::isBackend() && rex_addon::get('focuspoint')->isAvailable()) {
+    rex_extension::register('FOCUSPOINT_PREVIEW_SELECT', static function (rex_extension_point $ep): array {
+        $subject = $ep->getSubject();
+        if (!is_array($subject)) {
+            return $subject;
+        }
+
+        $labelMap = rex_addon::get('yform_content_builder')->getConfig('focuspoint_ratio_type_labels', []);
+        if (!is_array($labelMap) || $labelMap === []) {
+            return $subject;
+        }
+
+        foreach ($subject as $typeName => $typeData) {
+            if (!isset($labelMap[$typeName]) || !is_array($typeData)) {
+                continue;
+            }
+
+            $entry = $labelMap[$typeName];
+            if (is_array($entry)) {
+                $title = trim((string) ($entry['title'] ?? ''));
+                $description = trim((string) ($entry['description'] ?? ''));
+                if ($title !== '') {
+                    $typeData['label'] = $description !== '' ? $title . ' - ' . $description : $title;
+                    $subject[$typeName] = $typeData;
+                }
+            } elseif (is_string($entry) && trim($entry) !== '') {
+                $typeData['label'] = trim($entry);
+                $subject[$typeName] = $typeData;
+            }
+        }
+
+        return $subject;
+    });
 }
 
 // Extension Points registrieren
@@ -55,6 +104,16 @@ if (rex::isBackend()) {
     rex_view::addCssFile($assetUrl('content-builder-dark.css'));
     rex_view::addCssFile($assetUrl('divider.css'));
     rex_view::addCssFile($assetUrl('cards.css'));
+    rex_view::addCssFile(rex_url::frontendController([
+        'rex-api-call' => 'content_builder',
+        'action' => 'get_element_css',
+        'framework' => 'uikit',
+    ], false));
+    rex_view::addCssFile(rex_url::frontendController([
+        'rex-api-call' => 'content_builder',
+        'action' => 'get_element_css',
+        'framework' => 'bootstrap',
+    ], false));
     rex_view::addJsFile($assetUrl('content-builder.js'));
     rex_view::addJsFile($assetUrl('media-browser.js'));
     rex_view::addJsFile($assetUrl('field-widgets.js'));

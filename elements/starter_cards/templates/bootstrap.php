@@ -1,9 +1,12 @@
 <?php
 use KLXM\YFormContentBuilder\Starter\StarterConfig;
+use KLXM\YFormContentBuilder\Config\MediaTypeRegistry;
 
 $headline    = (string) ($elementData['headline'] ?? '');
 $items       = $elementData['items'] ?? [];
 $cardStyle   = (string) ($elementData['card_style'] ?? 'default');
+$imageRatio  = (string) ($elementData['image_ratio'] ?? '16_9');
+$imageRatioMobile = (string) ($elementData['image_ratio_mobile'] ?? '');
 $columns     = (int) ($elementData['columns'] ?? 3);
 $sectionBg   = (string) ($elementData['section_bg'] ?? '');
 $sectionPadding  = (string) ($elementData['section_padding'] ?? '');
@@ -22,15 +25,15 @@ $sectionClasses = array_filter([
 $sectionClassStr = implode(' ', $sectionClasses);
 $containerClass  = StarterConfig::mapContainer($containerWidth, 'bootstrap');
 
-$cardBorderMap = [
-    'default'     => 'border:1px solid #ddd;background:#fff;',
-    'primary'     => 'background:#1e87f0;color:#fff;border:none;',
-    'secondary'   => 'background:#222;color:#fff;border:none;',
-    'muted'       => 'background:#f8f8f8;border:1px solid #eee;',
-    'hover'       => 'border:1px solid #ddd;background:#fff;',
+$cardClassMap = [
+    'default' => 'panel panel-default',
+    'primary' => 'panel panel-primary',
+    'secondary' => 'panel panel-info',
+    'muted' => 'panel panel-default',
+    'hover' => 'panel panel-default',
     'transparent' => '',
 ];
-$cardStyleAttr = $cardBorderMap[$cardStyle] ?? 'border:1px solid #ddd;background:#fff;';
+$cardClass = $cardClassMap[$cardStyle] ?? 'panel panel-default';
 
 /** @param array<string,mixed> $item @return array{href:string,target:string,text:string} */
 $resolveLink = static function (array $item): array {
@@ -53,6 +56,49 @@ $resolveLink = static function (array $item): array {
 
 $colMap = [1 => 'col-sm-12', 2 => 'col-sm-6', 3 => 'col-sm-4', 4 => 'col-sm-3', 5 => 'col-sm-2', 6 => 'col-sm-2'];
 $colClass = $colMap[$columns] ?? 'col-sm-4';
+$estimateContainerMaxPx = static function (string $container): int {
+    if (str_contains($container, 'xsmall')) {
+        return 640;
+    }
+    if (str_contains($container, 'small')) {
+        return 900;
+    }
+    if (str_contains($container, 'xlarge')) {
+        return 1600;
+    }
+    if (str_contains($container, 'large')) {
+        return 1400;
+    }
+    if (str_contains($container, 'expand') || str_contains($container, 'fluid') || $container === '') {
+        return 1920;
+    }
+
+    return 1170;
+};
+$containerMaxPx = $estimateContainerMaxPx($containerWidth);
+$desktopPx = (int) max(220, round($containerMaxPx / max(1, $columns)));
+$mobileArtDirectionActive = $imageRatioMobile !== '' && $imageRatioMobile !== $imageRatio;
+
+/** @return array{src:string,srcset:string} */
+$resolveImage = static function (string $image, string $ratio): array {
+    if ($image === '') {
+        return ['src' => '', 'srcset' => ''];
+    }
+
+    if (!rex_addon::get('media_manager')->isAvailable()) {
+        return ['src' => rex_url::media($image), 'srcset' => ''];
+    }
+
+    $preset = 'starter_cards_' . $ratio;
+    $widths = [400, 800, 1200, 1600];
+    $src = rex_media_manager::getUrl(MediaTypeRegistry::buildVirtualType($preset, 1200), $image);
+    $srcset = [];
+    foreach ($widths as $w) {
+        $srcset[] = rex_media_manager::getUrl(MediaTypeRegistry::buildVirtualType($preset, $w), $image) . ' ' . $w . 'w';
+    }
+
+    return ['src' => $src, 'srcset' => implode(', ', $srcset)];
+};
 ?>
 <?php if ($enableSection): ?>
 <section<?= $sectionClassStr !== '' ? ' class="' . rex_escape($sectionClassStr) . '"' : '' ?>>
@@ -67,18 +113,38 @@ $colClass = $colMap[$columns] ?? 'col-sm-4';
             $link      = $resolveLink($item);
             $fallback  = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Karte ' . ($index + 1);
             $imageAlt  = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
+            $imageInfo = $resolveImage((string) ($item['image'] ?? ''), $imageRatio);
+            $imageInfoMobile = $mobileArtDirectionActive
+                ? $resolveImage((string) ($item['image'] ?? ''), $imageRatioMobile)
+                : ['src' => '', 'srcset' => ''];
             ?>
-            <div class="<?= rex_escape($colClass) ?>" style="margin-bottom:15px;">
-                <article style="height:100%;<?= rex_escape($cardStyleAttr) ?>">
-                    <?php if (!empty($item['image'])): ?>
-                        <img src="<?= rex_url::media((string) $item['image']) ?>" alt="<?= rex_escape($imageAlt) ?>" class="img-responsive" loading="lazy">
+            <div class="<?= rex_escape($colClass) ?>">
+                <article class="<?= rex_escape($cardClass) ?>">
+                    <?php if ($imageInfo['src'] !== ''): ?>
+                        <picture>
+                            <?php if ($mobileArtDirectionActive && $imageInfoMobile['src'] !== ''): ?>
+                                <source
+                                    media="(max-width: 767px)"
+                                    <?= $imageInfoMobile['srcset'] !== '' ? 'srcset="' . rex_escape($imageInfoMobile['srcset']) . '"' : 'srcset="' . rex_escape($imageInfoMobile['src']) . '"' ?>
+                                    sizes="100vw"
+                                >
+                            <?php endif; ?>
+                            <img
+                                src="<?= rex_escape($imageInfo['src']) ?>"
+                                <?= $imageInfo['srcset'] !== '' ? 'srcset="' . rex_escape($imageInfo['srcset']) . '"' : '' ?>
+                                sizes="(min-width: 992px) <?= $desktopPx ?>px, 100vw"
+                                alt="<?= rex_escape($imageAlt) ?>"
+                                class="img-responsive"
+                                loading="lazy"
+                            >
+                        </picture>
                     <?php endif; ?>
-                    <div style="padding:12px;">
-                        <?php if ($itemTitle !== ''): ?><h4 style="margin-top:0;"><?= rex_escape($itemTitle) ?></h4><?php endif; ?>
+                    <div class="panel-body">
+                        <?php if ($itemTitle !== ''): ?><h4><?= rex_escape($itemTitle) ?></h4><?php endif; ?>
                         <?php if (trim(strip_tags($itemText)) !== ''): ?><div><?= $itemText ?></div><?php endif; ?>
                         <?php if ($link['href'] !== ''): ?>
                             <a href="<?= rex_escape($link['href']) ?>"
-                               class="btn btn-link" style="padding:0;"
+                               class="btn btn-link"
                                <?= $link['target'] !== '' ? 'target="' . rex_escape($link['target']) . '" rel="noopener"' : '' ?>
                                aria-label="<?= rex_escape($link['text'] . ($itemTitle !== '' ? ' – ' . $itemTitle : '')) ?>">
                                 <?= rex_escape($link['text']) ?>
@@ -91,37 +157,3 @@ $colClass = $colMap[$columns] ?? 'col-sm-4';
     </div>
 <?php if ($enableContainer && $containerClass !== ''): ?></div><?php endif; ?>
 <?php if ($enableSection): ?></section><?php endif; ?>
-
-<section<?= $sectionClassStr !== '' ? ' class="' . rex_escape($sectionClassStr) . '"' : '' ?>>
-    <?php if ($containerClass !== ''): ?><div class="<?= rex_escape($containerClass) ?>"><?php endif; ?>
-        <?php if ($headline !== ''): ?><h3><?= rex_escape($headline) ?></h3><?php endif; ?>
-        <div class="row">
-            <?php foreach ($items as $index => $item): ?>
-                <?php
-                $itemTitle = (string) ($item['title'] ?? '');
-                $itemText = (string) ($item['text'] ?? '');
-                $itemLinkText = trim((string) ($item['link_text'] ?? 'Mehr erfahren'));
-                if ($itemLinkText === '') {
-                    $itemLinkText = 'Mehr erfahren';
-                }
-                $fallback = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Karte ' . ($index + 1);
-                $itemImageAlt = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
-                ?>
-                <div class="<?= $colClass ?>" style="margin-bottom:15px;">
-                    <article style="border:1px solid #ddd; background:#fff; height:100%;">
-                        <?php if (!empty($item['image'])): ?>
-                            <img src="<?= rex_url::media((string) $item['image']) ?>" alt="<?= rex_escape($itemImageAlt) ?>" class="img-responsive" loading="lazy">
-                        <?php endif; ?>
-                        <div style="padding:12px;">
-                            <?php if ($itemTitle !== ''): ?><h4 style="margin-top:0;"><?= rex_escape($itemTitle) ?></h4><?php endif; ?>
-                            <?php if (trim(strip_tags($itemText)) !== ''): ?><div><?= $itemText ?></div><?php endif; ?>
-                            <?php if (!empty($item['link_url'])): ?>
-                                <a href="<?= rex_escape((string) $item['link_url']) ?>" class="btn btn-link" style="padding:0;" aria-label="<?= rex_escape($itemLinkText . ($itemTitle !== '' ? ' - ' . $itemTitle : '')) ?>"><?= rex_escape($itemLinkText) ?></a>
-                            <?php endif; ?>
-                        </div>
-                    </article>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php if ($containerClass !== ''): ?></div><?php endif; ?>
-</section>

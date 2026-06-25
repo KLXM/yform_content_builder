@@ -38,6 +38,14 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 - **Forcal-Termine** – Veranstaltungen aus dem forcal-Addon direkt im Content Builder
 - **Theme-Provider über Extension Points (EP)** – Farben, Themes und Kontext, z. B. aus `uikit_theme_builder`
 
+### Media Manager (ab v3.2)
+- **Zentraler Basistyp:** Es wird nur noch der Typ `content_builder` angelegt.
+- **Virtuelle Typen:** Ausgaben laufen über `cb_<preset>__<width>`, z. B. `cb_starter_cards_16_9__800`.
+- **Preset-Auflösung zur Laufzeit:** `MEDIA_MANAGER_FILTERSET` mappt virtuelle Typen auf die Effektkette.
+- **Effektreihenfolge:** `content_builder` läuft zuerst, optional `negotiator` immer als letzter Effekt.
+- **Cache-Sicherheit bei Negotiation:** Bei aktivem `media_negotiator` ergänzt `MEDIA_MANAGER_INIT` den Cache-Key format-/qualitätsabhängig.
+- **focuspoint ist Pflicht**, damit ratio-basierte Zuschnitte konsistent sind.
+
 ### Theme-Provider per Extension Points (EP)
 
 Der Content Builder nutzt für Theme-Funktionen ausschließlich Extension Points (EP).
@@ -135,6 +143,53 @@ rex_extension::register('YFORM_CONTENT_BUILDER_FRAMEWORK_NORMALIZE', static func
 ---
 
 ## 🏗️ Architektur
+
+### Virtuelles Medientyp-Modell
+
+Das Addon verwendet ein einheitliches, addongesteuertes Medientyp-System:
+
+1. `install.php` legt nur den Basistyp `content_builder` mit Effekt `content_builder` an.
+2. Die Klasse `MediaTypeRegistry` hält Presets (Ratio, Mode, Breiten).
+3. Aus einem Preset wird ein virtueller Typ erzeugt:
+   - `MediaTypeRegistry::buildVirtualType($preset, $width)`
+   - Beispiel: `cb_klxm_card_1_1__400`
+4. `MediaManagerFilterset::apply()` löst den virtuellen Typ in eine Effektkette auf.
+5. Optional wird am Ende `negotiator` angehängt, wenn `media_negotiator` verfügbar ist.
+
+Beispiel in Templates:
+
+```php
+<?php
+$type = \KLXM\YFormContentBuilder\Config\MediaTypeRegistry::buildVirtualType('starter_cards_16_9', 1200);
+echo rex_media_manager::getUrl($type, $file);
+```
+
+### Eigene Presets registrieren
+
+Externe Addons registrieren zusätzliche Presets über den Extension Point `YFORM_CONTENT_BUILDER_MEDIA_TYPE_PRESETS`:
+
+```php
+rex_extension::register(
+    'YFORM_CONTENT_BUILDER_MEDIA_TYPE_PRESETS',
+    static function (rex_extension_point $ep): array {
+        $presets = (array) $ep->getSubject();
+
+        $presets['myaddon_card_3_2'] = [
+            'ratio' => '3_2',
+            'mode' => 'focuspoint',
+            'widths' => [400, 800, 1200, 1600],
+            'default_width' => 1200,
+        ];
+
+        return $presets;
+    },
+    rex_extension::EARLY
+);
+```
+
+Hinweis:
+- Externe Addons sollen keine statischen MM-Typen mehr anlegen, sondern Presets registrieren.
+- Namensschema für Presets: `<addon>_<zweck>_<ratio>` (z. B. `klxm_card_16_9`).
 
 ### Addon-Strategie
 

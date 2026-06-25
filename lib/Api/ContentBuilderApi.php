@@ -17,6 +17,7 @@ use rex_request;
 use rex_response;
 use rex_sql;
 use rex_url;
+use rex_file;
 
 /**
  * API Handler für YForm Content Builder
@@ -36,6 +37,13 @@ class ContentBuilderApi extends rex_api_function
 
     public function execute()
     {
+        $action = rex_request::request('action', 'string', '');
+
+        if ($action === 'get_element_css') {
+            $this->getElementCss();
+            exit;
+        }
+
         // Nur im Backend und für eingeloggte Benutzer
         if (!rex::isBackend() || !rex::getUser()) {
             return new rex_api_result(false, 'Zugriff verweigert');
@@ -51,8 +59,6 @@ class ContentBuilderApi extends rex_api_function
         }
 
         rex_response::cleanOutputBuffers();
-
-        $action = rex_request::request('action', 'string', '');
 
         switch ($action) {
             case 'load_slice_form':
@@ -81,6 +87,133 @@ class ContentBuilderApi extends rex_api_function
         }
 
         exit;
+    }
+
+    protected function getElementCss(): void
+    {
+        rex_response::cleanOutputBuffers();
+
+        $framework = trim((string) rex_request::request('framework', 'string', ''));
+        $elementsParam = trim((string) rex_request::request('elements', 'string', ''));
+        $requestedElements = [];
+        if ($elementsParam !== '') {
+            $requestedElements = array_values(array_filter(array_map(
+                static fn (string $value): string => trim($value),
+                explode(',', $elementsParam)
+            )));
+        }
+
+        $elementPaths = $this->getResolvedElementPaths();
+        if ($requestedElements !== []) {
+            $requestedLookup = array_flip($requestedElements);
+            $elementPaths = array_filter(
+                $elementPaths,
+                static fn (string $key): bool => isset($requestedLookup[$key]),
+                ARRAY_FILTER_USE_KEY
+            );
+        }
+
+        $css = [];
+        foreach ($elementPaths as $elementKey => $path) {
+            $files = $this->getCssFilesForElement($path, $framework);
+            foreach ($files as $file) {
+                $content = rex_file::get($file);
+                if (!is_string($content) || trim($content) === '') {
+                    continue;
+                }
+
+                $css[] = '/* element: ' . $elementKey . ' | file: ' . basename($file) . ' */';
+                $css[] = trim($content);
+            }
+        }
+
+        $output = implode("\n\n", $css);
+        rex_response::setHeader('Cache-Control', 'public, max-age=3600');
+        rex_response::sendContent($output, 'text/css; charset=UTF-8');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function getResolvedElementPaths(): array
+    {
+        $sources = [];
+
+        $customPaths = \rex_extension::registerPoint(new \rex_extension_point(
+            'YFORM_CONTENT_BUILDER_ELEMENT_PATHS',
+            ['']
+        ));
+        foreach ((array) $customPaths as $customPath) {
+            $path = rtrim((string) $customPath, '/\\');
+            if ($path !== '' && is_dir($path)) {
+                $sources[] = $path;
+            }
+        }
+
+        $projectPath = rex_addon::get('project')->getPath('elements');
+        if (is_dir($projectPath)) {
+            $sources[] = rtrim($projectPath, '/\\');
+        }
+
+        $dataPath = rex_addon::get('yform_content_builder')->getDataPath('elements');
+        if (is_dir($dataPath)) {
+            $sources[] = rtrim($dataPath, '/\\');
+        }
+
+        $addonPath = rex_addon::get('yform_content_builder')->getPath('elements');
+        if (is_dir($addonPath)) {
+            $sources[] = rtrim($addonPath, '/\\');
+        }
+
+        $resolved = [];
+        foreach ($sources as $sourcePath) {
+            $entries = scandir($sourcePath);
+            if (!is_array($entries)) {
+                continue;
+            }
+
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+
+                $elementPath = $sourcePath . '/' . $entry;
+                if (!is_dir($elementPath) || isset($resolved[$entry])) {
+                    continue;
+                }
+
+                $resolved[$entry] = $elementPath;
+            }
+        }
+
+        ksort($resolved);
+
+        return $resolved;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function getCssFilesForElement(string $elementPath, string $framework): array
+    {
+        $candidates = [];
+
+        if ($framework !== '') {
+            $candidates[] = $elementPath . '/assets/' . $framework . '.css';
+            $candidates[] = $elementPath . '/templates/' . $framework . '.css';
+        }
+
+        $candidates[] = $elementPath . '/assets/common.css';
+        $candidates[] = $elementPath . '/templates/common.css';
+
+        $files = [];
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate)) {
+                $files[] = $candidate;
+            }
+        }
+
+        return $files;
     }
 
     protected function resolveBackendLocale(): string
