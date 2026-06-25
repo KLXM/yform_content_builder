@@ -187,7 +187,30 @@ rex_extension::register(
 );
 ```
 
-Hinweis:
+#### Preset-Optionen
+
+| Option | Typ | Beschreibung |
+|--------|-----|-------------|
+| `ratio` | string | Seitenverhältnis des Zielbilds – siehe Tabelle unten |
+| `mode` | string | Zuschnitt-Modus: `focuspoint` oder `resize` |
+| `widths` | int[] | Liste der zu erzeugenden Pixelbreiten, z. B. `[400, 800, 1200]` |
+| `default_width` | int | Standardbreite, wenn kein `$width`-Parameter übergeben wird |
+
+#### Ratio-Werte
+
+| Wert | Beispiel | Modus | Erzeugter Media-Typ | Beschreibung |
+|------|---------|-------|---------------------|-------------|
+| `original` | `'ratio' => 'original'` | `resize` | `cb_myaddon_card_original__800` | Originalverhältnis, nur Breite skalieren – kein Crop |
+| `16_9` | `'ratio' => '16_9'` | `focuspoint` | `cb_myaddon_card_16_9__800` | 16:9 Widescreen |
+| `4_3` | `'ratio' => '4_3'` | `focuspoint` | `cb_myaddon_card_4_3__800` | 4:3 klassisch |
+| `3_2` | `'ratio' => '3_2'` | `focuspoint` | `cb_myaddon_card_3_2__800` | 3:2 (Foto-Standard) |
+| `2_3` | `'ratio' => '2_3'` | `focuspoint` | `cb_myaddon_card_2_3__800` | 2:3 Hochformat |
+| `1_1` | `'ratio' => '1_1'` | `focuspoint` | `cb_myaddon_card_1_1__800` | Quadratisch |
+| `w_h` | `'ratio' => '21_9'` | `focuspoint` | `cb_myaddon_card_21_9__800` | Beliebiges Ganzzahl-Verhältnis |
+
+> **Hinweis:** Bei `ratio => 'original'` muss `mode => 'resize'` gesetzt werden (kein Focuspoint-Crop möglich). Der erzeugte Typ-Name lautet immer `cb_<preset_name>__<width>` – das `ratio` ist Bestandteil des Preset-Namens, nicht ein separates Segment im Typ-Namen.
+
+Hinweise:
 - Externe Addons sollen keine statischen MM-Typen mehr anlegen, sondern Presets registrieren.
 - Namensschema für Presets: `<addon>_<zweck>_<ratio>` (z. B. `klxm_card_16_9`).
 
