@@ -1768,6 +1768,45 @@ Empfehlung:
 - Jedes Addon legt nur die tatsächlich selbst verwendeten MediaManager-Typen in seiner eigenen `install.php` an.
 - Typenbeschreibungen sollten den Addon-Bezug klar enthalten, z. B. `YForm Content Builder: ...` oder `KLXM Elements: ...`.
 
+### ResponsiveImage
+
+```php
+use KLXM\YFormContentBuilder\Media\ResponsiveImage;
+
+$image = ResponsiveImage::forFile($file)
+    ->withDesktopPreset('starter_cards_16_9')
+    ->withMobilePreset('starter_cards_4_3')
+    ->withWidths([400, 800, 1200, 1600])
+    ->withContainerWidth('uk-container')
+    ->withColumns(3, 2, 1)
+    ->withMediaFraction(1.0)
+    ->withMobileBreakpoint(639);
+
+$imgData = $image->toImage();
+$pictureData = $image->toPicture();
+
+echo $image->toImageTag([
+    'alt' => $alt,
+    'class' => 'uk-width-1-1',
+]);
+
+echo $image->toPictureTag([
+    'alt' => $alt,
+    'class' => 'uk-width-1-1',
+]);
+```
+
+Rückgaben:
+
+- `toImage()` → `['src' => string, 'srcset' => string, 'sizes' => string]`
+- `toPicture()` → `['sources' => list<array{media,srcset,sizes}>, 'img' => array{src,srcset,sizes}]`
+
+Hinweise:
+
+- Die Klasse ist für Template-Nutzung gedacht und reduziert duplizierte `<picture>/<img>`-Logik.
+- Intern wird weiterhin das virtuelle Typschema `cb_<preset>__<width>` verwendet.
+- Ohne verfügbaren Media Manager fällt die Ausgabe auf `rex_url::media(...)` zurück.
+
 ### FieldRegistry
 
 ```php

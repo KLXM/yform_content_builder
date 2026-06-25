@@ -80,6 +80,20 @@ echo rex_media_manager::getUrl($type, $image);
 
 Externe Addons erweitern Presets über den Extension Point `YFORM_CONTENT_BUILDER_MEDIA_TYPE_PRESETS`.
 
+### ResponsiveImage Helper (Template-API)
+
+Für die Template-Ausgabe kann zusätzlich `KLXM\YFormContentBuilder\Media\ResponsiveImage` verwendet werden.
+
+- erzeugt zentral `src`, `srcset`, `sizes`
+- unterstützt optional Mobile-Art-Direction (`<picture>/<source>`)
+- stellt mit `toImageTag()` und `toPictureTag()` direkte HTML-Renderer bereit
+
+Wichtig für Schema-Verständnis:
+
+- Die Klasse betrifft ausschließlich die Laufzeit-Ausgabe in Templates.
+- Es wurden keine neuen `config.php`-Keys eingeführt.
+- Daher war keine Änderung an `element-config.schema.json` bzw. `schema/element-config.schema.json` erforderlich.
+
 ### Legacy Editor & Migration
 
 For YForm value-based content builders, the following configuration fields control Legacy-HTML handling:

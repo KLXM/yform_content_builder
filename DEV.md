@@ -32,6 +32,46 @@ Kurzbeispiel:
 - Normalisierung: z. B. auf `1200`, falls nur `[400,800,1200,1600]` erlaubt
 - Effektkette: `content_builder` (+ optional `negotiator`)
 
+### ResponsiveImage für Templates
+
+Für responsive Bildausgaben mit virtuellen Typen steht die Klasse `KLXM\YFormContentBuilder\Media\ResponsiveImage` bereit.
+
+Ziel:
+
+- zentrale Erzeugung von `src`, `srcset` und `sizes`
+- optionale Mobile-Art-Direction über `<picture>` / `<source>`
+- weniger duplizierte HTML- und Width-Logik in Templates
+
+Beispiel:
+
+```php
+use KLXM\YFormContentBuilder\Media\ResponsiveImage;
+
+$markup = ResponsiveImage::forFile($image)
+    ->withDesktopPreset('starter_cards_16_9')
+    ->withMobilePreset('starter_cards_4_3')
+    ->withWidths([400, 800, 1200, 1600])
+    ->withContainerWidth('uk-container')
+    ->withColumns(3, 2, 1)
+    ->toPictureTag([
+        'alt' => $alt,
+        'class' => 'uk-width-1-1',
+        'loading' => 'lazy',
+    ]);
+
+echo $markup;
+```
+
+API-Überblick:
+
+- Daten: `toImage()`, `toPicture()`
+- HTML: `toImageTag()`, `toPictureTag()`
+
+Hinweis:
+
+- `ResponsiveImage` nutzt intern weiterhin virtuelle Typen über `MediaTypeRegistry::buildVirtualType(...)`.
+- Es werden keine zusätzlichen statischen Media-Manager-Typen angelegt.
+
 ### Preset-Kontrakt
 
 Ein Preset hat folgende Struktur:

@@ -1,5 +1,5 @@
 <?php
-use KLXM\YFormContentBuilder\Config\MediaTypeRegistry;
+use KLXM\YFormContentBuilder\Media\ResponsiveImage;
 
 $headline    = (string) ($elementData['headline'] ?? '');
 $items       = $elementData['items'] ?? [];
@@ -74,51 +74,6 @@ $gridClass  = 'uk-child-width-1-' . $columnsMobile;
 $gridClass .= ' uk-child-width-1-' . $columnsTablet . '@s';
 $gridClass .= ' uk-child-width-1-' . $columns . '@m';
 $gapClass   = $gap === 'collapse' ? '' : 'uk-grid-' . $gap;
-$estimateContainerMaxPx = static function (string $container): int {
-    if (str_contains($container, 'xsmall')) {
-        return 640;
-    }
-    if (str_contains($container, 'small')) {
-        return 900;
-    }
-    if (str_contains($container, 'xlarge')) {
-        return 1600;
-    }
-    if (str_contains($container, 'large')) {
-        return 1400;
-    }
-    if (str_contains($container, 'expand') || $container === '') {
-        return 1920;
-    }
-
-    return 1200;
-};
-$containerMaxPx = $estimateContainerMaxPx($containerWidth);
-$desktopPx = (int) max(220, round($containerMaxPx / max(1, (int) $columns)));
-$tabletVw = (int) max(20, min(100, floor(100 / max(1, (int) $columnsTablet))));
-$mobileVw = (int) max(30, min(100, floor(100 / max(1, (int) $columnsMobile))));
-$mobileArtDirectionActive = $imageRatioMobile !== '' && $imageRatioMobile !== $imageRatio;
-
-/** @return array{src:string,srcset:string} */
-$resolveImage = static function (string $image, string $ratio): array {
-    if ($image === '') {
-        return ['src' => '', 'srcset' => ''];
-    }
-
-    if (!rex_addon::get('media_manager')->isAvailable()) {
-        return ['src' => rex_url::media($image), 'srcset' => ''];
-    }
-
-    $preset = 'starter_cards_' . $ratio;
-    $widths = [400, 800, 1200, 1600];
-    $src = rex_media_manager::getUrl(MediaTypeRegistry::buildVirtualType($preset, 1200), $image);
-    $srcset = [];
-    foreach ($widths as $w) {
-        $srcset[] = rex_media_manager::getUrl(MediaTypeRegistry::buildVirtualType($preset, $w), $image) . ' ' . $w . 'w';
-    }
-
-    return ['src' => $src, 'srcset' => implode(', ', $srcset)];
-};
 ?>
 <?= $wrapper->parse('ycb_elements/wrapper.php') ?>
 <?php if ($headline !== ''): ?><h3><?= rex_escape($headline) ?></h3><?php endif; ?>
@@ -129,33 +84,31 @@ $resolveImage = static function (string $image, string $ratio): array {
         $itemText  = (string) ($item['text'] ?? '');
         $link      = $resolveLink($item);
         $fallback  = $headline !== '' ? $headline . ' ' . ($index + 1) : 'Karte ' . ($index + 1);
-        $imageAlt  = \KLXM\YFormContentBuilder\MediaAltResolver::resolve((string) ($item['image'] ?? ''), '', $itemTitle !== '' ? $itemTitle : $fallback);
-        $imageInfo = $resolveImage((string) ($item['image'] ?? ''), $imageRatio);
-        $imageInfoMobile = $mobileArtDirectionActive
-            ? $resolveImage((string) ($item['image'] ?? ''), $imageRatioMobile)
-            : ['src' => '', 'srcset' => ''];
+        $imageFile = (string) ($item['image'] ?? '');
+        $imageAlt  = \KLXM\YFormContentBuilder\MediaAltResolver::resolve($imageFile, '', $itemTitle !== '' ? $itemTitle : $fallback);
+
+        $imageBuilder = ResponsiveImage::forFile($imageFile)
+            ->withDesktopPreset('starter_cards_' . $imageRatio)
+            ->withWidths([400, 800, 1200, 1600])
+            ->withContainerWidth($containerWidth)
+            ->withColumns((int) $columns, (int) $columnsTablet, (int) $columnsMobile);
+
+        if ($imageRatioMobile !== '' && $imageRatioMobile !== $imageRatio) {
+            $imageBuilder->withMobilePreset('starter_cards_' . $imageRatioMobile);
+        }
+
+        $imageInfo = $imageBuilder->toImage();
+        $imageMarkup = $imageBuilder->toPictureTag([
+            'alt' => $imageAlt,
+            'class' => 'uk-width-1-1',
+            'loading' => 'lazy',
+        ]);
         ?>
         <div>
             <article class="uk-card <?= rex_escape($ukCardClass) ?> uk-card-small uk-height-1-1">
                 <?php if ($imageInfo['src'] !== ''): ?>
                     <div class="uk-card-media-top">
-                        <picture>
-                            <?php if ($mobileArtDirectionActive && $imageInfoMobile['src'] !== ''): ?>
-                                <source
-                                    media="(max-width: 639px)"
-                                    <?= $imageInfoMobile['srcset'] !== '' ? 'srcset="' . rex_escape($imageInfoMobile['srcset']) . '"' : 'srcset="' . rex_escape($imageInfoMobile['src']) . '"' ?>
-                                    sizes="<?= $mobileVw ?>vw"
-                                >
-                            <?php endif; ?>
-                            <img
-                                src="<?= rex_escape($imageInfo['src']) ?>"
-                                <?= $imageInfo['srcset'] !== '' ? 'srcset="' . rex_escape($imageInfo['srcset']) . '"' : '' ?>
-                                sizes="(min-width: 1200px) <?= $desktopPx ?>px, (min-width: 640px) <?= $tabletVw ?>vw, <?= $mobileVw ?>vw"
-                                alt="<?= rex_escape($imageAlt) ?>"
-                                class="uk-width-1-1"
-                                loading="lazy"
-                            >
-                        </picture>
+                        <?= $imageMarkup ?>
                     </div>
                 <?php endif; ?>
                 <div class="uk-card-body">

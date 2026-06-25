@@ -28,6 +28,12 @@ Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 - Alias-Typen wie `content_slideshow` und `yform_content_builder_preview` bleiben als virtuelle Preset-Mappings erhalten.
 
+### 📘 Dokumentation
+
+- Neue Helper-Klasse `KLXM\YFormContentBuilder\Media\ResponsiveImage` in `README.md`, `DEV.md` und `API.md` dokumentiert (inkl. `toImage()`, `toPicture()`, `toImageTag()`, `toPictureTag()`).
+- Schema-Doku (`SCHEMA.md`) um den Template-API-Hinweis ergänzt.
+- Festgehalten, dass keine neuen Element-Config-Keys nötig sind und daher keine Änderung an den JSON-Schema-Dateien erforderlich war.
+
 ## [3.2.0] – 2026-06-23
 
 ### ✨ Neu

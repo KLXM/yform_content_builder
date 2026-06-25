@@ -44,6 +44,7 @@ Slice-based Content Builder für REDAXO YForm und Structure – erstelle flexibl
 - **Preset-Auflösung zur Laufzeit:** `MEDIA_MANAGER_FILTERSET` mappt virtuelle Typen auf die Effektkette.
 - **Effektreihenfolge:** `content_builder` läuft zuerst, optional `negotiator` immer als letzter Effekt.
 - **Cache-Sicherheit bei Negotiation:** Bei aktivem `media_negotiator` ergänzt `MEDIA_MANAGER_INIT` den Cache-Key format-/qualitätsabhängig.
+- **Responsive Image Helper:** `KLXM\YFormContentBuilder\Media\ResponsiveImage` erzeugt zentral `src`, `srcset`, `sizes` sowie optional Art-Direction (`<picture>/<source>`), inklusive Convenience-Renderern für `<img>` und `<picture>`.
 - **focuspoint ist Pflicht**, damit ratio-basierte Zuschnitte konsistent sind.
 
 ### Theme-Provider per Extension Points (EP)
