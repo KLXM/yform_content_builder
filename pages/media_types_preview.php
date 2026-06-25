@@ -9,6 +9,7 @@ $installCsrf = rex_csrf_token::factory('ycb_focuspoint_ratio_types_install');
 
 $mediaManagerAvailable = rex_addon::get('media_manager')->isAvailable();
 $focuspointAvailable = rex_addon::get('focuspoint')->isAvailable();
+$pdfoutAvailable = rex_addon::get('pdfout')->isAvailable();
 
 $presets = MediaTypeRegistry::getPresets();
 ksort($presets, SORT_NATURAL | SORT_FLAG_CASE);
@@ -240,11 +241,20 @@ if ($selectedMedia === '') {
     $content .= rex_view::info(rex_i18n::msg('yform_content_builder_media_types_preview_no_image'));
 } elseif (!$media instanceof rex_media) {
     $content .= rex_view::warning(rex_i18n::msg('yform_content_builder_media_types_preview_invalid_image'));
-} elseif (strpos((string) $media->getType(), 'image/') !== 0) {
-    $content .= rex_view::warning('Die ausgewählte Datei ist kein Bild (MIME: ' . rex_escape((string) $media->getType()) . ').');
 } elseif ($presets === []) {
     $content .= rex_view::info(rex_i18n::msg('yform_content_builder_media_types_preview_no_presets'));
 } else {
+    $mediaMime = strtolower((string) $media->getType());
+    $mediaFilename = strtolower((string) $media->getFileName());
+    $isImage = str_starts_with($mediaMime, 'image/');
+    $isPdf = $mediaMime === 'application/pdf' || rex_file::extension($mediaFilename) === 'pdf';
+
+    if (!$isImage && !$isPdf) {
+        $content .= rex_view::warning('Die ausgewählte Datei ist kein unterstütztes Vorschau-Medium (Bild oder PDF). MIME: ' . rex_escape((string) $media->getType()));
+    } elseif ($isPdf && !$pdfoutAvailable) {
+        $content .= rex_view::warning('PDF wurde gewählt, aber das AddOn pdfout ist nicht verfügbar. Vorschau-Bilder können daher nicht gerendert werden.');
+    }
+
     $originalUrl = rex_url::media($selectedMedia);
     $meta = [];
     $title = trim((string) $media->getTitle());
@@ -307,7 +317,11 @@ if ($selectedMedia === '') {
             $content .= rex_i18n::msg('yform_content_builder_media_types_preview_type') . ': <code>' . rex_escape($virtualType) . '</code>';
             $content .= '</div>';
             $content .= '<div class="ycb-media-type-image-wrap">';
-            $content .= '<img class="ycb-media-type-image" src="' . rex_escape($variantUrl) . '" alt="' . rex_escape($presetName . ' ' . $width) . '" loading="lazy">';
+            if ($isPdf && !$pdfoutAvailable) {
+                $content .= '<div class="text-muted" style="padding:16px;">PDF-Preview erfordert pdfout.</div>';
+            } else {
+                $content .= '<img class="ycb-media-type-image" src="' . rex_escape($variantUrl) . '" alt="' . rex_escape($presetName . ' ' . $width) . '" loading="lazy">';
+            }
             $content .= '</div>';
             $content .= '<div class="ycb-media-type-url"><a href="' . rex_escape($variantUrl) . '" target="_blank" rel="noopener">' . rex_escape($variantUrl) . '</a></div>';
             $content .= '</div>';
